@@ -1,0 +1,56 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}Minimize PDB {% endblock %}
+
+{% block body %} blankme
+  {% include "input_scripts/fix_other_atoms.inp" %} 
+  {% if restraints %} blankme
+    {{restraints}}
+  {% endif %} blankme
+  {% if patch_list %} blankme
+    {% for line in patch_list %} blankme
+       {{line}}
+    {% endfor %} blankme
+  {% endif %} blankme
+  {% include 'input_scripts/solvate_implicity.inp' %}
+  {% ifequal fixnonh 1 %} blankme   
+    cons fix sele .not. hydrogen end
+  {% endifequal %} blankme 
+  {% ifequal fixnonh 2 %} blankme
+    cons fix sele .not. notfix end
+  {% endifequal %} blankme
+  {% include 'input_scripts/use_shake.inp' %}
+  {% if restraints %} blankme
+    {{restraints}}
+  {% endif %} blankme
+  {% if usepbc and not dopbc %} blankme
+    !! NOTICE: you requested minimization with PBC, but that is not valid on spherically solvated systems!
+  {% endif %} blankme
+  {% if dopbc %} blankme
+    {% include 'input_scripts/premade_crystal_img.inp' %}
+    {% include 'input_scripts/zero_charge.inp' %}
+    {% include 'input_scripts/standard_nonbond.inp' %}
+  {% else %}
+    {% include 'input_scripts/nopbc_nonbond.inp' %}
+  {% endif %} blankme
+
+
+  coor copy comp
+
+  {% if useqmmm %} blankme
+     {% include "input_scripts/make_qchem.inp" %}    
+  {% endif %} blankme
+
+  mini SD nstep {{sdsteps}} 
+  mini abnr nstep {{abnr}} nprint 100 tolg {{tolg}}
+  coor rms
+
+  {% include "input_scripts/write_out_struct.inp" %}
+
+  ! save the charge for posterity...
+  scalar charge stat sele all end
+  set totch = ?stot
+  syst "/usr/local/charmming/savechrg.py @TOTCH {{file.location}}{{filebase}}.charge"
+{% endblock %} blankme
+
+

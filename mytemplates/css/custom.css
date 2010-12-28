@@ -1,0 +1,159 @@
+body{
+ line-height:normal;
+}
+
+a:link {color: #0131a8; text-decoration: underline; }
+a:active {color: #0000ff; text-decoration: underline; }
+a:visited {color: #590576; text-decoration: underline; }
+a:hover {color: #FF0F00; text-decoration: none; }
+
+
+div.colwrapper {
+ position: relative;
+ width:500px;
+}
+
+div.col1 {
+ position absolute;
+ left: 0;
+ top: 0;
+ width: 200px;
+}
+
+div.col2 {
+ position absolute;
+ left: 205px;
+ top: 0;
+ width: 200px;
+}
+       
+
+div.frontpage{
+ line-height:normal;
+ font-family:Arial;
+}
+th.status{
+ background-color: #e2e9fe;
+ border: 0px;
+ background: url(/charmming/images/sdmenu/leemenu2/toptitle2.gif) no-repeat;
+}
+table.status{
+ margin: 0;
+ padding: 0;
+ border:0;
+ background-color: #e2e9fe;
+ font-size:small;
+}
+tr.statustop{
+ margin: 0;
+ padding: 0px;
+ border: 0px;
+ background-color: #e2e9fe;
+}
+td.status{
+ padding: 0px;
+ border: 0px;
+ background-color: #FFFFFF;
+}
+tr.status{
+ padding: 0px;
+ border: 0px;
+ background-color: #DDDDDD;
+}
+input.login
+{
+ background: #C0D5DF;
+ border: 1px solid #781351
+}
+td.frontpage
+{
+ padding:0;
+ margin: 0;
+}
+input:focus {
+ border: 2px solid #e2e9fe;/*#FFBC47;*/
+} 
+fieldset.login
+{
+ border: 1px solid #e2e9fe;/*#FFBC47;*/
+ width: 20em
+}
+fieldset.frontpage
+{
+ border: 1px solid #e2e9fe;/*#FFBC47;*/
+ width: 36em;
+ height:3.8em;
+}
+fieldset.custom_sequ
+{
+ border: 2px solid #e2e9fe;/*#FFBC47;*/
+ width: 35em;
+ font-size:small;
+ text-align:left
+}
+legend.custom_sequ
+{
+ /*background: #FFBC47;*/
+ background: #e2e9fe;
+ font-size:small,
+}
+fieldset.structure
+{
+ border: 5px solid #e2e9fe;/*#FFBC47;*/
+ width: 35em
+}
+legend.login
+{
+ /*background: #FFBC47;*/
+ background: #e2e9fe;
+}
+div.centerpageiframe
+{
+ position:fixed;
+ left:30%;
+ top:40%;
+}
+div.centerpage
+{
+ position:fixed;
+ left:35%;
+ top:40%;
+}
+#jmolfooter
+{
+   background-color: #000000;
+   color: #CCCCCC;
+}
+#a.jmolfooter
+#{
+#   color: #CCCCCC;
+#   cursor: hand;
+#}
+
+.fontsmall {
+font-size:small;
+}
+
+.fontmed {
+font-size:medium;
+}
+
+.fontlarge {
+font-size:large;
+}
+
+#mainstatus {
+color: #000000;
+width:  200px;
+margin: auto;
+position: relative;
+font-size: medium;
+font-weight: lighter;
+clear: both;
+border-left: #000000 0px solid;
+border-right: #000000 0px solid;
+border-bottom: #000000 0px solid;
+background: #e2e9fe;
+}
+
+

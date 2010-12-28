@@ -1,0 +1,26 @@
+* post trex merge, 20 files of 1000 frames
+*
+
+bomblev -1
+stream init.str
+
+set k 80
+set u 21
+label part1
+open unit @U file read name 323/mrg.trj.@K
+incr u by 1
+incr k by 80
+if k le 4000 goto part1
+open unit 10 file write name 323/part1.trj
+merge coor first 21 nunit 50 output 10
+set k 4080
+set u 21
+label part2
+open unit @U file read name 323/mrg.trj.@K
+incr u by 1
+incr k by 80
+if k le 8000 goto part2
+open unit 10 file write name 323/part2.trj
+merge coor first 21 nunit 50 output 10
+
+stop

@@ -1,0 +1,42 @@
+* Maltose stream file
+*
+
+! THIS STREAM FILE IS HIGHLY APPLICATION SPECIFIC
+! YOU MUST CHANGE IT FOR YOUR SPECIFIC PROJECT
+! IT MUST READ ALL THE INITIAL SYSTEM SET UP FILES
+! RTF, PARAM; MAKE OR READ PSF; READ COORDS; SETUP CRYSTAL
+
+!bomlev -2
+
+! read topology and parameter files
+
+open unit 1 card read name /v/bigbox4/home/rsingh/replicaexchange/toppar/top_all36_carb.rtf
+read RTF card unit 1
+close unit 1
+
+open unit 1 card read name /v/bigbox4/home/rsingh/replicaexchange/toppar/par_all36_carb.prm
+read PARA card unit 1
+close unit 1
+
+! read the psf and coordinate file
+read psf card name abmaltose-sequ-final-solv.psf
+read coor card name abmaltose-sequ-final-md.crd
+
+energy ctonnb 8.0 ctofnb 12.0 cutnb 16.
+
+set greatervalue = 29.4793
+set secondvalue = 25.8812
+set xtaltype = rhdo
+
+crystal define rhdo @greatervalue @greatervalue @greatervalue 60. 90. 60.
+crystal build noper 0
+image byseg sele segid sequ end
+image byres sele resname tip3 end
+
+energy ctonnb 8. ctofnb 12.0 cutnb 16. cutim 18.0
+
+
+set ewaldval 30
+
+
+return

@@ -1,0 +1,115 @@
+<head>
+<link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+<link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" media="all" />
+<title>CHARMMing Web interface</title>
+</head>
+<body>
+<div id="login-container">
+   <div id="headbkgd"></div>
+
+   <div id="header">
+      <div id="headmenu">
+         <a href="/charmming/html/skeleton/" id="charmming"><i></i></a>
+         <a href="http://www.nih.gov" id="nih2"><i>NIH</i></a>
+         <a href="http://www.hhs.gov" id="hhs2"><i>HHS</i></a>
+         <a href="http://www.hhs.gov" id="hhs"><i>HHS</i></a>
+         <a href="http://www.nih.gov" id="nih"><i>NIH</i></a>
+         <a href="http://www.nhlbi.nih.gov" id="nhlbi"><i>NHLBI</i></a>
+      </div>
+   </div>
+
+
+  {% block content %}
+
+    {% if form.errors %}
+      <p class="error">Sorry, that's not a valid username or password</p>
+    {% endif %}
+    <div width="1024" style="position:relative;left:0%;top:0%;" class="frontpage" >
+    <h2 align="center">CHARMMing (CHARMM INterface and Graphics)</h2>
+    <br /><br />
+    <div style="position:relative; left:15%"> 
+    <fieldset class="frontpage">
+        <legend class="login">Welcome to CHARMMing, please login with your user name and password or register for an account.</legend>
+        <table width="700" cellspacing="2" cellpadding="2" border="0" >
+          <form action='/charmming/loginfrontpage/' method='post'>
+             <tr><td class="frontpage"><label for="username">User name:</label></td>
+             <td class="frontpage"><input class="login" type="text" name="username" id="username" onBlur="javascript:this.value=this.value.toLowerCase();"></td>
+             <td class="frontpage"><label for="password">Password:</label></td>
+             <td class="frontpage"><input class="login" type="password" name="password" value="" id="password"></td>
+             <td class="frontpage"> <input type="submit" value="Login" /></td>
+          </form>
+          <td><a href="/charmming/accounts/register/">Register</a></td></tr>
+          <tr><td></td><td></td><td></td><td><a href="/charmming/accounts/resetpassword/"><font style="font-size:70%">Forgot password?</font></a></td></tr>
+        </table>
+    <input type="hidden" name="next" value="{{ next }}" />
+    </fieldset>
+          {%if login_error %}
+          <li> {{login_error}}</li>
+          {% endif %}
+    </div>
+    </div>
+  {% endblock %}
+
+
+
+  <div style="text-indent: 2.0em;" class="frontpage">
+    <br /><br />
+    <h3 align="center">About this site</h3>
+<p class="intro">
+CHARMMing contains an integrated set of tools for uploading structures, performing simulations, and viewing the results. In order to provide the best possible
+user experience, it incorporates a number of freely available tools such as 
+<!--
+<a href="http://www.chemaxon.com/product/mspace.html">ChemAxon's MarvinSpace</a> and 
+-->
+<a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://jmol.sourceforge.net/">Jmol</a> for visualization and an automatic residue topology
+file (RTF) generator (GENRTF) which generates the necessary information for atoms and residues that are currently not supported by the
+<a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://mackerell.umaryland.edu/CHARMM_ff_params.html">CHARMM force fields.</a>
+
+Below is a partial list of functionality that currently is incorporated into charmming.org:
+
+<ul>
+<li> <p class="introlist"> A <a href="http://www.charmm.org">CHARMM</a> tutorial that has been specifically designed for novice CHARMM users </p>
+<li> <p class="introlist"> PDB/CRD reader and input script generator </p>
+<li> <p class="introlist"> Integrated molecular graphics </p>
+<li> <p class="introlist"> Integrated simulation tools (i.e. minimization, solvation, dynamics) </p>
+<li> <p class="introlist"> Automatic topology generation </p>
+</ul>
+
+   <h3 align="center">New users</h3>
+    <p class="intro">If you are new, you may use the site with a demonstration account: the user is "demo" and password is "drdoom." If you would like your own
+       account, you may register using the above link. </p>
+      <br>
+
+   <h3 align="center">Browser compatibility note</h3>
+   <p class="intro">CHARMMing has been tested with Firefox (version 3 or later) and Google Chrome. If you experience problems with the site, please try one of these
+   browsers. If you still encounter problems, please report them (the e-mail address is given below).</p>
+
+   <h3 align="center">CHARMMing.org is now running version 0.8 of the software!</h3>
+   <h4 align="center">The following are new features of this version</h4>
+   <ul>
+     <li>Cleaned up CHARMM scripts (e.g. nonbond parameters are no longer mixed with dynamics options)</li>
+     <li>Oxidation/reduction calculations on proteins with Iron-Sulphur sites using the CHARMM/APBS interface.</li>
+     <li>Generation of Go and BLN two site models (see O'Brien, EP <i>et al.</i>, Proc. Natl. Acad. Sci. USA, 105(36), 13404-13408 for the Go model and Marrink et al. J. Phys. Chem B., 108, p. 750 for the BLN model).
+                           Note that the implementation of these coarse-grained models is in very early beta testing. <b>You</b> are responsible for validating and verifying any models or results obtained.</li>
+   </ul>
+
+    <p class="intro">CHARMMing is currently in beta testing. Please report bugs to btmiller@helix.nih.gov.</p>
+       <br>
+  </p>
+
+  </div>
+
+  <div id="login-footer">
+    <div class="content">
+      CHARMMing (CHARMM INterface and Graphics)
+    </div>
+    <div id="footmenu">
+       <a href="/charmming/html/skeleton/" id="foothome"><i>CHARMMing</i></a>
+       <a href="http://www.hhs.gov" id="foothhs"><i>HHS</i></a>
+       <a href="http://www.nih.gov" id="footnih"><i>NIH</i></a>
+       <a href="http://www.nhlbi.nih.gov" id="footnhlbi"><i>NHLBI</i></a>
+    </div>
+  </div>
+</div>
+
+</body>

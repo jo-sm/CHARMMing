@@ -1,0 +1,925 @@
+* Residue Topology File for BLN models based on the
+* force field published by Marrink et al., J. Phys. Chem B.
+* Vol 108, p. 750 (2004).
+* =========================================================
+* Created by Tim Miller, NHLBI/NIH, March, 2010
+*
+   27 1
+
+! main atom types
+MASS     1 N0     72.00000 N ! Nonpolar, no hydrogen bonds
+MASS     2 ND     72.00000 N ! Nonpolar, Hydrogen bond donor
+MASS     3 NA     72.00000 N ! Nonpolar, Hydrogen bond acceptor
+MASS     4 NDA    72.00000 N ! Nonpolar, Hydrogen bond donor & acceptor
+MASS     5 P      72.00000 P ! Polar
+MASS     6 C      72.00000 C ! Apolar
+MASS     7 Q0     72.00000 Q ! Charged, no hydrogen bonds
+MASS     8 QD     72.00000 Q ! Charged, Hydrogen bond donor
+MASS     9 QA     72.00000 Q ! Charged, Hydrogen bond acceptor
+MASS    10 QDA    72.00000 Q ! Charged, Hydrogen bond donor & acceptor
+! hybrid atom types
+MASS    11 CND    72.00000 C ! C + Nd, average of apolar and mixed polar-apolar
+MASS    12 CBA    72.00000 C ! C + Nda, average of apolar and mixed polar-apolar
+MASS    13 CQA    72.00000 C ! C + Qa, average of apolar and charged
+! same 13 for helices
+MASS    14 N0H    72.00000 N ! Nonpolar, no hydrogen bonds
+MASS    15 NDH    72.00000 N ! Nonpolar, Hydrogen bond donor
+MASS    16 NAH    72.00000 N ! Nonpolar, Hydrogen bond acceptor
+MASS    17 NDAH   72.00000 N ! Nonpolar, Hydrogen bond donor & acceptor
+MASS    18 PH     72.00000 P ! Polar
+MASS    19 CH     72.00000 C ! Apolar
+MASS    20 Q0H    72.00000 Q ! Charged, no hydrogen bonds
+MASS    21 QDH    72.00000 Q ! Charged, Hydrogen bond donor
+MASS    22 QAH    72.00000 Q ! Charged, Hydrogen bond acceptor
+MASS    23 QDAH   72.00000 Q ! Charged, Hydrogen bond donor & acceptor
+MASS    24 CNDH   72.00000 C ! C + Nd, average of apolar and mixed polar-apolar
+MASS    25 CBAH   72.00000 C ! C + Nda, average of apolar and mixed polar-apolar
+MASS    26 CQAH   72.00000 C ! C + Qa, average of apolar and charged
+! and for sheets
+MASS    27 N0S    72.00000 N ! Nonpolar, no hydrogen bonds
+MASS    28 NDS    72.00000 N ! Nonpolar, Hydrogen bond donor
+MASS    29 NAS    72.00000 N ! Nonpolar, Hydrogen bond acceptor
+MASS    30 NDAS   72.00000 N ! Nonpolar, Hydrogen bond donor & acceptor
+MASS    31 PS     72.00000 P ! Polar
+MASS    32 CS     72.00000 C ! Apolar
+MASS    33 Q0S    72.00000 Q ! Charged, no hydrogen bonds
+MASS    34 QDS    72.00000 Q ! Charged, Hydrogen bond donor
+MASS    35 QAS    72.00000 Q ! Charged, Hydrogen bond acceptor
+MASS    36 QDAS   72.00000 Q ! Charged, Hydrogen bond donor & acceptor
+MASS    37 CNDS   72.00000 C ! C + Nd, average of apolar and mixed polar-apolar
+MASS    38 CBAS   72.00000 C ! C + Nda, average of apolar and mixed polar-apolar
+MASS    39 CQAS   72.00000 C ! C + Qa, average of apolar and charged
+
+! declare that we can bond backbone atoms
+DECL +B
+DECL -B
+DECL #B
+
+! defaults, note there is no auto-generation
+DEFAULT FIRST NONE LAST NONE
+
+! This is the residue for the Glycine red-headed stepchild
+RESI CBO         0.00
+GROUP
+ATOM B    N0     0.00
+BOND B +B
+ANGL -B B +B
+
+RESI HBO         0.00
+GROUP
+ATOM B    N0H    0.00
+BOND B +B
+ANGL -B B +B
+
+RESI SBO         0.00
+GROUP
+ATOM B    N0S    0.00
+BOND B +B
+ANGL -B B +B
+
+RESI CBOD        0.00
+GROUP
+ATOM B    ND     0.00
+BOND B +B
+ANGL -B B +B
+
+RESI HBOD        0.00
+GROUP
+ATOM B    NDH    0.00
+BOND B +B
+ANGL -B B +B
+
+RESI SBOD        0.00
+GROUP
+ATOM B    NDS    0.00
+BOND B +B
+ANGL -B B +B
+
+RESI CBOA        0.00
+GROUP
+ATOM B    NA     0.00
+BOND B +B
+ANGL -B B +B
+
+RESI HBOA        0.00
+GROUP
+ATOM B    NAH    0.00
+BOND B +B
+ANGL -B B +B
+
+RESI SBOA        0.00
+GROUP
+ATOM B    NAS    0.00
+BOND B +B
+ANGL -B B +B
+
+RESI CBOB        0.00
+GROUP
+ATOM B    NDA    0.00
+BOND B +B
+ANGL -B B +B
+
+RESI HBOB        0.00
+GROUP
+ATOM B    NDAH   0.00
+BOND B +B
+ANGL -B B +B
+
+RESI SBOB        0.00
+GROUP
+ATOM B    NDAS   0.00
+BOND B +B
+ANGL -B B +B
+
+
+! These are the five main residue types
+
+! Type 1: BA
+RESI CBA         0.00 ! coil, hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    N0     0.00
+ATOM S    C      0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HBA         0.00 ! helix, hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    N0H    0.00
+ATOM S    CH     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SBA         0.00 ! sheet, hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    N0S    0.00
+ATOM S    CS     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CBAD        0.00 ! hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    ND     0.00
+ATOM S    C      0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HBAD        0.00 ! hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    NDH    0.00
+ATOM S    CH     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SBAD        0.00 ! hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    NDS    0.00
+ATOM S    CS     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CBAA        0.00 ! hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    NA     0.00
+ATOM S    C      0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HBAA        0.00 ! hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    NAH    0.00
+ATOM S    CH     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SBAA        0.00 ! hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    NAS    0.00
+ATOM S    CS     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CBAB        0.00 ! hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    NDA    0.00
+ATOM S    C      0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HBAB        0.00 ! hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    NDAH   0.00
+ATOM S    CH     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SBAB        0.00 ! hydrophobic, apolar, no backbone h-bonds
+GROUP
+ATOM B    NDAS   0.00
+ATOM S    CS     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+! type 2: B0
+RESI CB0         0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    N0     0.00
+ATOM S    N0     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HB0         0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    N0H    0.00
+ATOM S    N0H    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SB0         0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    N0S    0.00
+ATOM S    N0S    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CB0D        0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    ND     0.00
+ATOM S    N0     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HB0D        0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    NDH    0.00
+ATOM S    N0H    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SB0D        0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    NDS    0.00
+ATOM S    N0S    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CB0A        0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    NA     0.00
+ATOM S    N0     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HB0A        0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    NAH    0.00
+ATOM S    N0H    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SB0A        0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    NAS    0.00
+ATOM S    N0S    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CB0B        0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    NDA    0.00
+ATOM S    N0     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HB0B        0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    NDAH   0.00
+ATOM S    N0H    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SB0B        0.00 ! hydrophobic, no h-bonds
+GROUP
+ATOM B    NDAS   0.00
+ATOM S    N0S    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+! Type 3: BB
+RESI CBB         0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    N0     0.00
+ATOM S    NDA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HBB         0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    N0H    0.00
+ATOM S    NDAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SBB         0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    N0S    0.00
+ATOM S    NDAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CBBD        0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    ND     0.00
+ATOM S    NDA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HBBD        0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    NDH    0.00
+ATOM S    NDAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SBBD        0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    NDS    0.00
+ATOM S    NDAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CBBA        0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    NA     0.00
+ATOM S    NDA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HBBA        0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    NAH    0.00
+ATOM S    NDAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SBBA        0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    NAS    0.00
+ATOM S    NDAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CBBB        0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    NDA    0.00
+ATOM S    NDA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HBBB        0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    NDAH   0.00
+ATOM S    NDAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SBBB        0.00 ! hydrophobic, donor & acceptor of h-bonds
+GROUP
+ATOM B    NDAS   0.00
+ATOM S    NDAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+! Type 4: PL
+RESI CPL         0.00 ! polar
+GROUP
+ATOM B    N0     0.00
+ATOM S    P      0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HPL         0.00 ! polar
+GROUP
+ATOM B    N0H    0.00
+ATOM S    PH     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SPL         0.00 ! polar
+GROUP
+ATOM B    N0S    0.00
+ATOM S    PS     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CPLD        0.00 ! polar
+GROUP
+ATOM B    ND     0.00
+ATOM S    P      0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HPLD        0.00 ! polar
+GROUP
+ATOM B    NDH    0.00
+ATOM S    PH     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SPLD        0.00 ! polar
+GROUP
+ATOM B    NDS    0.00
+ATOM S    PS     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CPLA        0.00 ! polar
+GROUP
+ATOM B    NA     0.00
+ATOM S    P      0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HPLA        0.00 ! polar
+GROUP
+ATOM B    NAH    0.00
+ATOM S    PH     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SPLA        0.00 ! polar
+GROUP
+ATOM B    NAS    0.00
+ATOM S    PS     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CPLB        0.00 ! polar
+GROUP
+ATOM B    NDA    0.00
+ATOM S    P      0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HPLB        0.00 ! polar
+GROUP
+ATOM B    NDAH   0.00
+ATOM S    PH     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SPLB        0.00 ! polar
+GROUP
+ATOM B    NDAS   0.00
+ATOM S    PS     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+! Type 5: CA
+RESI CCA         0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    N0     0.00
+ATOM S    QA     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCA         0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    N0H    0.00
+ATOM S    QAH    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCA         0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    N0S    0.00
+ATOM S    QAS    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCAD        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    ND     0.00
+ATOM S    QA     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCAD        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDH    0.00
+ATOM S    QAH    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCAD        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDS    0.00
+ATOM S    QAS    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCAA        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NA     0.00
+ATOM S    QA     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCAA        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NAH    0.00
+ATOM S    QAH    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCAA        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NAS    0.00
+ATOM S    QAS    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCAB        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDA    0.00
+ATOM S    QA     0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCAB        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDAH   0.00
+ATOM S    QAH    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCAB        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDAS   0.00
+ATOM S    QAS    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+! residues containing hybrid atom types
+! begin here -- there are 3 of these
+
+! Type 1: CN
+RESI CCN         0.00 ! C + Nd                
+GROUP
+ATOM B    N0     0.00
+ATOM S    CND    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCN         0.00 ! C + Nd                
+GROUP
+ATOM B    N0H    0.00
+ATOM S    CNDH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCN         0.00 ! C + Nd                
+GROUP
+ATOM B    N0S    0.00
+ATOM S    CNDS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCND        0.00 ! C + Nd                
+GROUP
+ATOM B    ND     0.00
+ATOM S    CND    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCND        0.00 ! C + Nd                
+GROUP
+ATOM B    NDH    0.00
+ATOM S    CNDH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCND        0.00 ! C + Nd                
+GROUP
+ATOM B    NDS    0.00
+ATOM S    CNDS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCNA        0.00 ! C + Nd                
+GROUP
+ATOM B    NA     0.00
+ATOM S    CND    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCNA        0.00 ! C + Nd                
+GROUP
+ATOM B    NAH    0.00
+ATOM S    CNDH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCNA        0.00 ! C + Nd                
+GROUP
+ATOM B    NAS    0.00
+ATOM S    CNDS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCNB        0.00 ! C + Nd                
+GROUP
+ATOM B    NDA    0.00
+ATOM S    CND    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCNB        0.00 ! C + Nd                
+GROUP
+ATOM B    NDAH   0.00
+ATOM S    CNDH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCNB        0.00 ! C + Nd                
+GROUP
+ATOM B    NDAS   0.00
+ATOM S    CNDS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+! Type 2: CB
+RESI CCB         0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    N0     0.00
+ATOM S    CBA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCB         0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    N0H    0.00
+ATOM S    CBAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCB         0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    N0S    0.00
+ATOM S    CBAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCBD        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    ND     0.00
+ATOM S    CBA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCBD        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDH    0.00
+ATOM S    CBAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCBD        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDS    0.00
+ATOM S    CBAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCBA        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NA     0.00
+ATOM S    CBA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCBA        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NAH    0.00
+ATOM S    CBAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCBA        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NAS    0.00
+ATOM S    CBAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCBB        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDA    0.00
+ATOM S    CBA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCBB        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDAH   0.00
+ATOM S    CBAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCBB        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDAS   0.00
+ATOM S    CBAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+! Type 3: CQ
+RESI CCQ         0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    N0     0.00
+ATOM S    CQA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCQ         0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    N0H    0.00
+ATOM S    CQAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCQ         0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    N0S    0.00
+ATOM S    CQAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCQD        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    ND     0.00
+ATOM S    CQA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCQD        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDH    0.00
+ATOM S    CQAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCQD        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDS    0.00
+ATOM S    CQAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCQA        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NA     0.00
+ATOM S    CQA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCQA        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NAH    0.00
+ATOM S    CQAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCQA        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NAS    0.00
+ATOM S    CQAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI CCQB        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDA    0.00
+ATOM S    CQA    0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI HCQB        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDAH   0.00
+ATOM S    CQAH   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+RESI SCQB        0.00 ! charged, h-bond acceptor
+GROUP
+ATOM B    NDAS   0.00
+ATOM S    CQAS   0.00
+BOND B S B +B
+ANGL -B B +B -B B S S B +B
+
+! Water type
+RESI BLNW        0.00
+GROUP
+ATOM P    P      0.00
+
+! Alkanes -- note that some of these will need
+! to have their masses adjusted.
+RESI BBUT        0.00
+GROUP
+ATOM C    C      0.00
+
+RESI BHEX        0.00
+GROUP
+ATOM C1   C      0.00
+ATOM C2   C      0.00
+BOND C1 C2
+
+RESI BOCT        0.00
+GROUP
+ATOM C1   C      0.00
+ATOM C2   C      0.00
+BOND C1 C2
+
+RESI BDEC        0.00
+GROUP
+ATOM C1   C      0.00
+ATOM C2   C      0.00
+ATOM C3   C      0.00
+BOND C1 C2 C2 C3
+ANGL C1 C2 C3
+
+RESI BDOD        0.00
+GROUP
+ATOM C1   C      0.00
+ATOM C2   C      0.00
+ATOM C3   C      0.00
+BOND C1 C2 C2 C3
+ANGL C1 C2 C3
+
+RESI BTET        0.00
+GROUP
+ATOM C1   C      0.00
+GROUP
+ATOM C2   C      0.00
+GROUP
+ATOM C3   C      0.00
+GROUP
+ATOM C4   C      0.00
+BOND C1 C2 C2 C3 C3 C4
+ANGL C1 C2 C3 C2 C3 C4
+
+RESI BHXD        0.00
+GROUP
+ATOM C1   C      0.00
+GROUP
+ATOM C2   C      0.00
+GROUP
+ATOM C3   C      0.00
+GROUP
+ATOM C4   C      0.00
+BOND C1 C2 C2 C3 C3 C4
+ANGL C1 C2 C3 C2 C3 C4
+
+RESI BOCD        0.00
+GROUP
+ATOM C1   C      0.00
+GROUP
+ATOM C2   C      0.00
+GROUP
+ATOM C3   C      0.00
+GROUP
+ATOM C4   C      0.00
+GROUP
+ATOM C5   C      0.00
+BOND C1 C2 C2 C3 C3 C4
+BOND C4 C5
+ANGL C1 C2 C3 C2 C3 C4
+ANGL C3 C4 C5
+
+RESI BEIC        0.00
+GROUP
+ATOM C1   C      0.00
+GROUP
+ATOM C2   C      0.00
+GROUP
+ATOM C3   C      0.00
+GROUP
+ATOM C4   C      0.00
+GROUP
+ATOM C5   C      0.00
+BOND C1 C2 C2 C3 C3 C4
+BOND C4 C5
+ANGL C1 C2 C3 C2 C3 C4
+ANGL C3 C4 C5
+
+! Ionic salts
+
+RESI BNA         0.70
+GROUP
+ATOM Q    Qda    0.70
+
+RESI BCL        -0.70
+GROUP
+ATOM Q    Qda   -0.70
+
+END

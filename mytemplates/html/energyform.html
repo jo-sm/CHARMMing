@@ -1,0 +1,321 @@
+<head>
+<script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+<script type="text/javascript">
+</script>
+</head>
+
+<div>
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+  <br />
+  <br />
+  <br />
+  <h1 align="center">Energy</h1>
+  <div id='change_ener'>
+    <div id="script_dothis" style="display:none;">
+       makeUniqueDiv('ener_form');
+       makeUniqueDiv('usepatch');
+       makeUniqueDiv('patch_area');
+       makeUniqueDiv('num_patches');
+       makeUniqueDiv('solvate_implicitly');
+       makeUniqueDiv('hetatm_deter');
+       refreshToolTips();
+       {% if disulfide_list %}
+       geneDisulfideLines([{% for item in disulfide_list %}'{{item.0}}','{{item.1}}','{{item.2}}','{{item.3}}',{% endfor %}],'{% for item in seg_list %}{{item}} {% endfor %}');
+       {% endif %}
+    </div>
+  {% if energy_lines %}
+  <hr noshade width="80%" size=3%>
+<div style="font: 12px, Courier, fixed;position:relative;left:20%;top:00px;">
+ <h3> Previously Calculated Energy </h3>
+<pre>
+{% autoescape off %}
+{{energy_lines}}
+{% endautoescape %}
+</pre>
+</div> 
+  {% endif %}
+  <hr noshade width="80%" size=3%>
+  <h2 align="center">Select Structure</h3>
+  <br />
+
+
+    <center>
+       <form id="ener_form" method="post"  action="." onsubmit="return send_form_energy(this,makeUniqueDiv('change_ener'),[{%for item in filename_list%}'{{item}}',{% endfor%}]);">
+       <table>
+        {% for item in filename_list %}
+          {% for pdb in het_list %}
+            {% ifequal item pdb %}
+              <tr><td>Non CHARMM-Compliant Heteroatoms</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);hetatmDeter(makeUniqueDiv('hetatm_deter'),[{%for item in het_list%} '{{item}}',{% endfor %}]);"/> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+ 
+          {% for pdb in tip_list %}
+            {% ifequal item pdb %}
+              <tr><td>CHARMM-Compliant Heteroatoms</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);"/> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+ 
+          {% for pdb in protein_list %}
+            {% ifequal item pdb %}
+              <tr><td>Protein Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+          {% for pdb in nucleic_list %}
+            {% ifequal item pdb %}
+              <tr><td>Nucleic Acid Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+          {% for pdb in go_list %}
+            {% ifequal item pdb %}
+              <tr><td>Protein segment transformed to Go model</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+          {% for pdb in bln_list %}
+            {% ifequal item pdb %}
+              <tr><td>Protein segment transformed to BLN model</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+          {% for pdb in userup_list %}
+            {% ifequal item pdb %}
+              <tr><td>User-uploaded Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+        {% endfor %}
+
+        {% for item in filename_list %}
+          {% ifequal item solv_pdb %}
+            <tr><td>Solvated PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name='solv_or_min' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('ener_remove_patch'),false);"/> </td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% endifequal %}
+ 
+          {% ifequal item neu_pdb %}
+            <tr><td>Neutralized and Solvated PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name='solv_or_min' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('ener_remove_patch'),false);"/> </td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% endifequal %}
+
+          {% ifequal item min_pdb %}
+            <tr><td>Already minimized protein</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv_or_min' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('ener_remove_patch'),false);"/> </td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% else %}
+            {% ifequal item md_pdb %}
+              <tr><td>MD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv_or_min' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('ener_remove_patch'),false);"/> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% else %}
+              {% ifequal item ld_pdb %}
+                <tr><td>LD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv_or_min' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('ener_remove_patch'),false);"/> </td></tr>
+                <tr><td colspan=3><hr width="100%"></td></tr>
+              {% else %}
+                {% ifequal item sgld_pdb %}
+                  <tr><td>SGLD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv_or_min' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('ener_remove_patch'),false);"/> </td></tr>
+                  <tr><td colspan=3><hr width="100%"></td></tr>
+                {% endifequal %}
+              {% endifequal %}
+            {% endifequal %}
+          {% endifequal %}
+
+        {% endfor %}
+
+       </table>
+<center>
+<div id='hetatm_deter' style="display:none">
+ <hr noshade width="80%" size="3%">
+ <h2 align="center">HETATM parameter determination</h2>
+       <table>
+          <tr>
+            <td>GENRTF </td><td><input type="radio" name="parmgen" value="genrtf" checked></td><td><a href="." title="More CHARMM centric with generic parameters">?</a></td>
+          </tr>
+          <tr>
+            <td>Antechamber </td><td><input type="radio" name="parmgen" value="antechamber"></td><td><a href="." title="More AMBER centric but arguably better parameters">?</a></td>
+          </tr>
+          <tr>
+            <td>Determine coordinates for HETATM hydrogen based on valence rules</td><td><input type="checkbox" name="addhyd" value="addhyd"></td>
+          </tr>
+       </table>
+
+</div>
+</center>
+		       
+       <hr noshade width="80%" size=3%>
+       <table>
+         <tr><td><p class="fonrmed">Use QM/MM calculations</td><td><input id="useqmmm" type="checkbox" name="useqmmm" onclick="checkPatch(makeUniqueDiv('useqmmm'),makeUniqueDiv('qmmm_parameters'));removePBC('usepbc',this);"></td></tr>
+       <div id="qmmm_parameters" style="display:none;">
+           <hr width="70%">
+       Exchange: <select style="position:absolute;left:250px" size="1" name="qmmm_exchange">
+          <option value="HF" selected>HF</option>
+          <option value="B">B</option>
+          <option value="B3">B3</option>
+        </select><br>
+       Charge: <select size="1" name="qmmm_charge" style="position:absolute;left:250px" >
+          <option value="-5"> -5 </option>
+          <option value="-4"> -4 </option>
+          <option value="-3"> -3 </option>
+          <option value="-2"> -2 </option>
+          <option value="-1"> -1 </option>
+          <option value="0" selected> 0 </option>
+          <option value="+1"> +1 </option>
+          <option value="+2"> +2 </option>
+          <option value="+3"> +3 </option>
+          <option value="+4"> +4 </option>
+          <option value="+5"> +5 </option>
+        </select><br>
+       Correlation: <select size="1" name="qmmm_correlation" style="position:absolute;left:250px" >
+          <option value="None" selected>None</option>
+          <option value="LYP">LYP</option>
+        </select><br>
+       Basis Set: <select size="1" name="qmmm_basisset" style="position:absolute;left:250px" >
+          <option value="STO-3G" selected>STO-3G</option>
+          <option value="3-21G*">3-21G*</option>
+          <option value="6-31G*">6-31G*</option>
+        </select><br>
+  Multiplicity: <select size="1" name="qmmm_multiplicity" style="position:absolute;left:250px" >
+          <option value="1" selected>1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select><br>
+        Define QM region: define qmregion sele <input type="text" id="qmsele" name="qmsele"> end<br>
+        <p class="fontmed">Enter number of link atoms (entering 0 causes CHARMMing to automatically determine link atoms): 
+           <input type="text" name="num_linkatoms" id="num_linkatoms" value="0" size="4"n onKeyUp="writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_linkatoms'),makeUniqueDiv('linkatom_lines'));">
+           <div id="linkatom_lines"></p>
+           </div>
+         </div>
+	 <tr><td><p class="fonrmed">Use Periodic Boundary Conditions (PBC)</td><td><input id="usepbc" type="checkbox" name="usepbc"></td></tr>
+
+  <tr><td width="566px"><p class="fontmed">Use shake</p></td><td><input type="checkbox" id="use_shake" name
+="apply_shake" onclick="checkShake(makeUniqueDiv('use_shake'),makeUniqueDiv('apply_shake'));" checked></td>
+</tr>
+      <div id="apply_shake" class="fontmed" style="display:block">
+<!-- Use custom shake if the user applies their own topology/parameter-->
+       {% if docustshake %}
+       Use CHARMM Defaults for Shake: <input type="radio"  id='which_shake' value="use_default_shake" name='which_shake' onclick="checkShake(makeUniqueDiv('use_custom_shake'),false);"><br>
+        {% else %}
+       Use CHARMM Defaults for Shake: <input type="radio" id='which_shake' value="use_default_shake" name='which_shake' onclick="showCustomShake(makeUniqueDiv('custom_shake'),false);" checked><br>
+{% endif %}
+       Define my own shake selection: <input type="radio" id="which_shake" name="which_shake" value="define_shake" onclick="showCustomShake(makeUniqueDiv('custom_shake'),true);" {% if docustshake %} checked {% endif %}>
+       <br>
+       {% if docustshake %}
+       <div id="custom_shake" style="display:block">
+        {% else %}
+       <div id="custom_shake" style="display:none">
+{% endif %}
+        shake bonh param sele <input type="text" name="shake_line" value="all"> end
+       </div>
+      </div>
+
+         <tr><td><p class="fontmed">Solvate implicitly with SCPISM</td><td><input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></td></tr>
+         <tr><td><p class="fontmed">Apply patch</td><td><input id="usepatch" type="checkbox" name="usepatch" onclick="checkPatch(makeUniqueDiv('usepatch'),makeUniqueDiv('patch_area'));"></td></tr>
+      </table>
+
+       <div id='ener_remove_patch' style="display:block">
+
+         <div id=patch_area style="display:none"></p>
+           <hr width="70%">
+           <table width="720px" align="center">
+           {% for item in propatch_list %}
+             <p class="fontmed">
+             Segid:<font color="red">{{item.0}} </font>
+             First Patch:
+             <select size="1" name="first_patch{{item.0}}">
+               {% ifequal item.1 "nter" %}
+                 <option value="NTER" selected>NTER</option>
+               {% else %}
+                 <option value="NTER">NTER</option>
+               {% endifequal %}
+               {% ifequal item.1 "glyp" %}
+                 <option value="GLYP" selected>GLYP</option>
+               {% else %}
+                 <option value="GLYP">GLYP</option>
+               {% endifequal %}
+               {% ifequal item.1 "prop" %}
+                 <option value="PROP" selected>PROP</option>
+               {% else %}
+                 <option value="PROP">PROP</option>
+               {% endifequal %}
+               <option value="ACE">ACE</option>
+               <option value="ACP">ACP</option>
+               <option value="NONE">NONE</option>
+             </select>
+
+             Last Patch:
+             <select size="1" name="last_patch{{item.0}}">
+               <option value="CTER" selected>CTER</option>
+               <option value="CT1">CT1</option>
+               <option value="CT2">CT2</option>
+               <option value="CT3">CT3</option>
+               <option value="ACP">ACP</option>
+               <option value="NONE">NONE</option>
+             </select>
+             </p>
+           {% endfor %}
+
+           {% for item in nucpatch_list %}
+             <p class="fontmed">
+             Segid:<font color="red">{{item.0}} </font>
+             First Patch:
+             <select size="1" name="first_patch{{item.0}}">
+               <option value="5TER" selected>5TER</option>
+               <option value="5MET">5MET</option>
+               <option value="5PHO">5PHO</option>
+               <option value="5POM">5POM</option>
+               <option value="CY35">CY35</option>
+             </select>
+
+             Last Patch:
+             <select size="1" name="last_patch{{item.0}}">
+               <option value="3TER" selected>3TER</option>
+               <option value="3PHO">3PHO</option>
+               <option value="3POM">3POM</option>
+               <option value="3CO3">3CO3</option>
+               <option value="CY35">CY35</option>
+             </select>
+           {% endfor %}
+
+           </table>
+           <p class="fontmed">Enter number of disulfide patches: <input type="text" name="num_patches" id="num_patches" value="0" size="4"n onKeyUp="writeDisuLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_patches'),makeUniqueDiv('disulfide_solv'));">
+           </p>
+
+           <div id="disulfide_solv">
+           </div>
+         </div>
+       </div>
+       <hr noshade width="80%" size=3%>
+       <br>
+   <br />
+       <br />
+       {% if trusted %}
+        TRUSTED USER: Edit these scripts: <input type="checkbox" id="edit_script" name="edit_script"><br><br>
+       {% endif %}
+
+
+       <input type="submit" value="Calculate Energy"/>
+       <br>
+       <br>
+
+       </form>
+    </center>
+  </div>
+</div>
+

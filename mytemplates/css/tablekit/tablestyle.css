@@ -1,0 +1,137 @@
+div.status body {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 76%;
+}
+
+div.status pre {
+	padding: 1em;
+	background-color: #F2F2F2;
+}
+div.status code {
+	font-size: 1.2em;
+	background-color: #F2F2F2;
+}
+
+div.status #content {
+	margin: 3em;
+}
+
+div.status #content p {
+	width: 45em;
+}
+div.status #mainmenu {
+	margin: 1em 0 0 0;
+}
+div.status .panel {
+	clear: both;
+	display: none;
+	border: 3px solid #00adef;
+	padding: 1em;
+	background-color: #FFF;
+	margin: 0;
+}
+div.status .panel.active-tab-body {
+	display: block;
+}
+div.status #tabs {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+div.status #tabs li {
+	position: relative;
+	float: left;
+}
+div.status #tabs a {
+	float: left;
+	padding: 5px 8px;
+	margin-right: 6px;
+	border: 1px solid #00adef;
+	border-width: 1px 1px 0 1px;
+	text-decoration: none;
+	color: #000;
+}
+div.status #tabs a:hover {
+	background-color: #8dd8f8;
+	color: #FFF;
+}
+div.status #tabs a.active-tab {
+	background-color: #00adef;
+	color: #FFF;
+}
+div.status table {
+	border-collapse: collapse;
+}
+
+div.status td, th {
+	padding: 0.5em;
+	border: 0px solid #DDD;
+   border-top: 1px solid #DDD;
+   border-bottom: 1px solid #DDD;
+}
+
+div.status thead, tfoot {
+	background-color: #DDD;
+}
+
+div.status tr.rowodd {
+	background-color: #FFF;
+}
+
+div.status tr.roweven {
+	background-color: #F2F2F2;
+}
+
+div.status .sortcol {
+	cursor: pointer;
+	padding-right: 20px;
+	background-repeat: no-repeat;
+	background-position: right center;
+}
+div.status .sortasc {
+	background-color: #DDFFAC;
+	background-image: url(up.gif);
+}
+div.status .sortdesc {
+	background-color: #B9DDFF;
+	background-image: url(down.gif);
+}
+div.status .nosort {
+	cursor: default;
+}
+
+div.status .urg1, .urg2, .urg3, .urg4, .urg5 {
+	padding: 3px;
+	text-align: center;
+	border: 1px solid #333;
+	width: 3em;
+}
+
+div.status .urg1 {
+	background-color: #FFFACD;
+}
+div.status .urg2 {
+	background-color: #FFD700;
+}
+div.status .urg3 {
+	background-color: #FFA500;
+}
+div.status .urg4 {
+	background-color: #E13E00;
+}
+div.status .urg5 {
+	background-color: Red;
+}
+
+div.status th.resize-handle-active {
+	cursor: e-resize;
+}
+
+div.status div.resize-handle {
+	cursor: e-resize;
+	width: 2px;
+	border-right: 1px dashed #1E90FF;
+	position:absolute;
+	top:0;
+	left:0;
+}

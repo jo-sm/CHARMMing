@@ -1,0 +1,70 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}(1) oxidize or reduce the 4FSR residue (2) make the final dielectric grids{% endblock %}
+
+{% block body %} blankme
+
+! modify reduced to oxidized or superreduced
+{% for segment in redox_segs %}
+  {% for site in sitestochange %} blankme
+    {% ifnotequal site.newres "4FSR" %}
+      rename resname {{ site.newres }} select segid 4FSR .and. resid {{ site.sitenum }} end
+      ! change atom types
+      scalar type set {{ site.FEAR }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type FE1 end
+      scalar type set {{ site.FEAR }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type FE2 end
+      scalar type set {{ site.FEBR }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type FE3 end
+      scalar type set {{ site.FEBR }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type FE4 end
+      scalar type set {{ site.SAR }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type S1 end
+      scalar type set {{ site.SAR }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type S2 end
+      scalar type set {{ site.SBR }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type S3 end
+      scalar type set {{ site.SBR }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type S4 end
+      scalar type set {{ site.SR }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type SG1 end
+      ! change atom charges
+      scalar charge set {{ site.CFE1 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type FE1 end
+      scalar charge set {{ site.CFE2 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type FE2 end
+      scalar charge set {{ site.CFE3 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type FE3 end
+      scalar charge set {{ site.CFE4 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type FE4 end
+      scalar charge set {{ site.CS1 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type S1 end
+      scalar charge set {{ site.CS2 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type S2 end
+      scalar charge set {{ site.CS3 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type S3 end
+      scalar charge set {{ site.CS4 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type S4 end
+      scalar charge set {{ site.CSG1 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type SG1 end
+      scalar charge set {{ site.CSG2 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type SG2 end
+      scalar charge set {{ site.CSG3 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type SG3 end
+      scalar charge set {{ site.CSG4 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type SG4 end
+      scalar charge set {{ site.CCB1 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type CB1 end
+      scalar charge set {{ site.CCB2 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type CB2 end
+      scalar charge set {{ site.CCB3 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type CB3 end
+      scalar charge set {{ site.CCB4 }} select segid 4FSR .and. resid {{ site.sitenum }} .and. type CB4 end
+    {% endifnotequal %}
+  {% endfor %}
+{% endfor %} blankme
+
+write psf card name modified_{{ filebase }}-final.psf
+* file after making modifications
+*
+
+write coor card name modified_{{ filebase }}-final.crd
+* file after making modifications
+*
+
+! now delete the protein and just get the cluster
+delete atom select .not. segid 4FSR end
+write psf card name modified_{{ filebase }}-reference.psf
+* file after making modifications
+*
+
+write coor card name modified_{{ filebase }}-reference.crd
+* file after making modifications
+*
+
+! as a last step, invoke dxmath to make the final grids
+{% for inp in dxmath_inp %} blankme
+   system "{{ dxmath }} {{ inp }}"
+{% endfor %} blankme
+
+stop
+
+{% endblock %} blankme
+
+

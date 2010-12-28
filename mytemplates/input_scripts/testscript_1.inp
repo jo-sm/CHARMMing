@@ -1,0 +1,16 @@
+! Read PSF from file
+open unit 1 form read name new_{{filename}}-{{first_seg}}-final.psf
+read psf card unit 1
+close unit 1
+{% for item in remain_seg_list %}
+    {% if forloop.first %} 
+open unit 1 form read name new_{{filename}}-{{item}}-final.psf
+read psf card append unit 1
+close unit 1
+    {% endif %} 
+{%endfor%}
+{{mylist}}
+{% for item in mylist %}
+START{{item}}
+{%endfor%}
+

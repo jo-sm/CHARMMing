@@ -1,0 +1,76 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}Append the PDBs{% endblock %}
+{% block read_struct %} blankme
+{% for item in min_seg_list %}  blankme      
+  {% if forloop.first %}  blankme
+
+    ! Read PSF from file
+    open unit 1 form read name new_{{filebase}}-{{item}}-final.psf
+    read psf card unit 1
+    close unit 1    
+  {% else %}  blankme
+    open unit 1 form read name new_{{filebase}}-{{item}}-final.psf
+    read psf card append unit 1
+    close unit 1        
+  {% endif %}  blankme
+{% endfor %}  blankme
+{% if min_seg_0 %}  blankme
+
+  ! Read protein coord from the  coordinate file
+  open unit 1 card read name new_{{filebase}}-{{min_seg_0}}-final.crd
+  read coor card unit 1 resid sele segid {{min_seg_0}} end
+  close unit 1         
+{% endif %}  blankme
+{% for dict in het_list %} blankme
+  open unit 1 card read name new_{{filebase}}-{{dict.seg}}-final.crd        
+  {% if dict.good %} blankme
+    read coor ignore unit 1 resid sele segid {{dict.good}} .and. ( resn TIP3 .or. resn ZN2 .or. resn SOD .or. resn MG .or. resn CAL .or. resn POT .or. resn CLA .or. resn CES ) end 
+    close unit 1    
+  {% else %} blankme   
+    {% if dict.bad %} blankme
+      read coor ignore unit 1 resid sele segid {{dict.bad}} end
+      close unit 1    
+    {% else %} blankme    
+      {% if dict.other %} blankme
+        read coor card unit 1 resid sele segid {{dict.other}} end
+        close unit 1    
+      {% endif %} blankme
+    {% endif %} blankme
+  {% endif %} blankme
+{% endfor %} blankme
+{% endblock %} blankme
+
+{% block body %} blankme
+  {% if patch_name %} blankme
+
+    ! Handle disulfide patching!    
+      {% for item in patch_list %} blankme
+        {{item}}    
+      {% endfor %} blankme
+  {% endif %} blankme
+{% if dohbuild %} blankme    
+  {% if min_het_list %} blankme
+
+    ! redo hydrogen coordinates for all atoms but those in the hetatm list
+    coor init sele hydrogen .and. .not. segid {{min_het_0}} end
+    hbuild    
+  {% else %} blankme
+    ! redo hydrogen coordinates for the complete structure
+    coor init sele hydrogen end
+    hbuild    
+  {% endif %} blankme
+{% endif %} blankme
+
+{% if blncharge %} blankme
+  stream charges.str
+{% endif %} blankme
+
+! calculate energy
+energy
+
+{# include "input_scripts/write_out_append_or_energy.inp" #}
+{% include "input_scripts/write_out_struct.inp" %}
+
+{% endblock %} blankme
+

@@ -1,0 +1,64 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}Make a grid using APBS{% endblock %}
+
+{% block body %} blankme
+
+! zero out and reset WMAIN array
+scalar wmain set 0
+stream {{ data_home }}/apbs_radii.str
+
+! get grid dimensions, assuming a 0.4 A grid spacing
+{% if sizegrid %}
+coor stat
+calc xlen = ?xmax - ?xmin
+calc ylen = ?ymax - ?ymin
+calc zlen = ?zmax - ?zmin
+if @xlen .ge. @ylen then set maxdist = @xlen
+if @ylen .gt. @zlen then set maxdist = @ylen
+if @zlen .gt. @maxdist then set maxdist = @zlen
+
+! add a 20A buffer to the grid size
+calc maxdist = @maxdist + 20
+
+! denominator is 0.4 * 32
+calc n = int( @maxdist / 12.8 )
+calc grddim = ( @n * 32 ) + 1
+
+open unit 50 write card name {{ filebase }}-griddim.str
+write title unit 50
+** grid dimensions
+**
+*
+
+write title unit 50
+* set grddim = @grddim
+* return
+*
+close unit 50
+{% else %}
+stream {{ filebase }}-griddim.str
+{% endif %}
+
+pbeq
+
+APBS mgmanual lpbe dimx @grddim dimy @grddim dimz @grddim -
+  grdx 0.4 grdy 0.4 grdz 0.4 -
+  cglx 64 cgly 64 cglz 64 -
+  cmet 0 cntx 0.0 cnty 0.0 cntz 0.0 -
+  bcfl 2 pdie {{ pdie }} sdie {{ sdie }} srfm 1 chgm 1 -
+  sdens 10 srad {{ srad }} swin 0.3 temp 289.15 -
+  calcene 1 -
+  wdiel - ! NEED A NAME???
+  sele all END
+
+  set red_energy = ?enpb
+END
+
+system "mv iapbs-dielx.dx {{ grid_name }}.x"
+system "mv iapbs-diely.dx {{ grid_name }}.y"
+system "mv iapbs-dielz.dx {{ grid_name }}.z"
+
+{% endblock %} blankme
+
+

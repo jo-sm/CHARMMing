@@ -1,0 +1,121 @@
+{% autoescape off %}
+<center>
+<h1>Lesson 3{% ifequal lesson3.curStep 4 %}: <font color="red">Completed</font> {% endifequal %}</h1>
+</center>
+
+<p class="intro">
+  <font color="red">Lesson Objectives</font><br />
+  <ul>
+    <li> Demonstrate how CHARMM can be used with protein folding </li>
+    <li> Teach the user how to create their own custom sequence </li>
+    <li> Teach the practical use of Langevin Dynamics in regards to protein folding</li>
+  </ul>
+</p>
+<br />
+
+<p class="intro">One of the most important problems in contemporary biochemistry is a relating a protein's structure to its function. All proteins are composed
+  of a sequence of amino acids, which is called the <i>primary structure</i> of the protein. A <i>secondary structure</i> is imposed by hydrogen bonding; secondary
+  structural elements include alpha-helices and beta-sheets. Additionally, a protein can fold up into different shapes, which are called the <i>tertiary structure</i>.
+  The nature of the tertiary structure can have a dramatic effect on a protein's ability to perform various functions, therefore determining how proteins fold is
+  an important part of relating structure to function.</p>
+<br />
+
+<p class="intro">This lesson will initially have you upload the primary structure of a very small protein (1YJP) and will then use dynamics to induce folding. One
+  good method for doing this is to use Self-Guided Langevin Dynamics (SGLD). Langevin Dynamics (LD) is very similar to the Molecular Dynamics method used in lessons 
+  one and two. The primary difference is that a frictional force (drag) and random forces are added to Newton's equation. The net sum of the random forces is
+  guaranteed to be zero. (Say something about temperature coupling here). SGLD adds a self-guiding force to LD which induces more rapid conformational changes 
+  making it useful for studying protein folding.</p>
+<br />
+
+<p class="intro">To begin this lesson, download 1YJP from PDB.org, figure out the sequence, and simply type it into the custom sequence box on the <b>Submit Structure</b> 
+  page, excluding any waters. Once you have done so come back here and you should see a completion message below if done correctly.</p>
+<br />
+
+{% if lesson3 %}
+  {% ifequal html_step_list.0 1 %}
+    <p class="intro"><font color="red"> Step 1: Upload Done </font></p>
+    <br />
+
+    <p class="intro">Congratulations! You successfully input your own amino acid sequence!</p>
+    <br />
+
+    <p class="intro">Because you will be doing self-guided Langevin dynamics (SGLD) in this lesson, there is no need to solvate the structure. Instead, proceed directly to
+      minimization. Set the number of SD steps and ABNR steps to 1000 each, and set the gradient tolerance (tolg) to 0.01. Since the structure is unsolvated,
+      you should not use Periodic Boundary Conditions, so make sure that the PBC box remains unchecked. All of the other options can be left at their default
+      values.
+    </p>
+  {% endifequal %}
+
+  {% ifequal html_step_list.1 2 %}
+    <br />
+    <p class="intro"><font color="red"> Step 2: Minimization Running </font></p>
+    <br />
+
+    <p class="intro">The next step is to run Self Guided Langevin Dynamics (SGLD). SGLD, like regular Langevin Dynamics, will run dynamics with a frictional force applied as
+      well as with temperature coupling. To set up the job, go to the <b>Langevin Dynamics</b> page and select the minimized structure and the &quot;Use SGLD&quot; check box.
+      The collision frequency is set with the FBETA parameter (this simulates the solvent effect, which is why this lesson leaves the structure unsolvated). We
+      will set a low FBETA (set it to 5) to try to retard motion as little as possible. This is also why we are using SGLD; SGLD adds a guiding force to standard Langevin
+      Dynamics which means more conformations should be sampled in a given interval.</p>
+    <br />
+
+    <p class="intro">Please don't actually start the SGLD until the minimization completes.</p>
+    </p>
+  {% endifequal %}
+
+  {% ifequal html_step_list.1 1 %}
+    <br />
+    <p class="intro"><font color="red"> Step 2: Minimization Done </font></p>
+    <br />
+
+    <p class="intro">The next step is to run Self Guided Langevin Dynamics (SGLD). SGLD, like regular Langevin Dynamics, will run dynamics with a frictional force applied as 
+      well as with temperature coupling. To set up the job, go to the <b>Langevin Dynamics</b> page and select the minimized structure and the &quot;Use SGLD&quot; check box.
+      The collision frequency is set with the FBETA parameter (this simulates the solvent effect, which is why this lesson leaves the structure unsolvated). We
+      will set a low FBETA (set it to 5) to try to retard motion as little as possible. This is also why we are using SGLD; SGLD adds a guiding force to standard Langevin
+      Dynamics which means more conformations should be sampled in a given interval.</p>
+    <br />
+
+  {% endifequal %}
+
+  {% ifequal html_step_list.2 2 %}
+    <br />
+    <p class="intro"><font color="red"> Step 3: SGLD Running </font></p>
+    <br />
+
+    <p class="intro">While SGLD is running, you can read about the next and final step of this lesson.</p>
+
+    <p class="intro">One of the standard ways of comparing two conformations of a protein is to examine their root mean square deviation (RMSD), which is given by the
+      square root of the sum of the squared distances between the individual atoms divided by the number of atoms. CHARMMing has a tool to perform RMSD calculations.
+      Go to the <b>RMSD</b> page under the Analysis submenu, selected the appended PDB, the minimized PDB, and the final SGLD PDB. Observe the RMSDs between these three
+      structures.</p>
+  {% endifequal %}
+
+  {% ifequal html_step_list.2 1 %}
+    <br />
+    <p class="intro"><font color="red"> Step 3: SGLD Done </font></p>
+    <br />
+
+    <p class="intro">One of the standard ways of comparing two conformations of a protein is to examine their root mean square deviation (RMSD), which is given by the
+      square root of the sum of the squared distances between the individual atoms divided by the number of atoms. CHARMMing has a tool to perform RMSD calculations.
+      Go to the <b>RMSD</b> page under the Analysis submenu, selected the appended PDB, the minimized PDB, and the final SGLD PDB. Observe the RMSDs between these three
+      structures. Note: your input to this step is not evaluated, so as soon as you submit the RMSD request the lesson will finish.</p>
+
+  {% endifequal %}
+
+  {% ifequal html_step_list.3 1 %}
+    <br />
+    <p class="intro"><font color="red">Step 4: Comparison Done</font></p>
+    <br />
+
+    <p class="intro">You have now finished this lesson on protein folding with Langevin dynamics. For extra credit, download the PDB file of the final structure (the -sgld.pdb
+      file) and visualize them with the original 1YJP protein. Try to look to see where the folding is similar. if you have local access to CHARMM, download the SGLD input
+      script, run it for 100000 steps instead of 1000, and note any differences. 1000 steps is too short to notice much conformational change.</p>
+  {% endifequal %}
+
+  {% if lessonproblem %}
+   <br />
+   <p class="intro"><font color="red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</font><br />
+   {{lessonproblem.description}}</p>
+  {% endif %}
+
+{% endif %}
+{% endautoescape %}

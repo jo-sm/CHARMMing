@@ -1,0 +1,29 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}Calculate RMSD {% endblock %}
+
+{% block read_struct %} blankme
+! Read in appended PSF
+open unit 10 read card name new_{{filebase}}-final.psf
+read psf card unit 10
+close unit 10
+{% endblock %} blankme
+
+{% block body %} blankme
+{% for dict in dict_lis %} blankme
+   {% if not cmplev %} blankme
+      read coor card name {{dict.base}}.crd select {{selpart}} end
+      delete atom select .not. init end
+   {% else %} blankme
+      read coor card name {{dict.base}}.crd
+   {% endif %} blankme
+   coor orient
+   {% for sub_dict in dict.lis %} blankme
+      read coor card comp name {{sub_dict.base}}.crd {{sub_dict.selectstr}}
+
+      ! RMS {{dict.fname}} and {{sub_dict.cname}}
+      coor orient comp rms
+   {% endfor %} blankme
+{% endfor %} blankme
+
+{% endblock %} blankme

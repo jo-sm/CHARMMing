@@ -1,0 +1,47 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}NMA Movie Making{% endblock %}
+
+{% block bomlev %}bomlev -1{% endblock %}
+
+{% block body %}
+open read unit 2 card name new_{{filebase}}-nmodes.psf
+read psf card unit 2
+close unit 2
+{% ifequal typeoption 'enm' %}
+   ! Define CGREG to be all atoms. The stream file
+   ! will delete all of these (in this case, setting the
+   ! entire model to be coarse grained).
+   DEFIne CGREG SELEct ALL END
+
+   ! Define CGATS to be all of the alpha carbons. These
+   ! will be the atoms that get left behind from the
+   ! deletion.
+   DEFIne CGATS SELEct ATOM * * CA END
+
+   ! I've set the VDW type for a coarse-grained atom to be
+   ! 98 in the custom RTF. We need to tell the stream this.
+   SET cgtype 98
+
+   ! define CG centers with appropriate mass
+   STREAM /usr/local/charmming/coarsegrain.str
+{% endifequal %}
+set currtrj 1
+calc maxtrj {{num_trjs}} + 1
+label outerloop
+CHARMM-scripts open read unit 10 file name new_{{filebase}}-mtraj_@currtrj.trj
+CHARMM-scripts traj firstu 10 skip 1
+
+CHARMM-scripts set i 1
+CHARMM-scripts  label loop
+CHARMM-scripts  traj read
+CHARMM-scripts  open unit 1 card write name new_{{filebase}}-nmapremovie@i-@currtrj.pdb
+CHARMM-scripts  write coor pdb unit 1
+CHARMM-scripts  **Cords
+CHARMM-scripts  *
+CHARMM-scripts  incr i by 1
+CHARMM-scripts  if i lt 13 goto loop
+
+CHARMM-scripts incr currtrj by 1
+CHARMM-scripts if currtrj lt @maxtrj goto outerloop
+{% endblock %}

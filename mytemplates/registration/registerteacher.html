@@ -1,0 +1,19 @@
+{% extends "registration/register.html" %}
+{% block title %}Create a Teacher Account{% endblock %}
+
+{% block content %}
+<center>
+      <h1>Create a Teacher account</h1><br>
+      </center>
+      As a teacher, you will be able to keep track of your students, what they have been doing on the interface, and observe lesson status.
+      <center><br>
+      <form action="/accounts/register/teacher/" method="post">
+      Institute<br><input type="text" name="institute" maxlength=200><br>
+      Phone Number(XXX-XXX-XXXX)<br><input type="text" name="phone_number" maxlength=250><br>           Please enter a brief explanation for how the site will be used:<br>
+      <textarea name="explanation" cols=70 rows=9></textarea><br> 
+
+        
+        <input type="submit" value="Create the account" />
+      </label>
+</center>
+{% endblock %}

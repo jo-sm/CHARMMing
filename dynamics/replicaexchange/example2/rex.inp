@@ -1,0 +1,40 @@
+* parallel tempering simulation single trajectory; nptrex
+*
+
+! CUSTOMIZE THE STREAM FILE
+stream init.str
+
+calc k = @i - 2 
+calc j = @i - 1
+stream @tact/rex.str
+
+open read formatted unit 13 name @oldrest
+open write unformatted unit 2 name @TACT/rex.trj.@I
+open write formatted unit 3 name @TACT/rex.res.@I
+
+! CHANGE WHAT FOLLOWS AS NEEDED; KEEP iscale 1 scale @SFACTOR
+! KEEP UNIT NUMBERS AS OPENED ABOVE; IUNCRD 2 IUNREA 13 IUNWRI 3
+! USE @TACT FOR THERMOSTAT; THIS IS NPAT FOR BILAYER
+
+shake bonh param fast
+set nstp 500
+dyna cpt rest nstep @NSTP timestep 0.001 echeck 999. -
+    pcons pint pref 1.0 pmxx 0. pmyy 0. pmzz 1000. pgamma 10.0 -
+    hoover reft @TACT tmass 10000. tbath @TACT -
+    inbfrq -1 atom vatom cutnb 16.0 ctofnb 10. cdie eps 1. - 
+    ctonnb 8. vswitch cutim 16.0 imgfrq -1 wmin 1.0 -
+    ewald pmew fftx 48 ffty 48 fftz 64  kappa .33 spline order 6 -
+    iprfrq @NSTP ihtfrq 0 ieqfrq 0 ntrfrq 50 -
+    iuncrd 2 iunrea 13 iunwri 3 kunit -1 -
+    nprint 50 nsavc @NSTP nsavv 0 ihbfrq 0 -
+    firstt @TACT finalt @TACT tstruct @TACT teminc 0.0 -
+    iasors 1 iasvel 1 iscvel 0 ichecw 0 iscale 1 scale @SFACTOR
+
+! KEEP THIS NEXT BIT; USED FOR SWAP EVAL
+open unit 12 write card name @TACT/rex.ene
+format (F20.6)
+write title unit 12
+* ?ENER ?VOLU
+*
+
+stop

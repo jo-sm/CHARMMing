@@ -1,0 +1,57 @@
+* Residue Topology File for BLN models based on the
+* force field published by Marrink et al., J. Phys. Chem B.
+* Vol 108, p. 750 (2004).
+* =========================================================
+* Created by Tim Miller, NHLBI/NIH, August, 2010
+*
+   27 1
+
+! main atom types
+MASS   101 LN0    72.00000 N ! Nonpolar, no hydrogen bonds
+MASS   102 LND    72.00000 N ! Nonpolar, Hydrogen bond donor
+MASS   103 LNA    72.00000 N ! Nonpolar, Hydrogen bond acceptor
+MASS   104 LNDA   72.00000 N ! Nonpolar, Hydrogen bond donor & acceptor
+MASS   105 LP     72.00000 P ! Polar
+MASS   106 LC     72.00000 C ! Apolar
+MASS   107 LQ0    72.00000 Q ! Charged, no hydrogen bonds
+MASS   108 LQD    72.00000 Q ! Charged, Hydrogen bond donor
+MASS   109 LQA    72.00000 Q ! Charged, Hydrogen bond acceptor
+MASS   110 LQDA   72.00000 Q ! Charged, Hydrogen bond donor & acceptor
+
+RESI DPC         0.00
+GROUP
+ATOM Q1    LQ0   1.00
+ATOM Q2    LQA  -1.00
+ATOM C1    LC    0.00
+ATOM C2    LC    0.00
+ATOM C3    LC    0.00
+ATOM C4    LC    0.00
+BOND Q1 Q2 Q2 C1 C1 C2
+BOND C2 C3 C3 C4
+ANGL Q1 Q2 C1 Q2 C1 C2
+ANGL C1 C2 C3 C2 C3 C4
+
+RESI DPPC  0.00
+GROUP
+ATOM Q1    LQ0   1.00
+ATOM Q2    LQA  -1.00
+ATOM N1    LNA   0.00
+ATOM N2    LNA   0.00
+GROUP
+ATOM C11   LC    0.00
+ATOM C12   LC    0.00
+ATOM C13   LC    0.00
+ATOM C14   LC    0.00
+GROUP
+ATOM C21   LC    0.00
+ATOM C22   LC    0.00
+ATOM C23   LC    0.00
+ATOM C24   LC    0.00
+BOND Q1 Q2 Q2 N1 N1 C11
+BOND C11 C12 C12 C13 C13 C14
+BOND N1 N2 N2 C21 C21 C22
+BOND C22 C23 C23 C24
+ANGL Q1 Q2 N1 Q2 N1 N2
+ANGL Q2 N1 C11 N2 N2 C21
+ANGL N1 C11 C12 C11 C12 C13 C12 C13 C14
+ANGL N2 C21 C22 C21 C22 C23 C22 C23 C24

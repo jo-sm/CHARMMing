@@ -1,0 +1,5 @@
+{% if input_file %} blankme
+  ! read the psf and coordinate file
+  read psf card name {{input_file}}.psf
+  read coor card name {{input_file}}.crd
+{% endif %} blankme

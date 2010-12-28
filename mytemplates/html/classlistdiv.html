@@ -1,0 +1,11 @@
+<center>
+<table class="sortable resizable" border=1 style="text-align:center;">
+<tr><td>Class Name/ID </td><td>Number of Students in Class </td><td>Select</td></tr>
+{% for class in class_list %}
+<tr><td>{{class.name}}</td> <td> {{class.num_of_students}}</td>
+<td><input type="radio" name="{{class.teacher.teacher.username}}" value="{{class.name}}">
+</tr>
+{% endfor %}
+</table>
+<input type="submit" value="Create the account" />
+</center>

@@ -1,0 +1,644 @@
+from django import forms
+from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import render_to_response
+from pdbinfo.models import PDBFile, PDBFileForm 
+from minimization.views import append
+from django.contrib.auth.models import User
+from django.core import validators
+from django import newforms as forms
+from django.template import *
+from scheduler.schedInterface import schedInterface
+from scheduler.statsDisplay import statsDisplay
+import re
+import copy
+import os
+
+#processes form data for ld simulations
+def lddisplay(request):
+    #chooses the file based on if it is selected or not
+    try:
+        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return HttpResponse("Please submit a structure first.")
+    os.chdir(file.location)
+
+
+    #creates a list of filenames associated with the PDB
+    #The "md" option takes away all -md,-ld, and -sgld names
+    #filename_list = file.getLimitedFileList("md")
+    filename_list = file.getFileList()
+    solv_pdb = "new_" + file.stripDotPDB(file.filename) + "-solv.pdb"
+    min_pdb = "new_" + file.stripDotPDB(file.filename) + "-min.pdb"
+    md_pdb = "new_" + file.stripDotPDB(file.filename) + "-md.pdb"
+    ld_pdb = "new_" + file.stripDotPDB(file.filename) + "-ld.pdb"
+    sgld_pdb = "new_" + file.stripDotPDB(file.filename) + "-sgld.pdb"
+    het_list = file.getNonGoodHetPDBList()
+    tip_list = file.getGoodHetPDBList()
+    protein_list = file.getProteinSegPDBList()
+    seg_list = file.segids.split(' ')
+
+    #Each checkbox or radio button on the ldform.html page has a name equal
+    #to the filename it's associated with. This for loop tries to get the post
+    #data using the name as a key
+    tempid = None
+    for i in range(len(filename_list)):
+        try:
+            tempid = request.POST[filename_list[i]]
+            break
+        except:
+            try:
+                tempid = request.POST['solv_or_min']
+                break
+            except:
+                tempid = None
+
+    if(tempid):
+        # if the name is solv/min pdb, it does not need to be appended/patched
+        # otherwise reappend them
+        scriptlist = []
+        if tempid != min_pdb and tempid != solv_pdb and tempid != md_pdb and tempid != ld_pdb and tempid != sgld_pdb:
+            seg_list = append(request.POST,filename_list,file,scriptlist)
+            ld_this_file = 'new_' + file.stripDotPDB(file.filename) + "-f.pdb"
+            applyld(request.POST,file,seg_list,ld_this_file,scriptlist)
+            return HttpResponse("hi")
+	else:
+            applyld(request.POST,file,seg_list,tempid,scriptlist)
+            return HttpResponse("hi")
+
+    return render_to_response('html/ldform.html', {'filename_list': filename_list,'min_pdb':min_pdb,'solv_pdb':solv_pdb,'md_pdb': md_pdb,'ld_pdb': ld_pdb,'sgld_pdb': sgld_pdb,'seg_list':seg_list,'protein_list':protein_list,'tip_list':tip_list,'het_list':het_list})
+
+#processes form data for md simulations
+def mddisplay(request):
+    #chooses the file based on if it is selected or not
+    try:
+        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return HttpResponse("Please submit a structure first.")
+    os.chdir(file.location)
+    temp = file.stripDotPDB(file.filename)
+    #creates a list of filenames associated with the PDB
+    #filename_list = file.getLimitedFileList("md")
+    filename_list = file.getFileList()
+    solv_pdb = "new_" + file.stripDotPDB(file.filename) + "-solv.pdb"
+    min_pdb = "new_" + file.stripDotPDB(file.filename) + "-min.pdb"
+    md_pdb = "new_" + file.stripDotPDB(file.filename) + "-md.pdb"
+    ld_pdb = "new_" + file.stripDotPDB(file.filename) + "-ld.pdb"
+    sgld_pdb = "new_" + file.stripDotPDB(file.filename) + "-sgld.pdb"
+    seg_list = file.segids.split(' ')
+    het_list = file.getNonGoodHetPDBList()
+    tip_list = file.getGoodHetPDBList()
+    protein_list = file.getProteinSegPDBList()
+    done = re.compile('Done')
+    for i in range(len(filename_list)):
+        #First check and see if the selected choices are segids
+	#Otherwise see if it is a solvated/minimized PDB
+        try:
+            tempid = request.POST[filename_list[i]]
+	    filename = filename_list[i]
+        except:
+            try:
+                tempid = request.POST['solv_or_min']
+		filename = request.POST['solv_or_min']
+            except:
+                tempid = "null"
+        if(tempid!="null"):
+            seg_list = file.segids.split(' ')
+            try:
+                if(request.POST['usepatch']):
+                    file.handlePatching(request.POST)
+            except:
+                #If there is no patch, make sure patch_name is zero
+                file.patch_name = ""
+                file.save()
+            scriptlist = []
+	    if(filename != min_pdb and filename != solv_pdb and filename != md_pdb and filename != ld_pdb and filename != sgld_pdb):
+	        seg_list = append(request.POST,filename_list,file,scriptlist)
+		md_this_file = 'new_' + file.stripDotPDB(file.filename) + "-f.pdb"
+                applymd(request.POST,file,seg_list,md_this_file,scriptlist)
+                return HttpResponse("hi")
+	    else:
+                applymd(request.POST,file,seg_list,filename,scriptlist)
+                return HttpResponse("hi")
+    return render_to_response('html/mdform.html', {'filename_list': filename_list,'seg_list':seg_list,'solv_pdb':solv_pdb,'min_pdb':min_pdb,'md_pdb':md_pdb,'ld_pdb':ld_pdb,'sgld_pdb':sgld_pdb,'het_list':het_list,'tip_list':tip_list,'protein_list':protein_list})
+
+def applyld(postdata,file,seg_list,min_pdb,scriptlist):
+    rtf_prm_dict = file.getRtfPrmPath()
+    fbeta = postdata['fbeta']   
+    nstep = postdata['nstep']
+    try:
+        usesgld = postdata['usesgld']
+	ld_suffix = '-sgld'
+    except:
+        usesgld = None
+	ld_suffix = '-ld'
+    try:
+        make_movie = postdata['make_movie']
+        if usesgld:
+           file.sgld_movie_req = True
+        else:        
+           file.ld_movie_req = True
+    except:
+        make_movie = None
+        if usesgld:
+           file.sgld_movie_req = False
+        else:
+           file.ld_movie_req = False
+    charmm_inp = file.makeCHARMMInputHeader('Langevin Dynamics',postdata)
+    charmm_inp = charmm_inp + """
+
+open read unit 2 card name """ + file.stripDotPDB(min_pdb) + """.psf
+read psf card unit 2
+close unit 2
+
+open read unit 2 card name """ + file.stripDotPDB(min_pdb) + """.crd
+read coor card unit 2
+close unit 2
+"""
+
+    #If the user wants to solvate implicitly the scpism line is needed
+    #84 will be the scpism number in this program
+    try:
+        if(postdata['solvate_implicitly']):
+            charmm_inp = charmm_inp + """
+!Implicit solvation means there cannot be any TIP3s in the file
+delete atom select resname TIP3 end
+!Triggering implicit solvation
+scpism uism 84
+"""
+    except:
+        pass
+    charmm_inp = charmm_inp + """
+
+shake bonh param
+
+scal fbeta set """ + fbeta + """ sele all end
+
+open write unit 31 card name new_""" + file.stripDotPDB(file.filename) + ld_suffix + """.res
+open write unit 32 file name new_""" + file.stripDotPDB(file.filename) + ld_suffix + """.dcd
+
+! print initial energy
+energy
+"""
+    if(usesgld):
+        tsgavg = postdata['tsgavg']
+	tempsg = postdata['tempsg']
+        charmm_inp = charmm_inp + """
+	
+DYNA LANG LEAP  STRT  NSTE """ + nstep + """ TIME 0.001  -
+    IPRFRQ 10 ISVFRQ 10 IHTFRQ 0 IEQFRQ 0 INBFRQ 10 IHBFRQ 0 -
+    IUNREA -1 IUNWRI 31 IUNCRD 32 IUNVEL 33 KUNIT -1 -
+    NSAVC 10 NSAVV 10 NPRINT 10 ISEED 314159 -
+    SGLD TSGAVG """ + tsgavg + """ TEMPSG """ + tempsg + """ SGFT 0.5 -
+    TBATH 300   FIRST 260 -
+    IASORS 1 IASVEL 1 ICHECW 0 -
+    NBXMOD 5  ATOM CDIEL FSWITCH VATOM VDISTANCE VSWITCH -
+    CUTNB 16.0  CTOFNB 12.0  CTONNB 8.0  INBFRQ -1 EPS 1.0  E14FAC 1.0  WMIN 1.0
+"""
+    else:
+        charmm_inp = charmm_inp + """
+
+DYNA LEAP LANG STRT  NSTEP """ + nstep + """ TIMESTEP 0.001 -
+    IUNREA -1 IUNWRI 31 IUNCRD 32 IUNVEL 33 KUNIT -1 -
+    NPRINT 10 NSAVC 10 NSAVV 10 IHBFRQ 0 INBFRQ 25 ISEED 314159  -
+    NBXMOD 5  ATOM CDIEL FSWITCH VATOM VDISTANCE VSWITCH -
+    CUTNB 16.0  CTOFNB 12.0  CTONNB 8.0 INBFRQ -1  EPS 1.0  E14FAC 1.0  WMIN 1.0 -
+    TBATH 300.0 FIRSTT 300.0 FINALT 300.0 TEMINC 10.0   -
+    IASORS 1 IASVEL 1 ISCVEL 1 ICHECW 0 TWINDH 0.0
+"""
+    charmm_inp = charmm_inp + """
+open unit 1 card write name new_""" + file.stripDotPDB(file.filename) + ld_suffix + """.pdb
+write coor pdb unit 1
+* Coords
+*
+
+open unit 1 card write name new_""" + file.stripDotPDB(file.filename) + ld_suffix + """.crd
+write coor card unit 1
+* Coords
+*
+
+open unit 1 card write name new_""" + file.stripDotPDB(file.filename) + ld_suffix + """.psf
+write psf card unit 1
+* PSF
+*
+
+stop"""
+    user_id = file.owner.id
+    os.chdir(file.location)
+    ld_filename = "charmm-" + file.stripNew(file.stripDotPDB(file.filename)) +\
+                  ld_suffix + ".inp"
+    inp_out = open(file.location + ld_filename,'w')
+    inp_out.write(charmm_inp)
+    inp_out.close()  
+    #change the status of the file regarding minimization
+    if usesgld:
+        file.sgld_status = "<font color=yellow>Processing</font>"
+    else:
+        file.ld_status = "<font color=yellow>Processing</font>"
+    si = schedInterface()
+    scriptlist.append(file.location + ld_filename)
+
+    if make_movie:
+       if usesgld:
+          print "Make sgld dyna movie"
+          makeJmolMovie(file,min_pdb,scriptlist,'sgld')
+       else:
+          makeJmolMovie(file,min_pdb,scriptlist,'ld')
+    else:
+       si = schedInterface()
+       newJobID = si.submitJob(user_id,file.location,scriptlist)
+       if usesgld:
+          file.sgld_jobID = newJobID
+          sstring = si.checkStatus(newJobID)
+          file.sgld_status = statsDisplay(sstring)
+          file.sgld_movie_status = None
+       else:
+          file.ld_jobID = newJobID
+          sstring = si.checkStatus(newJobID)
+          file.ld_status = statsDisplay(sstring)
+          file.ld_movie_status = None
+
+    file.save() 
+
+#Generates MD script and runs it
+def applymd(postdata,file,seg_list,min_pdb,scriptlist):
+    charmm_inp = file.makeCHARMMInputHeader('Molecular Dynamics',postdata)
+    try:
+       make_movie = postdata['make_movie']
+       file.md_movie_req = True
+    except:
+       make_movie = False
+       file.md_movie_req = False
+    try:
+       solvate_implicitly = postdata['solvate_implicitly']
+    except:
+       solvate_implicitly = 0
+
+    charmm_inp = charmm_inp + """
+
+open read unit 2 card name """ + file.stripDotPDB(min_pdb) + """.psf
+read psf card unit 2
+close unit 2
+
+open read unit 2 card name """ + file.stripDotPDB(min_pdb) + """.crd
+read coor card unit 2
+close unit 2
+"""
+
+    #If the user wants to solvate implicitly the scpism line is needed
+    #84 will be the scpism number in this program
+    if solvate_implicitly:
+        charmm_inp = charmm_inp + """
+!Implicit solvation means there cannot be any TIP3s in the file
+delete atom select resname TIP3 end
+!Triggering implicit solvation
+scpism uism 84
+"""
+    # end if solvate_implicitly
+
+    # if we have a solvated structure that with crystal_x < 0 or we're
+    # doing vacuum or scpism with dynamics, then we need to figure out the structure
+    # diameter
+    relative_boundary = 0
+    if file.solvation_structure != '' and file.crystal_x < 0:
+        relative_boundary = 1
+    if file.solvation_structure == '' or solvate_implicitly:
+        charmm_inp = charmm_inp + """
+! we need to figure out the dimensions of the structure for use in calculating
+! the proper unit cell size and correctly setting up the crystal structure.
+! The solvation structure uses bwat as the segment ID for the solvent, so we
+! do a coor stat on anything not in that segment.
+coor stat select .not. segid bwat end
+
+calc xdim = abs ( ?XMAX - ?XMIN ) 
+calc ydim = abs ( ?YMAX - ?YMIN ) 
+calc zdim = abs ( ?ZMAX - ?ZMIN ) 
+
+if @xdim .gt. @ydim
+ if @xdim .gt. @ydim
+  goto crystalx
+
+if @ydim .gt. @xdim
+ if @ydim .gt. @zdim
+ goto crystaly
+
+if @zdim .gt. @ydim
+ if @zdim .gt. @xdim
+  goto crystalz
+
+label crystalx
+set greatervalue @xdim
+goto crystal
+
+label crystaly
+set greatervalue @ydim
+goto crystal
+
+label crystalz
+set greatervalue @zdim
+goto crystal
+
+label crystal
+"""
+    if relative_boundary:
+        # read crystal dimensional data from the crystal structure made in solvation
+        try:
+            fp = open(file.location + "new_" + file.stripDotPDB(file.filename) + ".xtl")
+            fp.readline()
+            ldimstr = fp.readline()
+            fp.close()
+        except:
+            return HttpResponse("Oops ... transfer file not found.")
+        xtlre = re.compile("crystal dimension of ([0-9]+\.[0-9]+)", re.IGNORECASE)
+        m = xtlre.search(ldimstr)
+        if not m:
+            return HttpResponse("Oops ... crystal data missing from transfer file.")
+        charmm_inp = charmm_inp + "set greatervalue = " + m.group(1) + "\n"
+
+    # if we solvate implicitly or in vacuum, we should just make a cube with dimensions
+    # 20 beyond the structure.
+    dopbc = 1
+    if file.solvation_structure == '' or solvate_implicitly:  
+        charmm_inp = charmm_inp + "calc greatervalue = @greatervalue + 20\n"
+        charmm_inp = charmm_inp + "crystal define cubic @greatervalue @greatervalue @greatervalue 90. 90. 90.\n"
+        charmm_inp = charmm_inp + "crystal build noper 0\n"
+    elif file.solvation_structure == 'sphere':
+        # we can't build a crystal for sphere so we just leave as is and do
+        # vacuum boundary conditions
+        dopbc = 0
+    elif file.solvation_structure == 'rhdo':
+        if not relative_boundary:
+            dim_x = file.crystal_x
+            charmm_inp = charmm_inp + "set greatervalue = " + str(dim_x) + "\n"
+        charmm_inp = charmm_inp + "crystal define rhdo @greatervalue @greatervalue @greatervalue 60. 90. 60.\n"
+        charmm_inp = charmm_inp + "crystal build noper 0\n"
+    elif file.solvation_structure == 'hexa':
+        dim_x = file.crystal_x
+        dim_z = file.crystal_z
+        greaterval = max(dim_x,dim_z)
+        if relative_boundary:
+            # if these were done together in solvation, we know dim_x == dim_z
+            charmm_inp = charmm_inp + "crystal define hexa @greatervalue @greatervalue @greatervalue 90. 90. 120.\n"
+        else:
+            charmm_inp = charmm_inp + "set greatervalue = " + str(greaterval) + "\n"
+            charmm_inp = charmm_inp + "set greaterx = " + str(dim_x) + "\n"
+            charmm_inp = charmm_inp + "set greaterz = " + str(dim_z) + "\n"
+            charmm_inp = charmm_inp + "crystal define hexa @greaterx @greaterx @greaterz 90. 90. 120.\n"
+        charmm_inp = charmm_inp + "crystal build noper 0\n"
+    elif file.solvation_structure == 'cubic':
+        if not relative_boundary:
+            dim_x = file.crystal_x
+            charmm_inp = charmm_inp + "set greatervalue = " + str(dim_x) + "\n"
+        charmm_inp = charmm_inp + "crystal cubic rhdo @greatervalue @greatervalue @greatervalue 90. 90. 90.\n"
+        charmm_inp = charmm_inp + "crystal build noper 0\n"
+
+    # we need to set up images, but only if we're doing PBC/PME
+    if dopbc:
+        if file.solvation_structure == '' or solvate_implicitly:
+            # we need to figure out our own image command, since solvation hasn't done it for us
+            charmm_inp = charmm_inp + "image byseg sele all end\n"
+        else:
+            # we should have an image file from solvation to use...
+            try:
+                os.stat(file.location + "new_" + file.stripDotPDB(file.filename) + ".xtl")
+            except:
+                # need to throw some sort of error ... for now just toss cookies 
+                return HttpResponse("Oops ... transfer file not found.")
+            charmm_inp = charmm_inp + "open unit 1 read card name new_" + file.stripDotPDB(file.filename) + ".xtl\n"
+            charmm_inp = charmm_inp + "crystal read card unit 1\n"
+            charmm_inp = charmm_inp + "close unit 1\n"
+
+        charmm_inp = charmm_inp + """
+!activating a perl script from this interface that determines the values for ewald. 
+!The number cannot have a prime factor other than 2,3, and 5
+! the number also has to be greater than the max dimensions of the image
+syst "/usr/local/charmming/calcewald.pl @GREATERVALUE """ + file.location + """ """ + file.stripDotPDB(file.filename) + """ "
+
+stream """ + file.stripDotPDB(file.filename) + """-highnum.str
+"""
+
+    charmm_inp = charmm_inp + """
+shake bonh param
+
+open unit 41 write card name new_""" + file.stripDotPDB(file.filename) + """-md.res !restart file that will be written
+!open unit 51 read card name dyn.rea !restart file that will be reading
+open unit 31 write file name new_""" + file.stripDotPDB(file.filename) + """-md.dcd !trajectory file name
+
+! the total charge on the system must be 0 or else Ewald will not work correctly, we need to test for this...
+! we do the almost equal if test to avoid floating point rounding errors.
+scalar charge stat sele all end
+if ?stot .ae. 0 then goto okewald 
+! uh-oh, total charge != 0, we cannot proceed, set the bomlev to an absurdly high level
+! to force a bailout.
+bomlev 5
+Achtung, dynamics with particle-mesh ewald only works on a structure with 0 total charge!!!!
+
+label okewald
+!print initial energy
+energy
+
+"""
+    #md with either be useheat or useequi
+    md = postdata['md'] 
+    nstep = postdata['nstepht']
+    ndcd = int(int(nstep)/10) # the dynamics trajectories we make have 10 frames
+    if md == 'useheat':
+        firstt = postdata['firstt']
+	finalt = postdata['finalt']
+	teminc = postdata['teminc']
+	tbath = postdata['tbath']
+	ihtfrq = postdata['ihtfrq']
+
+        charmm_inp += "\n\ndyna leap verlet start nstep " + nstep + " timestep 0.001 iseed 11033 echeck 99999. - \n"
+        if dopbc:
+            charmm_inp += "pcons pint pref 1.0 pmxx 0. pmyy 0.  pmzz 2000.  pgamma 50. - \n"
+        charmm_inp += "inbfrq 25 atom vatom cutnb 16.0 ctofnb 12. cdie eps 1. - \n"
+        if dopbc:
+            charmm_inp += "ctonnb 8. vswitch cutim 16.0 imgfrq 25 wmin 1.0 - \n"
+            charmm_inp += "ewald pmew fftx @ewaldval ffty @ewaldval fftz @ewaldval  kappa .34 spline order 6 - \n"
+        else:
+            charmm_inp += "ctonnb 8. fswitch vswitch cutim 16.0 inbfrq -1 imgfrq 25 wmin 1.0 - \n"
+        charmm_inp += "iprfrq " + ihtfrq + " ihtfrq " + ihtfrq + " ieqfrq " + ihtfrq + " ntrfrq " + ihtfrq
+
+        charmm_inp = charmm_inp + """ -
+iuncrd 31 iunrea -1 iunwri 41 isvfrq 1000 kunit -1 -
+nprint 10 nsavc """ + str(ndcd) + """ nsavv 0 ihbfrq 0 ilbfrq 0 -
+firstt """ + firstt + " finalt " + finalt + " teminc " + teminc + " tbath " + tbath + """ -
+iasors 1 iasvel 1 iscvel 0 ichecw 1 twindh 5.0 twindl -5.0"""
+    else:
+        temp = postdata['temp']
+        if dopbc:
+	    charmm_inp = charmm_inp + """
+! calc pmass = total molecular mass / 50
+! calc tmass = pmass * 10
+scalar mass stat
+calc pmass = int ( ?stot  /  50.0 )
+calc tmass = @pmass * 10
+"""
+
+        if dopbc:
+            charmm_inp += "dyna cpt strt nstep " + nstep + " timestep 0.001 echeck 500 -\n"
+            charmm_inp += "pcons pint pref 1.0 pmass @pmass pgamma 0.0 -\n"
+            charmm_inp += "hoover reft " + temp +" tmass @tmass -"
+        else: 
+            charmm_inp += "dyna leap verlet strt nstep " + nstep + " timestep 0.001 echeck 500 -"
+
+        charmm_inp = charmm_inp + """
+inbfrq -1 atom vatom cutnb 16.0 ctofnb 10. cdie eps 1. -
+ctonnb 8. vswitch cutim 16.0 imgfrq -1 wmin 1.0 -
+        """
+        if dopbc:
+            charmm_inp = charmm_inp + "ewald pmew fftx @ewaldval ffty @ewaldval fftz @ewaldval  kappa .34 spline order 6 -\n"
+        charmm_inp = charmm_inp + "iprfrq 10 ihtfrq 0 ieqfrq 0 ntrfrq 10 -\n"
+        charmm_inp = charmm_inp + "iuncrd 31 iunrea -1 iunwri 41 kunit -1 -\n"
+        charmm_inp = charmm_inp + "nprint 10 nsavc " + str(ndcd) + " nsavv 0 ihbfrq 0 -\n"
+        charmm_inp = charmm_inp + "firstt " + temp + " finalt " + temp + " teminc 10.0  tbath " + temp + " -\n"
+        charmm_inp = charmm_inp + "iasors 1 iasvel 1 iscvel 0 ichecw 0 twindh 0.0 twindl 0.0\n"
+
+    charmm_inp = charmm_inp + """
+
+open unit 1 card write name new_""" + file.stripDotPDB(file.filename) + """-md.pdb
+write coor pdb unit 1
+* Coords
+*
+
+open unit 1 card write name new_""" + file.stripDotPDB(file.filename) + """-md.crd
+write coor card unit 1
+* Coords
+*
+
+open unit 1 card write name new_""" + file.stripDotPDB(file.filename) + """-md.psf
+write psf card unit 1
+* PSF
+*
+
+stop"""
+
+    user_id = file.owner.id
+    os.chdir(file.location)
+    md_filename = "charmm-" + file.stripDotPDB(file.filename) + "-md.inp"
+    print "Opening %s" % (file.location + md_filename)
+    inp_out = open(file.location + md_filename,'w')
+    inp_out.write(charmm_inp)
+    inp_out.close()  
+    #change the status of the file regarding minimization 
+
+    print "Submitting..."
+    file.md_status = "<font color=yellow>Processing</font>"
+    scriptlist.append(file.location + md_filename)
+    if make_movie:
+       print "applymd ... makeJmolMovie"
+       makeJmolMovie(file,min_pdb,scriptlist,'md')
+    else:
+       print "applymd ... direct submit"
+       si = schedInterface()
+       newJobID = si.submitJob(user_id,file.location,scriptlist)
+       file.md_jobID = newJobID
+       sstring = si.checkStatus(newJobID)
+       file.md_status = statsDisplay(sstring)
+       file.md_movie_status = None
+       print "applymd ... status %s" % file.md_status
+
+    file.save()
+
+# --- end of applymd ---
+
+#pre: Requires a file object, and the name of the psf/crd file to read in
+#Jmol requires the PDB to be outputted a certain a certain way for a movie to be displayed
+#it does not take DCD files
+def makeJmolMovie(file,psf_filename,scriptlist,type):
+    file.md_movie_status = ""
+    charmm_inp = """* Movie making
+*
+
+open read unit 2 card name """ + file.stripDotPDB(psf_filename) + """.psf
+read psf card unit 2
+close unit 2
+
+open read unit 10 file name new_""" + file.stripDotPDB(file.filename) + """-""" + type + """.dcd
+traj firstu 10 skip 10
+
+set i 1
+label loop
+ traj read
+ open unit 1 card write name new_""" + file.stripDotPDB(file.filename) + """-movie@i.pdb
+ write coor pdb unit 1
+ **Cords
+ *
+ incr i by 1
+ if i lt 11 goto loop
+
+stop"""
+    #Run the script through charmm, this is not done under job queue at the moment
+    #because the PDBs must be appended together after the above script has been run.
+    #Once the DAG and query stuff has been implemented, this is how the following code should
+    #be changed to
+    #1. Create a new field in the PDBFile object called movie_status
+    #2. In the status method, check to see if movie_status is done
+    #3. If it is done, call the method combinePDBsForMovie(...): right below the following code.
+    if(type == 'md'):
+        movie_filename = 'charmm-' + file.stripDotPDB(file.filename) + '-mdmovie.inp'
+    elif(type == 'ld'):
+        movie_filename = 'charmm-' + file.stripDotPDB(file.filename) + '-ldmovie.inp'
+    elif(type == 'sgld'):
+        movie_filename = 'charmm-' + file.stripDotPDB(file.filename) + '-sgldmovie.inp'
+    movie_handle = open(file.location + movie_filename,'w')
+    movie_handle.write(charmm_inp)
+    movie_handle.close()
+    user_id = file.owner.id
+    scriptlist.append(file.location + movie_filename)
+
+    si = schedInterface()
+    if(type == 'md'):
+        newJobID = si.submitJob(user_id,file.location,scriptlist)
+        file.md_jobID = newJobID
+        sstring = si.checkStatus(newJobID)
+        file.md_status = statsDisplay(sstring)
+        file.md_movie_status = None
+    elif(type == 'ld'):
+        newJobID = si.submitJob(user_id,file.location,scriptlist)
+        file.ld_jobID = newJobID
+        sstring = si.checkStatus(newJobID)
+        file.ld_status = statsDisplay(sstring)
+        file.ld_movie_status = None
+    elif(type == 'sgld'):
+        newJobID = si.submitJob(user_id,file.location,scriptlist)
+        file.sgld_jobID = newJobID
+        sstring = si.checkStatus(newJobID)
+        file.sgld_status = statsDisplay(sstring)
+        file.sgld_movie_status = None
+    file.save()
+#    combinePDBsForMovie(file)
+ 
+#pre: Requires a PDBFile object
+#Combines all the smaller PDBs make in the above method into one large PDB that
+#jmol understands
+#type is md,ld,or sgld
+def combinePDBsForMovie(file,type):
+    ter = re.compile('TER')
+    remark = re.compile('REMARK')
+    #movie_handle will be the final movie created
+    #mini movie is the PDBs which each time step sepearated into a new PDB
+    if(type == 'md'): 
+        movie_handle = open(file.location + 'new_' + file.stripDotPDB(file.filename) + "-md-mainmovie.pdb",'a')
+    elif(type == 'ld'): 
+        movie_handle = open(file.location + 'new_' + file.stripDotPDB(file.filename) + "-ld-mainmovie.pdb",'a')
+    elif(type == 'sgld'): 
+        movie_handle = open(file.location + 'new_' + file.stripDotPDB(file.filename) + "-sgld-mainmovie.pdb",'a')
+    for i in range(10):
+        i = i+1
+	minimovie_handle = open(file.location +  "new_" + file.stripDotPDB(file.filename) + "-movie" + `i` + ".pdb",'r')
+	movie_handle.write('MODEL ' + `i` + "\n")
+	for line in minimovie_handle:
+	    if(not remark.search(line) and not ter.search(line)):
+	        movie_handle.write(line)
+	movie_handle.write('ENDMDL\n')
+	minimovie_handle.close()
+	#os.remove(file.location +  "new_" + file.stripDotPDB(file.filename) + "-movie" + `i` + ".pdb")
+	if(type == 'md'):
+	    file.md_movie_status = "<font color=33CC00>Done</font>"
+	elif(type == 'ld'):
+	    file.ld_movie_status = "<font color=33CC00>Done</font>"
+	elif(type == 'sgld'):
+	    file.sgld_movie_status = "<font color=33CC00>Done</font>"
+	file.save()
+	    

@@ -1,0 +1,12 @@
+open unit 10 write card name {{output_psf}}
+write psf card unit 10
+close unit 10
+
+open unit 10 write card name {{output_crd}}
+write coor card unit 10
+close unit 10
+
+open unit 10 write card name {{output_pdb}}
+write coor pdb unit 10
+close unit 10
+

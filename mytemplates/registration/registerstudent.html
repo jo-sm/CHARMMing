@@ -1,0 +1,35 @@
+{% extends "registration/register.html" %}
+<head>
+<script src="/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+{% block js %}
+ <script type="text/javascript">
+
+function getClassList() {
+   teacher_name = document.getElementById('teacher_name').value;
+   new Ajax.Updater("class_list","/accounts/register/student/refreshclasslist/"+teacher_name + "/", {method:'post', asynchronous:false});
+//   document.getElementById('submit_student').style.display = "block";
+}
+    </script>
+{% endblock %}
+</head>
+{% block title %}Create a Teacher Account{% endblock %}
+
+
+{% block content %}
+<center>
+      <h1>Create a Student account</h1><br>
+      As a student you will be able to use all the features this interface has to offer.
+      <br>
+      <form action="/accounts/register/student/" method="post">
+      Institute<br><input type="text" name="institute" maxlength=200><br>
+      Enter the teacher's username/ID then a list of classes will come up associated with the teacher.
+      Teacher's username<br><input type="text" name="teacher_name" id='teacher_name' maxlength=200 onKeyUp="getClassList();">
+      <br>
+<div id='class_list'>
+</div>
+<!--<div id='submit_student' style="display:none">        
+        <input type="submit" value="Create the account" />
+	</div>--!>
+      </label>
+</center>
+{% endblock %}

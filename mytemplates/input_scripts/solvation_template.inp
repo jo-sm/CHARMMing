@@ -1,0 +1,200 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}Solvate Protein {% endblock %}
+   ! solvation structure is {{solvation_structure}}
+
+   ! Read protein structure from PSF file
+
+{% block body %} blankme
+
+   ! TIM: orient about origin so the alignment is correct with the
+   ! water crystal.
+   coordinate orient
+
+   ! Takes statistics on coordinates to figure out the minimum, maximum, and
+   ! average values of the X, Y, and Z coordinates. These are stored in 
+   ! XMIN,XMAX,XAVE,YMIN,YMAX,YAVE,ZMIN,ZMAX,ZAVE.
+   coordinate statistics select all end
+
+   ! Read in water sequence
+   read sequence tips 46656
+
+   ! Generate new segment for the water
+   generate bwat noangle nodihedral
+
+   ! Read the water PDB coordinates and append them to the protein
+   open unit 1 read formatted name /usr/local/charmming/solvation/water.crd
+   read coor card unit 1 append
+   close unit 1
+
+   coordinate orient noro select segid bwat end
+
+   ! Delete waters which overlap with protein
+   delete atom sort -
+   select .byres. (segid bwat .AND. type oh2 .and. -
+   ((.not. (segid bwat .OR. hydrogen)) .around. 2.5)) end
+
+   ! xdim, ydim, and zdim are variables that store the dimensions of the protein along the x, y, and z axis respectivley
+
+   {% ifequal solv_pref 'no_pref' %}
+      {% ifequal solvation_structure 'sphere' %}
+         ! Because the user requested {{pref_radius}} distance from the edge,
+         ! the distance is multipled by two, added to the diameter, and then the total is
+         ! divided by two to find the radius of the sphere.
+         calc xdim = ( abs ( ?XMAX - ?XMIN ) + {{pref_radius_double}}  )/2 
+         calc ydim = ( abs ( ?YMAX - ?YMIN ) + {{pref_radius_double}}  )/2 
+         calc zdim = ( abs ( ?ZMAX - ?ZMIN ) + {{pref_radius_double}}  )/2
+      {% else %}
+         ! Because the user requested {{pref_radius}} distance from the edge,
+         ! the distance is multipled by two and then added to the diameter of the structure.
+         calc xdim = ( abs ( ?XMAX - ?XMIN ) + {{pref_radius_double}}  ) 
+         calc ydim = ( abs ( ?YMAX - ?YMIN ) + {{pref_radius_double}}  )
+         calc zdim = ( abs ( ?ZMAX - ?ZMIN ) + {{pref_radius_double}}  )
+      {% endifequal %} 
+      ! coor orient guarantees that the X axis is the longest axis and the Y
+      ! axis isthe second longest
+
+      set greatervalue = @xdim
+      set secondvalue = @ydim
+
+      label solvate
+      {% ifequal solvation_structure 'sphere' %}
+         ! Delete 
+         delete atom sort select .byres. ( .not.( point 0. 0. 0. cut @greatervalue ) -
+          .and. ( segid bwat ) ) end
+         set headstr = Sphere with a minimum edge distance of {{pref_radius}}
+      {% else %}
+         {% ifequal solvation_structure 'choose_for_me' %}
+            calc xraw = ( abs ( ?XMAX - ?XMIN ))
+            calc yraw = ( abs ( ?YMAX - ?YMIN ))
+            calc zraw = ( abs ( ?ZMAX - ?ZMIN ))
+            ! y is the middle dimension, x is largest, and z is smallest
+            calc hitol = @yraw * 1.3
+            calc lotol = @yraw * 0.7
+            if @xraw .gt. @hitol then goto chhexa
+            if @zraw .lt. @lotol then goto chhexa
+
+            ! OK, not out of tolerance, so choose RHDO
+            set xtaltype = RHDO
+            set xtalangl = 60. 90. 60.
+            set headstr = rhdo with a crystal dimension of @greatervalue.
+            {% include 'input_scripts/calc_delete.inp' %}
+            crystal define @xtaltype @greatervalue @greatervalue @greatervalue @xtalangl
+            goto donechoose
+
+            label chhexa
+            set xtaltype = HEXA
+            ! NOTE: hexagonal solvation may require restraints during long duration dynamics
+            ! to keep the molecule from rotating out of its box.
+            set xtalangl = 90. 90. 120.
+            set headstr = hexa with a crystal dimension of @greatervalue and @secondvalue.
+            ! rotate about Y so Z becomes the major axis
+            coor rotate xdir 0 ydir 1 zdir 0 phi 90.
+            {% include 'input_scripts/calc_delete.inp' %}
+            crystal define @xtaltype @secondvalue @secondvalue @greatervalue @xtalangl
+              
+            label donechoose
+         {% else %}
+            {% ifequal solvation_structure 'hexa' %}
+               ! rotate about Y so Z becomes the major axis
+               coor rotate xdir 0 ydir 1 zdir 0 phi 90.
+               set headstr = {{solvation_structure}} with a crystal dimension of @greatervalue and @secondvalue
+            {% else %}
+               set headstr = {{solvation_structure}} with a crystal dimension of @greatervalue
+            {% endifequal %} 
+            ! OK, now we set a safe spherical diameter (based on the minimum sphere that will circumscribe a cube of this dimension), delete
+            ! all but the sphere of that radius, and then build the crystal structure.
+            {% include 'input_scripts/calc_delete.inp' %}
+            {% ifequal solvation_structure 'hexa' %}
+               ! NOTE: hexagonal solvation may require restraints during long duration dynamics
+               ! to keep the molecule from rotating out of its box.
+               crystal define {{solvation_structure}} @secondvalue @secondvalue @greatervalue {{angles}}
+            {% else %}
+               crystal define {{solvation_structure}} @greatervalue @greatervalue @greatervalue {{angles}}
+            {% endifequal %}   
+         {% endifequal %}
+      {% endifequal %}  
+   {% else %}
+      {% ifequal solvation_structure 'sphere' %}
+         set greatervalue {{pref_x}}
+         ! secondvalue is not needed for spherical solvation
+         set secondvalue -1
+         set headstr = Sphere with a radius of @greatervalue
+         delete atom sort select .byres. ( .not.( point 0. 0. 0. cut @greatervalue ) .and. ( segid bwat ) ) end11
+      {% else %}
+         {% ifequal solvation_structure 'choose_for_me' %}
+         {% else %}
+            {% ifequal solvation_structure 'hexa' %}
+               set greatervalue {{tmgreaterval}}
+               set secondvalue {{tmsecondval}}
+               set xvalue {{pref_x}}
+               set zvalue {{pref_z}}
+               set headstr = Hexagonal crystal structure with x, z dimensions of {{pref_x}} and {{pref_z}}
+               ! rotate about Y so Z becomes the major axis
+               coor rotate xdir 0 ydir 1 zdir 0 phi 90.
+               ! OK, now we set a safe spherical diameter (10 more than max(xdim,zdim)), delete
+               ! all but the sphere of that radius, and then build the crystal structure.
+               {% include 'input_scripts/calc_delete.inp' %}
+               crystal define hexa @xvalue @xvalue @zvalue {{angles}}
+            {% else %}
+               set greatervalue {{pref_x}}
+
+               ! secondvalue is not needed for this solvation
+               set secondvalue -1
+               set headstr = {{solvation_structure}} crystal structure with a dimension of {{pref_x}}
+               ! OK, now we set a safe spherical diameter (10 more than greatervalue), delete
+               ! all but the sphere of that radius, and then build the crystal structure.
+               {% include 'input_scripts/calc_delete.inp' %}
+               crystal define {{solvation_structure}} @greatervalue @greatervalue @greatervalue {{angles}}
+            {% endifequal %}
+         {% endifequal %} 
+      {% endifequal %}
+   {% endifequal %}
+   {% ifequal solvation_structure 'sphere' %}
+   {% else %}
+      crystal build noper 0
+      image byres sele segid bwat end
+      coor copy comp
+
+      ! set wrnlev down to reduce clutter...
+      wrnlev 1
+
+      ! Update the image lists. If any atoms move during this process, it means that they are extraneous
+      ! to the crystal structure that we want to build and should be deleted. Therefore, coor diff is used to 
+      ! detect moving atoms, which had selected for deletion.
+      update inbfrq 0
+
+      coor diff
+      define sel1   -
+      select .byres. (property x .ne. 0.0 .or. property y .ne. 0.0 .or. property z .ne. 0.0) end
+ 
+      coor swap
+
+      delete atom sele sel1 end
+
+      ! write out a transform file
+      open unit 1 card write name new_{{filebase}}.xtl
+      crystal write card unit 1
+      * Solvated structure
+      * solvation: @headstr
+      *
+
+      update inbfrq -1
+   {% endifequal %}
+   {% ifequal solvation_structure 'choose_for_me' %}
+      syst "/usr/local/charmming/savegv.py @GREATERVALUE @SECONDVALUE @XTALTYPE {{file_location}}crystl_{{filebase}}.str"
+   {% else %}
+      syst "/usr/local/charmming/savegv.py @GREATERVALUE @SECONDVALUE {{solvation_structure}} {{file_location}}crystl_{{filebase}}.str"
+   {% endifequal %}
+   {% if RtfPrm %}
+      ! Do a quick and dirty minimization to reduce bad image contacts...
+      {% include "input_scripts/fix_other_atoms.inp" %}
+
+      cons fix sele .not. notfix end
+   {% endif %}
+   {% include 'input_scripts/use_shake.inp' %}
+   ! Do a quick and dirty minimization to reduce bad image contacts...
+   mini sd nstep 100 nprint 1 tolgrd 100.0
+   {% include 'input_scripts/write_out_struct.inp' %}
+{% endblock %}
+

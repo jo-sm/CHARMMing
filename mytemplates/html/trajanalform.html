@@ -1,0 +1,225 @@
+<div>
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+  <br />
+  <br />
+  <br />
+  <h1 align="center">Visual Trajectory Analysis</h1>
+  <hr noshade width="80%" size=3%>
+  <h2 align="center">Select Structure</h3>
+  <br />
+
+  <div id='change_trajanal' style="text-align:center;">
+    <div id="script_dothis" style="display:none;">
+       makeUniqueDiv('trajanal_form');
+       makeUniqueDiv('usepatch');
+       makeUniqueDiv('patch_area');
+       makeUniqueDiv('trajanal_remove_patch');
+       makeUniqueDiv('num_patches');
+       makeUniqueDiv('solvate_implicitly');
+       makeUniqueDiv('hetatm_deter');
+       refreshToolTips();
+       var GB_ROOT_DIR = "/charmming/greybox/greybox/";
+       {% if disulfide_list %}
+       geneDisulfideLines([{% for item in disulfide_list %}'{{item.0}}','{{item.1}}','{{item.2}}','{{item.3}}',{% endfor %}],'{% for item in seg_list %}{{item}} {% endfor %}');
+       {% endif %}
+    </div>
+
+    <center>
+       <form id="trajanal_form" method="post" enctype="multipart/form-data" action="/charmming/analysis/trajanal/">
+       <table>
+        {% for item in filename_list %}
+          {% for pdb in het_list %}
+            {% ifequal item pdb %}
+              <tr><td>Non CHARMM-Compliant Heteroatoms</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv');hideShowPatch(makeUniqueDiv('min_remove_patch'),true);hetatmDeter(makeUniqueDiv('hetatm_deter'),[{%for item in het_list%} '{{item}}',{% endfor %}]);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+ 
+          {% for pdb in tip_list %}
+            {% ifequal item pdb %}
+              <tr><td>CHARMM-Compliant Heteroatoms</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv');hideShowPatch(makeUniqueDiv('min_remove_patch'),true);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+ 
+          {% for pdb in protein_list %}
+            {% ifequal item pdb %}
+              <tr><td>Protein Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv');hideShowPatch(makeUniqueDiv('min_remove_patch'),true);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+          {% for pdb in nucleic_list %}
+            {% ifequal item pdb %}
+              <tr><td>Nucleic Acid Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv');hideShowPatch(makeUniqueDiv('min_remove_patch'),true);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+          {% for pdb in go_list %}
+            {% ifequal item pdb %}
+              <tr><td>Protein segment transformed to Go model</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+          {% for pdb in userup_list %}
+            {% ifequal item pdb %}
+              <tr><td>User-uploaded Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv');hideShowPatch(makeUniqueDiv('min_remove_patch'),true);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+        {% endfor %}
+
+        {% for item in filename_list %}
+          {% ifequal item solv_pdb %}
+            <tr><td>Solvated PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% endifequal %}
+ 
+          {% ifequal item neu_pdb %}
+            <tr><td>Neutralized and Solvated PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% endifequal %}
+
+          {% ifequal item min_pdb %}
+            <tr><td>Minimized protein</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% else %}
+            {% ifequal item md_pdb %}
+              <tr><td>MD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% else %}
+              {% ifequal item ld_pdb %}
+                <tr><td>LD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+                <tr><td colspan=3><hr width="100%"></td></tr>
+              {% else %}
+                {% ifequal item sgld_pdb %}
+                  <tr><td>SGLD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+                  <tr><td colspan=3><hr width="100%"></td></tr>
+                {% endifequal %}
+              {% endifequal %}
+            {% endifequal %}
+          {% endifequal %}
+
+        {% endfor %}
+
+       </table>
+<div id="hetatm_deter" style="display:none">
+       <hr noshade width="80%" size="3%">
+       <h2 align="center">HETATM parameter determination</h2>
+       <table>
+          <tr>
+            <td>GENRTF </td><td><input type="radio" name="parmgen" value="genrtf" checked></td><td><a href="." title="More CHARMM centric with generic parameters">?</a></td>
+          </tr>
+          <tr>
+            <td>Antechamber </td><td><input type="radio" name="parmgen" value="antechamber"></td><td><a href="." title="More AMBER centric but arguably better parameters">?</a></td>
+          </tr>
+          <tr>
+            <td>Determine coordinates for HETATM hydrogen based on valence rules</td><td><input type="checkbox" name="addhyd" value="addhyd"></td>
+          </tr>
+       </table>
+</div>
+       <hr noshade width="80%" size=3%>
+
+       <h2 align="center">Other options</h2>
+       <table width="600px">
+         <tr><td><p class="fontmed">Apply patch</td><td><input id="usepatch" type="checkbox" name="usepatch" onclick="checkPatch(makeUniqueDiv('usepatch'),makeUniqueDiv('patch_area'));"></td></tr>
+       </table>
+
+       <div id='trajanal_remove_patch' style="display:block;">
+	 <table width="720px">
+         <div id=patch_area style="display:none"></p>
+           <hr width="70%">
+           {% for item in propatch_list %}
+             <p class="fontmed">
+             Segid:<font color="red">{{item.0}} </font>
+             First Patch:
+             <select size="1" name="first_patch{{item.0}}">
+               {% ifequal item.1 "nter" %}
+                 <option value="NTER" selected>NTER</option>
+               {% else %}
+                 <option value="NTER">NTER</option>
+               {% endifequal %}
+               {% ifequal item.1 "glyp" %}
+                 <option value="GLYP" selected>GLYP</option>
+               {% else %}
+                 <option value="GLYP">GLYP</option>
+               {% endifequal %}
+               {% ifequal item.1 "prop" %}
+                 <option value="PROP" selected>PROP</option>
+               {% else %}
+                 <option value="PROP">PROP</option>
+               {% endifequal %}
+               <option value="ACE">ACE</option>
+               <option value="ACP">ACP</option>
+               <option value="NONE">NONE</option>
+             </select>
+
+             Last Patch:
+             <select size="1" name="last_patch{{item.0}}">
+               <option value="CTER" selected>CTER</option>
+               <option value="CT1">CT1</option>
+               <option value="CT2">CT2</option>
+               <option value="CT3">CT3</option>
+               <option value="ACP">ACP</option>
+               <option value="NONE">NONE</option>
+             </select>
+             </p>
+           {% endfor %}
+           {% for item in nucpatch_list %}
+             <p class="fontmed">
+             Segid:<font color="red">{{item.0}} </font>
+             First Patch:
+             <select size="1" name="first_patch{{item.0}}">
+               <option value="5TER" selected>5TER</option>
+               <option value="5MET">5MET</option>
+               <option value="5PHO">5PHO</option>
+               <option value="5POM">5POM</option>
+               <option value="CY35">CY35</option>
+             </select>
+
+             Last Patch:
+             <select size="1" name="last_patch{{item.0}}">
+               <option value="3TER" selected>3TER</option>
+               <option value="3PHO">3PHO</option>
+               <option value="3POM">3POM</option>
+               <option value="3CO3">3CO3</option>
+               <option value="CY35">CY35</option>
+             </select>
+           {% endfor %}
+           <p class="fontmed">Enter number of disulfide patches: <input type="text" name="num_patches" id="num_patches" value="0" size="4"n onKeyUp="writeDisuLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_patches'),makeUniqueDiv('disulfide_solv'));"></p>
+
+           <div id="disulfide_solv">
+           </div>
+         </div>
+       </div>
+       </table>
+       </div>
+
+       <table width="600px">
+         <!-- here come the interesting options -->
+         <p class="fontmed">Give the trajectory file that you want to analyze {{ form.trjfile }}</p>
+         <p class="fontmed">What is the first step you want to consider for RMSDYN? {{ form.startstep }}</p>
+         <p class="fontmed">What is the last step you want to consider for RMSDYN? {{ form.stopstep }}</p>
+         <p class="fontmed">How many frames do you want to skip between RMSDYN points? {{ form.skip }}</p>
+         <p class="fontmed">Enter an atom selection to choose the atoms whose RMSDs you wish to consider: {{ form.atomselection }}</p>
+       </table>
+
+       {% if trusted %}
+        TRUSTED USER: Edit these scripts: <input type="checkbox" id="edit_script" name="edit_script"><br><br>
+       {% endif %}
+       <input type="submit" value="Submit"/>
+       <br>
+       <br>
+
+       </form>
+    </center>
+  </div>
+</div>
+

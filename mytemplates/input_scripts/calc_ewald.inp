@@ -1,0 +1,8 @@
+!activating a perl script from this interface that determines the values for ewald.
+!The number cannot have a prime factor other than 2,3, and 5
+! the number also has to be greater than the max dimensions of the image
+syst "/usr/local/charmming/calcewald.pl @GREATERVALUE {{file_location}} {{filebase}} "
+
+! The Perl script called above writes out a stream file that sets the Ewald FFT parameter this line reads it into CHARMM
+stream {{filebase}}-highnum.str
+

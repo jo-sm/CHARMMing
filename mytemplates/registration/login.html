@@ -1,0 +1,30 @@
+<head>
+<link href="/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+</head>
+<body>
+{% block content %}
+
+  {% if form.errors %}
+    <p class="error">Sorry, that's not a valid username or password</p>
+  {% endif %}
+ <div style="position:fixed;left:35%;top:40%;">
+ <fieldset class="login">
+ <legend class="login">Welcome to the Laboratory of Computational Biology</legend>
+  <form action='.' method='post'>
+  <table cellspacing=2 cellpadding=2 border=0>
+    <tr><td><label for="username">User name:</label></td>
+    <td><input class="login" type="text" name="username" id="username"></td></tr>
+    <tr><td><label for="password">Password:</label></td>
+    <td><input class="login" type="password" name="password" value="" id="password"></td></tr>
+    </table>
+    <center>
+     <br>
+     <input type="submit" value="Login" />
+    </center>
+    <input type="hidden" name="next" value="{{ next }}" />
+  <form action='.' method='post'>
+ </fieldset>
+</div>
+<a href="/accounts/register/">Register</a>
+{% endblock %}
+</body>

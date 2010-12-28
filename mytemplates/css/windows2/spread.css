@@ -1,0 +1,109 @@
+.overlay_spread {
+	/*background-color: #FFBC47;*/
+ 	background-color: #e2e9f3;
+	filter:alpha(opacity=60);
+	-moz-opacity: 0.6;
+	opacity: 0.6;
+}
+
+.spread_nw {
+	background: transparent url(/charmming/images/windows2/spread/leemenu/left-top.gif) no-repeat 0 0;			
+  width:10px;
+  height:25px;
+}
+
+.spread_n {
+  background: transparent url(/charmming/images/windows2/spread/leemenu/top-middle.gif) repeat-x 0 0;			
+  height:25px;
+}
+
+.spread_ne {
+  background: transparent url(/charmming/images/windows2/spread/leemenu/right-top.gif) no-repeat 0 0;			
+  width:10px;	  
+  height:25px;
+}
+
+.spread_w {
+  background: transparent url(/charmming/images/windows2/spread/leemenu/frame-left.gif) repeat-y top left;			
+  width:7px;
+}
+
+.spread_e {
+  background: transparent url(/charmming/images/windows2/spread/leemenu/frame-right.gif) repeat-y top right;			
+  width:7px;	  
+}
+
+.spread_sw {
+  background: transparent url(/charmming/images/windows2/spread/leemenu/bottom-left-c.gif) no-repeat 0 0;			
+  width:7px;
+  height:7px;
+}
+
+.spread_s  {
+  background: transparent url(/charmming/images/windows2/spread/leemenu/bottom-middle.gif) repeat-x 0 0;			
+  height:7px;
+}
+
+.spread_se, .spread_sizer {
+  background: transparent url(/charmming/images/windows2/spread/leemenu/bottom-right-c.gif) no-repeat 0 0;			
+  width:7px;
+  height:7px;
+}
+
+.spread_sizer {
+	cursor:se-resize;	
+}
+
+.spread_close {
+	width: 23px;
+	height: 23px;
+	background: transparent url(/charmming/images/windows2/spread/leemenu/button-close-focus.gif) no-repeat 0 0;			
+	position:absolute;
+	top:0px;
+	right:11px;
+	cursor:pointer;
+	z-index:1000;
+}
+
+.spread_minimize {
+	width: 23px;
+	height: 23px;
+	background: transparent url(/charmming/images/windows2/spread/leemenu/button-min-focus.gif) no-repeat 0 0;		
+	position:absolute;
+	top:0px;
+	right:55px;
+	cursor:pointer;
+	z-index:1000;
+}
+
+.spread_maximize {
+	width: 23px;
+	height: 23px;
+	background: transparent url(/charmming/images/windows2/spread/leemenu/button-max-focus.gif) no-repeat 0 0;			
+	position:absolute;
+	top:0px;
+	right:33px;
+	cursor:pointer;
+	z-index:1000;
+}
+
+.spread_title {
+	float:left;
+	height:14px;
+	font-family: Tahoma, Arial, sans-serif;
+	font-size:14px;
+	font-weight:bold;
+	text-align:left;
+	margin-top:2px;
+	width:100%;
+	color:#FFFFFF;/*was E47211*/
+}
+
+.spread_content {
+	overflow:auto;
+	color: #222;
+	font-family: Tahoma, Arial, sans-serif;
+	font-size: 10px;
+	background:#FFFFFF;/*was #FFBC47*/
+}
+

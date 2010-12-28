@@ -1,0 +1,19 @@
+* {% block title %}{% endblock %}
+*
+{% block bomlev %} blankme
+  prnlev 5
+  wrnlev 5
+  bomlev -2
+{% endblock %} blankme
+
+{% block toppar %} blankme
+  ! read topology and parameter files
+  {% include "input_scripts/read_toppar.inp" %}
+{% endblock %} blankme
+{% block read_struct %} blankme
+{% include 'input_scripts/read_structure.inp' %}
+{% endblock %} blankme
+
+{% block body %}{% endblock %} blankme
+
+stop

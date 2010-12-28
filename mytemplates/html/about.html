@@ -1,0 +1,110 @@
+<div>
+<center>
+  <h1><p class="padding">About CHARMMing</p></h1> 
+</center>
+
+<h2 class="intro"><p class="padding">Citation</p></h2>
+
+<p class="intro">If you use CHARMMing in any work, please cite our paper:
+<br /><br />
+<i>Miller, B. T.; Singh, R. P.; Klauda, J. B.;
+Hodoscek M.; Brooks, B. R.; Woodcock H. L. CHARMMing: A new, flexible Web portal for CHARMM. Journal of Chemical Information
+and Modeling. 48(9), 1920-1929. 2008.</i><br />(<a href="http://pubs.acs.org/cgi-bin/abstract.cgi/jcisd8/asap/abs/ci800133b.html">Link to abstract</a>)</p>
+
+<h2 class="intro"><p class="padding">Source Code</p></h2>
+
+<p class="intro">The source code for CHARMMing can be found at <a href="http://source.charmming.org">source.charmming.org</a>
+or at <a href="http://charmming.googlecode.com">CHARMMing's Google Code site<a>.</p>
+
+
+<h2 class="intro"><p class="padding">Using the site</p></h2>
+
+<p class="intro">
+CHARMMing has been tested with Mozilla Firefox versions 2 and 3-beta. The browser must be set to accept
+cookies. It should also work with Internet Explorer 7+ and recent versions of Safari, but these have not
+been tested as thoroughly.</p>
+<br />
+<p class="intro">To view structures with Jmol, the free Java browser plug-in is required. It may be downloaded from
+<a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.java.com/en/download/index.jsp">Sun Microsystems</a>.</p>
+<br /></p>
+<p class="intro">To report bugs, please e-mail btmiller@helix.nih.gov or RishiSingh@gmail.com, but please check the known problem
+list below to make sure it's not a duplicate of an issue we already know about.</p>
+
+<h2 class="intro"><p class="padding">Known Problems</p></h2>
+
+<ul>
+  <li><p class="introlist">Occasionally, the status box will not update when a job is submitted. If this happens, please
+      restart the job.</p></li>
+  <li><p class="introlist">Antechamber will combine all &quot;bad&quot; hetero-atoms into a single residue when it is used.</p></li>
+  <li><p class="introlist">GENRTF also combines all &quot;bad&quot; hetero-atoms into a single residue when hydrogens are generated.</p></li>
+  <li><p class="introlist">Generating hydrogens for &quot;bad&quot; hetero-atoms can cause problems with Antechamber.</p></li>
+  <li><p class="introlist">The Jmol Java applet requires Sun's java browser plugin to function correctly. The GNU java plugin 
+      is known not to work.</p></li> 
+  <li><p class="introlist">Visualizing custom sequences does not work until a CHARMM operation is performed on them (since coordinates must be built).</p></li>
+</ul>
+
+<h2 class="intro"><p class="padding">Report a bug</p></h2>
+
+<div id='error_report' name='error_report'>
+   <p class="intro">
+     If you believe you have found a bug, please report it using the form below.<br><br>
+   </p>
+   <form id="error_form" method="post"  action="." onsubmit="return report_error(this,'error_report');">
+   <p class="intro">Subject:</p>
+   <input class="intro" name="subject" type="text">
+   <br>
+   <p class="intro">
+     Please tell us some information about your PDB and what the error(s) were:<br>
+   </p>
+   <textarea class="intro" name="errordescription" cols="50" rows="5"></textarea><br>
+  <br>
+  <input class="intro" type="submit" value="Report Error">
+  </form>
+</div>
+
+
+<h2 class="intro"><p class="padding">Software</p></h2>
+
+<p class="intro">
+CHARMMing makes use of a variety of additional software.
+
+<ul>
+  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.fueledsoftware.com/ajax-tabs-reloaded-based-on-the-havoc-studios-arti#more251">Ajax Tabs</a>: an Ajax tabbing script.</p></li>
+  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://web-graphics.com/mtarchive/001717.php">Bubble tooltips</a>: provides context-sensitive help.</p></li>
+  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.djangoproject.org">Django</a>: an open source Web application framework.</p></li>
+  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.orangoo.com/labs/GreyBox/">GreyBox</a>: for various display functionality.</p></li>
+  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.prototypejs.org/">Protoype</a>: javascript framework.</p></li>
+  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.dynamicdrive.com/dynamicindex1/slashdot.htm">SD Menu</a>: used to create the sidebar.</p></li>
+  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.millstream.com.au/view/code/tablekit">TableKit</a>: For table sorting.</p></li>
+  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.openbabel.org">Open Babel</a>: Generates hydrogens for bad heteroatoms.</p></li>
+</ul>
+</p>
+
+<h2 class="intro">People</h2>
+<br />
+<p class="intro">CHARMMing was developed by the Laboratory of Computational Biology. Planning and development were done by:
+
+<ul>
+  <li><p class="introlist">Tim Miller</p></li>
+  <li><p class="introlist">Rishi Singh</p></li>
+  <li><p class="introlist">Jingjun Sun</p></li>
+  <li><p class="introlist">Frank Pickard</p></li>
+  <li><p class="introlist">Jeff Klauda</p></li>
+  <li><p class="introlist">Milan Hodoscek (GENRTF)</p></li>
+  <li><p class="introlist">Lee Woodcock</p></li>
+</ul>
+</p>
+
+<p class="intro">
+With special thanks to:	
+
+<ul>
+  <li><p class="introlist">Bernard Brooks</p></li>
+  <li><p class="introlist">Rick Venable</p></li>
+  <li><p class="introlist">Xiongwu Wu</p></li>
+</ul>
+
+<br />
+<br />
+</p>
+</div>

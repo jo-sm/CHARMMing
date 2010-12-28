@@ -1,0 +1,10 @@
+{% if solvate_implicitly %}
+!Implicit solvation means there cannot be any TIP3s in the file
+delete atom select resname TIP3 end
+
+!Triggering implicit solvation
+open read card unit 84 name /usr/local/charmming/solvation/scpism.inp
+scpism uism 84
+close unit 84
+{% endif %}
+

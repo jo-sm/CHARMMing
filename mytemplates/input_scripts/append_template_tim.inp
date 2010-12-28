@@ -1,0 +1,25 @@
+{% extends "input_scripts/generic_charmm_script.inp" %}
+
+{% block title %}Append script{% endblock %}
+
+{% block read_struct %}
+  {%  for item in psf_list %}
+    {% ifequal forloop.counter 1 %}
+read psf card name {{item}}
+    {% else %}
+read psf card append name {{item}}
+    {% endifequal %}
+  {% endfor %}
+
+  {% for item in crd_list %}
+    {% ifequal forloop.counter 1 %}
+read coor card name {{item}}
+    {% else %}
+read coor card append name {{item}}
+    {% endifequal %}
+  {% endfor %}
+{% endblock %}
+
+{% block body %}
+ {% include "input_scripts/write_psf_crd.inp" %}
+{% endblock %}

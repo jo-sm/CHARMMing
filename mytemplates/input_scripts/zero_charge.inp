@@ -1,0 +1,10 @@
+! the total charge on the system must be 0 or else Ewald will not work correctly, we need to test for this...
+! we do the almost equal if test to avoid floating point rounding errors.
+scalar charge stat sele all end
+if ?stot .ae. 0 then goto okewald
+! uh-oh, total charge != 0, we cannot proceed, set the bomlev to an absurdly high level
+! to force a bailout.
+bomlev 5
+Achtung, dynamics with particle-mesh ewald only works on a structure with 0 total charge!!!!
+
+label okewald

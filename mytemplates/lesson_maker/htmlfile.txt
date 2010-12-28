@@ -1,0 +1,54 @@
+<center>
+<h1>Lesson {{lesson_num}}{{left}} ifequal lesson{{lesson_num}}.curStep 4 {{right}}: <font color="red">Completed</font> {{left}} endifequal {{right}}
+</h1></center>
+
+Lesson Objectives<br>
+<li> List objectives here </li>
+<br>
+<p> Insert introductory text here </p>
+{% if lesson_filenameslist %} blankme		
+   {% for filename in lesson_filenameslist %} blankme	
+      <li><a href="/charmming/lessons/download/lesson{{lesson_num}}/{{filename}}">{{filename}}</a></li>
+   {% endfor %} blankme	
+{% endif %} blankme
+
+<br>
+<br>
+<!-- 
+The way this status display logic works is as follows:
+html_step_list is a list/array where each index represents a different step in the lesson
+if the value at each index (an index represents a step) is 1, then the step is complete
+If the value at each index/step is 2 then the step is currently running
+-->
+
+{{left}} if {{lesson_name}} {{right}}
+   {{left}} ifequal html_step_list.0 1 {{right}}
+      <font color="red"> Step 1: Upload Done </font><br>
+      <p> Insert text here </p>
+   {{left}} endifequal {{right}}
+
+   {{left}} ifequal html_step_list.1 2 {{right}}
+
+      <font color="red"> Step 2: Solvation Running </font><br>
+      <p> Insert status text here </p>
+   {{left}} endifequal {{right}}
+   {{left}} ifequal html_step_list.1 1 {{right}}
+
+      <font color="red"> Step 2: Solvation Done </font><br>
+      <p>  Insert status text here </p>
+   {{left}} endifequal {{right}}
+
+   {{left}} ifequal html_step_list.2 2 {{right}}
+      <font color="red"> Step 3: Minimization Running </font><br>
+      <p> Insert status text here </p>
+   {{left}} endifequal {{right}}
+   {{left}} ifequal html_step_list.1 1 {{right}}
+      <font color="red"> Step 2: Solvation Done </font><br>
+      <p> Insert text here </p>
+   {{left}} endifequal {{right}}
+   <!-- This is the lesson problem object -->
+   {{left}} if lessonproblem {{right}}
+      <font color="red">LESSON ERROR: STEP - {{left2}}lessonproblem.errorstep{{right2}}, SEVERITY - {{left2}}lessonproblem.severity{{right2}}</font> <br>
+      {{left2}}lessonproblem.description{{right2}}
+   {{left}} endif {{right}} 
+{{left}} endif {{right}}

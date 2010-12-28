@@ -1,0 +1,8 @@
+{% if upload_lis %}
+{% for dict in upload_lis %} blankme
+    {% if dict.case2 %} blankme
+    <option value="{{lesson_name}}"> Lesson {{lesson_num}} </option>
+    {% endif %} blankme
+{{dict.line}}
+{% endfor %} blankme
+{% endif %}

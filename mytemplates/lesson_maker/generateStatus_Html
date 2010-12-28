@@ -1,0 +1,3 @@
+{% for dict in status_list %}
+<tr class='status'><td class='status'>{{dict.num}}. {{dict.fun}}: <font color='{{dict.color}}'>{{dict.status}}</font></td></tr>
+{% endfor %}

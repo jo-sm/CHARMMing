@@ -1,0 +1,12 @@
+{% for dict in htmlfile %} blankme 
+    {% if dict.case2 %} blankme
+         <div>
+         <span>Lessons</span> 
+            <a title="Put lesson description here" href="javascript:openNewURL('/charmming/lessons/{{lesson_name}}/', 'Lesson {{lesson_num}}');timeoutWikipage('Lesson {{lesson_num}}');">Lesson {{lesson_num}}</a> 
+         </div>
+    {% endif %} blankme
+    {% if dict.case3 %} blankme
+            <a title="Put lesson description here" href="javascript:openNewURL('/charmming/lessons/{{lesson_name}}/', 'Lesson {{lesson_num}}');timeoutWikipage('Lesson {{lesson_num}}');">Lesson {{lesson_num}}</a>       
+    {% endif %} blankme
+{{dict.line}}
+{% endfor %} blankme

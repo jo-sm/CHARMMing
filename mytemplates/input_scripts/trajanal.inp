@@ -1,0 +1,17 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}Use RMSDYN to get a matrix of distances between points in the trajectory{% endblock %}
+{% block body %}
+
+! initial energy
+energy cdie cutnb 16.0 ctofnb 12.0 ctonnb 10.0 fshift vshift atom
+
+! open the trajectory...
+open unit 20 read unform name {{ trajfilename }}
+traj query unit 20
+
+open unit 21 write card name {{ matrixfilename }}
+rmsdyn orient mass rms firstu 20 nunit 1 -
+  begin {{ rmsdyn_start }} stop {{ rmsdyn_stop }} skip {{ rmsdyn_skip }} matrix -
+  iwrite 21 select {{ rmsdyn_sele }} end
+{% endblock %}

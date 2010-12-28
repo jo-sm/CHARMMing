@@ -1,0 +1,74 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}Langevin Dynamics {% endblock %}
+
+{% block body %} blankme
+   {% include 'input_scripts/fix_other_atoms.inp' %}
+
+   {% if restraints %} blankme
+      {{restraints}}
+   {% endif %} blankme
+   {% include 'input_scripts/solvate_implicity.inp' %}
+
+   {% include 'input_scripts/use_shake.inp' %} 
+   scal fbeta set {{fbeta}} sele all end
+
+   open write unit 41 card name new_{{filebase}}{{ld_suffix}}.res
+   open write unit 31 file name new_{{filebase}}{{ld_suffix}}.dcd
+
+   {% if rtfprm %}
+      cons fix sele .not. notfix end
+   {% endif %}
+   ! print initial energy
+   energy
+
+   {% include 'input_scripts/nopbc_nonbond.inp' %}
+
+   dyna lang leap strt-
+   CHARMM-scripts  timestep 0.001 - !timestep in picoseconds
+   CHARMM-scripts  nstep {{nstep}} - !number of steps and energy evaluations
+   CHARMM-scripts  nprint 100 - !step frequency for writing in kunit and printing energy on unit 6
+   CHARMM-scripts  iunwri 41 - !unit to write restart file
+   CHARMM-scripts  iuncrd 31 - !unit to write coordinated (unformatted)
+   CHARMM-scripts  iunrea -1 - !unit to read in restart file
+   CHARMM-scripts  kunit -1 - !unit to write temperature and total energy
+   {% if usesgld %} blankme
+      CHARMM-scripts  iprfrq 10 - !frequency for avg and rms energy
+      CHARMM-scripts  isvfrq 10 - !frequency to write a restart file
+      CHARMM-scripts  ihtfrq 0 - !frequency to increase temperature by TEMINC
+      CHARMM-scripts  ieqfrq 0  - !frquency to assign or scale velocities to match FINALT temperature
+      CHARMM-scripts  inbfrq 10 - !lists updated when necessary (heuristic test)
+      CHARMM-scripts  ihbfrq 0 - !frequency to regenerate hydrogen bond list
+      CHARMM-scripts  nsavc 10 - !frequency for writing coordinates
+      CHARMM-scripts  nsavv 10 - !frequency for writing velocities
+      CHARMM-scripts  iseed 314159 - !seed for the random number generator in assigning velocities
+      CHARMM-scripts  sgld - !turn on sgld
+      CHARMM-scripts  tsgavg {{tsgavg}} - !local average time in picoseconds
+      CHARMM-scripts  tempsg {{tempsg}} - !guiding temperature to limit the guiding force
+      CHARMM-scripts  tbath 300 - !temperature of heath bath
+      CHARMM-scripts  first 260 - !initital temperature for assigning velocities
+      CHARMM-scripts  iasors 1 - !assign (NOT scale) velocities during heating/equil
+      CHARMM-scripts  iasvel 1 - !use gaussian distribution of velocities
+      CHARMM-scripts  ichecw 0 - !checks to make sure avg temperature lies within a window
+      CHARMM-scripts  nbxmod 5 - !Add 1-2 1-3 and special 1-4 interactions
+   {% else %} blankme
+      CHARMM-scripts  nsavc 10 - !frequency for writing coordinates
+      CHARMM-scripts  nsavv 10 - !frequency for writing velocities
+      CHARMM-scripts  ihbfrq 0 - !frequency to regenerate hydrogen bond list
+      CHARMM-scripts  inbfrq 25 - !lists updated when necessary (heuristic test)
+      CHARMM-scripts  iseed 314159 - !seed for the random number generator in assigning velocities
+      CHARMM-scripts  nbxmod 5 - !Add 1-2 1-3 and special 1-4 interactions
+      CHARMM-scripts  tbath 300 - !temperature of heath bath
+      CHARMM-scripts  firstt 300 - !initial temperature of the system
+      CHARMM-scripts  finalt 300 - !final temperature of the system
+      CHARMM-scripts  teminc 10.0 - !value to increase temperature by
+      CHARMM-scripts  iasors 1 - !assign (NOT scale) velocities during heating/equil
+      CHARMM-scripts  iasvel 1 - !use gaussian distribution of velocities
+      CHARMM-scripts  iscvel 1 - !single scale factor
+      CHARMM-scripts  ichecw 0 - !checks to make sure avg temperature lies within a window
+      CHARMM-scripts  twindh 0.0 !Highest deviation allowed of FINALT on the high side
+   {% endif %} blankme
+
+   {% include 'input_scripts/write_out_struct.inp' %}
+{% endblock %} blankme
+

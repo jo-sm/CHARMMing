@@ -1,0 +1,4 @@
+            calc gvsq = @greatervalue * @greatervalue
+            calc safesphere = sqrt( @gvsq  + ( 2 * @gvsq ) )
+            calc safesphere = @safesphere/2
+            delete atom sort select .byres. ( .not.( point 0. 0. 0. cut @safesphere ) .and. ( segid bwat ) ) end

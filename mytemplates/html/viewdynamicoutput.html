@@ -1,0 +1,45 @@
+<html>
+<head>
+  <title> Output View </title>
+  <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+  <script type="text/javascript">
+  keepscrolling = 1;
+  function doOnLoad()
+  {
+   new Ajax.PeriodicalUpdater('outputdata', '/charmming/viewdynamicoutput/', {method: 'post', frequency: 5,parameters:{'inputname':'{{charmm_filename}}' }, 
+   onSuccess:function(){
+      //ifh = window.frameElement.document.body.scrollHeight
+      //ifc = window.frameElement.document.body.height
+      //if(ifh > ifc) {
+      //  moveme = ifh - ifc;
+      //  window.scrollTo(0, moveme);
+      //}
+      if(keepscrolling)
+      {
+       txtHeight = document.getElementById('outputdata').offsetHeight
+       txtOffset = document.getElementById('outputdata').offsetTop
+       window.scrollTo(0, txtHeight + txtOffset + 120);
+      }
+   }
+   }); 
+  }
+  function checkscroll()
+  {
+   if(keepscrolling)
+    keepscrolling = 0;
+   else
+    keepscrolling = 1;
+  }
+  </script>
+</head>
+<body onload="doOnLoad();">
+Output for {{ charmm_filename }} (refreshes every five seconds):
+</center>
+<pre>
+<div id="outputdata" style="overflow:auto;"> 
+Rertrieving data ... Certain jobs such as solvation may take some time before they display output.
+</div>
+</pre>
+Stop automatic scrolling: <input type="checkbox" id='keepscroll' onclick="checkscroll();">
+</body>
+</html>

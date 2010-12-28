@@ -1,0 +1,89 @@
+* initial trex run for a single Maltose
+*
+
+! STREAM THE COMMON SETUP; CUSTOMIZE THE STREAM FILE
+stream init.str
+
+! OPEN TRAJ AND RESTART FILES; IUNCRD 2 IUNWRI 3
+open write formatted unit 3 name @TACT/rex.res.1
+open write unformatted unit 2 name @TACT/rex.trj.1
+
+! CHANGE THIS SECTION FOR YOUR APPLICATION; THIS IS VAC LANGEVIN
+
+shake bonh param sele all end
+
+scalar mass stat
+calc pmass = int ( ?stot  /  50.0 )
+calc tmass = @pmass * 10
+
+print cons
+
+coor force comp
+print coor comp
+
+dyna cpt start -
+  timestep 0.001 - !timestep in picoseconds
+  nstep 1000 - !number of steps and energy evaluations
+  echeck 500. - !max variation of energy step-to-step
+  pcons - !use constant pressure
+  pint - !use internal virial for calc pressure
+  pref 1.0 - !reference pressure in atm
+  pmass @pmass - !piston mass
+  pgamma 0.0 - !Langevin piston collision frequency
+  hoover - !Hoover temperature control
+  reft @TACT - !Hoover reference temperature
+  tmass @tmass - !mass of thermal piston
+  inbfrq -1 - !lists updated when necessary (heuristic test)
+  atom - !electrostatics calculation (default) is done on atom-atom basis
+  vatom - !needed for nonbond list generation
+  cutnb 16.0 - !distance cutoff for neighbor list
+  ctofnb 12.0 - !max distance for pair to consider in energy
+  cdie - !use constant dielectric/r
+  eps 1. - !potential for constant ditlectric
+  ctonnb 8. - !Distance at which smoothing function reduces pair's contribution
+  fswitch - !Use switching function for electrostatics
+  vswitch - !Use switching function for van der Waals to avoid cutoff discontinuity
+  wmin 1.0 - !warning cutoff for minimum atom-atom distance
+  cutim 16.0 - !cutoff for including image atom
+  imgfrq -1 - !frequency to check for atoms in Langevin region
+  ewald - !use Ewald summation
+  pmew - !use Particle Mesh Ewald method
+  fftx @ewaldval - !number of FFT grid points
+  ffty @ewaldval - !number of FFT grid points
+  fftz @ewaldval - !number of FFT grid points
+  kappa .34 - !width of the Gaussian distribution
+  spline - !cubic spline interpolation
+  order 6 - !Order of the B-spline interpolation
+  iprfrq 1000 - !frequency for avg and rms energy
+  ieqfrq 0  - !frquency to assign or scale velocities to match FINALT temperature
+  ntrfrq 1000 - !frequency for stopping the rotation and translation of the system during dynamics
+  iunwri 3 - !unit to write restart file
+  iuncrd 2 - !unit to write coordinated (unformatted)
+  iunrea -1 - !unit to read in restart file
+  kunit -1 - !unit to write temperature and total energy
+  nprint 1000 - !step frequency for writing in kunit and printing energy on unit 6
+  nsavc 1000 - !frequency for writing coordinates
+  nsavv 0 - !frequency for writing velocities
+  ihbfrq 0 - !frequency to regenerate hydrogen bond list
+  firstt @TACT - !initial temperature of the system
+  finalt @TACT - !final temperature of the system
+  ihtfrq 0 - !frequency to increase temperature by TEMINC
+  teminc 0.0 - !value to increase temperature by
+  tbath @TACT - !temperature of heath bath
+  iasors 1 - !assign (NOT scale) velocities during heating/equil
+  iasvel 1 - !use gaussian distribution of velocities
+  iscvel 0 - !single scale factor
+  ichecw 0 - !checks to make sure avg temperature lies within a window
+  twindh 0.0 - !Highest deviation allowed of FINALT on the high side
+  twindl 0.0 - !Highest deviation allowed of FINALT on the low side
+
+
+
+! KEEP THIS, IT IS ESSENTIAL; THIS IS NVT (PREF 0.0), VOLUME NOT WRITTEN
+open unit 12 write card name @TACT/rex.ene
+format (F20.6)
+write title unit 12
+* ?ENER
+*
+
+stop

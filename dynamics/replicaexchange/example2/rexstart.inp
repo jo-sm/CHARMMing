@@ -1,0 +1,38 @@
+* setup for the parallel tempering simulation; nptrex
+*
+
+! STREAM THE COMMON SETUP; CUSTOMIZE THE STREAM FILE
+stream init.str
+
+! OPEN TRAJ AND RESTART FILES; IUNCRD 2 IUNWRI 3
+open write formatted unit 3 name @TACT/rex.res.1
+open write unformatted unit 2 name @TACT/rex.trj.1
+
+! CHANGE THIS SECTION FOR YOUR APPLICATION; MUST BE NPT BASED
+! THIS IS NPAT, SPECIAL ENEMBLE FOR SYSTEMS WITH PLANAR INTERFACES
+! USE @TACT FOR TEMP; KEEP UNIT NUMBERS AS ABOVE; IUNCRD 2 IUNWRI 3
+
+set nstp 500
+set seed 35437658
+
+shake bonh param fast
+dyna cpt strt nstep @NSTP timestep 0.001 echeck 9999. iseed @SEED -
+    pcons pint pref 1.0 pmxx 0. pmyy 0. pmzz 1000. pgamma 10.0 -
+    hoover reft @TACT tmass 10000. tbath @TACT -
+    inbfrq -1 atom vatom cutnb 16.0 ctofnb 10. cdie eps 1. -
+    ctonnb 8. vswitch cutim 16.0 imgfrq -1 wmin 1.0 -
+    ewald pmew fftx 48 ffty 48 fftz 64  kappa .33 spline order 6 -
+    iprfrq @NSTP ihtfrq 0 ieqfrq 0 ntrfrq 50 -
+    iuncrd 2 iunrea -1 iunwri 3 kunit -1 -
+    nprint 50 nsavc @NSTP nsavv 0 ihbfrq 0 -
+    firstt @TACT finalt @TACT tstruct @TACT teminc 0.0 -
+    iasors 1 iasvel 1 iscvel 0 ichecw 0 
+
+! KEEP THIS; IT IS ESSENTIAL FOR SWAP EVAL
+open unit 12 write card name @TACT/rex.ene
+format (F20.6)
+write title unit 12
+* ?ENER ?VOLU
+*
+
+stop

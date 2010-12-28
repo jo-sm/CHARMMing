@@ -1,0 +1,24 @@
+# This program will be rewritten every time lesson-maker_tpl2.py is run
+# Typically it adds new lesson just created by running lesson-maker_tpl2.py 
+
+{% for dict in lesson_info_lis %} blankme
+import lesson{{dict.lesson_num}}
+{% endfor %} blankme 
+
+# Lesson number list
+lesson_num_lis = [{% for dict in lesson_info_lis %}'{{dict.lesson_num}}',{% endfor %}]
+# The file type lessons need to upload
+file_type = {
+{% for dict in lesson_info_lis %}'{{dict.lesson_num}}':'{{dict.file_type}}',{% endfor %}
+}
+# Text-format lesson number
+lesson_txt = {
+{% for dict in lesson_info_lis %}'{{dict.lesson_num}}':'{{dict.lesson_txt}}',{% endfor %}
+}
+# Lesson description
+lesson_desc = {
+{% for dict in lesson_info_lis %} blankme
+'{{dict.lesson_num}}':'{{dict.lesson_desc}}',
+{% endfor %} blankme
+}
+

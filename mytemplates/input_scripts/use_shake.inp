@@ -1,0 +1,21 @@
+{% if shake %} blankme
+   {% ifequal which_shake 'define_shake' %} blankme
+      {% if shake_line %} blankme
+         shake bonh param sele {{shake_line}} end
+
+      {% else %} blankme
+         {% ifequal useqmmm 'y' %} blankme
+            shake bonh param sele notfix .and. .not. {{qmmmsel}} end
+         {% else %} blankme
+            shake bonh param sele notfix end
+         {% endifequal %} blankme
+      {% endif %} blankme
+   {% else %} blankme
+      {% ifequal useqmmm 'y' %} blankme
+         shake bonh param sele notfix .and. .not. {{qmmmsel}} end
+      {% else %} blankme
+         shake bonh param sele notfix end
+      {% endifequal %} blankme
+   {% endifequal %} blankme
+{% endif %} blankme
+

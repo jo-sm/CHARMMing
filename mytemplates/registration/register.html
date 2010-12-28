@@ -1,0 +1,64 @@
+<head>
+<link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+<script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+<script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+<script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+
+{% block js%}
+ <script type="text/javascript">
+
+function getClassList() {
+   teacher_name = document.getElementById('teacher_name').value;
+   document.getElementById('class_list').innerHTML = "Getting class list. One moment.";
+   new Ajax.Updater("class_list","/charmming/accounts/register/student/refreshclasslist/"+teacher_name + "/", {method:'post', asynchronous:false});
+}
+
+    </script>
+{% endblock%}
+
+
+</head>
+
+<title>{% block title %}Create an account{% endblock %}</title>
+
+{% block content %}
+<center>
+      <h1>Create an account</h1><br>
+      <center>
+      <form action="/charmming/accounts/register/" method="post">
+        {% if form.error_dict %}
+          <p class="error">Please correct the errors below.</p>
+        {% endif %}
+
+        {% if form.username.errors %}
+          {{ form.username.html_error_list }}
+        {% endif %}
+        <label for="id_username">Username:</label><br><input type=text name="username" onBlur="javascript:this.value=this.value.toLowerCase();"><br>
+
+        {% if form.password1.errors %}
+          {{ form.password1.html_error_list }}
+        {% endif %}
+        <label for="id_password1">Password:<br> {{ form.password1 }}<br>
+
+        {% if form.password2.errors %}
+          {{ form.password2.html_error_list }}
+        {% endif %}
+        <label for="id_password2">Password (again):<br> {{ form.password2 }}<br>
+        {% if form.first_name.errors %}
+          {{ form.first_name.html_error_list }}
+        {% endif %}
+        <label for="id_first_name">First Name:<br> <input type=text name="first_name"><br>
+        <label for="id_last_name">Last Name:<br> <input type=text name="last_name"><br>
+        <label for="id_institute">Institute:<br> <input type=text name="institute"><br>
+        <label for="id_email">Email:<br> <input type=text name="email"><br>
+        <label for="id_charmmlicense">Do you have a CHARMM License?: <br>Yes: <input type=radio name="charmmlicense" value="Yes"> No: <input type=radio name="charmmlicense" value="No" checked><br><br>
+<!--	
+	What type of account are you applying for?<br>
+	Student Account <input type="radio" name="account_type" value="student"><br>
+	Teacher Account <input type="radio" name="account_type" value="teacher"><br>
+-->
+    <input type="submit" value="Create the account" />
+      </label>
+</center>
+{% endblock %}

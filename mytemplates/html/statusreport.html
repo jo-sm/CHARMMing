@@ -1,0 +1,60 @@
+{% autoescape off %}
+<html>
+<head>
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
+  <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+</head>
+<body>
+<center>
+  <table border=0 bordercolor=#e2e9fe class="status" cellspacing=0 cellpadding=0 width=150px>
+   {% if PDBFile.filename %}
+     <tr class="status"><th class="status"> Status of: <br /> {{ PDBFile.filename }} </th></tr>
+     <tr class="status"><td class="status">Operations:</td></tr>
+     {% if mini_param %}
+       <tr class="status"><td class="status"><a href="javascript:openWin('spread', 'Minimization Output', 200, 300, 800, 800, '/charmming/viewdynamicoutputcontainer/minimization/','null')">Minimization:</a> {{ mini_param.statusHTML }}</td></tr>
+     {% endif %}
+     {% if solv_param.statusHTML %}
+       <tr class="status"><td class="status"> <a href="javascript:openWin('spread', 'Solvation Output', 200, 300, 800, 600, '/charmming/viewdynamicoutputcontainer/solvation/','null')">Solvation:</a> {{ solv_param.statusHTML }}</td></tr>
+     {% endif %}
+     {% if nma_param.statusHTML %}
+       <tr class="status"><td class="status"><a href="javascript:openWin('spread', 'NMA Output', 200, 300, 800, 600, '/charmming/viewdynamicoutputcontainer/nma/','null')">NMA:</a> {{ nma_param.statusHTML }}</td></tr>
+     {% endif %}
+     {% if nma_param.nma_movie_status %}
+       <tr class="status"><td class="status"> NMA Movie: {{ nma_param.nma_movie_status }}</td></tr>
+     {% endif %}
+     {% if md_param.statusHTML %}
+       <tr class="status"><td class="status"> <a href="javascript:openWin('spread', 'MD Output', 200, 300, 800, 600, '/charmming/viewdynamicoutputcontainer/md/','null')">MD:</a> {{ md_param.statusHTML }}</td></tr>
+     {% endif %}
+     {% if md_param.md_movie_status %}
+       <tr class="status"><td class="status"> MD Movie: {{ md_param.md_movie_status }}</td></tr>
+     {% endif %}
+     {% if ld_param.statusHTML %}
+       <tr class="status"><td class="status"> <a href="javascript:openWin('spread', 'LD Output', 200, 300, 800, 600, '/charmming/viewdynamicoutputcontainer/ld/','null')">LD:</a> {{ ld_param.statusHTML }}</td></tr>
+     {% endif %}
+     {% if ld_param.ld_movie_status %}
+       <tr class="status"><td class="status"> LD Movie: {{ ld_param.ld_movie_status }}</td></tr>
+     {% endif %}
+     {% if sgld_param.statusHTML %}
+       <tr class="status"><td class="status"><a href="javascript:openWin('spread', 'SGLD Output', 200, 300, 800, 600, '/charmming/viewdynamicoutputcontainer/sgld/','null')">SGLD:</a> {{ sgld_param.statusHTML }}</td></tr>
+     {% endif %}
+     {% if sgld_param.sgld_movie_status %}
+       <tr class="status"><td class="status"> SGLD Movie: {{ sgld_param.sgld_movie_status }}</td></tr>
+     {% endif %}
+     {% if redox_param.statusHTML %}
+       <tr class="status"><td class="status"><a href="javascript:openWin('spread', 'Redox Output', 200, 300, 800, 600, '/charmming/viewdynamicoutputcontainer/redox/','null')">Redox:</a> {{ redox_param.statusHTML }}</td></tr>
+     {% endif %}
+   {% else %}
+     <tr class="status"><th class="status"> No PDB Uploaded </th></tr>
+   {% endif %}
+</table>
+
+  <div id="statusfooter">
+    <div class="content">
+    </div>
+  </div> 
+
+</center>
+</body>
+</html>
+{% endautoescape %}

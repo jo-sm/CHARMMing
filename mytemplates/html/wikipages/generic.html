@@ -1,0 +1,103 @@
+<html>
+ <head>
+ <link href="/charmming/css/wiki.css" rel="stylesheet" type="text/css" />
+ <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+ <script type="text/javascript" src="/charmming/js/instanteditwiki.js"></script>
+ <script type="text/javascript" src="/charmming/js/wiki.js"></script>
+ <script type="text/javascript">
+ function showaddtopic()
+ {
+  var formarea = document.getElementById('add_topic');
+  if(formarea.style.display == 'none')
+  {
+   formarea.style.display = 'block';
+   document.getElementById('add_topic_link').innerHTML = "Cancel";
+  }
+  else if(formarea.style.display == 'block')
+  {
+   formarea.style.display = 'none';
+   document.getElementById('add_topic_link').innerHTML = "Add Topic";
+  }
+ }
+ function doOnLoad(boardname)
+ {
+  setBoardName(boardname);
+  setVarsForm('boardname=' + boardname);
+ }
+ </script>
+ </head>
+ <body background="#FFFFFF" onload="doOnLoad('{{boardname}}');">
+ <p class="wikiheader">{{boardname}} Wiki</p>
+ {% for topic in topics %}
+ <fieldset class="wiki">
+ <legend class="topic"><span id="edittitle_{{topic.title}}" class="editText">{{ topic.title }}</span></legend>
+  {% autoescape off %}<span id="message_{{topic.title}}" class="editText" width=200> {{ topic.message }} </span>{% endautoescape %}
+  <br>
+  <span id="{{topic.title}}_currate">Rating:</span>
+  <table id="{{topic.title}}_stars" title="Rating" board=0 cellspacing=0 cellpadding=0 onmouseOut="resetStars(this)">
+  <tr>
+   {% ifequal topic.rating 5 %}
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_1" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_2" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_3" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_4" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_5" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   {% endifequal %}
+   {% ifequal topic.rating 4 %}
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_1" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_2" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_3" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_4" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_5" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   {% endifequal %}
+   {% ifequal topic.rating 3 %}
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_1" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_2" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_3" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_4" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_5" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   {% endifequal %}
+   {% ifequal topic.rating 2 %}
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_1" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_2" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_3" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_4" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_5" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   {% endifequal %}
+   {% ifequal topic.rating 1 %}
+   <td background = "/charmming/images/wiki/smallstarred.gif" id="{{topic.title}}_1" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)" class='check'></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_2" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_3" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_4" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_5" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   {% endifequal %}
+   {% ifequal topic.rating 0 %}
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_1" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_2" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_3" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_4" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   <td background = "/charmming/images/wiki/smallstargrey.gif" id="{{topic.title}}_5" width=19 height=19 onMouseOver="highlightStar(this)" onclick="changeRating(this)"></td>
+   {% endifequal %}
+  </tr>
+  </table>
+  {% if superuser %}
+   <a id='url_{{topic.title}}' href="javascript:parent.deleteTopic('{{topic.title}}','{{boardname}}');">Delete</a>
+  {% endif %}
+  </fieldset>
+  <br>
+ {% endfor %}
+ <br/>
+ <a href="javascript:showaddtopic();" id='add_topic_link'>Add Topic</a><br>
+ <div id="add_topic" style="display:none">
+  <form action="/charmming/wiki/createtopic/" method="POST">
+  Add topic:<br/>
+  Title:<input type="text" style="width:180px" name="topic_title"><br />
+  Post: <textarea name="message_post"></textarea>
+  <input type="hidden" id="board_name" name="board_name" value="{{boardname}}">
+  <input type="submit" value="Add Post">
+  </form>
+ </div>
+<div id='test'>
+</div>
+ </body>
+</html>

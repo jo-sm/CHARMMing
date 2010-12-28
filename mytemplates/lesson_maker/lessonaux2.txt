@@ -1,0 +1,10 @@
+{% for dict in lesson_aux %} blankme
+   {% if dict.case1 %} blankme
+import {{lesson_name}}
+   {% endif %} blankme
+   {% if dict.case2 %} blankme
+    elif lessontype == 'lesson{{lesson_num}}':
+        lesson_obj = lesson{{lesson_num}}.models.Lesson{{lesson_num}}.objects.filter(id=lessonid)[0]
+   {% endif %} blankme
+{{dict.line}}
+{% endfor %} blankme

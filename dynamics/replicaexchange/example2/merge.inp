@@ -1,0 +1,42 @@
+* merge of trex bath @TACT pid @PID ; @I files, last @END
+*
+
+! COMMON SETUP
+stream init.str
+
+! THE FORTRAN FILE LIMIT PROBLEM
+if i lt 90 goto okay
+! emergency stop; cannot process more than 90 files
+stop
+label okay
+
+! LARGE SKIP FOR MOST BATHS; MORE FREQUENT FOR LOWEST T (pid 0)
+set skp 5000
+if pid eq 0 set skp 1000
+! INITIALIZE VARS
+set nunit @I
+set offs  7
+calc j = 1 + @END - @i
+set cc 1
+! OPEN INPUT FILES IN A LOOP
+label looptraj
+calc unit = @offs + @cc
+open read unform unit @unit name @tact/rex.trj.@j
+incr cc by 1
+incr j by 1
+if cc .le. @nunit goto looptraj
+
+! OPEN OUTPUT FILE AND DO THE MERGE; SMALLER SKIP FOR LOWEST T (pid 0)
+open write unform unit 4 name @tact/mrg.trj.@end
+merge first 8 nunit @nunit outp 4 skip @SKP
+
+! DELETE THE ORIGINAL .trj FILES
+set cc 1
+label clostraj
+calc unit = @offs + @cc
+close unit @unit disp delete
+incr cc by 1
+if cc .le. @nunit goto clostraj
+
+stop
+

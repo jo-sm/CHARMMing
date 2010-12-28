@@ -1,0 +1,207 @@
+<html>
+<head>
+    <title>{{left}} block title {{right}} CHARMMing Web interface, developed by the Laboratory of Computational Biology {{left}} endblock {{right}}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+    <script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+    <script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+    <link href="/charmming/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/sdmenu/sdmenu.css" rel="stylesheet" type="text/css" />
+    <script src="/charmming/js/ajax.js" type="text/javascript"></script>
+    <script src="/charmming/js/sdmenu/sdmenu.js" type="text/javascript"></script>
+    <script src="/charmming/js/tabs.js" type="text/javascript"></script>
+    {{left}} if trusted {{right}}
+     <script src="/charmming/js/trusted.js" type="text/javascript"></script>
+    {{left}} endif {{right}}
+    <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+    <script type="text/javascript" src="/charmming/js/emap.js"> </script>
+    <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
+    <script>
+      var GB_ROOT_DIR = "/charmming/greybox/greybox/";
+    </script>
+    <link href="/charmming/css/windows2/default.css" rel="stylesheet" type="text/css"/>
+    <link href="/charmming/css/windows2/spread.css" rel="stylesheet" type="text/css"/>
+    <link href="/charmming/css/windows2/alert.css" rel="stylesheet" type="text/css"/>
+    <link href="/charmming/css/greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
+    <script type="text/javascript" src="/charmming/js/greybox/AJS.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS_fx.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/gb_scripts.js"></script>
+
+    <script type="text/javascript" src="/charmming/js/BubbleTooltips.js"> </script>
+    <link href="/charmming/css/bt.css" rel="stylesheet" type="text/css" />
+
+    <link rel="icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon"> 
+
+    <script type="text/javascript">
+
+
+
+    /***********************************************
+    * DHTML Window Widget- © Dynamic Drive (www.dynamicdrive.com)
+    * This notice must stay intact for legal use.
+    * Visit http://www.dynamicdrive.com/ for full source code
+    ***********************************************/
+
+    var myMenu;
+    var tabCounter = -1;
+    var jmolCounter = -1;
+    var selected_div = "";
+    var currperiodicalupdater = null;
+    function refreshToolTips()
+    {
+
+       enableTooltips();
+    }
+
+    function send_select_form(form) {
+       new Ajax.Request("/select/"+form.id, {method:'post', asynchronous:true});
+    }
+
+    function getDocWidth() {
+       return document.documentElement.clientWidth *.82;
+    }
+
+    function doOnLoad() {
+       AjaxTabs.OpenTab(getUniqueId("tab_page"), "Introduction", "/charmming/html/intro.html", true, '');
+       myMenu = new SDMenu("my_menu");
+       myMenu.init();
+
+       enableTooltips("sidebar");
+
+       new Ajax.PeriodicalUpdater('statusreport', '/charmming/status/', {method: 'post', frequency: 5})
+       {{left}} if lessontype {{right}}
+          currperiodicalupdater = new Ajax.PeriodicalUpdater('lessonreport', '/charmming/lessons/lessonstatus/', {method: 'post', frequency: 5});
+          currperiodicalupdater.start();
+       {{left}} else {{right}}
+          currperiodicalupdater = new Ajax.PeriodicalUpdater('lessonreport', '/charmming/lessons/lessonstatus/', {method: 'post', frequency: 5});
+          //currperiodicalupdater.stop();
+          currperiodicalupdater.start();
+       {{left}} endif {{right}}
+    }
+
+    function showLesson(lesson)
+    {
+     if(currperiodicalupdater)
+     {
+      currperiodicalupdater.stop();
+     }
+     if(lesson != "nolesson" && lesson != 'None')
+      currperiodicalupdater = new Ajax.PeriodicalUpdater('lessonreport', '/charmming/lessons/lessonstatus/', {method: 'post', frequency: 5});
+     else
+     {
+      document.getElementById('lessonreport').innerHTML = '';
+     }
+    }
+
+</script>
+</head>
+
+<body>
+<div id="container">
+   <div id="headbkgd"></div>
+
+   <div id="header">
+      <div id="headmenu">
+         <a href="/charmming/html/skeleton/" id="charmming"><i></i></a>
+         <a href="http://www.nih.gov" id="nih2"><i>NIH</i></a>
+         <a href="http://www.hhs.gov" id="hhs2"><i>HHS</i></a>
+         <a href="http://www.hhs.gov" id="hhs"><i>HHS</i></a>
+         <a href="http://www.nih.gov" id="nih"><i>NIH</i></a>
+         <a href="http://www.nhlbi.nih.gov" id="nhlbi"><i>NHLBI</i></a>
+      </div>
+   </div>
+   <div id="maincontent">
+   <div id="sidebar">
+      <!--{# % block sidebar % #}--!>
+      <div id="my_menu" class="sdmenu">
+         <div>
+            <span>Basic functions</span>
+            <a title="Opens a new tab." href="javascript:openNewTab();timeoutWikipage('General');">Open A New Tab</a>
+            <a title="Closes all open tabs." href="javascript:closeAllTabs()">Close All Tabs</a>
+            <a title="Read the CHARMM tutorial." href="javascript:openWin('spread', 'Tutorial Doc', 200, 100, 1100, 600,'/tutorial/index.shtml','null');timeoutWikipage('Tutorial');">View the tutorial</a>
+            <a title="CHARMMing usage information and credits." href="javascript:openNewURL('/charmming/about/','About CHARMMing');timeoutWikipage('General');">About CHARMMing</a>
+         </div>
+         <div>
+            <span>File Manager</span>
+            <a title="Submit a structure to manipulate." href="javascript:openNewURL('/charmming/fileupload/','Submit Structure');timeoutWikipage('Submit Structure');">Submit Structure</a>
+            <a title="Work with a different structure or edit the structure information." href="javascript:openNewURL('/charmming/viewpdbscontainer/','Select PDB');timeoutWikipage('Select PDB');">Select/Edit PDBs</a>
+            <a title="Download all files associated with this structure." href="javascript:openNewURL('/charmming/downloadfilescontainer/','Download Files');timeoutWikipage('Download Files');">Download Files</a>
+            <a title="View the 3D structure of your molecule." href="javascript:openNewURL('/charmming/visualize/','View PDBs');timeoutWikipage('View PDBs');">View PDBs</a>
+            <a title="View all the input/output scripts this site has generated for you." href="javascript:openNewURL('/charmming/viewprocessfiles/','Process Files');timeoutWikipage('View Process Files');">View Process Files</a>
+         </div>
+         <div>
+            <span>Structure</span>
+            <a title="Runs a simple energy calculation. This can be used to generate a PSF/CRD file quickly while also informing you of the energy of your system." href=javascript:openNewURL("/charmming/energy/",'Energy');timeoutWikipage('Energy')>Energy</a>
+            <a title="Minimizes the system's energy, trying to simulate absolute zero. This should be done before dynamics runs." href=javascript:openNewURL("/charmming/minimize/",'Minimization');timeoutWikipage('Minimization')>Minimize</a>
+            <a title="Solvate your protein in a water structure." href=javascript:openNewURL("/charmming/solvate/",'Solvation');timeoutWikipage('Solvation');>Solvate</a>
+            <a title="Run Normal Mode Analysis. It is strongly recommended that you minimize first." href="javascript:openNewURL('/charmming/normalmodes/','Normal Mode Analysis');timeoutWikipage('Normal Mode Analysis');">Normal Modes</a>
+            <a title="Simulate the protein in a user-specified environment. It is best if you minimize first." href="javascript:openNewURL('/charmming/dynamics/md/','Molecular Dynamics');timeoutWikipage('Molecular Dynamics');">Molecular Dynamics</a>
+            <a title="Langevin Dynamics is used to quickly induce protein conformation change. Useful in studying protein folding." href="javascript:openNewURL('/charmming/dynamics/ld/','Langevin Dynamics');timeoutWikipage('Langevin Dynamics');">Langevin Dynamics</a>
+         </div>
+         <div>
+            <span>Analysis</span>
+            <a title="Analyze the root mean square deviation of various conformations of your structure." href="javascript:openNewURL('/charmming/analysis/rmsd/','RMSD calculator');timeoutWikipage('RMSD');">RMSD calculator</a>
+         </div>
+         {{left}} ifequal lessonuser 1 {{right}}
+	 <div>
+	 <span> Lessons </span>
+            {% for dict in lesson_info_lis %} blankme
+            <a title="{{dict.lesson_desc}}" href="javascript:openNewURL('/charmming/lessons/lesson{{dict.lesson_num}}/','Lesson {{dict.lesson_num}}');timeoutWikipage('{{dict.lesson_txt}}');">{{dict.lesson_txt}}</a>
+            {% endfor %} blankme
+	 </div>
+         {{left}} endifequal {{right}}
+         <div>
+            <span>Account</span>
+            <a title="Logout" href="/charmming/accounts/logout/">Logout</a>
+         </div>
+      </div>
+
+
+      <div id="statuscontainer">
+        <div id="statusreport" class="status"></div>
+      </div>
+
+      <div id="lessoncontainer">
+        &nbsp;
+        <div id="lessonreport" class="status"></div>
+      </div>
+
+      <!--{# % endblock % #}--!>
+   </div>
+
+   <!--<div id="maincolumn" style="position: absolute; left: 155px; width: 1000px; height: 1200px; text-align: center;">-->
+      <div id="maincolumn">
+         {{left}} block content {{right}}
+         <body onload="doOnLoad()">
+         <div class="tabContainer">
+            <div class="tabs">
+               <ul class="tabList" id="tabList"></ul>
+            </div>
+            <div class="tabPanels" id="tabPanels"></div>
+         </div>
+         {{left}} endblock {{right}}
+      </div>
+   <div id="rightcolumn">
+   <iframe src="/charmming/wiki/board/General/" id="wikiframe" width=200 height=1000 frameborder=0></iframe>
+   </div>
+   </div> <!-- maincontent --!> 
+   <div id="footer">
+    <div class="content">
+      CHARMMing (CHARMM INterface and Graphics)  
+    </div>
+    <div id="footmenu">
+       <a href="/charmming/html/skeleton/" id="foothome"><i>CHARMMing</i></a>
+       <a href="http://www.hhs.gov" id="foothhs"><i>HHS</i></a>
+       <a href="http://www.nih.gov" id="footnih"><i>NIH</i></a>
+       <a href="http://www.nhlbi.nih.gov" id="footnhlbi"><i>NHLBI</i></a>
+    </div>
+   </div>
+
+</div>
+</body>
+
+</html>

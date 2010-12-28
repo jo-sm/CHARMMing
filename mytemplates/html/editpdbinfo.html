@@ -1,0 +1,98 @@
+<head>
+  <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="/charmming/js/instantedit.js"></script>
+  <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
+  <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+  <script type="text/javascript" src="/charmming/js/tabs.js"> </script>
+</head>
+
+<center>
+<div>
+<h1>Edit PDB File Information </h1><br>
+<h3>Click on the text to edit it</h3><br>
+{% if warnings %}
+<h3><font color="red"> NOTE: Warnings were found with this PDB.</font></h3>
+    <p class="fontmed"><font color="red"> Click the checkbox to view warnings:</font> <input id="warnings" type="checkbox" name="warnings" onclick="checkPatch(makeUniqueDiv('warnings'),makeUniqueDiv('warnings_area'));">
+</center>
+   <div id='warnings_area' name='warnings_area' style="display:none">
+    {% for line in warnings %}
+    {{ line }}<br>
+    {% endfor %}
+   </div>
+{% endif %}
+<body bgcolor="white" onload="parent.changeTabLabel(parent.AjaxTabs.GetFocusedTabId(),'{{pdb.filename}}');">
+PDB Title:<span id="title" class="editText"> {{ pdb.title }}</span><br>
+PDB Author(s):<span id="author" class="editText"> {{ pdb.author }}</span><br>
+PDB Journal:<span id="journal" class="editText"> {{ pdb.journal }}</span><br>
+
+{% ifequal proto 1 %}
+  <div id="disp_proto" style="display:block">
+    <p class="fontmed">Edit protonizable resdues: <input id="eproto" type="checkbox" name="eproto" onclick="checkPatch(makeUniqueDiv('eproto'),makeUniqueDiv('eproto_area'));">
+    <br>
+    <div id="eproto_area" name="eproto_area" style="display:none">
+      <hr>
+      <h1>Edit Protonation States</h1>
+      <p>Note: all histadines are neutral, HSD, by default</p>
+      <p>If no changes are necessary then you can proceed to Strucure section...</p>
+      <form method="post" action="/charmming/editprotonation/">
+      <table align="center" width="70%">
+        <tr><td>Segment ID</td><td>Residue ID</td><td>Possible states</td></tr>
+        {% for eproto in proto_list %}
+           <tr><td>{{ eproto.1 }}</td>
+               <td>{{ eproto.2 }}</td>
+               <td>
+                  {% ifequal eproto.0 "HSD" %}
+                     <select style="width: 65;" id="patch_{{ eproto.1 }}_{{ eproto.2 }}" name="patch_{{ eproto.1 }}_{{ eproto.2 }}">
+                        <option value="HSD">HSD&nbsp;</option>
+                        <option value="HSE">HSE&nbsp;</option>
+                        <option value="HSP">HSP&nbsp;</option>
+                     </select> 
+                  {% endifequal %}
+                  {% ifequal eproto.0 "HSE" %}
+                     <select style="width: 65;" id="patch_{{ eproto.1 }}_{{ eproto.2 }}" name="patch_{{ eproto.1 }}_{{ eproto.2 }}">
+                        <option value="HSD">HSE&nbsp;</option>
+                        <option value="HSE">HSD&nbsp;</option>
+                        <option value="HSP">HSP&nbsp;</option>
+                     </select> 
+                  {% endifequal %}
+                  {% ifequal eproto.0 "HSP" %}
+                     <select style="width: 65;" id="patch_{{ eproto.1 }}_{{ eproto.2 }}" name="patch_{{ eproto.1 }}_{{ eproto.2 }}">
+                        <option value="HSP">HSP&nbsp;</option>
+                        <option value="HSD">HSD&nbsp;</option>
+                        <option value="HSE">HSE&nbsp;</option>
+                     </select> 
+                 {% endifequal %}
+                 {% ifequal eproto.0 "ASP" %}
+                     <select style="width: 65;" id="patch_{{ eproto.1 }}_{{ eproto.2 }}" name="patch_{{ eproto.1 }}_{{ eproto.2 }}">
+                        <option value="ASP">ASP&nbsp;</option>
+                        <option value="ASPP">ASPP</option>
+                     </select> 
+                 {% endifequal %}
+                 {% ifequal eproto.0 "GLU" %}
+                    <select style="width: 65;" id="patch_{{ eproto.1 }}_{{ eproto.2 }}" name="patch_{{ eproto.1 }}_{{ eproto.2 }}">
+                       <option value="GLU">GLU&nbsp;</option>
+                       <option value="GLUP">GLUP</option>
+                    </select> 
+                 {% endifequal %}
+                 {% ifequal eproto.0 "LYS" %}
+                    <select style="width: 65;" id="patch_{{ eproto.1 }}_{{ eproto.2 }}" name="patch_{{ eproto.1 }}_{{ eproto.2 }}">
+                       <option value="LYS">LYS&nbsp;</option>
+                       <option value="LSN">LSN&nbsp;</option>
+                    </select> 
+                 {% endifequal %}
+               </td>
+           </tr>    
+        {% endfor %}
+      </table>
+      <center>
+        <input type="submit" name="Make the changes!" value="Submit" />
+      </center>
+      </form>
+    </div>
+  </div>
+{% endifequal %}
+
+
+
+</div>
+</body>

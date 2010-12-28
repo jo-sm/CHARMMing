@@ -1,0 +1,6 @@
+{% for dict in urls_lis %} blankme
+    {% if dict.case1 %} blankme
+    (r'^lesson{{lesson_num}}/', include('lesson{{lesson_num}}.urls')),
+    {% endif %} blankme
+{{dict.line}}
+{% endfor %} blankme

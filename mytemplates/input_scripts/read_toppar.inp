@@ -1,0 +1,55 @@
+{% for item in topology_list %}blankme
+   {% ifequal forloop.counter 1 %}blankme
+
+      open unit 1 card read name {{item}}
+      read RTF card unit 1
+      close unit 1
+   {% else %}blankme
+      open unit 1 card read name {{item}}
+      read rtf card append unit 1
+      close unit 1
+   {% endifequal %}blankme
+{% endfor %}blankme
+
+{% if useqmmm %} blankme
+read rtf card append
+* QM/MM topology (for link atom)
+*
+CHARMM-scripts   22     1
+mass    98 QQH    1.00800 ! link atom
+
+end
+{% endif %}blankme
+
+wrnlev 1
+{% for item in parameter_list %}blankme
+   {% ifequal forloop.counter 1 %}blankme
+
+      open unit 1 card read name {{item}}
+      read PARA card unit 1
+      close unit 1
+   {% else %}blankme
+
+      open unit 1 card read name {{item}}
+      read para card append unit 1
+      close unit 1
+   {% endifequal %}blankme
+{% endfor %}blankme
+wrnlev 5
+
+{% if useqmmm %} blankme
+read param card append
+* QM/MM parameters (for link atom)
+*
+
+BONDS
+qqh  cc      0.0       1.0    ! Link atom
+
+ANGLES
+qqh  cc   ct1    0.0        0.0    ! Link atom
+
+NONBONDED
+qqh    0.000000   0.000000     0.000000 ! Link atom
+
+end
+{% endif %}blankme

@@ -1,0 +1,28 @@
+body
+{
+ background-color:#FFFFFF;
+}
+legend.topic
+{
+ background-color: #e2e9fe;
+ font-weight: bold;
+}
+fieldset.wiki
+{
+ font-size:small;
+ width:150px;
+}
+p.wikiheader
+{
+ text-align: center;
+ font-weight:bold;
+}
+
+/*#rateStatus{float:left; clear:both; width:100%; height:20px;}
+#stars{float:left; clear:both; width:100%; height:auto; padding:0px; margin:0px;}
+#stars li{float:left;list-style:none;}
+#stars li a:hover,
+#stars .on{background:url("/charmming/images/wiki/smallstarred.gif") no-repeat;}
+#stars a{float:left;background:url("/charmming/images/wiki/smallstargrey.gif") no-repeat;width:19px; height:19px;}
+#stars{display:none;}
+.saved{color:red; }*/

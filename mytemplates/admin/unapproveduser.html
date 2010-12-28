@@ -1,0 +1,78 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Unapproved users{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  {% if approved_list %}
+   <h1>Users Approved:</h1>
+   <table border>
+    <tr><td>Name</td><td>E-mail</td><td>Institute</td><td>CHARMM License?</td><td>Date Joined</td><td>Comments</td></tr>
+    {% for studentProfile in approved_list %}
+       <tr><td>{{ studentProfile.username }}</td><td>{{ studentProfile.email }}</td><td>{{studentProfile.institute}}</td>
+       <td>
+        {% ifequal studentProfile.charmm_license 1 %}
+         Yes
+        {% else %}
+         No
+        {% endifequal %}
+       </td>
+       <td> {{studentProfile.date_joined }} </td>
+       <td> {{studentProfile.comments}} </td>
+       </tr>
+    {% endfor %}
+   </table>
+   <br>
+   <br>
+  {% endif %}
+  {% if disapproved_list %}
+   <h1>Users Disapproved:</h1>
+   <table border>
+    <tr><td>Name</td><td>E-mail</td><td>Institute</td><td>CHARMM License?</td><td>Date Joined</td><td>Comments</td></tr>
+    {% for studentProfile in disapproved_list %}
+       <tr><td>{{ studentProfile.username }}</td><td>{{ studentProfile.email }}</td><td>{{studentProfile.institute}}</td>
+       <td>
+        {% ifequal studentProfile.charmm_license 1 %}
+         Yes
+        {% else %}
+         No
+        {% endifequal %}
+       </td>
+       <td> {{studentProfile.date_joined }} </td>
+       <td> {{studentProfile.comments}} </td>
+       </tr>
+    {% endfor %}
+   </table>
+   <br>
+   <br>
+  {% endif %}
+  <h1>Unapproved users:</h1>
+  <form method="post" action="/charmming/admin/unapproved/">
+  <table border>
+    <tr>
+      <td>Name</td><td>E-mail</td><td>Institute</td><td>CHARMM License?</td><td>Date Joined</td><td>Approve</td><td>Disapprove</td>
+      <td>Comments</td><td>Don't send E-mail </td>   
+    </tr>
+    {% for studentProfile in unapproved_list %}
+       <tr><td>{{ studentProfile.student.username }}</td><td>{{ studentProfile.student.email }}</td><td>{{studentProfile.institute}}</td>
+       <td>
+        {% ifequal studentProfile.charmm_license 1 %}
+         Yes
+        {% else %}
+         No
+        {% endifequal %}
+       </td>
+       <td> {{studentProfile.student.date_joined }} </td>
+       <td><input type="radio" name="approve_or_disapprove_{{ studentProfile.student.username }}" value="approve_{{ studentProfile.student.username }}" /></td>
+       <td><input type="radio" name="approve_or_disapprove_{{ studentProfile.student.username }}" value="disapprove_{{ studentProfile.student.username }}" /></td>
+       <td><textarea name="comments_{{studentProfile.student.username}}"></textarea></td>
+       <td><input type="checkbox" name="squelch_{{studentProfile.student.username}}"></td>
+      </tr>
+   {% endfor %}
+  </table>
+  <br>
+  <input type="submit" value="Approve/Disapprove Selected Users" />
+ </form>
+</div>
+{% endblock %}
+

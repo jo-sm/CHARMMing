@@ -1,0 +1,444 @@
+from django import forms
+from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import render_to_response
+from minimization.models import minimizeform #, minimizeoptions
+from pdbinfo.models import PDBFile, PDBFileForm 
+from django.contrib.auth.models import User
+from django.core import validators
+from django import newforms as forms
+from django.template import *
+from scheduler.schedInterface import schedInterface
+from scheduler.statsDisplay import statsDisplay
+import re
+import copy
+import os
+
+#processes form data for minimization
+def minimizeformdisplay(request):
+    print "Called minimizeform"
+    form = minimizeform()
+    #chooses the file based on if it is selected or not
+    try:
+        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return HttpResponse("Please submit a structure first.")
+    os.chdir(file.location)
+    seg_list = file.segids.split(' ')
+    #descript_seg_list = file.segDescription()
+    temp = file.stripDotPDB(file.filename)
+    #creates a list of filenames associated with the PDB
+    #filename_list = file.getLimitedFileList('minimized')
+    filename_list = file.getFileList()
+    #If the user wants to submit a solvated PDB for minimization
+    #then we skip the append step
+    solv_pdb = "new_" + file.stripDotPDB(file.filename) + "-solv.pdb"
+    neu_pdb = "new_" + file.stripDotPDB(file.filename) + "-neutralized.pdb"
+    min_pdb = "new_" + file.stripDotPDB(file.filename) + "-min.pdb"
+    md_pdb = "new_" + file.stripDotPDB(file.filename) + "-md.pdb"
+    ld_pdb = "new_" + file.stripDotPDB(file.filename) + "-ld.pdb"
+    sgld_pdb = "new_" + file.stripDotPDB(file.filename) + "-sgld.pdb"
+    het_list = file.getNonGoodHetPDBList()
+    tip_list = file.getGoodHetPDBList()
+    protein_list = file.getProteinSegPDBList()
+    scriptlist = []
+    for i in range(len(filename_list)):
+        try:
+            tempid = request.POST[filename_list[i]]
+	    filename = request.POST[filename_list[i]]
+	except:
+	    try:
+	        tempid = request.POST['solv']
+		filename = request.POST['solv']
+	    except:
+	        tempid = "null"
+        if tempid != "null":
+            file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+	    try:
+	        if(request.POST['usepatch']):
+		    file.handlePatching(request.POST)
+	    except:
+	        #If there is no patch, make sure patch_name is zero
+	        file.patch_name = ""
+		file.save()
+	    if filename != solv_pdb and filename != min_pdb and filename != md_pdb and filename != ld_pdb and filename != sgld_pdb and filename != neu_pdb:
+	        append(request.POST,filename_list,file,scriptlist)
+	        minimize(request.POST,file,"",request,scriptlist)
+                return HttpResponse("hi")
+	    #treat a solvated PDB differently as it will have different PSF/CRD files
+	    else:
+	        minimize(request.POST,file,filename,request,scriptlist)
+                return HttpResponse("hi")
+	        
+    return render_to_response('html/minimizeform.html', {'form': form, 'filename_list': filename_list, 'seg_list':seg_list,'file':file, 'min_pdb': min_pdb, 'solv_pdb':solv_pdb, 'neu_pdb': neu_pdb, 'md_pdb': md_pdb, 'ld_pdb': ld_pdb, 'sgld_pdb': sgld_pdb, 'het_list': het_list, 'tip_list':tip_list, 'protein_list':protein_list})
+
+
+def append(postdata,filename_list,file,scriptlist):
+   min_seg_list = []
+   min_tip_list = []
+   min_het_list = []
+   rtf_prm_dict = file.getRtfPrmPath()
+   charmm_inp = ""
+
+   for i in range(len(filename_list)):
+       try:
+           tempdata = postdata[filename_list[i]]
+       except:
+           tempdata = ''
+       #The indexes of filename_list and seg_list correlate so if a filename is chosen
+       #then the corresponding index of seg_list should  be minimized
+       goodhet = re.compile('-goodhet')
+       het = re.compile('-het')
+       if(tempdata):
+           if(goodhet.search(filename_list[i])):
+               min_seg_list.append(file.getSegIdFromFilename(filename_list[i]))
+	   elif(het.search(filename_list[i])):
+	       min_het_list.append(file.getSegIdFromFilename(filename_list[i]))
+           else:
+               min_seg_list.append(file.getSegIdFromFilename(filename_list[i]))
+   #runs each segment through CHARMM before appending begins
+   if(min_het_list):
+       file.makeGenRTF(min_het_list)
+       #Now that the het atoms have been made CHARMM-compliant
+       #we can add the min_het_list to min_seg_list
+       min_seg_list = min_seg_list + min_het_list
+   if(min_seg_list):
+       file.makeBasicInput(min_seg_list,postdata,scriptlist)
+   charmm_inp = file.makeCHARMMInputHeader('Append the PDBs',postdata)
+   charmm_inp = charmm_inp + """
+
+! Read PSF from file
+
+open unit 1 form read name new_"""+ file.stripDotPDB(file.filename) + "-" +  min_seg_list[0] + """-f.psf
+read psf card unit 1
+close unit 1"""
+
+   for i in range(len(min_seg_list)):
+       if(i != 0 ):
+           charmm_inp = charmm_inp + """
+
+open unit 1 form read name new_"""+ file.stripDotPDB(file.filename) + "-" +  min_seg_list[i] + """-f.psf
+read psf card append unit 1
+close unit 1"""
+   for i in range(len(min_seg_list)):
+       if(i != 0):
+           charmm_inp = charmm_inp + """
+
+open unit 1 card read name new_"""+ file.stripDotPDB(file.filename) + "-" +  min_seg_list[i] + """-f.crd"""
+           goodhet = re.compile('goodhet') 
+       #if there are goodhets then the segid is parsed from the list of sections to minimize/append
+           if(goodhet.search(min_seg_list[i])):
+               segid = file.segidFromGoodhet(min_seg_list[i])
+	       charmm_inp = charmm_inp + """
+read coor resid ignore unit 1 sele segid """ + segid + """ .and. resn TIP3 .or. resn ZN2 .or. resn SOD .or. resn MG .or. resn CAL .or. resn POT .or. resn CLA .or. resn CES end 
+close unit 1"""
+           else:
+               charmm_inp = charmm_inp + """
+read coor card unit 1 resid igno sele segid """ + min_seg_list[i] + """ end
+close unit 1"""
+#This is the first segment
+       else:
+           charmm_inp = charmm_inp + """
+! Read protein coord from the  coordinate file
+open unit 1 card read name new_"""+ file.stripDotPDB(file.filename) + "-" +  min_seg_list[0] + """-f.crd
+read coor card unit 1 resid
+close unit 1"""
+
+   if min_het_list:
+       charmm_inp = charmm_inp + "\n\n! redo hydrogen coordinates for all atoms but those in the hetatm list\n"
+       charmm_inp = charmm_inp + "coor init sele hydrogen .and. .not. segid %s end\n" % min_het_list[0]
+       charmm_inp = charmm_inp + "hbuild\n"
+   else:
+       charmm_inp = charmm_inp + "\n\n! redo hydrogen coordinates for the complete structure\n"
+       charmm_inp = charmm_inp + "coor init sele hydrogen end\n"
+       charmm_inp = charmm_inp + "hbuild\n"
+
+   charmm_inp = charmm_inp + """
+
+ENERGY   
+
+open unit 1 card write name new_"""+ file.stripDotPDB(file.filename)+ """-f.psf
+write psf card unit 1
+* PSF
+*
+
+open unit 1 card write name new_"""+ file.stripDotPDB(file.filename) + """-f.pdb 
+write coor pdb unit 1
+* Coords
+*
+
+open unit 1 card write name new_"""+ file.stripDotPDB(file.filename) + """-f.crd 
+write coor card unit 1
+* Coords
+*
+
+stop"""
+   user_id = file.owner.id
+   os.chdir(file.location)
+   print "Setting append filename."
+   append_filename = file.location + "charmm-" + file.stripDotPDB(file.filename) + "-append.inp"
+   inp_out = open(append_filename,'w')
+   inp_out.write(charmm_inp)
+   inp_out.close() 
+   file.append_status = "Done"
+   file.save() 
+   #send to job queue
+   #print "Submitting append job."
+   #si = schedInterface()
+   #si.submitJob(user_id,file.location,append_filename)
+   scriptlist.append(append_filename)
+
+   #This will return a list of segments used
+   return min_seg_list
+
+def minimize(postdata,file,final_pdb_name,request,scriptlist):
+    #change the status of the file regarding minimization 
+    sdsteps = postdata['sdsteps']
+    abnr = postdata['abnr']
+    tolg = postdata['tolg']
+    rtf_prm_dict = file.getRtfPrmPath()
+    os.chdir(file.location)
+
+    # final_pdb_name is just shorthand for new_filename-f.pdb/etc
+    # min_pdb_name is also shorthand for the name of the minimized pdb
+    # If the user submits a PDB that isn't a solvated one
+    # then change final_pdb_name to the -f format since appending has
+    # yet to occur. Otherwise final_pdb_name will remain the name
+    # of the solvated PDB
+    if(final_pdb_name == ""):
+        final_pdb_name = "new_" + file.stripDotPDB(file.filename) + "-f"
+        min_pdb_name = "new_" + file.stripDotPDB(file.filename) + "-min"
+    else:
+        final_pdb_name = file.stripDotPDB(final_pdb_name)
+        min_pdb_name = "new_" + file.stripDotPDB(file.filename) + "-min"
+    charmm_inp = file.makeCHARMMInputHeader('Minimize PDB',postdata)
+    charmm_inp = charmm_inp + """
+! Read sequence from the PDB coordinate file
+open read unit 27 card name """ + final_pdb_name + """.psf
+read psf card unit 27
+close unit 27
+
+open read unit 10 card name """ + final_pdb_name + """.crd 
+read coor card unit 10
+close unit 10
+
+"""
+    #If the user wants to solvate implicitly the scpism line is needed
+    #84 will be the scpism number in this program
+    solvate_implicitly = 0
+    try:
+        if(postdata['solvate_implicitly']):
+            solvate_implicitly = 1
+	    charmm_inp = charmm_inp + """
+!Implicit solvation means there cannot be any TIP3s in the file
+delete atom select resname TIP3 end
+!Triggering implicit solvation
+scpism uism 84
+"""
+    except:
+        pass
+    try:
+        postdata['fixnonh']
+        charmm_inp = charmm_inp + "cons fix sele .not. hydrogen end\n"
+    except:
+        charmm_inp = charmm_inp + """
+! We do not want to allow atoms not known natively by the CHARMM force field (i.e. those generated
+! by GENRTF) to move during the minimization. Therefore, we define all residues that CHARMM's force
+! field does know about and use a  constraint to fix all other atoms.
+DEFI notfix select RESN ALA .or. resn GLU .or. resn GLN .or. resn ASP .or. resn ASN .or. resn LEU -
+ .or. resn GLY .or. resn LYS .or. resn SER .or. resn VAL .or. resn ARG .or. resn THR .or. resn PRO -
+ .or. resn ILE .or. resn MET .or. resn PHE .or. resn TYR .or. resn CYS .or. resn TRP .or. resn HIS -
+ .or. resn TIP3 .or. resn ZN2 .or. resn SOD .or. resn MG .or. resn FE .or. resn CAL .or. resn CLA -
+ .or. resn POT .or. resn CES .or. resn GUA .or. resn ADE .or. resn CYT .or. resn THY .or. resn URA end
+
+cons fix sele .not. notfix end
+"""
+
+    try:
+        postdata['apply_restraints']
+        charmm_inp = charmm_inp + file.handleRestraints(postdata,request)
+    except:
+        pass
+
+    # check to see if PBC needs to be used -- if so we have to set up Ewald
+    try:
+        if postdata['usepbc']:
+            if file.solvation_structure != 'sphere':
+                dopbc = 1
+            else:
+                charmm_inp += "!! NOTICE: you requested minimization with PBC, but that is not valid on spherically solvated systems!\n"
+                dopbc = 0
+        else:
+            dopbc = 0
+    except:
+        dopbc = 0
+
+    if dopbc:
+        relative_boundary = 0
+        if file.solvation_structure != '' and file.crystal_x < 0:
+            relative_boundary = 1
+
+        # set up crystal
+        if file.solvation_structure == '' or solvate_implicitly:
+            charmm_inp = charmm_inp + """
+! we need to figure out the dimensions of the structure for use in calculating
+! the proper unit cell size and correctly setting up the crystal structure.
+! The solvation structure uses bwat as the segment ID for the solvent, so we
+! do a coor stat on anything not in that segment.
+coor stat select .not. segid bwat end
+
+calc xdim = abs ( ?XMAX - ?XMIN )
+calc ydim = abs ( ?YMAX - ?YMIN )
+calc zdim = abs ( ?ZMAX - ?ZMIN )
+
+if @xdim .gt. @ydim
+ if @xdim .gt. @ydim
+  goto crystalx
+
+if @ydim .gt. @xdim
+ if @ydim .gt. @zdim
+ goto crystaly
+
+if @zdim .gt. @ydim
+ if @zdim .gt. @xdim
+  goto crystalz
+
+label crystalx
+set greatervalue @xdim
+goto crystal
+
+label crystaly
+set greatervalue @ydim
+goto crystal
+
+label crystalz
+set greatervalue @zdim
+goto crystal
+
+label crystal
+"""
+
+        if relative_boundary:
+            # read crystal dimensional data from the crystal structure made in solvation
+            try:
+                fp = open(file.location + "new_" + file.stripDotPDB(file.filename) + ".xtl")
+                fp.readline()
+                ldimstr = fp.readline()
+                fp.close()
+            except:
+                return HttpResponse("Oops ... transfer file not found.")
+            xtlre = re.compile("crystal dimension of ([0-9]+\.[0-9]+)", re.IGNORECASE)
+            m = xtlre.search(ldimstr)
+            if not m:
+                return HttpResponse("Oops ... crystal data missing from transfer file.")
+            charmm_inp = charmm_inp + "set greatervalue = " + m.group(1) + "\n"
+
+        if file.solvation_structure == '' or solvate_implicitly:
+            charmm_inp = charmm_inp + "calc greatervalue = @greatervalue + 20\n"
+            charmm_inp = charmm_inp + "crystal define cubic @greatervalue @greatervalue @greatervalue 90. 90. 90.\n"
+            charmm_inp = charmm_inp + "crystal build noper 0\n"
+        elif file.solvation_structure == 'rhdo':
+            if not relative_boundary:
+                dim_x = file.crystal_x
+                charmm_inp = charmm_inp + "set greatervalue = " + str(dim_x) + "\n"
+            charmm_inp = charmm_inp + "crystal define rhdo @greatervalue @greatervalue @greatervalue 60. 90. 60.\n"
+            charmm_inp = charmm_inp + "crystal build noper 0\n"
+        elif file.solvation_structure == 'hexa':
+            dim_x = file.crystal_x
+            dim_z = file.crystal_z
+            greaterval = max(dim_x,dim_z)
+            if relative_boundary:
+                # if these were done together in solvation, we know dim_x == dim_z
+                charmm_inp = charmm_inp + "crystal define hexa @greatervalue @greatervalue @greatervalue 90. 90. 120.\n"
+            else:
+                charmm_inp = charmm_inp + "set greatervalue = " + str(greaterval) + "\n"
+                charmm_inp = charmm_inp + "set greaterx = " + str(dim_x) + "\n"
+                charmm_inp = charmm_inp + "set greaterz = " + str(dim_z) + "\n"
+                charmm_inp = charmm_inp + "crystal define hexa @greaterx @greaterx @greaterz 90. 90. 120.\n"
+            charmm_inp = charmm_inp + "crystal build noper 0\n"
+        elif file.solvation_structure == 'cubic':
+            if not relative_boundary:
+                dim_x = file.crystal_x
+                charmm_inp = charmm_inp + "set greatervalue = " + str(dim_x) + "\n"
+            charmm_inp = charmm_inp + "crystal define cubic @greatervalue @greatervalue @greatervalue 90. 90. 90.\n"
+            charmm_inp = charmm_inp + "crystal build noper 0\n"
+
+        # set up images
+        if file.solvation_structure == '' or solvate_implicitly:
+            charmm_inp = charmm_inp + "image byseg sele all end\n"
+        else:
+            # we should have a solvation file to read from
+            try:
+                os.stat(file.location + "new_" + file.stripDotPDB(file.filename) + ".xtl")
+            except:
+                # need to throw some sort of error ... for now just toss cookies
+                return HttpResponse("Oops ... transfer file not found.")
+            charmm_inp = charmm_inp + "open unit 1 read card name new_" + file.stripDotPDB(file.filename) + ".xtl\n"
+            charmm_inp = charmm_inp + "crystal read card unit 1\n"
+            charmm_inp = charmm_inp + "close unit 1\n"
+
+        # we need to get the ewald parameter
+        charmm_inp += "syst \"/usr/local/charmming/calcewald.pl @GREATERVALUE " + file.location + " " + file.stripDotPDB(file.filename) + "\"\n"
+        charmm_inp += "! The Perl script called above writes out a stream file that sets the Ewald FFT parameter this line reads it into CHARMM\n" 
+        charmm_inp += "stream " + file.stripDotPDB(file.filename) + "-highnum.str\n"
+
+        charmm_inp += "! the total charge on the system must be 0 or else Ewald will not work correctly, we need to test for this...\n"
+        charmm_inp += "! we do the almost equal if test to avoid floating point rounding errors.\n"
+        charmm_inp += "scalar charge stat sele all end\n"
+        charmm_inp += "if ?stot .ae. 0 then goto okewald\n"
+        charmm_inp += "! uh-oh, total charge != 0, we cannot proceed, set the bomlev to an absurdly high level\n"
+        charmm_inp += "! to force a bailout.\n"
+        charmm_inp += "bomlev 5\n"
+        charmm_inp += "Achtung, dynamics with particle-mesh ewald only works on a structure with 0 total charge!!!!\n"
+        charmm_inp += "\n\nlabel okewald\n"
+
+
+    # set up nonbond correctly to the same values we will be using in dynamics
+    charmm_inp += "! non-bond setup (same values as will be used in dynamics)\n"
+    charmm_inp += "nbond inbfrq -1 elec fswitch vdw vswitch cutnb 16. ctofnb 12. ctonnb 8.\n"
+    charmm_inp += "energy\n\n"
+    charmm_inp += "\n\ncoor copy comp\n"
+    charmm_inp += "mini SD nstep " + sdsteps 
+    if dopbc:
+        charmm_inp += " -\newald pmew fftx @ewaldval ffty @ewaldval fftz @ewaldval  kappa .34 spline order 6"
+    charmm_inp += "\nmini abnr nstep " + abnr + " nprint 100 tolg " + tolg
+    if dopbc:
+        charmm_inp += " -\newald pmew fftx @ewaldval ffty @ewaldval fftz @ewaldval  kappa .34 spline order 6"
+    charmm_inp += "\ncoor rms\n"
+
+    charmm_inp = charmm_inp + """
+open write unit 1 card name """ + min_pdb_name + """.pdb
+write coor pdb unit 1
+* """ + min_pdb_name + """.pdb
+*
+
+open write unit 1 card name """ + min_pdb_name + """.psf 
+write psf card unit 1
+* """ + min_pdb_name + """.psf
+*
+
+open write unit 1 card name """ + min_pdb_name + """.crd 
+write coor card unit 1
+* """ + min_pdb_name + """.crd
+*
+
+stop"""
+    file.minimization_status = "<font color=yellow>Processing</font>"
+    file.save()
+
+    user_id = file.owner.id
+    minimize_filename = file.location + "charmm-" + file.stripDotPDB(file.filename) + "-min.inp"
+    inp_out = open(minimize_filename ,'w')
+    inp_out.write(charmm_inp)
+    inp_out.close()	
+    si = schedInterface()
+    scriptlist.append(minimize_filename)
+    newJobID = si.submitJob(user_id,file.location,scriptlist)
+    file.save()
+
+    if newJobID < 0:
+       file.minimization_status = "<font color=red>Failed</font>"
+    else:
+       file.minimization_jobID = newJobID
+       sstring = si.checkStatus(newJobID)
+       file.minimization_status = statsDisplay(sstring)
+       file.save()    

@@ -1,0 +1,131 @@
+<head>
+<script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+<script type="text/javascript">
+</script>
+</head>
+
+<div>
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+  <br />
+  <br />
+  <br />
+  <h1 align="center">Oxidation/Reduction calculations</h1>
+
+{% if noredox %}
+  <p><b>Your currently uploaded structure does not have any Iron-Sulphur clusters. Currently, this application only supports Iron-Sulphur clusters as oxidation/reduction sites.</b></p>
+{% else %}
+  <div id='change_redox'>
+    <div id="script_dothis" style="display:none;">
+       refreshToolTips();
+    </div>
+
+  {% if print_result %}
+    <h2 align="center">Results of previous submission:</h2>
+    <center>
+    <table>
+       <tr><td>&Delta;G(reduced)</td><td>{{ redpot }}</td></tr>
+       <tr><td>&Delta;G(reduced-ref)</td><td>{{ redpotref }}</td></tr>
+       <tr><td>&Delta;G(modified)</td><td>{{ modpot }}</td></tr>
+       <tr><td>&Delta;G(modified-ref)</td><td>{{ modpotref }}</td></tr>
+       <tr><td>E0</td><td>{{ finres }}</td></tr>
+    </table>
+    </center>
+  {% endif %}
+
+  <hr noshade width="80%" size=3%>
+  <h2 align="center">Select Structure</h3>
+  <br />
+
+
+    <center>
+       <!-- We only care about protein segments for now -->
+       <form id="redox_form" method="post"  action="." onsubmit="return send_form_oxired(this,'/charmming/analysis/redox/',makeUniqueDiv('change_redox'),'status_redox',[{%for item in redox_list%}'{{item}}',{% endfor%}]);">
+       <table>
+        {% for item in filename_list %}
+          {% for pdb in redox_list %}
+            {% ifequal item pdb %}
+              <tr><td>Protein Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" /> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+        {% endfor %}
+
+       </table>
+		       
+       <hr noshade width="80%" size=3%>
+       <h2 align="center">Select Oxidation/Reduction Site (Unselected sites will be left unchanged)</h2>
+       <p><b>Note:</b> You must select both the protein and hetero-atom structures for a given segment from the list above. Otherwise, that segment will not be used.</p> 
+
+       <table cellspacing="10">
+       {% for item in redox_segs %}
+          {% ifequal item "A" %}
+            {% for site in redox_nums.A %}
+              <tr><td>Fe4S4(CH3)4</td><td>Segment {{ item }} site {{ site }}</td><td><td><input type="radio" name="picksite" value="site_{{ item }}_{{ site }}" /></td></tr>
+            {% endfor %}
+          {% endifequal %}
+          {% ifequal item "B" %}
+            {% for site in redox_nums.B %}
+              <tr><td>Fe4S4(CH3)4</td><td>Segment {{ item }} site {{ site }}</td><td><td><input type="radio" name="picksite" value="site_{{ item }}_{{ site }}" /></td></tr>
+            {% endfor %}
+          {% endifequal %}
+          {% ifequal item "C" %}
+            {% for site in redox_nums.C %}
+              <tr><td>Fe4S4(CH3)4</td><td>Segment {{ item }} site {{ site }}</td><td><td><input type="radio" name="picksite" value="site_{{ item }}_{{ site }}" /></td></tr>
+            {% endfor %}
+          {% endifequal %}
+          {% ifequal item "D" %}
+            {% for site in redox_nums.D %}
+              <tr><td>Fe4S4(CH3)4</td><td>Segment {{ item }} site {{ site }}</td><td><td><input type="radio" name="picksite" value="site_{{ item }}_{{ site }}" /></td></tr>
+            {% endfor %}
+          {% endifequal %}
+          {% ifequal item "E" %}
+            {% for site in redox_nums.E %}
+              <tr><td>Fe4S4(CH3)4</td><td>Segment {{ item }} site {{ site }}</td><td><td><input type="radio" name="picksite" value="site_{{ item }}_{{ site }}" /></td></tr>
+            {% endfor %}
+          {% endifequal %}
+          {% ifequal item "F" %}
+            {% for site in redox_nums.F %}
+              <tr><td>Fe4S4(CH3)4</td><td>Segment {{ item }} site {{ site }}</td><td><td><input type="radio" name="picksite" value="site_{{ item }}_{{ site }}" /></td></tr>
+            {% endfor %}
+          {% endifequal %}
+          {% ifequal item "G" %}
+            {% for site in redox_nums.G %}
+              <tr><td>Fe4S4(CH3)4</td><td>Segment {{ item }} site {{ site }}</td><td><td><input type="radio" name="picksite" value="site_{{ item }}_{{ site }}" /></td></tr>
+            {% endfor %}
+          {% endifequal %}
+       {% endfor %}
+       </table>
+
+       <hr noshade width="80%" size=3%>
+       <h2 align="center">Select Oxidation/Reduction Couple</h2>
+       <table cellspacing="10">
+          <tr><td>Oxidized (1-/2-)</td><td><input type="radio" name="couple" value="oxi" checked /></td></tr>
+          <tr><td>Reduced (2-/3-)</td><td><input type="radio" name="couple" value="red" /></td></tr>
+       </table>
+
+       <hr noshade width="80%" size=3%>
+       <h2 align="center">APBS Parameters</h2>
+       <input type="radio" name="apbs_params" value="default" onclick="checkPatch(makeUniqueDiv('custapbs'),makeUniqueDiv('apbs_parameters'));" checked /> Use APBS parameters optimized for redox calculations
+       <br /><input type="radio" id="custapbs" name="apbs_params" value="custom" onclick="checkPatch(makeUniqueDiv('custapbs'),makeUniqueDiv('apbs_parameters'));" > Choose my own APBS parameters.
+
+       <div id="apbs_parameters" style="display:none;" width="75%">
+         <hr noshade with="80%" size=3%>
+         <h4>User-customizable APBS parameters</h4>
+         <table>
+            <tr><td>Solvent radius</td><td><input type="text" length="10" name="srad" value="1.4" /></td></tr>
+            <tr><td>Protein dielectric (PDIE)</td><td><input type="text" length="10" name="prot_diel" value="4" /></td></tr>
+            <tr><td>Solvent dielectric (SDIE)</td><td><input type="text" length="10" name="solv_diel" value="78" /></td></tr>
+            <tr><td>Redox site dielectric</td><td><input type="text" length="10" name="redx_diel" value="1" /></td></tr>
+         </table>
+       </div>
+
+       <hr noshade width="80%" size=3%>
+
+       <input type="Submit" value="Launch the REDOX calculation!">
+       </form>
+    </center>
+  </div>
+{% endif %}
+</div>
+

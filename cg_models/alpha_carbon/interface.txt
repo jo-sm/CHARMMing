@@ -1,0 +1,8 @@
+# Comment character
+Domain = 1-24
+dOmain = 25-55
+doMain = 56-89
+domAin = 90-122
+domaIn = 123-155
+domaiN = 156-188
+domain = 189-209

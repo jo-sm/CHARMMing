@@ -1,0 +1,39 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <title>View/Edit PDBs</title>
+
+    <script type="text/javascript">
+        var GB_ROOT_DIR = "/greybox/greybox/";
+function send_select_form(username) {
+   new Ajax.Request("/charmming/select/"+form.id, {method:'post', asynchronous:true});
+}
+
+    </script>
+
+<link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+<script type="text/javascript" src="/charmming/js/protoculous-1.0.2-packed.js"></script>
+<script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+<script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS_fx.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/gb_scripts.js"></script>
+    <link href="/charmming/css/greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
+</head>
+<body>
+
+<center>
+<h1>Student Progress</h1>
+</center>
+<div class='status'>
+<body>
+<center>
+
+<table class="sortable resizable" border=2 style="text-align:center;">
+<tr><th>Name</th><th>Class</th><th>Current Lesson</th></tr>
+{% for student in student_list %}
+<tr><td>{{ student.student.first_name }} {{student.student.last_name}}</td><td> {{student.classroom.name}}</td><td>{{student.current_lesson}}</td></tr>
+{% endfor %}
+</table>
+</div>
+</center>
+</body>

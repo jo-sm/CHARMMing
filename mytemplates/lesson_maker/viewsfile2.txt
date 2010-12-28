@@ -1,0 +1,15 @@
+{% for dict in viewsfile_lis %} blankme
+    {% if dict.case1 %} blankme
+import {{lesson_name}} 
+    {% endif %} blankme
+    {% if dict.case3 %} blankme 
+    elif file.lesson_type == 'lesson{{lesson_num}}"': 
+        lesson_obj = lesson{{lesson_num}}.models.Lesson{{lesson_num}}.objects.filter(user = file.owner,id=file.lesson_id)[0].onFileUpload(request.POST)
+    {% endif %} blankme
+    {% if dict.case5 %} blankme
+        elif lnum == 'lesson{{lesson_num}}':
+            lessontype = 'lesson{{lesson_num}}'
+            lesson_obj = lesson{{lesson_num}}.models.Lesson{{lesson_num}}()
+    {% endif %} blankme
+{{dict.line}}
+{% endfor %} blankme

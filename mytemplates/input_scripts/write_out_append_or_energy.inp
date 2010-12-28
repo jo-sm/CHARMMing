@@ -1,0 +1,16 @@
+  !print Energy
+  ENERGY
+  open unit 1 card write name {{output_name}}.pdb
+  write coor pdb unit 1
+  * PDB Coords
+  {{headqmatom}}
+
+  open unit 1 card write name {{output_name}}.crd
+  write coor card unit 1
+  * Coords
+  {{headqmatom}}
+
+  open unit 1 card write name {{output_name}}.psf
+  write psf card unit 1
+  * PSF
+  {{headqmatom}}

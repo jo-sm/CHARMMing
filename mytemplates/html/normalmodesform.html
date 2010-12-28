@@ -1,0 +1,340 @@
+<div>
+
+<div id="script_dothis" style="display:none;">
+  makeUniqueDiv('nma_form');
+  makeUniqueDiv('usepatch');
+  makeUniqueDiv('patch_area');
+  makeUniqueDiv('num_patches');
+  makeUniqueDiv('atomnumbernma');
+  makeUniqueDiv('hetatm_deter');
+  refreshToolTips();
+  {% if disulfide_list %}
+  geneDisulfideLines([{% for item in disulfide_list %}'{{item.0}}','{{item.1}}','{{item.2}}','{{item.3}}',{% endfor %}],'{% for item in seg_list %}{{item}} {% endfor %}');
+  {% endif %}
+
+</div>
+
+<div id="change_nma" style="text-align: center;">
+<form id='nma_form' name="nma" method="post" action="." onsubmit="return send_form_nma(this,'/charmming/normalmodes/','change_nma','status_nma',[{% for item in filename_list%}'{{item}}',{%endfor%}]);">
+<div id="select_struct">
+<br />
+<br />
+<br />
+  <h1 align="center">Normal Mode Analysis</h1>
+  {%if nmode_lines %}
+  <h3>First 10 Modes From Previous Run:</h3>
+  <pre text-align="left">
+{{nmode_lines}}
+  </pre>
+  {% endif %}
+  <hr noshade width="80%" size=3%>
+  <h2 color="6699FF" align="center">Select structure</h2>
+  <table align="center">
+  {% for item in filename_list %}
+   <!-- <br /><b>Filename list item {{item}}</b> -->
+
+   {% for pdb in protein_list %}
+     <!-- <br /><b>Protein list item {{item}}</b> -->
+    {% ifequal item pdb %}
+     <tr><td>Protein Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('nma_remove_patch'),true);getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');"/> </td></tr>
+     <tr><td colspan=3><hr width="100%"></td></tr>
+    {% endifequal %}
+   {% endfor %}
+
+   {% for pdb in nucleic_list %}
+     <!-- <br /><b>Protein list item {{item}}</b> -->
+    {% ifequal item pdb %}
+     <tr><td>Nucleic Acid Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('nma_remove_patch'),true);getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');"/> </td></tr>
+     <tr><td colspan=3><hr width="100%"></td></tr>
+    {% endifequal %}
+   {% endfor %}
+
+  {% for pdb in go_list %}
+   {% ifequal item pdb %}
+    <tr><td>Protein segment transformed to Go model</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);"/> </td>
+    </tr>
+    <tr><td colspan=3><hr width="100%"></td></tr>
+   {% endifequal %}
+  {% endfor %}
+
+  {% for pdb in bln_list %}
+     {% ifequal item pdb %}
+       <tr><td>Protein segment transformed to BLN model</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);"/> </td>
+       </tr>
+       <tr><td colspan=3><hr width="100%"></td></tr>
+     {% endifequal %}
+   {% endfor %}
+
+   {% for pdb in tip_list %}
+    <!-- <br /><b>TIP list item {{item}}</b> -->
+    {% ifequal item pdb %}
+     <tr><td>CHARMM-Compliant Heteroatoms</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('nma_remove_patch'),true);getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');"/> </td></tr>
+     <tr><td colspan=3><hr width="100%"></td></tr>
+    {% endifequal %}
+   {% endfor %}
+
+   {% for pdb in het_list %}
+    <!-- <br /><b>Het list item {{item}}</b> -->
+    {% ifequal item pdb %}
+     <tr><td>Non CHARMM-Compliant Heteroatoms</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('nma_remove_patch'),true);getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');hetatmDeter(makeUniqueDiv('hetatm_deter'),[{%for item in het_list%} '{{item}}',{% endfor %}]);"/> </td></tr>
+     <tr><td colspan=3><hr width="100%"></td></tr>
+    {% endifequal %}
+   {% endfor %}
+ 
+   {% for pdb in userup_list %}
+    <!-- <br /><b>Het list item {{item}}</b> -->
+    {% ifequal item pdb %}
+     <tr><td>User-uploaded segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('nma_remove_patch'),true);getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');hetatmDeter(makeUniqueDiv('hetatm_deter'),[{%for item in het_list%} '{{item}}',{% endfor %}]);"/> </td></tr>
+     <tr><td colspan=3><hr width="100%"></td></tr>
+    {% endifequal %}
+   {% endfor %}
+ 
+   {% ifequal item min_pdb %}
+     <tr><td>Minimized PDB </td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name="solv_or_min" value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('nma_remove_patch'),false);getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');"/> </td></tr>
+     <tr><td colspan=3><hr width="100%"></td></tr>
+   {% endifequal %}
+
+   {% ifequal item solv_pdb %}
+     <tr><td>Solvated PDB </td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name="solv_or_min" value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('nma_remove_patch'),false);getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');"/> </td></tr>
+     <tr><td colspan=3><hr width="100%"></td></tr>
+   {% endifequal %}
+
+   {% ifequal item neu_pdb %}
+     <tr><td>Neutralized and Solvated PDB </td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name="solv_or_min" value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('nma_remove_patch'),false);getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');"/> </td></tr>
+     <tr><td colspan=3><hr width="100%"></td></tr>
+   {% endifequal %}
+
+   {% ifequal item md_pdb %}
+     <tr><td>Prior MD PDB </td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name="solv_or_min" value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('nma_remove_patch'),false);getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');"/> </td></tr>
+     <tr><td colspan=3><hr width="100%"></td></tr>
+   {% endifequal %}
+
+   {% ifequal item ld_pdb %}
+     <tr><td>LD PDB </td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name="solv_or_min" value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('nma_remove_patch'),false);getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');"/> </td></tr>
+     <tr><td colspan=3><hr width="100%"></td></tr>
+   {% endifequal %}
+
+   {% ifequal item sgld_pdb %}
+     <tr><td>SGLD PDB </td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name="solv_or_min" value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('nma_remove_patch'),false);getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');"/> </td></tr>
+     <tr><td colspan=3><hr width="100%"></td></tr>
+   {% endifequal %}
+
+  {% endfor %}
+  </table>
+  <p class="fontmed">
+   The total number of atoms must be less than 2500. The current total number of atoms is:<br>
+   <div id="atomnumbernma" class="fontmed"></div>
+  </p>
+</div>
+<center>
+<div id='hetatm_deter' style="display:none">
+<hr noshade width="80%" size="3%">
+<h2 align="center">HETATM parameter determination</h2>
+       <table>
+          <tr>
+            <td>GENRTF </td><td><input type="radio" name="parmgen" value="genrtf" checked></td><td><a href="." title="More CHARMM centric with generic parameters">?</a></td>
+          </tr>
+          <tr>
+            <td>Antechamber </td><td><input type="radio" name="parmgen" value="antechamber"></td><td><a href="." title="More AMBER centric but arguably better parameters">?</a></td>
+          </tr>   
+          <tr>
+            <td>Determine coordinates for HETATM hydrogen based on valence rules</td><td><input type="checkbox" name="addhyd" value="addhyd"></td>
+          </tr>
+       </table>
+
+</div>
+</center>
+<hr noshade width="80%" size=3%>
+<h2 align="center">Select type of run</h2>
+<hr width="60%">
+<div id="nma_explain" style="padding-left: 20%; width: 60%; text-align: left;">
+   <p class="fontmed">Choose one of the following types of Normal Mode Analysis to run.</p>
+</div>
+
+<div id="menu" style="width: 100%; padding-left: 0%;">
+   <div id="menu" style="width: 100%; padding-left: 20%;">
+     <table>
+       <tr><td>All atoms</td><td><input type="radio" id="usevibran" value="usevibran" name="nma" onclick="checkUncheckNMA('vibran','enm','block');getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');showHideQMMM();"></td></tr>
+       <tr><td>ENM (Elastic Network Model)</td><td><input type="radio" id="useenm" value="useenm" name="nma" onclick="checkUncheckNMA('enm','vibran','block');getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');showHideQMMM();"></td></tr>
+       <tr><td>Number of normal modes to generate:</td><td> <input type="text" id="num_normalmodes" name="num_normalmodes"></td></tr>
+     </table>
+     <br /><br />
+     <table>
+       <tr><td>Generate trajectories of normal modes</td><td><input type="checkbox" id="gen_trj" name="gen_trj" value="gen_trj" onclick="checkPatch('gen_trj','num_trjstable');"></td></tr>
+     </table>
+     <table id='num_trjstable' style="display:none;">
+       <tr><td>How many of the lowest modes should trajectories be generated for?</td>
+           <td><select name="num_trjs">
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="15">15</option>
+                  <option value="20">20</option>
+               </select>
+            </td>
+       </tr>
+     </table>  
+   </div>
+
+   <div id="vibran" style="display: none;">
+<hr align="center" style="width: 60%; padding-left:20%;">
+     <table style="padding-left:20%; width: 80%;">
+     <div id="qmmmsel">
+       <tr><td><p class="fonrmed">Use QM/MM calculations</td><td><input id="useqmmm" type="checkbox" name="useqmmm" onclick="checkPatch(makeUniqueDiv('useqmmm'),makeUniqueDiv('qmmm_parameters'));"></td></tr>
+       <div id="qmmm_parameters" style="display:none;">
+       Exchange: <select style="position:absolute;left:250px" size="1" name="qmmm_exchange">
+          <option value="HF" selected>HF</option>
+          <option value="B">B</option>
+          <option value="B3">B3</option>
+        </select><br>
+       Charge: <select size="1" name="qmmm_charge" style="position:absolute;left:250px" >
+          <option value="-5"> -5 </option>
+          <option value="-4"> -4 </option>
+          <option value="-3"> -3 </option>
+          <option value="-2"> -2 </option>
+          <option value="-1"> -1 </option>
+          <option value="0" selected> 0 </option>
+          <option value="+1"> +1 </option>
+          <option value="+2"> +2 </option>
+          <option value="+3"> +3 </option>
+          <option value="+4"> +4 </option>
+          <option value="+5"> +5 </option>
+        </select><br>
+       Correlation: <select size="1" name="qmmm_correlation" style="position:absolute;left:250px" >
+          <option value="None" selected>None</option>
+          <option value="LYP">LYP</option>
+        </select><br>
+       Basis Set: <select size="1" name="qmmm_basisset" style="position:absolute;left:250px" >
+          <option value="STO-3G" selected>STO-3G</option>
+          <option value="3-21G*">3-21G*</option>
+          <option value="6-31G*">6-31G*</option>
+        </select><br>
+       Multiplicity: <select size="1" name="qmmm_multiplicity" style="position:absolute;left:250px" >
+          <option value="1" selected>1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select><br><br>
+        Define QM region:<br>
+        define qmregion sele <input type="text" id="qmsele" name="qmsele"> end<br>
+        <p class="fontmed">Enter number of link atoms: <input type="text" name="num_linkatoms" id="num_linkatoms" value="0" size="4"n onKeyUp="writeLi$
+           <div id="linkatom_lines"></p>
+           </div> <!-- linkatom_lines -->
+       </div> <!-- qm/mm parameters -->
+     </div> <!-- qmmmsel -->
+
+     <tr><td>Apply patch</td><td><input id="usepatch" type="checkbox" name="usepatch" onclick="checkPatch(makeUniqueDiv('usepatch'),makeUniqueDiv('patch_area'));"></td></tr>
+       <tr><td><p class="fontmed">Use restraints</td><td><input type="checkbox" id="use_restraints" name="apply_restraints" onclick="checkRestraints(makeUniqueDiv('use_restraints'),makeUniqueDiv('apply_restraints'));"></td></tr>
+     </table>
+
+       <div id="apply_restraints" style="display:none"></p>
+         <p class="fontmed">Enter number of restraints:<input type="text" size="4" id="num_restraints" name="num_restraints" onkeyup="writeRestraintLines('restraint_lines');"><br>
+         <div id='restraint_lines' style="display:block; width: 100%; padding-left: 15%;"></p>
+         </div>
+       </div>
+
+
+<div id='nma_remove_patch' style="display:block">
+   <div id=patch_area style="display:none; width: 100%; padding-left: 10%;">
+   <hr style="width: 80%; padding-left: 20%;">
+   <table width="720px" align="center">
+     {% for item in propatch_list %}
+     <p class="fontmed">
+     Segid:<font color="red">{{item.0}} </font>
+     First Patch:
+     <select size="1" name="first_patch{{item.0}}">
+       {% ifequal item.1 "nter" %}
+         <option value="NTER" selected>NTER</option>
+       {% else %}
+         <option value="NTER">NTER</option>
+       {% endifequal %}
+       {% ifequal item.1 "glyp" %}
+         <option value="GLYP" selected>GLYP</option>
+       {% else %}
+         <option value="GLYP">GLYP</option>
+       {% endifequal %}
+       {% ifequal item.1 "prop" %}
+         <option value="PROP" selected>PROP</option>
+       {% else %}
+         <option value="PROP">PROP</option>
+       {% endifequal %}
+       <option value="ACE">ACE</option>
+       <option value="ACP">ACP</option>
+       <option value="NONE">NONE</option>
+     </select>
+     Last Patch:
+     <select size="1" name="last_patch{{item.0}}">
+       <option value="CTER" selected>CTER</option>
+       <option value="CT1">CT1</option>
+       <option value="CT2">CT2</option>
+       <option value="CT3">CT3</option>
+       <option value="ACP">ACP</option>
+       <option value="NONE">NONE</option>
+     </select>
+     </p>
+     {% endfor %}
+
+     {% for item in nucpatch_list %}
+     <p class="fontmed">
+       Segid:<font color="red">{{item.0}} </font>
+       First Patch:
+       <select size="1" name="first_patch{{item.0}}">
+         <option value="5TER" selected>5TER</option>
+         <option value="5MET">5MET</option>
+         <option value="5PHO">5PHO</option>
+         <option value="5POM">5POM</option>
+         <option value="CY35">CY35</option>
+       </select>
+
+       Last Patch:
+       <select size="1" name="last_patch{{item.0}}">
+         <option value="3TER" selected>3TER</option>
+         <option value="3PHO">3PHO</option>
+         <option value="3POM">3POM</option>
+         <option value="3CO3">3CO3</option>
+         <option value="CY35">CY35</option>
+       </select>
+     </p>
+     {% endfor %}
+
+     <hr width="60%">
+     <p class="fontmed">Enter number of disulfide patches: <input type="text" name="num_patches" id="num_patches" value="0" size="4"n onKeyUp="writeDisuLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_patches'),makeUniqueDiv('disulfide_solv'));">
+     <div id="disulfide_solv" style="display:block; width: 100%; padding-left: 15%;">
+     </div>
+     </p>
+
+   </table>	   
+   </div>
+</div>
+
+   </div>
+
+   <div id="enm" style="display:none;">
+     <table style="padding-left:20%;">
+      <tr><td>RCUT:</td><td><input type="text" name="rcut" id="rcut" value="10"></td><td><a href="#" title="Maximum distance at which there can be a spring force constant.">?</a></td></tr>
+      <tr><td>KSHORT:</td><td><input type="text" name="kshort" id="rcut" value="10.000"></td><td><a href="#" title="Near range force constant.">?</a></td></tr>
+      <tr><td>KLONG:</td><td><input type="text" name="klong" id="rcut" value="1.000"></td><td><a href="#" title="Long range force constant.">?</a></td></tr>
+     </table>
+   </div>
+</div>
+<hr noshade width="80%" size=3%>
+   </br /> 
+   <br />
+<br>
+       {% if trusted %}
+        TRUSTED USER: Edit these scripts: <input type="checkbox" id="edit_script" name="edit_script"><br><br>
+       {% endif %}
+
+   <center>
+   <input type="submit" value="Run Normal Mode Analysis" />
+   </center>
+</div>
+   
+</form>
+</div>
+

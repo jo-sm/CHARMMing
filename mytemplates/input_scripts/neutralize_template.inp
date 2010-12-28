@@ -1,0 +1,226 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}Neutralize system {% endblock %}
+
+{% block body %} blankme
+! Read protein structure from PSF file
+
+open read formatted unit 27 name {{ n_filename }}.psf
+read psf card unit 27
+close unit 27
+
+open read unit 10 card name {{ file_location }}{{ n_filename }}.crd
+read coor card unit 10
+close unit 10
+
+! Determine what type of ions being used
+set nneg CLA                              ! set segid of neg. ion
+set negion CL                             ! set atom type of neg. ion
+set npos {{ cation }}                     ! set segid of pos. ion
+set posion {{ cation }}                   ! set atom type of pos. ion
+set dival 0
+if @npos .eq. MG then set dival 1
+if @npos .eq. CAL then set dival 1
+
+! Setup coor volume scalar arrays
+scalar radi store 1
+scalar wmain set 0.5
+scalar wmain store 2
+
+! determine the net charge on the system
+scalar charge stat sele all end
+set chrg = ?stot
+
+if @dival .eq. 1 then
+CHARMM-scripts   calc tmpb int(@chrg / 2) * 2
+CHARMM-scripts   calc tmpc @chrg - @tmpb
+CHARMM-scripts   if @tmpc ae 1 then
+CHARMM-scripts      set pos1 0
+CHARMM-scripts      set neg1 @chrg
+CHARMM-scripts   endif
+CHARMM-scripts   if @tmpc ae -1 then
+CHARMM-scripts      calc pos1 int(@chrg/2) - 1
+CHARMM-scripts      calc pos1 @pos1 * -1
+CHARMM-scripts      set neg1 1
+CHARMM-scripts   endif
+CHARMM-scripts   if @tmpc ae 0 then
+CHARMM-scripts      calc pos1 int(@chrg/2)
+CHARMM-scripts      if @pos1 .lt. 0  calc pos1 @pos1 * -1
+CHARMM-scripts      set neg1 0
+CHARMM-scripts   endif
+endif
+
+! Compute volume of entire box
+calc volspace ?NATO * 160
+coor volume space @volspace select all end
+show ?VOLUME
+show ?FREEVOL
+calc tvol ?VOLUME + ?FREEVOL
+
+! Compute volume of just the protein
+define tmp select .not. segid BWAT end
+show ?NSEL
+calc volspace ?NSEL * 160
+coor volume space @volspace select .not. segid BWAT end
+show ?VOLUME
+show ?FREEVOL
+calc protvol ?VOLUME + ?FREEVOL
+
+! Compute just the volume of the water
+calc wvol @tvol - @protvol
+
+! Compute how many K+/Cl- are needed for 0.15M concentration
+set concentration {{ concentration }}
+calc volconv 1 * 0.000000000000000000000001
+calc wvoll ( ( @wvol * @volconv ) / 1000 )
+calc avog 1 * 602213670000000000000000
+
+FORMat (I5)
+if @chrg gt 0 then
+CHARMM-scripts   calc totions ( @wvoll * @avog * @concentration )
+CHARMM-scripts   if @dival .eq. 1 then
+CHARMM-scripts      calc nions ( @wvoll * @avog * @concentration ) - (@pos1 + @neg1)
+CHARMM-scripts   else
+CHARMM-scripts      calc nions ( @wvoll * @avog * @concentration ) - @chrg
+CHARMM-scripts   endif
+else
+CHARMM-scripts   calc totions ( @wvoll * @avog * @concentration )
+CHARMM-scripts   if @dival .eq. 1 then
+CHARMM-scripts      calc nions ( @wvoll * @avog * @concentration ) - (@pos1 + @neg1)
+CHARMM-scripts   else
+CHARMM-scripts      calc nions ( @wvoll * @avog * @concentration ) + @chrg
+CHARMM-scripts   endif
+endif
+
+! Make sure that an even number of charges are added
+calc tmpb int(@nions / 2) * 2
+calc tmpc @nions - @tmpb
+if @tmpc eq 1 then
+CHARMM-scripts   if @chrg .gt. 0 then
+CHARMM-scripts      calc nions @nions + 1
+CHARMM-scripts   else
+CHARMM-scripts      calc nions @nions - 1
+CHARMM-scripts   endif
+endif
+
+! Setup number of charges
+if @chrg gt 0 then
+CHARMM-scripts   if @dival .eq. 1 then
+CHARMM-scripts      calc x ( @nions / 3 )                  ! figure how many neg/pos ions will be added
+CHARMM-scripts      calc ipos @pos1 + @x                   ! no. positive divalent ions
+CHARMM-scripts      calc ineg @neg1 + ( 2 * @x )           ! no. negative monovalent ions
+CHARMM-scripts   else
+CHARMM-scripts      calc ineg ( @nions / 2 ) + @chrg        ! no. negative ions (i.e. chlorides)
+CHARMM-scripts      calc ipos ( @nions / 2 )                ! no. positive ions (i.e. potassiums)
+CHARMM-scripts   endif
+else
+CHARMM-scripts   if @dival .eq. 1 then
+CHARMM-scripts      calc x ( @nions / 3 )                  ! figure how many neg/pos ions will be added
+CHARMM-scripts      calc ipos @pos1 + @x                   ! no. positive divalent ions
+CHARMM-scripts      calc ineg @neg1 + ( 2 * @x )           ! no. negative monovalent ions
+CHARMM-scripts   else
+CHARMM-scripts      calc ineg ( @nions / 2 )                ! no. negative ions (i.e. chlorides)
+CHARMM-scripts      calc ipos ( @nions / 2 ) - @chrg        ! no. positive ions (i.e. potassiums)
+CHARMM-scripts   endif
+endif
+
+format                                    ! reset formating
+set mnd 5.5                               ! minimum distance to solute, other ions
+set sol .not. segid BWAT                  ! atoms selection for solvent
+set emin 1E20                             ! initial min energy value
+set ncfg 1                                ! initialize loop counter
+set last {{ ntrials }}                    ! no. of passes thru the loop
+random uniform iseed 314159               ! change iseed to sample diff states
+
+! BEGUN THE LOOP HAS
+label placion
+time now
+
+open unit 10 write card name loop-{{ filebase }}.log
+outu 10
+! LOOP LOG FILE OVERWRITTEN ON EACH PASS; GREATLY REDUCES OUTPUT
+! LAST PASS ALWAYS SAVED (IN EVENT OF FAILURE)
+
+! read psf and coordinates of solvated protein
+open read formatted unit 27 name new_{{ filebase }}-solv.psf
+read psf card unit 27
+close unit 27
+
+open read unit 11 card name new_{{ filebase }}-solv.crd
+read coor card unit 11
+close unit 11
+
+! RANDOM WATER REPLACEMENT
+set IONTYP = {{ cation }}
+stream {{ file_location }}new_{{ filebase }}-addions.str
+
+! ASSUMES WATER IS SEGID BWAT; RENUMBER THE WATER MOLECULES
+join bwat renum
+
+{% ifequal solvation_structure 'sphere' %} blankme
+{% else %}
+! SETUP CRYSTAL (DEFINE, BUILD), IMAGE CENTERING W. MODIFIED PSF
+stream {{ file_location }}charmm-{{ filebase }}-crystl.str
+{% endifequal %} blankme
+
+DEFI notfix select RESN ALA .or. resn GLU .or. resn GLN .or. resn ASP .or. resn ASN .or. resn LEU -
+ .or. resn GLY .or. resn LYS .or. resn SER .or. resn VAL .or. resn ARG .or. resn THR .or. resn PRO -
+ .or. resn ILE .or. resn MET .or. resn PHE .or. resn TYR .or. resn CYS .or. resn TRP .or. resn HSD -
+ .or. resn HSE .or. resn HSP .or. resn TIP3 .or. resn ZN2 .or. resn SOD .or. resn MG .or. resn FE -
+ .or. resn CAL .or. resn CLA .or. resn POT .or. resn CES .or. resn GUA .or. resn ADE .or. resn CYT -
+ .or. resn THY .or. resn URA .or. resn LSN .or. resn ASPP .or. resn GLUP end
+
+cons fix sele .not. notfix end
+
+! SETUP NONBOND
+update inbfrq 5 atom vatom cutnb 16.0 cutim 16.0 ctofnb 12. cdie eps 1. -
+CHARMM-scripts    ctonnb 8. vswitch imgfrq 5 wmin 1.0 -
+CHARMM-scripts    ewald pmew fftx 48 ffty 48  fftz 48  kappa .34 spline order 6
+
+! BRIEF MIN OF IONS INSERTED INTO SOLVATED MODEL
+mini sd nstep 10 nprint 1
+
+! add shake for ABNR step
+shake bonh param sele notfix end
+
+mini abnr nstep 25 nprint 5
+
+! KEY LOGICAL TEST; CONFIGS WITH HIGHER ENERGY REJECTED
+if @emin .lt. ?ENER goto test
+
+! WRITE THE LATEST MINIMUM ENERGY RESULT; CONFIG ACCEPTED
+open unit 11 write card name {{ file_location }}new_{{ filebase }}-neutralized.psf
+write psf card unit 11
+* 1YJP in RHDO with @ICL CL- and @IPO NA+
+*
+
+! DO AN UPDATE AND WRITE THE COOR FILE
+update
+
+ioformat extended
+
+open unit 11 write card name {{ file_location }}new_{{ filebase }}-neutralized.crd
+write coor card unit 11
+* Neutralized structure.
+* SEED 314159 MC @NCFG edge ?XTLA E ?ENER PREV @EMIN
+*
+
+open unit 11 write card name {{ file_location }}new_{{ filebase }}-neutralized.pdb
+write coor pdb unit 11
+* Neutralized structure.
+* seed 314159 MC @NCFG edge ?XTLA E ?ENER PREV @EMIN
+*
+
+! UPDATE MINIMUM ENERGY
+set emin ?ENER
+
+! TEST FOR EXIT, AND SETUP FOR NEXT PASS; REVERT TO STDOUT, CLOSE LOG
+label test
+crystal free
+shake off
+incr ncfg by 1
+time diff
+outu 6
+close unit 10
+if ncfg le @LAST goto placion
+{% endblock %} blankme

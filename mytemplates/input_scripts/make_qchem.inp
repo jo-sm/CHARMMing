@@ -1,0 +1,107 @@
+{% if bad_exchange %} blankme  
+   bomlev 3
+   achtung, bad QM exchange!
+{% else %} blankme
+   {% if bad_correlation %} blankme
+      bomlev 3
+      achtung, bad QM correlation!
+   {% else %} blankme
+      {% if bad_basis %} blankme
+         bomlev 3
+         achtung, bad QM basis set!    
+      {% else %} blankme
+         {% if bad_jobtype %} blankme
+            bomlev 3
+            achtung, bad QM job type! 
+         {% else %} blankme
+            {% if not qmcheck %} blankme
+               bomlev 3
+               achtung, you changed the QM region from a previous calculation. This isn't allowed!
+            {% else %} blankme
+               {% ifequal jobtype 'freq' %} blankme 
+                  !TQM {{tqm}} 
+                  {% ifequal tqm 'all' %} blankme
+                  {% else %} blankme     
+                     ! check to make sure the QM region is not all atoms (if it's not sele all end)
+                     ! unless you select all the Q-Chem script assumes that there are some MM atoms.
+                     define junk sele {{qmsel}} end 
+                     if ?nsel .ne. ?natom then goto qmok
+                     achtung, QM region is all atoms, please use ALL as your selection!
+                     label qmok
+                  {% endifequal %} blankme
+               {% endifequal %} blankme
+               define qmregion sele {{qmsel}} end
+               define mmregion sele .not. qmregion end
+               {% ifequal qmcheck 1 %} blankme
+                  coor copy comp
+                  coor shake
+               {% else %} blankme
+                  {% if linkatoms %} blankme
+                     !LINKATOMS   
+                     {% for las in linkatom_list %} blankme
+                        coor copy comp
+                        coor shake
+                        addl qqh1 {{las}}
+                     {% endfor %} blankme
+                  {% else %} blankme
+                     ! Define MM Host for Link Atom
+                     define mmh select .bonded. qmregion .and. mmregion show end
+
+                     ! loop over bonded atoms
+                     set nmmh ?nsel
+                     if @nmmh .eq. 0 then goto linkdone
+
+                     set i 0
+                     label mmhloop
+                     incr i by 1
+                     definte junk select mmh .subset. @i show end
+                     set mmhost@i ?SELATOM
+                     if @i .lt. @nmmh goto mmhloop
+
+                     define qmh select .bonded. mmh .and. qmregion show end
+
+                     set nqmh ?nsel
+                     set i 0
+                     label qmhloop
+                     incr i by 1
+                     define junk select qmh .subset. @i show end
+                     set qmhost@i ?SELATOM
+                     if @i .lt. @nqmh goto qmhloop
+
+                     set i 1
+                     set j 1
+                     label qmhlink
+                     CHARMM-scripts   label mmhlink
+
+                     CHARMM-scripts      addl qqh@i bynum @qmhost@@j bynum @mmhost@@i
+                     CHARMM-scripts      lonepair colinear scaled -.7261 bynum qqh@i bynum @qmhost@@j bynum @mmhost@@i
+
+                     CHARMM-scripts      incr i by 1
+                     CHARMM-scripts      decr nmmh by 1
+                     CHARMM-scripts   if @nmmh .gt. 0 then goto mmhlink
+                     CHARMM-scripts   incr j by 1
+                     CHARMM-scripts   decr nqmh by 1
+                     if @nqmh .gt. 0 then goto qmhlink
+                 
+                     coor copy comp
+                     coor shake
+
+                     label linkdone
+                      
+
+                  {% endif %} blankme
+               {% endifequal %} blankme
+               !---------- Needed to define Q-Chem env. vars. ----------
+               envi qchemcnt  "{{qchemin}}"
+               envi qcheminp  "{{qcheminp}}"
+               envi qchemexe  "qchem"
+               envi qchemout  "{{qchemout}}"
+               !--------------------------------------------------------
+
+               qchem remove sele qmregion end  
+            {% endif %} blankme
+         {% endif %} blankme
+      {% endif %} blankme
+   {% endif %} blankme
+{% endif %} blankme
+

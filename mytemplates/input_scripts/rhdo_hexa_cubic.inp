@@ -1,0 +1,30 @@
+ {% ifequal solvation_structure 'rhdo' %} blankme
+   {% if not relative_boundary %} blankme
+      set greatervalue = {{dim_x}}
+   {% endif %} blankme
+   crystal define rhdo @greatervalue @greatervalue @greatervalue 60. 90. 60.
+{% else %} blankme
+   {% ifequal solvation_structure 'hexa' %} blankme
+      {% if relative_boundary %} blankme
+         ! if these were done together in solvation, we know dim_x == dim_z
+         crystal define hexa @secondvalue @secondvalue @greatervalue 90. 90. 120.
+      {% else %} blankme
+         set greatervalue = {{greaterval}}
+         set greaterx = {{dim_x}}
+         set greaterz = {{dim_z}}
+         crystal define hexa @greaterx @greaterx @greaterz 90. 90. 120.
+      {% endif %} blankme
+   {% else %} blankme
+      {% ifequal solvation_structure 'cubic' %} blankme
+         {% if not relative_boundary %} blankme
+            set greatervalue = {{dim_x}}
+         {% endif %} blankme
+         crystal define cubic @greatervalue @greatervalue @greatervalue 90. 90. 90.
+      {% else %} blankme
+         {% ifequal solvation_structure 'choose_for_me' %} 
+            {% include 'input_scripts/choose_for_me.inp' %}
+         {% endifequal %}
+      {% endifequal %} blankme
+   {% endifequal %} blankme
+{% endifequal %} blankme
+!eek

@@ -1,0 +1,34 @@
+! set up image
+{% if not solvation_structure or solvate_implicitly %} blankme
+   image byseg sele all end
+{% else %} blankme
+   {% if relative_boundary %} blankme
+      ! read crystal dimensional data from the crystal structure made in solvation
+      stream crystl_{{filebase}}.str
+   {% endif %} blankme
+   
+   {% include 'input_scripts/rhdo_hexa_cubic.inp' %}
+   open unit 1 read card name new_{{filebase}}.xtl
+   crystal read card unit 1
+   close unit 1
+   
+   ! These segments are used by CHARMMing for water and ions in bulk solvent
+   define bulks sele segid bwat .or. segid pot .or. segid cl .or. segid sod .or. -
+          segid cal .or. segid mg .or. segid ces end
+
+
+   !In a production run, the user may want to change the below image selections
+   image byseg sele .not. resname tip3 .and. .not. bulks end
+   image byres sele resname tip3 .or. bulks end
+   
+
+{% endif %} blankme
+
+!activating a perl script from this interface that determines the values for ewald.
+!The number cannot have a prime factor other than 2,3, and 5
+! the number also has to be greater than the max dimensions of the image
+syst "/usr/local/charmming/calcewald.pl @GREATERVALUE {{file_location}} {{filebase}} "
+
+! The Perl script called above writes out a stream file that sets the Ewald FFT parameter this line reads it into CHARMM
+stream {{filebase}}-highnum.str
+

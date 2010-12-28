@@ -1,0 +1,15 @@
+<head>
+<script src="/jmol/Jmol.js"></script>
+</head>
+<script>
+function makeMspace()
+{
+ var dimarray = parent.getFrameDim();
+ var text = "<applet codebase='/marvin/' code='chemaxon/marvin/space/gui/MSpaceApplet' name='MSpaceApplet' width="+dimarray[0]+" height="+dimarray[1]+" archive='mspace.jar,jmarvin.jar,jogl.jar,gluegen-rt.jar,jextexp.jar'> <param name='progressbar' value='true'> <param name='toolbar' value='true'><param name='menubar' value='true'> <param name='molecule' value='/pdbuploads/{{username}}/{{filename}}'> </applet>";
+ document.getElementById('app').innerHTML = text;
+}
+</script>
+<body onload="makeMspace();">
+<div id="app">
+</div>
+</body>

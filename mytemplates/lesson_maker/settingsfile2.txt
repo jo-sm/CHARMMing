@@ -1,0 +1,6 @@
+{% for dict in settingsfile %} blankme
+    {% if dict.case2 %} blankme
+    '{{lesson_name}}',
+    {% endif %} blankme		
+{{dict.line}} 
+{% endfor %} blankme

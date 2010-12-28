@@ -1,0 +1,14 @@
+* {{title}}
+*
+bomlev -2
+
+! Read in Topology and  Parameter files
+
+open unit 1 card read name {{first_rtf}}
+read RTF card unit 1
+close unit 1 
+open unit 1 card read name {{second_rtf}} 
+read rtf card append unit 1
+close unit 1
+
+stop

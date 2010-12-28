@@ -1,0 +1,50 @@
+<center>
+<h1>Lesson {% ifequal lesson.curStep 4 %}: <font color="red">Completed</font> {% endifequal %}
+</h1></center>
+
+Lesson Objectives<br>
+<li> List objectives here </li>
+<br>
+<p> Insert introductory text here </p>
+
+<br>
+<br>
+<!-- 
+The way this status display logic works is as follows:
+html_step_list is a list/array where each index represents a different step in the lesson
+if the value at each index (an index represents a step) is 1, then the step is complete
+If the value at each index/step is 2 then the step is currently running
+-->
+
+{% if lesson %}
+   {% ifequal html_step_list.0 1 %}
+      <font color="red"> Step 1: Upload Done </font><br>
+      <p> Insert text here </p>
+   {% endifequal %}
+
+   {% ifequal html_step_list.1 2 %}
+
+      <font color="red"> Step 2: Solvation Running </font><br>
+      <p> Insert status text here </p>
+   {% endifequal %}
+   {% ifequal html_step_list.1 1 %}
+
+      <font color="red"> Step 2: Solvation Done </font><br>
+      <p>  Insert status text here </p>
+   {% endifequal %}
+
+   {% ifequal html_step_list.2 2 %}
+      <font color="red"> Step 3: Minimization Running </font><br>
+      <p> Insert status text here </p>
+   {% endifequal %}
+   {% ifequal html_step_list.1 1 %}
+      <font color="red"> Step 2: Solvation Done </font><br>
+      <p> Insert text here </p>
+   {% endifequal %}
+   <!-- This is the lesson problem object -->
+   {% if lessonproblem %}
+      <font color="red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</font> <br>
+      {{lessonproblem.description}}
+   {% endif %} 
+{% endif %}
+

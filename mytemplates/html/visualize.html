@@ -1,0 +1,110 @@
+<div>
+<center>
+<br />
+<br />
+<br />
+<h1>Visualize PDBs</h1>
+</center>
+<div class='status'>
+<body>
+<center>
+<h2>Choose a viewing program:<br></h2>
+<hr width="50%">
+<h3>Jmol (stable): <input type="radio" id="jmol" name="view_option" checked /> <br> </h3>
+<!-- <h3>ChemAxon's MarvinSpace (unstable but more features): --> <input type="hidden" id="chemaxon" name="view_option" /><br></h3>
+<hr width="50%">
+<br />
+<form method="post" action=".">
+<table class="sortable resizable" border=2>
+<tr><th>Filename</th><th>Description</th></tr>
+{% for file in file_list %}
+    {% for pdb in protein_list %}
+      {% ifequal file pdb %}
+       <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Protein Segment</td></tr>
+      {% endifequal %}
+    {% endfor %}
+    
+    {% for pdb in tip_list %}
+     {% ifequal file pdb %}
+       <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>CHARMM Compliant Heteroatoms</td></tr>
+     {% endifequal %}
+    {% endfor %}
+    
+    {% for pdb in het_list %}
+     {% ifequal file pdb %}
+     <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Non CHARMM-Compliant Heteroatoms</td></tr>
+     {% endifequal %}
+    {% endfor %}
+    
+    {% for dashf in dashf_list %}
+      {% ifequal file dashf %}
+        <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Segment Run Through CHARMM</td></tr>
+      {% endifequal %}
+    {% endfor %}
+    
+    {% ifequal file append_pdb %}
+     <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Appended PDB</td></tr>
+    {% endifequal %}
+    
+    {% ifequal file solv_pdb %}
+     <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Solvated PDB</td></tr>
+    {% endifequal %}
+
+    {% ifequal file neu_pdb %}
+     <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Neutralized PDB</td></tr>
+    {% endifequal %}
+
+    {% ifequal file min_pdb %}
+     <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>PDB After Minimization</td></tr>
+    {% endifequal %}
+    {% for movie in nmodes_list %}
+        {% ifequal file movie %}
+          <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Normal Modes Movie</td></tr> 
+        {% endifequal %}
+    {% endfor %}
+    {% ifequal file md_pdb %}
+     <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Molecular Dynamics PDB</td></tr>
+    {% endifequal %}
+    
+    {% ifequal file md_movie_pdb %}
+     <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Molecular Dynamics Movie PDB</td></tr>
+    {% endifequal %}
+
+    {% ifequal file ld_movie_pdb %}
+     <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Langevin Dynamics Movie PDB</td></tr>
+    {% endifequal %}
+
+    {% ifequal file sgld_movie_pdb %}
+     <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Self-Guided LD Movie PDB</td></tr>
+    {% endifequal %}
+    
+    {% ifequal file ld_pdb %}
+     <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Langevin Dynamics PDB</td></tr>
+    {% endifequal %}
+    
+    {% ifequal file sgld_pdb %}
+     <tr><td> <a href="#" onclick="chooseViewProgram('{{file}}');">{{file}}</a><td>Self-Guided LD PDB</td></tr>
+    {% endifequal %}
+{% endfor %}
+</table>
+
+<div id="solv_neutralize" style="display:block">
+<p class="fontmed">Show close-up of protonizable resdues: <input id="neutralize" type="checkbox" name="neutralize" onclick="checkPatch(makeUniqueDiv('neutralize'),makeUniqueDiv('neut_area'));"><br>
+  <div id="neut_area" style="display:none">
+    <center>
+<p>To modify charge state please visit "Select/Edit PDBs" submenu and click on the desired PDB in the first column.</p>
+    <table class="sortable resizable" border="2">
+      <tr><td>File name</td><td>Segment ID</td><td>Residue ID</td><td>Amino Acid</td></tr>
+      {% for file in proto_list %}
+        <tr><td> <a href="#" onclick="chooseViewProgram('{{ file.0 }}', 'pseg', '{{ file.2 }}');">{{ file.0 }}</a></td><td>{{ file.1 }}</td><td>{{ file.2 }}</td><td>{{ file.3 }}</td></tr>
+      {% endfor %}
+    </table>
+    </center>
+  </div>
+</p>
+</div>
+</table>
+</form>
+</div>
+</center>
+</div>

@@ -1,0 +1,195 @@
+{% autoescape off %}
+<center>
+<h1>Lesson 2{% ifequal lesson2.curStep 5 %}: <font color="red">Completed</font> {% endifequal %}</h1>
+</center>
+
+<p class="intro">
+  <font color="red">Lesson Objectives</font>
+  <ul>
+    <li>Demonstrate how CHARMM can be used with proteins </li>
+    <li>Teach the user how to use custom Topology and Parameter files to extend CHARMM ability to recognize residues </li>
+    <li>Teach user basic usage and syntax of CHARMM</li>
+  </ul>
+</p>
+<br />
+
+<p class="intro">1ZHY is the Protein Data Bank (PDB) ID of a Oxysterol binding protein complexed with cholesterol. This protein is known to transport 
+  cholesterol within the cell and to the cell memebrane. It is found in high concentrations in cancer patients. The standard CHARMM topology and parameter
+  files for proteins do not have residue and parameter information for cholesterol so the custom topology files below will be used with this lesson. You 
+  will need to download them, along with the PDB file itself, to continue. The links are below: 
+</p></br>
+
+<p class="intro">
+  <ul>
+    <li><a href="/charmming/lessons/download/lesson2/1zhy.pdb">1ZHY.pdb</a></li>
+    <li><a href="/charmming/lessons/download/lesson2/par_all27_cmap_chol.prm">par_all27_cmap_chol.prm</a> (the parameter file)</li>
+    <li><a href="/charmming/lessons/download/lesson2/top_all27_prot_lipid.rtf">top_all27_prot_lipid.rtf</a> (the topology file)</li>
+  </ul>
+</p><br />
+
+
+<p class="intro">Go to the <b>Submit Structure</b> page, select &quot;Upload my own PDB file&quot;, and select the 1ZHY PDB file for uploading. Then
+  check both the &quot;Add my own topology file&quot; and the &quot;Add my own parameter file&quot; boxes  When uploading these, choose to replace the 
+  standard CHARMMing topology/parameter files as the files you are uploading already contain all the information in the standard CHARMM topology and
+  parameter files. Once you have done so come back here and you should see a completion message below if done correctly.</p>
+<br />
+
+{% if lesson2 %}
+ {% ifequal html_step_list.0 1 %}
+   <br />
+   <p class="intro"><font color="red"> Step 1: Upload Done </font></p>
+   <br />
+
+   <p class="intro">Congratulations! You successfully uploaded the PDB file along with the custom topology and parameter!</p>
+   <br />
+
+   <p class="intro">If you look at the <b>View PDBs</b> page and see the protein you'll notice it is globular. Because it is a globular protein we should use a cubic 
+     or RHDO structure. An RHDO structure is most efficient so solvate the structure in an RHDO and choose a radius of 10. 1ZHY has a negative charge, and in order 
+     for CHARMM to use the Ewald Summation method, a charge of 0 must be set. In order to do this, you may neutralize a system under CHARMMING through the 
+     &quot;Solvate&quot; page. For this lesson, use Potassium Chloride, and set the molar concentration to .15. The number of trials will determine a lower energy 
+     position for these ions but significantly add to the neutralization calculation time. For this reason, please set the number of trials to 1.</p>
+ {% endifequal %}
+ 
+ {% ifequal html_step_list.1 2 %}
+   <br />
+   <p class="intro"><font color="red"> Step 2: Solvation Running </font></p>
+   </br>
+
+   <p class="intro">The solvation job is still running but you can read ahead.</p>
+   <br />
+
+   <p class="intro">The next step is to minimize the system. Go to the <b>Minimization</b> page and select the neutralized structure. Like the previous
+     lesson, set the number of steps for SD and ABNR to 1000 and tolg to .01. This time, select &quot;Use Periodic Boundary Conditions (PBC) in minimization&quot;.
+     This will tell CHARMMing that periodic boundary conditions should be used with minimization. This causes the crystal data structure to be replicated
+     so that there are no unwanted boundary effects caused by placing the solvated crystal into a vacuum. Since dynamics is run with PBC, it is important
+     that the final minimization be run under the same conditions. Once you have set it up, go ahead and submit the minimization. Because this is a large
+     structure, it may take over half an hour to run.</p>
+   <br />
+
+   <p class="intro">Please wait until solvation of the solvated structure is complete before starting the minimization calculation.</p>
+ {% endifequal %}
+ 
+ {% ifequal html_step_list.1 1 %}
+   <br />
+   <p class="intro"><font color="red"> Step 2: Solvation Done </font></p>
+   <br />
+
+   <p class="intro">The next step is to minimize the system. Go to the <b>Minimization</b> page and select the neutralized structure. Like the previous 
+     lesson, set the number of steps for SD and ABNR to 1000 and tolg to .01. This time, select &quot;Use Periodic Boundary Conditions (PBC) in minimization&quot;.
+     This will tell CHARMMing that periodic boundary conditions should be used with minimization. This causes the crystal data structure to be replicated
+     so that there are no unwanted boundary effects caused by placing the solvated crystal into a vacuum. Since dynamics is run with PBC, it is important
+     that the final minimization be run under the same conditions. Once you have set it up, go ahead and submit the minimization. Because this is a large
+     structure, it may take over half an hour to run.</p>
+   <br /> 
+ {% endifequal %}
+
+ {% ifequal html_step_list.2 2 %}
+   <br />
+   <p class="intro"><font color="red"> Step 3: Minimization Running </font></p>
+   <br />
+
+   <p class="intro">The minimization job is still in progress but you can read ahead to the next step in the lesson.</p>
+   <br />
+
+   <p class="intro">The next step is to run dynamics on the system. Before a production run, the system should be heated to bring it out of its minimized 
+      state. Minimization brings the system to a low energy state and in so doing removes bad contacts (e.g. water molecules located in hydrophobic pockets). 
+      Heating is applied to gradually bring the system up to a natural temperature for biochemical processes. Set the initial temperature to 210.15 K, the
+      final temperature to 310.15 K, and the bath temperature (TBATH) to 310.15 K. Leave all other settings at their default values.</p>
+   <br />
+
+   <p class="intro">Please do not submit the dynamics job until the solvation is completed.</p>
+ {% endifequal %}
+
+ {% ifequal html_step_list.2 1 %}
+   <br />
+   <p class="intro"><font color="red"> Step 3: Minimization Done </font></p>
+   <br />
+
+   <p class="intro">The next step is to run dynamics on the system. Before a production run, the system should be heated to bring it out of its minimized
+      state. Minimization brings the system to a low energy state and in so doing removes bad contacts (e.g. water molecules located in hydrophobic pockets).
+      Heating is applied to gradually bring the system up to a natural temperature for biochemical processes. Set the initial temperature to 210.15 K, the
+      final temperature to 310.15 K, and the bath temperature (TBATH) to 310.15 K. Leave all other settings at their default values.</p>
+   <br />
+
+   <p class="intro">Now that minimization is done, please go ahead and submit the dynamics job.</p>
+   <br />
+ {% endifequal %}
+
+ {% ifequal html_step_list.3 2 %}
+   <br />
+   <p class="intro"><font color="red">Step 4: Molecular Dynamics Heating Running</font></p>
+   <br />
+
+   <p class="intro">The MD job is still in progress. Meanwhile, you can read ahead about the next part of the lesson.</p>
+   <br />
+
+   <p class="intro">The next step after heating is to perform equilibration on the system in order to let it &quot;settle in&quot; at the desired temperature.
+     Generally, the purpose of a molecular dynamics simulation is to get a statistical picture of how the system behaves in real world conditions. This can be
+     done by running for a sufficiently long period of time to gain summary statistics about which conformations are preferred and how they shift over time.
+     Detailed explanation about how long is long enough and exactly how these statistics are gathered is beyond the scope of this tutorial. At this stage, it
+     is sufficient to know that CHARMM can write out files describing various facets of the system (energy, atomic velocities, etc.) as the simulation evolves.
+     One of the most important of these files is called the <i>trajectory file</i>, which contains coordinates. A coordinate set (called a trajectory &quot;frame&quot;
+     is generally not written out every step, but usually every 10 to 1000 steps depending on the desires resolution. The input files CHARMMing produces are designed
+     to write ten steps over the dynamics calculation, no matter how long it is.</p>
+   <br />
+
+   <p class="intro">In general, trajectories from early equilibrium runs are not used for analysis (as the system is still &quot;settling in&quot;, however they
+     still can show how the system moves over time. In order to see this for yourself, go back to the <b>Molecular Dynamics</b> page and select the output of
+     the heating run to work on. This time, select &quot;equilibration&quot;, select the final temperature of the heating (310.15 K) for the temperature. Also, have
+     it make a movie.</p>
+
+ {% endifequal %}
+
+ {% ifequal html_step_list.3 1 %}
+   <br />
+   <p class="intro"><font color="red">Step 4: Molecular Dynamics Heating Done</font></p>
+   <br />
+
+   <p class="intro">The next step after heating is to perform equilibration on the system in order to let it &quot;settle in&quot; at the desired temperature.
+     Generally, the purpose of a molecular dynamics simulation is to get a statistical picture of how the system behaves in real world conditions. This can be
+     done by running for a sufficiently long period of time to gain summary statistics about which conformations are preferred and how they shift over time.
+     Detailed explanation about how long is long enough and exactly how these statistics are gathered is beyond the scope of this tutorial. At this stage, it
+     is sufficient to know that CHARMM can write out files describing various facets of the system (energy, atomic velocities, etc.) as the simulation evolves.
+     One of the most important of these files is called the <i>trajectory file</i>, which contains coordinates. A coordinate set (called a trajectory &quot;frame&quot;
+     is generally not written out every step, but usually every 10 to 1000 steps depending on the desires resolution. The input files CHARMMing produces are designed
+     to write ten steps over the dynamics calculation, no matter how long it is.</p>
+   <br />
+
+   <p class="intro">In general, trajectories from early equilibrium runs are not used for analysis (as the system is still &quot;settling in&quot;, however they
+     still can show how the system moves over time. In order to see this for yourself, go back to the <b>Molecular Dynamics</b> page and select the output of
+     the heating run to work on. This time, select &quot;equilibration&quot;, select the final temperature of the heating (310.15 K) for the temperature. Also, have
+     it make a movie.</p>
+   <br />
+
+ {% endifequal %}
+
+ {% ifequal html_step_list.4 2 %}
+   <br />
+   <p class="intro"><font color="red"> Step 5: Equilibration Molecular Dynamics Running</font></p>
+   <br />
+
+   <p class="intro">The MD equilibration job is still in progress.</p>
+
+ {% endifequal %}
+
+ {% ifequal html_step_list.4 1 %}
+   <br />
+   <p class="intro"<<font color="red"> Step 5: Equilibration Molecular Dynamics Performed </font></p>
+   <br />
+
+   <p class="intro">Congratulations! You have successfully run Molecular Dynamics (MD) on the system! If you made a movie of the dynamics, you can
+     see it on the <b>View PDBs</b> page.</p>
+   <br />
+
+   <p class="intro">You have now completed this lesson.</p>
+ {% endifequal %}
+
+
+ {% if lessonproblem %}
+ <br />
+ <p class="intro"><font color="red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</font><br>
+ {{lessonproblem.description}}</p>
+ {% endif %}
+
+{% endif %}
+{% endautoescape %}

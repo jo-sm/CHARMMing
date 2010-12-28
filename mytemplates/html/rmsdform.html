@@ -1,0 +1,91 @@
+<div>
+  <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+  <br />
+  <br />
+  <br />
+  <h1 align="center">Calculate RMSD</h1>
+
+  <div id='change_rmsd' style="text-align:center;">
+    <div id="script_dothis" style="display:none;">
+       refreshToolTips();
+       var GB_ROOT_DIR = "/charmming/greybox/greybox/";
+    </div>
+
+    {% if feedback %}
+      <h3 align="center"><font color="red">{{ feedback }}</font></h3>
+    {% endif %}
+
+    {% autoescape off %}
+    {% if prior_matrix %}
+      <center>{{prior_matrix}}</center><br />
+    {% endif %}
+    {% endautoescape %}
+
+    <hr noshade width="80%" size=3%>
+    <h2 align="center">Select Structures</h3>
+    <br />
+
+    <center>
+       <form id="rmsd_form" method="post"  action="." onsubmit="return send_form_rms(this,makeUniqueDiv('change_rmsd'),[{%for item in filename_list%}'{{item}}',{% endfor%}]);">
+       <table>
+        {% for item in filename_list %}
+          {% ifequal item append_pdb %}
+            <tr><td>Appended PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /></td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% endifequal %}
+
+          {% ifequal item solv_pdb %}
+            <tr><td>Solvated PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /></td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% endifequal %}
+ 
+          {% ifequal item neu_pdb %}
+            <tr><td>Neutralized and Solvated PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% endifequal %}
+
+          {% ifequal item min_pdb %}
+            <tr><td>Minimized PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% else %}{% ifequal item md_pdb %}
+              <tr><td>MD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+          {% else %}{% ifequal item ld_pdb %}
+              <tr><td>LD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+          {% else %}{% ifequal item sgld_pdb %}
+              <tr><td>SGLD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+          {% else %}{% ifequal item md_avg_pdb %}
+              <tr><td>Average MD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+          {% endifequal %}{% endifequal %}{% endifequal %}{% endifequal %}{% endifequal %}
+
+        {% endfor %}
+       </table>
+
+       <table>
+         <tr><td><p class="fontmed">Compare all atoms (except bulk waters)</td>
+             <td><input type="radio" name="comp_allatom" value="1" onclick="document.getElementById('comp_backbone').style.display = 'none';" checked></td></tr>
+         <tr><td><p class="fontmed">Compare only backbone atoms</td>
+             <td><input type="radio" name="comp_allatom" value="0" onclick="document.getElementById('comp_backbone').style.display = 'block';"></td></tr>
+       </table>
+       <div id="comp_backbone" style="display: none;">
+         <table>
+           <tr><td colspan="2"><center><b>Select backbone atoms to be compared</b></center></td></tr>
+           <tr><td>Nitrogen (N)</td><td><input type="checkbox" name="bb_n" checked></td></tr>
+           <tr><td>Alpha carbon (CA)</td><td><input type="checkbox" name="bb_ca" checked></td></tr>
+           <tr><td>Backbone carbon (C)</td><td><input type="checkbox" name="bb_c" checked></td></tr>
+           <tr><td>Backbone Oxygen (O)</td><td><input type="checkbox" name="bb_o" checked></td></tr>
+           <tr><td>Backbone Hydrogen bound to Nitrogen (HN)</td><td><input type="checkbox" name="bb_hn"></td></tr>
+           <tr><td>Hydrogen bound to the alpha catbon (HA)</td><td><input type="checkbox" name="bb_ha"></td></tr>
+         </table>
+       </div>
+
+       <input type="submit" value="Build RMSD matrix">
+       </form>
+    </center>
+  </div>
+</div>
+

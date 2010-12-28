@@ -1,0 +1,26 @@
+<head>
+<script type="text/javascript" src="/charmming/js/protoculous-1.0.2-packed.js"></script>
+<script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
+<link href="/charmming/css/windows2/default.css" rel="stylesheet" type="text/css"/>
+<link href="/charmming/css/windows2/spread.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript">
+function send_select_form(form) {
+  new Ajax.Request("/charmming/select/"+form.id, {method:'post', asynchronous:true});
+}
+function openWin(classname,titlevar,topvar,leftvar,widthvar,heightvar,urlvar)
+{
+var win = new Window({className: classname, title: titlevar, 
+                      top:topvar, left:leftvar, width:widthvar, height:heightvar, 
+                      url: urlvar, showEffectOptions: {duration:0.5}})
+win.show();
+}
+</script>
+</head>
+
+
+<center>
+<div>
+</center>
+<iframe id="studentprogresscontainer" src ="/charmming/teachers/studentprogress/" width="100%" height="100%" frameborder=0>
+</iframe>
+</div>

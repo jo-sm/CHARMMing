@@ -1,0 +1,408 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %} Make a redox segment by appending the goodhet and het segments PDB {% endblock %}
+
+{% block read_struct %}
+! The files should aready be appended, all we need to do is join then
+read psf card name new_{{ filebase }}-{{ segid }}-pro-final.psf
+read psf card append name new_{{ filebase }}-{{ segid }}-het-final.psf
+read coor card name new_{{ filebase }}-{{ segid }}-pro-final.crd
+read coor card append name new_{{ filebase }}-{{ segid }}-het-final.crd
+{% endblock %}
+
+{% block body %}
+! set some variables that will be needed later
+set c1cysr1 = 0
+set c1cysr2 = 0
+set c1cysr3 = 0
+set c1cysr4 = 0
+set c2cysr1 = 0
+set c2cysr2 = 0
+set c2cysr3 = 0
+set c2cysr4 = 0
+set c3cysr1 = 0
+set c3cysr2 = 0
+set c3cysr3 = 0
+set c3cysr4 = 0
+set c4cysr1 = 0
+set c4cysr2 = 0
+set c4cysr3 = 0
+set c4cysr4 = 0
+
+! figure out how many clusters there are on this chain
+define selclust select resname FS4 .and. type FE1 end
+set numfs4 = ?nsel
+if @numfs4 .lt. 1 then goto barf ! die if no clusters found
+if @numfs4 .gt. 4 then goto barf ! for sanity reasons, only 4 clusters per residue
+
+!!! Big loop begin, loops over each of the FES4 clusters
+set clusternum = 1
+label bigloop
+
+! now for each of the four irons in each FeS cluster, find the closest CYS sulphur
+set i = 1
+label loopbegin
+
+set mindist 900.
+set minindx 0
+define myiron select resname FS4 .and. type FE@i .subset. @clusternum end
+define candidates select ( myiron .around. 6.0 ) .and. type S* .and. resname CYS end
+set n = ?nsel
+if @n .lt. 1 then goto barf
+
+set j = 1
+label candidateloop
+
+quick select candidates .subset. @j end select myiron end
+if ?dist .gt. @mindist then goto exitmin
+
+! this is the new minimum
+set mindist = ?dist
+set minindx = @j
+
+label exitmin
+incr j by 1
+if @j .le. @n then goto candidateloop
+
+! we should now know which sulphur is the closest to this iron
+! so grab it and its residue number for the patching later
+define sulphur@i select candidates .subset. @minindx end
+set cysres@i = ?selires
+set c@{clusternum}cysr@{i} = ?selires
+
+incr i by 1
+if @i .le. 4 then goto loopbegin
+
+! we now know which 4 cystine residues need to be patched, so let's 
+! rename them and save their coordinates for future reference (the
+! renaming is kinda redundant since we're going to delete and re-add
+! these atoms as a patch, but I've left it in).
+
+! define the atoms so we can use them
+define mysg1 select resid @cysres1 .and. type SG end
+define mysg2 select resid @cysres2 .and. type SG end
+define mysg3 select resid @cysres3 .and. type SG end
+define mysg4 select resid @cysres4 .and. type SG end
+define mycb1 select resid @cysres1 .and. type CB end
+define mycb2 select resid @cysres2 .and. type CB end
+define mycb3 select resid @cysres3 .and. type CB end
+define mycb4 select resid @cysres4 .and. type CB end
+
+rename atom SG1 select mysg1 end
+rename atom SG2 select mysg2 end
+rename atom SG3 select mysg3 end
+rename atom SG4 select mysg4 end
+rename atom CB1 select mycb1 end
+rename atom CB2 select mycb2 end
+rename atom CB3 select mycb3 end
+rename atom CB4 select mycb4 end
+quick select mysg1 end
+set sg1x@clusternum = ?xval
+set sg1y@clusternum = ?yval
+set sg1z@clusternum = ?zval
+quick select mysg2 end
+set sg2x@clusternum = ?xval
+set sg2y@clusternum = ?yval
+set sg2z@clusternum = ?zval
+quick select mysg3 end
+set sg3x@clusternum = ?xval
+set sg3y@clusternum = ?yval
+set sg3z@clusternum = ?zval
+quick select mysg4 end
+set sg4x@clusternum = ?xval
+set sg4y@clusternum = ?yval
+set sg4z@clusternum = ?zval
+quick select mycb1 end
+set cb1x@clusternum = ?xval
+set cb1y@clusternum = ?yval
+set cb1z@clusternum = ?zval
+quick select mycb2 end
+set cb2x@clusternum = ?xval
+set cb2y@clusternum = ?yval
+set cb2z@clusternum = ?zval
+quick select mycb3 end
+set cb3x@clusternum = ?xval
+set cb3y@clusternum = ?yval
+set cb3z@clusternum = ?zval
+quick select mycb4 end
+set cb4x@clusternum = ?xval
+set cb4y@clusternum = ?yval
+set cb4z@clusternum = ?zval
+quick select resid @cysres1 .and. type HB1 end
+set h11x@clusternum = ?xval
+set h11y@clusternum = ?yval
+set h11z@clusternum = ?zval
+quick select resid @cysres1 .and. type HB2 end
+set h12x@clusternum = ?xval
+set h12y@clusternum = ?yval
+set h12z@clusternum = ?zval
+quick select resid @cysres2 .and. type HB1 end
+set h21x@clusternum = ?xval
+set h21y@clusternum = ?yval
+set h21z@clusternum = ?zval
+quick select resid @cysres2 .and. type HB2 end
+set h22x@clusternum = ?xval
+set h22y@clusternum = ?yval
+set h22z@clusternum = ?zval
+quick select resid @cysres3 .and. type HB1 end
+set h31x@clusternum = ?xval
+set h31y@clusternum = ?yval
+set h31z@clusternum = ?zval
+quick select resid @cysres3 .and. type HB2 end
+set h32x@clusternum = ?xval
+set h32y@clusternum = ?yval
+set h32z@clusternum = ?zval
+quick select resid @cysres4 .and. type HB1 end
+set h41x@clusternum = ?xval
+set h41y@clusternum = ?yval
+set h41z@clusternum = ?zval
+quick select resid @cysres4 .and. type HB2 end
+set h42x@clusternum = ?xval
+set h42y@clusternum = ?yval
+set h42z@clusternum = ?zval
+
+incr clusternum by 1
+if @clusternum .le. @numfs4 then goto bigloop
+
+!!! End of the big loop
+
+delete atom
+
+read psf card name new_{{ filebase }}-{{ segid }}-pro-final.psf
+read sequence 4FSR @numfs4
+generate 4FSR setup
+
+! now patch and re-read coordinates: TODO, all of the patch detection code needs
+! to be moved into the global append script so we can handle clusters that bind
+! to multiple segments.
+
+set clusternum = 1
+label patchloop
+
+if @clusternum .eq. 1 then set res1 = @c1cysr1
+if @clusternum .eq. 1 then set res2 = @c1cysr2
+if @clusternum .eq. 1 then set res3 = @c1cysr3
+if @clusternum .eq. 1 then set res4 = @c1cysr4
+if @clusternum .eq. 2 then set res1 = @c2cysr1
+if @clusternum .eq. 2 then set res2 = @c2cysr2
+if @clusternum .eq. 2 then set res3 = @c2cysr3
+if @clusternum .eq. 2 then set res4 = @c2cysr4
+if @clusternum .eq. 3 then set res1 = @c3cysr1
+if @clusternum .eq. 3 then set res2 = @c3cysr2
+if @clusternum .eq. 3 then set res3 = @c3cysr3
+if @clusternum .eq. 3 then set res4 = @c3cysr4
+if @clusternum .eq. 4 then set res1 = @c4cysr1
+if @clusternum .eq. 4 then set res2 = @c4cysr2
+if @clusternum .eq. 4 then set res3 = @c4cysr3
+if @clusternum .eq. 4 then set res4 = @c4cysr4
+
+patch PFSR {{ segid }}-pro @res1 {{ segid }}-pro @res2 {{ segid }}-pro @res3 {{ segid }}-pro @res4 4FSR @clusternum setup
+incr clusternum by 1
+if @clusternum .le. @numfs4 then goto patchloop
+
+read coor card name new_{{ filebase }}-{{ segid }}-pro-final.crd
+
+system "sed -i -e 's/FS4 /4FSR/' new_{{ filebase }}-{{ segid }}-het-final.crd"
+read coor card append name new_{{ filebase }}-{{ segid }}-het-final.crd
+
+! Because of limitations in the coordinate reader and the fact that we've changed things around by patching, we need
+! to use scalar commands to set the coordinates of the 4FSR heavy atoms. Note, this is a cheap hack...
+set clusternum = 1
+label crdloop
+if @clusternum .eq. 1 then scalar x set @sg1x1 select type SG1 .and. resid 1 end
+if @clusternum .eq. 1 then scalar y set @sg1y1 select type SG1 .and. resid 1 end
+if @clusternum .eq. 1 then scalar z set @sg1z1 select type SG1 .and. resid 1 end
+if @clusternum .eq. 1 then scalar x set @sg2x1 select type SG2 .and. resid 1 end
+if @clusternum .eq. 1 then scalar y set @sg2y1 select type SG2 .and. resid 1 end
+if @clusternum .eq. 1 then scalar z set @sg2z1 select type SG2 .and. resid 1 end
+if @clusternum .eq. 1 then scalar x set @sg3x1 select type SG3 .and. resid 1 end
+if @clusternum .eq. 1 then scalar y set @sg3y1 select type SG3 .and. resid 1 end
+if @clusternum .eq. 1 then scalar z set @sg3z1 select type SG3 .and. resid 1 end
+if @clusternum .eq. 1 then scalar x set @sg4x1 select type SG4 .and. resid 1 end
+if @clusternum .eq. 1 then scalar y set @sg4y1 select type SG4 .and. resid 1 end
+if @clusternum .eq. 1 then scalar z set @sg4z1 select type SG4 .and. resid 1 end
+if @clusternum .eq. 1 then scalar x set @cb1x1 select type CB1 .and. resid 1 end
+if @clusternum .eq. 1 then scalar y set @cb1y1 select type CB1 .and. resid 1 end
+if @clusternum .eq. 1 then scalar z set @cb1z1 select type CB1 .and. resid 1 end
+if @clusternum .eq. 1 then scalar x set @cb2x1 select type CB2 .and. resid 1 end
+if @clusternum .eq. 1 then scalar y set @cb2y1 select type CB2 .and. resid 1 end
+if @clusternum .eq. 1 then scalar z set @cb2z1 select type CB2 .and. resid 1 end
+if @clusternum .eq. 1 then scalar x set @cb3x1 select type CB3 .and. resid 1 end
+if @clusternum .eq. 1 then scalar y set @cb3y1 select type CB3 .and. resid 1 end
+if @clusternum .eq. 1 then scalar z set @cb3z1 select type CB3 .and. resid 1 end
+if @clusternum .eq. 1 then scalar x set @cb4x1 select type CB4 .and. resid 1 end
+if @clusternum .eq. 1 then scalar y set @cb4y1 select type CB4 .and. resid 1 end
+if @clusternum .eq. 1 then scalar z set @cb4z1 select type CB4 .and. resid 1 end
+if @clusternum .eq. 1 then goto crdnxti
+if @clusternum .eq. 2 then scalar x set @sg1x2 select type SG1 .and. resid 2 end
+if @clusternum .eq. 2 then scalar y set @sg1y2 select type SG1 .and. resid 2 end
+if @clusternum .eq. 2 then scalar z set @sg1z2 select type SG1 .and. resid 2 end
+if @clusternum .eq. 2 then scalar x set @sg2x2 select type SG2 .and. resid 2 end
+if @clusternum .eq. 2 then scalar y set @sg2y2 select type SG2 .and. resid 2 end
+if @clusternum .eq. 2 then scalar z set @sg2z2 select type SG2 .and. resid 2 end
+if @clusternum .eq. 2 then scalar x set @sg3x2 select type SG3 .and. resid 2 end
+if @clusternum .eq. 2 then scalar y set @sg3y2 select type SG3 .and. resid 2 end
+if @clusternum .eq. 2 then scalar z set @sg3z2 select type SG3 .and. resid 2 end
+if @clusternum .eq. 2 then scalar x set @sg4x2 select type SG4 .and. resid 2 end
+if @clusternum .eq. 2 then scalar y set @sg4y2 select type SG4 .and. resid 2 end
+if @clusternum .eq. 2 then scalar z set @sg4z2 select type SG4 .and. resid 2 end
+if @clusternum .eq. 2 then scalar x set @cb1x2 select type CB1 .and. resid 2 end
+if @clusternum .eq. 2 then scalar y set @cb1y2 select type CB1 .and. resid 2 end
+if @clusternum .eq. 2 then scalar z set @cb1z2 select type CB1 .and. resid 2 end
+if @clusternum .eq. 2 then scalar x set @cb2x2 select type CB2 .and. resid 2 end
+if @clusternum .eq. 2 then scalar y set @cb2y2 select type CB2 .and. resid 2 end
+if @clusternum .eq. 2 then scalar z set @cb2z2 select type CB2 .and. resid 2 end
+if @clusternum .eq. 2 then scalar x set @cb3x2 select type CB3 .and. resid 2 end
+if @clusternum .eq. 2 then scalar y set @cb3y2 select type CB3 .and. resid 2 end
+if @clusternum .eq. 2 then scalar z set @cb3z2 select type CB3 .and. resid 2 end
+if @clusternum .eq. 2 then scalar x set @cb4x2 select type CB4 .and. resid 2 end
+if @clusternum .eq. 2 then scalar y set @cb4y2 select type CB4 .and. resid 2 end
+if @clusternum .eq. 2 then scalar z set @cb4z2 select type CB4 .and. resid 2 end
+if @clusternum .eq. 2 then goto crdnxti
+if @clusternum .eq. 3 then scalar x set @sg1x3 select type SG1 .and. resid 3 end
+if @clusternum .eq. 3 then scalar y set @sg1y3 select type SG1 .and. resid 3 end
+if @clusternum .eq. 3 then scalar z set @sg1z3 select type SG1 .and. resid 3 end
+if @clusternum .eq. 3 then scalar x set @sg2x3 select type SG2 .and. resid 3 end
+if @clusternum .eq. 3 then scalar y set @sg2y3 select type SG2 .and. resid 3 end
+if @clusternum .eq. 3 then scalar z set @sg2z3 select type SG2 .and. resid 3 end
+if @clusternum .eq. 3 then scalar x set @sg3x3 select type SG3 .and. resid 3 end
+if @clusternum .eq. 3 then scalar y set @sg3y3 select type SG3 .and. resid 3 end
+if @clusternum .eq. 3 then scalar z set @sg3z3 select type SG3 .and. resid 3 end
+if @clusternum .eq. 3 then scalar x set @sg4x3 select type SG4 .and. resid 3 end
+if @clusternum .eq. 3 then scalar y set @sg4y3 select type SG4 .and. resid 3 end
+if @clusternum .eq. 3 then scalar z set @sg4z3 select type SG4 .and. resid 3 end
+if @clusternum .eq. 3 then scalar x set @cb1x3 select type CB1 .and. resid 3 end
+if @clusternum .eq. 3 then scalar y set @cb1y3 select type CB1 .and. resid 3 end
+if @clusternum .eq. 3 then scalar z set @cb1z3 select type CB1 .and. resid 3 end
+if @clusternum .eq. 3 then scalar x set @cb2x3 select type CB2 .and. resid 3 end
+if @clusternum .eq. 3 then scalar y set @cb2y3 select type CB2 .and. resid 3 end
+if @clusternum .eq. 3 then scalar z set @cb2z3 select type CB2 .and. resid 3 end
+if @clusternum .eq. 3 then scalar x set @cb3x3 select type CB3 .and. resid 3 end
+if @clusternum .eq. 3 then scalar y set @cb3y3 select type CB3 .and. resid 3 end
+if @clusternum .eq. 3 then scalar z set @cb3z3 select type CB3 .and. resid 3 end
+if @clusternum .eq. 3 then scalar x set @cb4x3 select type CB4 .and. resid 3 end
+if @clusternum .eq. 3 then scalar y set @cb4y3 select type CB4 .and. resid 3 end
+if @clusternum .eq. 3 then scalar z set @cb4z3 select type CB4 .and. resid 3 end
+if @clusternum .eq. 3 then goto crdnxti
+if @clusternum .eq. 4 then scalar x set @sg1x4 select type SG1 .and. resid 4 end
+if @clusternum .eq. 4 then scalar y set @sg1y4 select type SG1 .and. resid 4 end
+if @clusternum .eq. 4 then scalar z set @sg1z4 select type SG1 .and. resid 4 end
+if @clusternum .eq. 4 then scalar x set @sg2x4 select type SG2 .and. resid 4 end
+if @clusternum .eq. 4 then scalar y set @sg2y4 select type SG2 .and. resid 4 end
+if @clusternum .eq. 4 then scalar z set @sg2z4 select type SG2 .and. resid 4 end
+if @clusternum .eq. 4 then scalar x set @sg3x4 select type SG3 .and. resid 4 end
+if @clusternum .eq. 4 then scalar y set @sg3y4 select type SG3 .and. resid 4 end
+if @clusternum .eq. 4 then scalar z set @sg3z4 select type SG3 .and. resid 4 end
+if @clusternum .eq. 4 then scalar x set @sg4x4 select type SG4 .and. resid 4 end
+if @clusternum .eq. 4 then scalar y set @sg4y4 select type SG4 .and. resid 4 end
+if @clusternum .eq. 4 then scalar z set @sg4z4 select type SG4 .and. resid 4 end
+if @clusternum .eq. 4 then scalar x set @cb1x4 select type CB1 .and. resid 4 end
+if @clusternum .eq. 4 then scalar y set @cb1y4 select type CB1 .and. resid 4 end
+if @clusternum .eq. 4 then scalar z set @cb1z4 select type CB1 .and. resid 4 end
+if @clusternum .eq. 4 then scalar x set @cb2x4 select type CB2 .and. resid 4 end
+if @clusternum .eq. 4 then scalar y set @cb2y4 select type CB2 .and. resid 4 end
+if @clusternum .eq. 4 then scalar z set @cb2z4 select type CB2 .and. resid 4 end
+if @clusternum .eq. 4 then scalar x set @cb3x4 select type CB3 .and. resid 4 end
+if @clusternum .eq. 4 then scalar y set @cb3y4 select type CB3 .and. resid 4 end
+if @clusternum .eq. 4 then scalar z set @cb3z4 select type CB3 .and. resid 4 end
+if @clusternum .eq. 4 then scalar x set @cb4x4 select type CB4 .and. resid 4 end
+if @clusternum .eq. 4 then scalar y set @cb4y4 select type CB4 .and. resid 4 end
+if @clusternum .eq. 4 then scalar z set @cb4z4 select type CB4 .and. resid 4 end
+if @clusternum .eq. 4 then goto crdnxti
+
+label crdnxti
+incr clusternum by 1
+if @clusternum .le. @numfs4 then goto crdloop
+
+!scalar x set @h11x select resname 4FSR .and. type H11 end
+!scalar y set @h11y select resname 4FSR .and. type H11 end
+!scalar z set @h11z select resname 4FSR .and. type H11 end
+!scalar x set @h12x select resname 4FSR .and. type H12 end
+!scalar y set @h12y select resname 4FSR .and. type H12 end
+!scalar z set @h12z select resname 4FSR .and. type H12 end
+!scalar x set @h21x select resname 4FSR .and. type H21 end
+!scalar y set @h21y select resname 4FSR .and. type H21 end
+!scalar z set @h21z select resname 4FSR .and. type H21 end
+!scalar x set @h22x select resname 4FSR .and. type H22 end
+!scalar y set @h22y select resname 4FSR .and. type H22 end
+!scalar z set @h22z select resname 4FSR .and. type H22 end
+!scalar x set @h31x select resname 4FSR .and. type H31 end
+!scalar y set @h31y select resname 4FSR .and. type H31 end
+!scalar z set @h31z select resname 4FSR .and. type H31 end
+!scalar x set @h32x select resname 4FSR .and. type H32 end
+!scalar y set @h32y select resname 4FSR .and. type H32 end
+!scalar z set @h32z select resname 4FSR .and. type H32 end
+!scalar x set @h41x select resname 4FSR .and. type H41 end
+!scalar y set @h41y select resname 4FSR .and. type H41 end
+!scalar z set @h41z select resname 4FSR .and. type H41 end
+!scalar x set @h42x select resname 4FSR .and. type H42 end
+!scalar y set @h42y select resname 4FSR .and. type H42 end
+!scalar z set @h42z select resname 4FSR .and. type H42 end
+
+ic build
+hbuild
+
+! CENTER 4FSRTER ON ORIGIN
+coor stat sele all end
+calc atm = ?NSEL + 1
+coor orie sele segi 4FSR .and. .not. (type SG* .or. type H* .or. type C*) end
+
+! renumber S1-S4 to be correct...
+
+set clusternum = 1
+label clustsloop
+
+set i = 1
+label sulphurloop
+
+define myiron select resname 4FSR .and. type FE@i .and. resid @clusternum end
+define candidates select ( myiron .around. 4.0 ) .and. ( type S1 .or. type S2 .or. type S3 .or. type S4 ) .and. resid @clusternum end
+set n = ?nsel
+
+set maxdist = 0
+set maxidx = 0
+
+set j = 1
+label scloop
+
+quick select candidates .subset. @j end select myiron end
+if ?dist .le. @maxdist then goto exitsc
+
+set maxdist = ?dist
+set maxidx = @j
+
+label exitsc
+incr j by 1
+if @j .le. @n then goto scloop
+
+! We've found the sulphur farthest away, renumber it accordingly
+calc newnum = ( @i + 2 )
+if @newnum .gt. 4 then incr newnum by -4
+rename atom S@newnum select candidates .subset. @maxidx end
+
+incr i by 1
+if i .le. 4 then goto sulphurloop
+
+incr clusternum by 1
+if @clusternum .le. @numfs4 then goto clustsloop
+
+! write out the new files
+write psf card name reduced_{{ filebase }}-{{ segid }}.psf
+* Redox PSF for {{ segid }}
+*
+
+write coor card name reduced_{{ filebase }}-{{ segid }}.crd
+* Redox CRD for {{ segid }}
+*
+
+stop
+
+label barf
+
+! debug information
+print psf
+print coor
+
+bomlev 2
+fatal error diediedie
+{% endblock %}

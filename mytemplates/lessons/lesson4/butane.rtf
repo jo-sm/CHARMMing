@@ -1,0 +1,50 @@
+* Butane topology
+*
+27  1
+
+MASS 106   HAL2  1.008000 H ! alphatic proton
+MASS 107   HAL3  1.008000 H ! alphatic proton
+MASS 122   CTL2 12.011000 C ! carbon of methylene group (-CH2-)
+MASS 123   CTL3 12.011000 C ! carbon of methyl group (-CH3)
+
+DEFA FIRS NONE LAST NONE
+AUTO ANGLES DIHE   
+
+Resi BUTA        0.00  ! BUTANE
+Group
+Atom  h11 HAL3    0.09 !    H2
+Atom  h12 HAL3    0.09 !     |
+Atom  h13 HAL3    0.09 ! H1-C1-H3
+Atom  c1  CTL3   -0.27 !     |
+Group                  !     |
+Atom  h21 HAL2    0.09 ! H4-C2-H5
+Atom  h22 HAL2    0.09 !     |
+Atom  c2  CTL2   -0.18 !     |
+Group                  !     |
+Atom  h31 HAL2    0.09 ! H6-C3-H7
+Atom  h32 HAL2    0.09 !     |
+atom  c3  CTL2   -0.18 !     |
+Group                  !     |
+atom  h41 HAL3    0.09 ! H8-C4-H10
+atom  h42 HAL3    0.09 !     |
+atom  h43 HAL3    0.09 !    H9
+atom  c4  CTL3   -0.27 !
+Bond h11 c1  h12 c1  h13 c1  c1 c2
+Bond h21 c2  h22 c2  c2  c3
+Bond h31 c3  h32 c3  c3  c4
+Bond h41 c4  h42 c4  h43 c4
+ic  c1  c2  c3  c4  0.00  0.00  180.0  0.00 0.00
+ic  c2  c3  c4  h41 0.00  0.00  180.0  0.00 0.00
+ic  c3  h41 *c4 h42 0.00  0.00  120.0  0.00 0.00
+ic  c3  h41 *c4 h43 0.00  0.00 -120.0  0.00 0.00
+ic  c3  c2  c1  h11 0.00  0.00  180.0  0.00 0.00
+ic  c2  h11 *c1 h12 0.00  0.00  120.0  0.00 0.00
+ic  c2  h11 *c1 h13 0.00  0.00 -120.0  0.00 0.00
+ic  c1  c3  *c2 h21 0.00  0.00  120.0  0.00 0.00
+ic  c1  c3  *c2 h22 0.00  0.00 -120.0  0.00 0.00
+ic  c2  c4  *c3 h31 0.00  0.00  120.0  0.00 0.00
+ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
+
+END
+
+

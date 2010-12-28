@@ -1,0 +1,42 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <title>View/Edit PDBs</title>
+
+    <script type="text/javascript">
+        var GB_ROOT_DIR = "/greybox/greybox/";
+function send_select_form(form) {
+   new Ajax.Request("/select/"+form.id, {method:'post', asynchronous:true});
+}
+
+    </script>
+
+<link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+<script type="text/javascript" src="/charmming/js/protoculous-1.0.2-packed.js"></script>
+<script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+<script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS_fx.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/gb_scripts.js"></script>
+    <link href="/charmming/css/greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
+</head>
+<body>
+
+<center>
+<h1>Manage classrooms</h1>
+</center>
+<div class='status'>
+<body>
+<center>
+<form method="post" action=".">
+<a href="/teachers/createclass/" rel="gb_page_center[400, 400]">Add Class</a>
+
+<table class="sortable resizable" border=2 style="text-align:center;">
+<tr><th>Classname</th><th>Number of Students</th></tr>
+{% for class in classroom_list %}
+<tr><td>{{ class.name }}</td><td><a href='/teachers/getstudentlist/{{ class.name }}/' rel="gb_page_center[400, 400]">{{ class.num_of_students }}</a></td></tr>
+{% endfor %}
+</table>
+</form>
+</div>
+</center>
+</body>

@@ -1,0 +1,49 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %} Make a redox segment by appending the goodhet and het segments PDB {% endblock %}
+
+{% block read_struct %}
+
+{% for segment in seglist %} blankme
+{% if forloop.first %} blankme
+  read psf card name reduced_{{ filebase }}-{{ segment }}.psf
+{% else %} blankme
+  read psf card append name reduced_{{ filebase }}-{{ segment }}.psf
+{% endif %} blankme
+{% endfor %} blankme
+
+{% for segment in seglist %} blankme
+{% if forloop.first %} blankme
+  read coor card name reduced_{{ filebase }}-{{ segment }}.crd
+{% else %} blankme
+  read coor card append name reduced_{{ filebase }}-{{ segment }}.crd
+{% endif %} blankme
+{% endfor %} blankme
+
+{% endblock %}
+
+{% block body %}
+
+write psf card name reduced_{{ filebase }}-final.psf
+* Final PSF with all protein and cluster segments
+*
+
+write coor card name reduced_{{ filebase }}-final.crd
+* FINAL CRD with all protein and cluster segments
+*
+
+{% for segment in seglist %} blankme
+  delete atom select segid {{ segment }}-pro end
+{% endfor %} blankme
+
+write psf card name reduced_{{ filebase }}-reference.psf
+* Final PSF with just the cluster segments
+*
+
+write coor card name reduced_{{ filebase }}-reference.crd
+* Final CRD with just the cluster segments
+*
+
+stop
+
+{% endblock %}

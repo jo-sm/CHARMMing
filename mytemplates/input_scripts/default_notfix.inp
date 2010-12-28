@@ -1,0 +1,11 @@
+! We do not want to allow atoms not known natively by the CHARMM force field (i.e. those generated
+! by GENRTF) to move during the minimization. Therefore, we define all residues that CHARMM's force
+! field does know about and use a  constraint to fix all other atoms. Note that this may be overridden
+! by the user
+DEFI notfix select RESN ALA .or. resn GLU .or. resn GLN .or. resn ASP .or. resn ASN .or. resn LEU -
+CHARMM-scripts  .or. resn GLY .or. resn LYS .or. resn SER .or. resn VAL .or. resn ARG .or. resn THR .or. resn PRO -
+CHARMM-scripts  .or. resn ILE .or. resn MET .or. resn PHE .or. resn TYR .or. resn CYS .or. resn TRP .or. resn HSD -
+CHARMM-scripts  .or. resn HSE .or. resn HSP .or. resn TIP3 .or. resn ZN2 .or. resn SOD .or. resn MG .or. resn FE -
+CHARMM-scripts  .or. resn CAL .or. resn CLA .or. resn POT .or. resn CES .or. resn GUA .or. resn ADE .or. resn CYT -
+CHARMM-scripts  .or. resn THY .or. resn URA .or. resn LSN .or. resn ASPP .or. resn GLUP end
+

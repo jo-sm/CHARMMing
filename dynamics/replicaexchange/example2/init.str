@@ -1,0 +1,31 @@
+* C27r lipid parameters w. protein ; relative pathnames
+*
+
+! THIS STREAM FILE IS HIGHLY APPLICATION SPECIFIC
+! YOU MUST CHANGE IT FOR YOUR SPECIFIC PROJECT
+! IT MUST READ ALL THE INITIAL SYSTEM SET UP FILES
+! RTF, PARAM; MAKE OR READ PSF; READ COORDS
+
+open unit 1 read card name "../../protlpd27.rtf"
+read rtf unit 1 card
+close unit 1
+open unit 2 read card name "../../protlpd27r.prm"
+read param unit 2 card                   
+close unit 2
+
+open unit 2 read card name "../gelaw1.psf"
+read psf  card unit 2
+close unit 2
+open unit 2 read card name ../gel4994.crd
+read coor card unit 2
+close unit 2
+
+! APPLICATION SPECIFIC CRYSTAL SETUP
+stream ../crys4994.str
+crystal define tetr @boxx @boxy @boxz 90. 90. 90.
+open unit 23 read card name "../box.cry"
+crystal read unit 23 card
+close unit 23
+image byres 
+
+return

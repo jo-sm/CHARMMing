@@ -1,0 +1,31 @@
+{% autoescape off %}
+<html>
+<head>
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
+  <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+</head>
+<body>
+<center>
+  <table border=0 bordercolor=#e2e9fe class="status" cellspacing=0 cellpadding=0 width=150px>
+   <tr class="status"><th class="status"> Lesson Progress of: <br /> {{ file.filename }} </th></tr>
+   <tr class="status"><td class="status">Steps:</td></tr>
+                
+   {% if lesson %}
+   {% for line in status_list %}
+    {{line}}
+   {% endfor %}
+   {% else %}
+     <tr class="status"><th class="status"> Lesson Loading... </th></tr>
+   {% endif %}
+</table>
+
+  <div id="lessonfooter">
+    <div class="content">
+    </div>
+  </div> 
+
+</center>
+</body>
+</html>
+{% endautoescape %}

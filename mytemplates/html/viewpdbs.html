@@ -1,0 +1,61 @@
+<head>
+    <title>View/Edit PDBs</title>
+    <script type="text/javascript">
+        var GB_ROOT_DIR = "/charmming/greybox/greybox/";
+
+        function send_select_form(form) {
+           new Ajax.Request("/charmming/select/"+form.id, {method:'post', asynchronous:true});
+        }
+
+        function send_delete_form(filename) {
+           if(filename == 'all_files')
+              new Ajax.Request("/charmming/deletefile/", {method:'post', asynchronous:false, parameters: {'filename':filename}});
+           else
+              new Ajax.Request("/charmming/deletefile/", {method:'post', asynchronous:false, parameters: {'filename':filename}});
+   
+           var viewpdbsframe = parent.document.getElementById('viewpdbscontainer');
+           viewpdbsframe.src = viewpdbsframe.src;
+           //parent.refreshBottomdock();
+        }
+    </script>
+
+    <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+    <script type="text/javascript" src="/charmming/js/protoculous-1.0.2-packed.js"></script>
+    <script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+    <script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS_fx.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/gb_scripts.js"></script>
+    <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
+</head>
+<body>
+
+<center>
+<h1>Select/Edit PDB</h1>
+</center>
+<div class='status'>
+<body>
+<center>
+
+<form method="post" action=".">
+<table class="sortable resizable" border=2>
+<tr><th>Filename (click to edit)</th><th>Title</th><th>Date</th><th>Select this PDB</th><th>Delete <br> <a href="" onclick="send_delete_form('all_files');">All Files</a></th></tr>
+{% for PDBFile in user_pdbs %}
+    {% if PDBFile.selected %}
+        <tr bgcolor="yellow">
+           <td> <a href="/charmming/editpdbinfo/{{PDBFile.filename}}" title="Edit:{{ PDBFile.filename}}" rel="gb_page_center[800, 480]" ');">{{PDBFile.filename}}</a></td><td> {{ PDBFile.title }} </td> 
+           <td> {{ PDBFile.pub_date }} </td>
+           <td> <input type="radio" name="viewpdbs" id={{ PDBFile.filename }} onclick="send_select_form(this);parent.showLesson('{{PDBFile.lesson_type}}');" checked></td>
+           <td> <a href="" onclick="send_delete_form('{{PDBFile.filename}}')">X</a></td></tr>
+    {% else %}
+        <tr><td> <a href="/charmming/editpdbinfo/{{PDBFile.filename}}" title="Edit:{{ PDBFile.filename}}" rel="gb_page_center[800, 480]">{{PDBFile.filename}}</a></td><td>{{ PDBFile.title }} </td> <td>  {{ PDBFile.pub_date }} </td><td>
+        <input type="radio" name="viewpdbs" id={{ PDBFile.filename }} onclick="send_select_form(this);parent.showLesson('{{PDBFile.lesson_type}}');"></td>
+        <td><a href="" onclick="send_delete_form('{{PDBFile.filename}}')">X</a></td></tr>
+    {% endif %}
+{% endfor %}
+</table>
+</form>
+</div>
+</center>
+</body>

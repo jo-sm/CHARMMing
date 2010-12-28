@@ -1,0 +1,271 @@
+{% autoescape off %}
+<center>
+<h1>Lesson 4{% ifequal lesson4.curStep 4 %}: <font color="red">Completed</font> {% endifequal %}</h1>
+</center>
+
+
+<p class="intro">
+  <font color="red">Lesson Objectives</font><br />
+  <ul>
+    <li>Demonstrate how to create a custom residue topology file (RTF)</li>
+    <li>Teach the user to perform a single point energy evaluation.</li>
+    <li>Explain basic QM/MM principles and perform a QM/MM energy evaluation</li>
+  </ul></p>
+<br />
+
+<p class="intro">Although often used for proteins, CHARMM can also be used to simulate carbohydrates, lipids, and small molecules. In this lesson, we
+  will look at performing an energy evaluation a small molecule (Butane) using both the classical CHARMM force field and a hybrid Quantum Mechanics/
+  Molecular Mechanics (QM/MM) approach.</p>
+<br />
+
+<p class="intro">CHARMM topology and parameter data for Butane exists, however it is not a part of the standard protein topology and parameter files.
+  Therefore, this is a good opportunity to make a custom residue topology file. The syntax of an RTF is described in rtop.doc in the CHARMM documentation,
+  which can be found on <a href="http://www.charmm.org">www.charmm.org</a>. Before we get into the nuts and bolts of constructing the RTF, though,
+  let's consider the structure of Butane. As you should know, Butane is an alkane with the chemical formula C<sub>4</sub>H<sub>10</sub>. In other words,
+  there are four carbons, the middle two of which are bound two to hydrogens and two carbons, and the outer two of which are bound two three hydrogens
+  and one carbon. Thus there are four types of atoms which we must have in our RTF:
+  <ul>
+    <li>An alphatic proton (hydrogen) that is part of a methylene (CH<sub>2</sub>) group.</li>
+    <li>An alphatic proton that is part of a methyl (CH<sub>3</sub>) group.</li>
+    <li>The central carbon of a methylene group.</li>
+    <li>The central carbon of a methyl group.</li>
+  </ul>
+</p>
+<br />
+
+<p class="intro">The atoms are arranged in four groups; two methyl and two methylene groups.</p>
+<br />
+
+
+<p class="intro">The first part of the RTF is the title. A title of any CHARMM file is a sequence of lines, each beginning with an asterisk (*). The
+  end of the title is an asterisk on a line all by itself. On the line immediately following the file should be the CHARMM version number the file
+  was developed with (RTF file format is unchanged since version 27, so this is the number you should use. This is followed by the number 1. Your 
+  title and the version line should look like:</p>
+<br />
+
+<table border align="center">
+<font face="courier,fixed">
+<pre>
+* Butane residue topology file
+* Made by &lt;your name&gt;
+*
+27   1
+</pre>
+</font>
+</table>
+<br />
+
+<p class="intro">The next step is to make a list of all the atoms you will use in the file. This list must contain a unique identification number as
+  well as the mass of each atom. Because this is how the masses are specified, each item in the list is prefaced with the word MASS. The general format
+  is &quot;MASS IDN   NAME WWWWWWWWW S&quot; where IDN is the ID number, NAME is the name of the atom, the WWWWWWWWW is the mass and S is the chemical
+  symbol. Since CHARMM reads most inputs in fixed fields, it is important to get the spacing correct. Make a blank line between the version number line 
+  and the rest of the file. Then write out the mass lines. The ones for the hydrogens are given here to help you, but you should try to write out the
+  carbons on your own. The methylene carbon should have ID number 122 and be named CTL2. The mass should be 12.0110000 (note that the trailing zeroes
+  are necessary to get the spacing correct. Likewise methyl carbon shgould be given ID 123 and named CTL3.
+</p>
+<br />
+
+<p class="intro">Here are the MASS lines for the hydrogens. Note that an exclamation point (!) begins a comment and all further characters on the line
+  are ignored.</p>
+<br />
+
+<table border align="center">
+<font face="courier,fixed">
+<pre>
+MASS 106   HAL2  1.008000 H ! alphatic proton
+MASS 107   HAL3  1.008000 H ! alphatic proton
+</pre>
+</font>
+</table>
+<br />
+
+<p class="intro">After the four MASS lines, skip another line and paste the following two lines. The first line tells CHARMM that no patching should
+  be applied to the residues in this file when a PSF is generated for a given sequence. For example, N-terminal and C-terminal patches for polypeptides are
+  automatically generated when protein sequences are read in, but this is unnecessary for the small molecule example we are doing. The second line
+  instructs CHARMM to automatically generate all angles and dihedrals when generating the PSF. If this is not specified, angles and dihedrals must be
+  explicitly listed in the RTF.</p>
+<br />
+
+<table border align="center">
+<font face="courier,fixed">
+<pre>
+DEFA FIRS NONE LAST NONE
+AUTO ANGLES DIHE
+</pre>
+</font>
+</table>
+<br />
+
+<p class="intro">The next step is to actually define the Butane residue. A residue definition begins with the keywork RESI followed by the name of
+  the residue, which will be BUTA for Butane in this case. This is followed by the net charge on the residue; since Butane is neutral, this is
+  0. The final line should look like:</p>
+<br />
+
+<table border align="center">
+<font face="courier,fixed">
+<pre>
+Resi BUTA        0.00  ! BUTANE
+</pre>
+</font>
+</table>
+<br />
+
+<p class="intro">After this introductory line, we start defining the atoms, which are collected into their various groups. Each atom is given
+  a unique identifier within the residue, and then its type is declared (we defined the types on the MASS lines). Below are the appropriate
+  specifications of the first methyl and methylene group. Using this, construct the atom/group specification for the entire atoms (hint: the
+  only thing you need to change are the unique identifiers in column two of the atom lines; please follow the naming convention!). Completing
+  the ASCII art representation of Butane is optional (remember, characters after the exclamation mark are ignored).</p>
+<br />
+
+<table border align="center">
+<font face="courier,fixed">
+<pre>
+Group
+Atom  h11 HAL3    0.09 !    H2
+Atom  h12 HAL3    0.09 !     |
+Atom  h13 HAL3    0.09 ! H1-C1-H3
+Atom  c1  CTL3   -0.27 !     |
+Group                  !     |
+Atom  h21 HAL2    0.09 ! H4-C2-H5
+Atom  h22 HAL2    0.09 !     |
+Atom  c2  CTL2   -0.18 !     |
+</pre>
+</font>
+</table>
+<br />
+
+<p class="intro">OK, we're almost done! The final step is to define the bond list to tell CHARMM which atoms in the residue are bonded and finally
+  to define the internal coordinates of the atom. The bonds are given in four lists, one per group. The lines beginning with &quot;ic&quot; specify
+  internal coordinates. The first 4 fields after the &quot;ic&quot; represent four atoms, call them i, j, k, and l. The next field is the bond length
+  between i and j. This is followed by the angle between atoms i, j, and k and the torsion of i, j, k, and l. The final two numbers are the angle
+  between j, k, and l and the bond length of k and l. All values except for the torsion angle may be set to zero (which is the case with this
+  example). In this case, the bond and angle values from the parameter file are used.</p>
+<br />
+
+<table border align="center">
+<font face="courier,fixed">
+<pre>
+Bond h11 c1  h12 c1  h13 c1  c1 c2
+Bond h21 c2  h22 c2  c2  c3
+Bond h31 c3  h32 c3  c3  c4
+Bond h41 c4  h42 c4  h43 c4
+ic  c1  c2  c3  c4  0.00  0.00  180.0  0.00 0.00
+ic  c2  c3  c4  h41 0.00  0.00  180.0  0.00 0.00
+ic  c3  h41 *c4 h42 0.00  0.00  120.0  0.00 0.00
+ic  c3  h41 *c4 h43 0.00  0.00 -120.0  0.00 0.00
+ic  c3  c2  c1  h11 0.00  0.00  180.0  0.00 0.00
+ic  c2  h11 *c1 h12 0.00  0.00  120.0  0.00 0.00
+ic  c2  h11 *c1 h13 0.00  0.00 -120.0  0.00 0.00
+ic  c1  c3  *c2 h21 0.00  0.00  120.0  0.00 0.00
+ic  c1  c3  *c2 h22 0.00  0.00 -120.0  0.00 0.00
+ic  c2  c4  *c3 h31 0.00  0.00  120.0  0.00 0.00
+ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
+</pre>
+</font>
+</table>
+<br />
+
+<p class="intro">The RTF is ended with the word END on a line all by itself.</p>
+
+<p class="intro">Once you have your RTF, you'll need the paramaters, a PSF, and a coordinate file. These files are:<br />
+  <ul>
+    <li><a href="/charmming/lessons/download/lesson4/butane.prm">butane.prm</a>: the parameter file.</li>
+    <li><a href="/charmming/lessons/download/lesson4/butane.psf">butane.psf</a>: the protein structure file.</li>
+    <li><a href="/charmming/lessons/download/lesson4/butane.crd">butane.crd</a>: the coordinate file.</li>
+  </ul>
+</p>
+
+<p class="intro">In order to start the lesson, go to the <b>Submit Structure</b> page and choose to upload your own PSF and CRD. Upload the files provided
+  above. Also check the appropriate boxes to submit your own topology and parameter files. You should choose to replace the existing CHARMM topology and 
+  parameter files with the ones that you upload. Once you have uploaded everything successfully, you should see a confirmation message when you come back
+  to this page. Note that the uploader will not check the syntax of your topology file. We will be able to check this when we perform an energy calculation
+  in step 2 of this lesson.</p>
+
+<br />
+{% if lesson4 %}
+
+{% ifequal html_step_list.0 1 %}
+  <p class="intro"><font color="red"> Step 1: Upload Done </font></p>
+  <br />
+
+  <p class="intro">With the upload complete, it is now time to see if your RTF file is correct. Please go to the <b>Energy</b> page to perform a single point
+    energy evaluation on the structure. Select the PDB file and leave all other options on the page unchanged. Go ahead and submit this (note: once you've
+    hit submit, do <b>not</b> navigate away from the page, otherwise you will have to redo the calculation). The energy calculation should only take a few seconds.
+    Once it is done, come back to this page to see if you got the correct energy.</p>
+{% endifequal %}
+
+{% ifequal html_step_list.1 2 %}
+  <!-- NB: this shouldn't ever get called as the users should not navigate away from the energy page. -->
+  <br />
+  <p class="intro"><font color="red"> Step 2: Energy Running</font></p>
+  <br />
+
+  <p class="intro">The energy calculation should not take very long. Please check the energy page to see when it finishes.</p>
+{% endifequal %}
+
+{% ifequal html_step_list.1 1 %}
+  <br />
+  <p class="intro"><font color="red"> Step 2: Energy Done</font></p>
+  <br />
+
+ <p class="intro">You have successfully calculated the energy of Butane. This indicates that the RTF file you made is correct. For the next step of this
+    lesson, we will re-do the energy calculation using QM/MM. Go back to the <b>Energy</b> page, select the segment again, and this time check the
+    &quot;Use QM/MM&quot; box. A full discussion of Quantum chemistry and QM/MM simulations is far beyond the scope of this lesson, so for now we'll go
+    over some of the basic options. Note that CHARMM will invoke Q-Chem to perform the QM part of the calculation.
+    <br />
+    <ul>
+      <li>Choose <i>HF</i> for the exchange, to tell Q-Chem to use the Hartree-Fock method.</li>
+      <li>The charge will be <i>0</i>.</li>
+      <li>Select <i>None</i> for correlation.</li>
+      <li><i>STO-3G</i> can be used as the basis set, which is the set of functions which are used to create the wavefunctions for the molecular
+          orbitals. STO-3G is a minimal basis set, which is sufficient for a simple example.</li>
+      <li>Set the multiplicity to <i>1</i>
+      <li>To define the QM region put <i>atom buta 1 c1 .or. atom buta 1 c2 .or. atom buta 1 h11 .or. atom buta 1 h12 .or. atom buta 1 h13 .or.
+          atom buta 1 h21 .or. atom buta 1 h22</i>. This selects the first methyl group and the methylene group bound to it.</li>
+    </ul>
+  </p><br />
+
+  <p class="intro">Also, turn shake off (uncheck the "use shake" box), so we do not accidentally put restraints on atoms treated quantum mechanically.</p>
+
+  <p class="intro">Submit the calculation, and you will get a notice on this page about whether it was done correctly.</p>
+  <br />
+
+
+{% endifequal %}
+
+{% ifequal html_step_list.2 1 %}
+  <br />
+  <p class="intro"><font color="red"> Step 3: QM/MM Energy Done</font></p>
+  <br />
+
+  <p class="intro">Now that you have evaulated the energy both classically and quantum mechanically, the final part of this lesson is to
+    perform a QM/MM minimization. Go to the <b>Minimization</b> page and select your Butane structure. Then select the &quot;Use
+    QM/MM&quot; checkbox and make the options the same as they were in step 2. Leave all other options on the page, including the number
+    of SD and ABNR steps, unchanged. However, do turn shake off so that the hydrogen bond lengths can be optimized.  Once you've set it up, go 
+    ahead and submit the minimization.</p>
+{% endifequal %}
+
+{% ifequal html_step_list.3 2 %}
+  <br />
+  <font color="red"> Step 4: QM/MM minimization Running </font><br>
+  <br />
+
+  <p class="intro">Congratulations! You have almost completed the lesson!</p>
+{% endifequal %}
+
+{% ifequal html_step_list.3 1 %}
+  <br />
+  <p class="intro"><font color="red"> Step 4: QM/MM Minimization Done </font></p>
+  <br />
+
+  <p class="intro">Congratulations! You have completed the lesson!</p>
+{% endifequal %}
+
+{% if lessonproblem %}
+ <br />
+ <p class="intro"><font color="red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</font><br />
+ {{lessonproblem.description}}</p>
+{% endif %}
+
+{% endif %}
+{% endautoescape %}

@@ -1,0 +1,186 @@
+{% autoescape off %}
+<br />
+<center>
+<h1>Lesson 1{% ifequal lesson1.curStep 4 %}: <font color="red">Completed</font> {% endifequal %}</h1>
+</center>
+
+<p class="intro">
+  <font color="red">Lesson Objectives</font>
+  <ul>
+    <li> Introduce user to CHARMM </li>
+    <li> Explain basic concepts behind computational chemistry methods </li>
+    <li> Teach user basic usage and syntax of CHARMM</li>
+  </ul>	
+</p>
+
+<h2 class="intro">Introduction to CHARMM</h2>
+
+<p class="intro">CHARMM (Chemistry at HARvard Macromolecular Mechanics) is a versatile and widely-used molecular simulation program with broad application to
+  many-particle systems. It is generally used to gain insight into how complex biomolecular systems behave in nature. It provides a large suite of simulation and
+  analysis tools that encompass numerous computational methods.</p>
+<br />
+
+<p class="intro">Because it is a large and complicated program, CHARMM can be intimidating for a new user. The series of tutorials on this web site will help
+  guide you through setting up basic simulations. You can look at the input and output files produced on the <b>View Process Files</b> page and you can download
+  them from the <b>Download Files</b> page. You should do this in order to get a sense of which CHARMM commands are used to perform various tasks. You should also
+  explore the commands in more detail in the documentation (available on <a href="http://www.charmm.org/html/documentation/chmdoc.html">
+  the CHARMM home page, www.charmm.org</a>. A complete tutorial is available at <a href="http://www.charmmtutorial.org">www.charmmtutorial.org</a>
+  or by clicking <b>View the tutorial</b> in the side menu.</p>
+<br />
+
+<h2 class="intro">Protein structure and coordinate files</h2>
+
+<p class="intro">To get started with this lesson download the coordinate file and protein structure file below. A Protein Structure File (PSF) contains bond information 
+  such as angles, torsion (dihedral) angles, and improper torsion angles. This makes a PSF vital to energy calculations in CHARMM. A CHARMM coordinate File (COOR, CRD), stores 
+  the cartesian coordinates of each atom along with its residue and segment identification. Groups of atoms form commonly-used subunits called residues (e.g., an amino acid, 
+  such as Lysine, is a residue). Residues are further grouped into chains or segments which represent major functional groups or different observed conformations. Th PDB files 
+  contain the same information, but in a different format.</p>
+<br />
+
+<p class="intro">In order for CHARMM to build a model of a molecule, it needs to know its structure (contained in the protein structure file) and the coordinates of its constituent
+  atoms. To read this in via CHARMMing, go to the <b>Submit Structure</b> page, 
+  select "Upload my own CRD/PSF filem" and upload the following two files (be sure to select lesson 1 as the lesson your upload is associated with):<br>
+  <ul>
+    <li><a href="/charmming/lessons/download/lesson1/1water.crd">1water.crd</a> (the coordinate file)</li>
+    <li><a href="/charmming/lessons/download/lesson1/1water.psf">1water.psf</a> (the protein structure file)</li>
+  </ul>
+<br />
+<p class="intro">Once you have done so, come back to this page and you should see a confirmation that the files were uploaded correctly.</p>
+<br />
+
+{% if lesson1 %}
+ 
+ {% ifequal html_step_list.0 1 %}
+   <p class="intro"><font color="red"> Step 1: Upload Done </font></p>
+   <br />
+
+   <p class="intro">Congratulations! You successfully uploaded both the CRD and PSF files! These files describe the structure of a single water molecule. We will
+     be using this model to build up an entire water box.</p>
+   <br />
+
+   <p class="intro">In order to build the box, it is necessary to use CHARMMing's solvation functionality. Usually, solvation is used to put a macromolecule into solvent,
+      but in this case we are just using it to build up a large water structure. We will solvate the water molecule in a Rhombic Dodecahedron (RHDO) structure. The RHDO is
+      a convex polyhedron that has 12 rhombuses as faces. Since it approximates a sphere, it is the most efficient method for solvating globular proteins (actual spheres
+      are not used because there is no crystal structure for them). To solvate, look to the left menu bar under <i>Structure/System</i> and select <b>Solvate.</b></p>
+   <br />
+
+   <p class="intro">For the <font style="fixed">Solvation structure parameters</font> dialog, select the RHDO shape and for the size select &quot;<font style="fixed">Let the GUI
+      take care of it for me</font>.&quot; When this is selected, CHARMMing will automatically create a CHARMM input script that calculates the appropriate size of the RHDO structure. It will 
+      take the largest x,y,z coordinate and add 10 Angstroms to that value. The 10 Angstroms can be changed by changing the value in the textbox. Change the value to 15 
+      and press submit.</p>
+   <br />
+
+   <p class="intro">In addition, we don't want CHARMM to use any patches that are meant for protein or nucleic acid segments. CHARMMing automatically will detect this and will not apply
+    a patch. Leave the number of disulfide patches set at 0. One you have set this up, go ahead and submit the solvation job.</p>
+ {% endifequal %}
+ 
+ {% ifequal html_step_list.1 2 %}
+   <br /> 
+   <p class="intro"><font color="red"> Step 2: Solvation Running </font></p>
+   <br />
+
+   <p class="intro">The solvation job is still in progress but you can read ahead.</p>
+   <br />
+
+  <p class="intro">For the next step, you will minimize the water structure. The purpose of minimization is to try to find the conformation (position of the atoms in the protein) that
+    has the lowest possible energy. Ideally, the conformation produced would be the structure at absolute zero. This is a commonly done to remove bad atom placement (often caused
+    by problems in the crystal or NMR structure). For a realistic dynamics simulation, the structure is then heated back to the desired temperature. Two common alogorithms for
+    minimization are Steepest Descent (SD) and Adopted-Basis Newton-Rhapson (ABNR).</p>
+  <br />
+
+  <p class="intro">In order to minimize your water structure, go to <b>Minimize</b> in the left hand menu, select the water molecule, set Steepest Descent to 1000 and ABNR to 1000. The
+    TOLG parameter specifies the minimum average gradient that can be reached before the simulation stops. The average gradient is essentially a mesaure of how &quot;steep&quot; the
+    energy surface is. The closer this is to 0, the closer to being converged the minimization is. For this example, set the tolg to 0.01. Additionally, since dynamics uses periodic
+    boundary conditions (PBC) we need to use them in the minimization as well (otherwise there will be problems with the dynamics simulation), so make sure that the &quot;Use PBC&quot;
+    option is set.
+   </p>
+   <br />
+
+   <p class="intro">Please wait until solvation of the solvated structure is complete before starting the minimization calculation.</p>
+ {% endifequal %}
+ {% ifequal html_step_list.1 1 %}
+   <br />
+   <p class="intro"><font color="red"> Step 2: Solvation Performed </font></p>
+   <br />
+
+   <p class="intro">Congratulations! You have sccuessfully solvated a water molecule! The end result is a rhombic dodecahedronal water box.</p>
+   <br />
+ 
+  <p class="intro">For the next step, you will minimize the water structure. The purpose of minimization is to try to find the conformation (position of the atoms in the protein) that
+    has the lowest possible energy. Ideally, the conformation produced would be the structure at absolute zero. This is a commonly done to remove bad atom placement (often caused
+    by problems in the crystal or NMR structure). For a realistic dynamics simulation, the structure is then heated back to the desired temperature. Two common alogorithms for 
+    minimization are Steepest Descent (SD) and Adopted-Basis Newton-Rhapson (ABNR).</p>
+  <br />
+
+  <p class="intro">In order to minimize your water structure, go to <b>Minimize</b> in the left hand menu, select the water molecule, set Steepest Descent to 1000 and ABNR to 1000. The 
+    TOLG parameter specifies the minimum average gradient that can be reached before the simulation stops. The average gradient is essentially a mesaure of how &quot;steep&quot; the
+    energy surface is. The closer this is to 0, the closer to being converged the minimization is. For this example, set the tolg to 0.01. Additionally, since dynamics uses periodic
+    boundary conditions (PBC) we need to use them in the minimization as well (otherwise there will be problems with the dynamics simulation), so make sure that the &quot;Use PBC&quot;
+    option is set.
+   </p>
+ {% endifequal %}
+
+ {% ifequal html_step_list.2 2 %}
+   <br /> 
+   <p class="intro"><font color="red"> Step 3: Minimization Running </font></p>
+   <br />
+
+   <p class="intro">Minimization is currently running. Until it is finished you can read ahead.</p>
+   <br />
+
+   <p class="intro">The next step will involve running Molecular Dynamics (MD). MD applies Newton's laws of motion coupled with electrostatic and van der Waals forces to simulate 
+     how the system would act in a &quot;natural state.&quot; CHARMMing supports two types of MD simulations: heating and equilibration. Heating gradually adds energy to the system
+     while equilibration runs keep the environment constant. Because we brought the system to a low energy conformation, we should start by heating the system gradually. Leave the 
+     number of steps at 1000, the starting temperature at 210.15 K, the final temprature at 310.15 K (physiological temperature), temperature increment at 10 K, steps between temperature 
+     increases (IHTFRQ) to 100, and temperature of bath at 310.15 K. This increases the the temperature 300 K over the 1000 step simulation, which is a more rapid increase than is
+     usually used.</p>
+   <br />
+
+   <p class="intro">Please wait until minimization of the solvated structure is complete before starting the MD simulation.</p>
+ {% endifequal %}
+
+ {% ifequal html_step_list.2 1 %}
+   <br />
+   <p class="intro"><font color="red"> Step 3: Minimization Performed </font></p>
+   <br />
+
+   <p class="intro">Congratulations! You have successfully minimized the system!</p>
+   <br />
+
+   <p class="intro">The next step will involve running Molecular Dynamics (MD). MD applies Newton's laws of motion coupled with electrostatic and van der Waals forces to simulate
+     how the system would act in a &quot;natural state.&quot; CHARMMing supports two types of MD simulations: heating and equilibration. Heating gradually adds energy to the system
+     while equilibration runs keep the environment constant. Because we brought the system to a low energy conformation, we should start by heating the system gradually. Leave the
+     number of steps at 1000, set the starting temperature at 210.15 K, the final temprature at 310.15 K (physiological temperature), temperature increment at 10 K, steps between temperature
+     increases (IHTFRQ) to 100, and temperature of bath at 310.15 K. This increases the the temperature 300 K over the 1000 step simulation, which is a more rapid increase than is
+     usually used.</p>
+   <br />
+ {% endifequal %}
+
+ {% ifequal html_step_list.3 2 %}
+   <br />
+   <p class="intro"><font color="red"> Step 4: Molecular Dynamics Running</font></p>
+   <br />
+
+   <p class="intro">The MD job is still in progress.</p>
+ 
+ {% endifequal %}
+
+ {% ifequal html_step_list.3 1 %}
+   <br />
+   <p class="intro"<<font color="red"> Step 4: Molecular Dynamics Performed </font></p>
+   <br />
+
+   <p class="intro">Congratulations! You have successfully run Molecular Dynamics (MD) on the system!</p>
+   <br />
+ 
+   <p class="intro">You have now completed this introductory lesson to computational methods and CHARMMing.</p>
+ {% endifequal %}
+
+ {% if lessonproblem %}
+  <br />
+  <p class="intro"><font color="red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</font></p> <br>
+  {{lessonproblem.description}}</p>
+ {% endif %}
+
+{% endif %}
+{% endautoescape %}
