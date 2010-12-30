@@ -24,43 +24,12 @@ from django.core.mail import mail_admins
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from normalmodes.aux import parseNormalModes, getNormalModeMovieNum
-import charmming_config, pdbinfo
+import charmming_config
 import commands, datetime, sys, re, os, glob, smtplib
 import lesson1, normalmodes, dynamics, minimization
 import solvation, lessonaux, apbs
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
-
-class StructureFile(models.Model):
-    structure   = models.ForeignKey(Structure)
-    path        = models.CharField(max_length=100)
-    version     = models.PositiveIntegerField(default=1)
-    type        = models.CharField(max_length=20)
-    description = models.CharField(max_length=500)
-
-    # temp variable
-    fd    = None
-
-    def open(self,mode):
-        self.fd = open(path,mode)
-
-    def close(self):
-        self.fd.close()
-
-class Segment(models.Model):
-    structure   = models.ForeignKey(Structure)
-    is_appended = models.CharField(max_length=1)
-    name        = models.CharField(max_length=4)
-    type        = models.CharField(max_length=10)
-    patch_first = models.CharField(max_length=100)
-    patch_last  = models.CharField(max_length=100)
-    rtf_list    = models.CharField(max_length=500)
-    prm_list    = models.CharField(max_length=500)
-
-class Patch(models.Model):
-    structure   = models.ForeignKey(Structure)
-    patch_name  = models.CharField(max_length=10)
-    patch_atoms = models.CharField(max_length=100)
 
 class Structure(models.Model):
 
@@ -936,8 +905,38 @@ open read unit 84 card name /usr/local/charmming/solvation/scpism.inp
 	                  con_sele + ' end\n'
 	return restraints
 
-    
-        
+
+class StructureFile(models.Model):
+    structure   = models.ForeignKey(Structure)
+    path        = models.CharField(max_length=100)
+    version     = models.PositiveIntegerField(default=1)
+    type        = models.CharField(max_length=20)
+    description = models.CharField(max_length=500)
+
+    # temp variable
+    fd    = None
+
+    def open(self,mode):
+        self.fd = open(path,mode)
+
+    def close(self):
+        self.fd.close()
+
+class Segment(models.Model):
+    structure   = models.ForeignKey(Structure)
+    is_appended = models.CharField(max_length=1)
+    name        = models.CharField(max_length=4)
+    type        = models.CharField(max_length=10)
+    patch_first = models.CharField(max_length=100)
+    patch_last  = models.CharField(max_length=100)
+    rtf_list    = models.CharField(max_length=500)
+    prm_list    = models.CharField(max_length=500)
+
+class Patch(models.Model):
+    structure   = models.ForeignKey(Structure)
+    patch_name  = models.CharField(max_length=10)
+    patch_atoms = models.CharField(max_length=100)
+
 class PDBFileForm(forms.Form):
     pdbid = forms.CharField(max_length=5)   
     sequ = forms.CharField(widget=forms.widgets.Textarea())   
@@ -973,7 +972,7 @@ class ParseException(Exception):
         self.reason = reason
 
 class energyParams(models.Model):
-    pdb = models.ForeignKey(PDBFile,null=True)
+    pdb = models.ForeignKey(Structure,null=True)
     finale = models.DecimalField(max_digits=12,decimal_places=5,null=True)
     selected = models.CharField(max_length=1)
     usepbc = models.CharField(max_length=1)
@@ -982,7 +981,7 @@ class energyParams(models.Model):
 
 class goModel(models.Model):
     selected = models.CharField(max_length=1)
-    pdb = models.ForeignKey(PDBFile)
+    pdb = models.ForeignKey(Structure)
     contactType = models.CharField(max_length=10)
     domainData  = models.CharField(max_length=20)
     nScale      = models.DecimalField(max_digits=6,decimal_places=3)

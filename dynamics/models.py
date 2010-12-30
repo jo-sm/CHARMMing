@@ -18,7 +18,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 import django.forms
-import pdbinfo
+import structure
 
 
 #Replica exchange parameters
@@ -33,7 +33,7 @@ class rexParams(models.Model):
 
 class mdParams(models.Model):
 
-    pdb = models.ForeignKey(pdbinfo.models.PDBFile,null=True)
+    pdb = models.ForeignKey(structure.models.Structure,null=True)
     statusHTML = models.CharField(max_length=250)
     selected = models.CharField(max_length=1)
     sequence = models.PositiveIntegerField(default=1)
@@ -57,7 +57,7 @@ class mdParams(models.Model):
 
 class ldParams(models.Model):
 
-    pdb = models.ForeignKey(pdbinfo.models.PDBFile,null=True)
+    pdb = models.ForeignKey(structure.models.Structure,null=True)
     statusHTML = models.CharField(max_length=250)
     selected = models.CharField(max_length=1)
     nstep = models.PositiveIntegerField(default=1000)
@@ -72,7 +72,7 @@ class ldParams(models.Model):
 
 class sgldParams(models.Model):
 
-    pdb = models.ForeignKey(pdbinfo.models.PDBFile,null=True)
+    pdb = models.ForeignKey(structure.models.Structure,null=True)
     statusHTML = models.CharField(max_length=250)
     selected = models.CharField(max_length=1)
     nstep = models.PositiveIntegerField(default=1000)

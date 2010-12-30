@@ -16,7 +16,6 @@
 #import lesson96
 # by importing lesson_config to import all lessons created
 from lesson_config import *
-import pdbinfo
 import sys, traceback
 
 def doLessonAct(file,function,postdata=None,filename=None,finale=None):
