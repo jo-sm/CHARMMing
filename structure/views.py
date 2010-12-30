@@ -21,7 +21,6 @@ from django import forms
 from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
-from pdbinfo.models import PDBFile, PDBFileForm, ParseException, energyParams
 from minimization.models import minimizeParams
 from minimization.views import append_tpl
 from dynamics.models import mdParams, ldParams, sgldParams
@@ -32,7 +31,7 @@ from normalmodes.views import combineNmaPDBsForMovie
 from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeParams
 from apbs.models import redoxParams
-from pdbinfo.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
+from structure.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
 from django.contrib.auth.models import User
 from django.core.mail import mail_admins
 from django.template import *
@@ -40,46 +39,21 @@ from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from pdb_preparer import getModels
 from account.views import isUserTrustworthy
-from pdbinfo.editscripts import generateHTMLScriptEdit
-from pdbinfo.aux import checkNterPatch
-import output
-import lesson1
-import lesson2
-import lesson3
-import lesson4
-import lessonaux
+from structure.editscripts import generateHTMLScriptEdit
+from structure.aux import checkNterPatch
+import output, lesson1, lesson2, lesson3, lesson4, lessonaux
+import structure.models
 # import all created lessons by importing lesson_config
 # also there is a dictionary called 'file_type' in lesson_config.py specififying the file type of files uploaded by the lessons  
 from lesson_config import *
-import os
-import re
-import copy
-import datetime
-import time
-import mimetypes
-import time
-import stat
-import string
-import random
-import glob
-import sys, traceback
-import commands
-import charmming_config
-
-# pre: requires a filename
-# If a user submits a PDB with a filename that will
-# crash with this program (i.e. contains dashes)
-# this will clean up the filename a return a more
-# suitable one
-def cleanName(filename):
-    clean = re.compile('-')
-    filename = clean.sub('',filename)
-    return filename
+import os, sys, re, copy, datetime, time, stat
+import mimetypes, string, random, glob, traceback, commands
+import charmming, charmming_config
 
 def getJobTime(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    file = PDBFile.objects.filter(owner=request.user)[0]
+    file = structure.models.Structure.objects.filter(owner=request.user)[0]
     file.checkRequestData(request)
     os.chdir(file.location)
     if request.POST['time_filenames'] =="":
@@ -97,24 +71,12 @@ def uploadError(request,problem):
        prob_string = "There was a problem trying to parse your structure file."
     return render_to_response('html/problem.html',{'prob_string': prob_string})
 
-#Gets last 5 PDBs and returns it to dock for quickselect options
-def bottomDock(request):
-    file_list = PDBFile.objects.filter(owner=request.user)
-    five_list = []
-    i = 0
-    for file in file_list[::-1]:
-        five_list.append(file)
-        i = i + 1
-        if(i == 5):
-            break
-    return render_to_response('html/bottomdock.html',{'five_list':five_list})
-
-#Deletes user specified file from database and files relating to it
+# Deletes user specified file from database and files relating to it
 def deleteFile(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     #make sure request data isn't malicious
-    PDBFile().checkRequestData(request)
+    PDBFile.checkRequestData(request)
     delete_filename = request.POST['filename']
     deleteAll = 0
     remove_extension = re.compile('\.\S*')
@@ -1225,12 +1187,6 @@ def switchpdbs(request,switch_id):
     newfile.save()
     return render_to_response('html/switchpdb.html',{'oldfile':oldfile,'newfile':newfile})
 
-#for some reason there would be duplicate PIDs
-#this function makes sure to get a new pid
-def getValidPid():
-    process_id = int(random.random() * 999)
-    return process_id
-
 #handles crd/psf data
 def handleCrdPsf(filename,file,request):
     crd = re.compile('.crd')
@@ -1260,7 +1216,6 @@ def handleCrdPsf(filename,file,request):
         temp.close()
     except:
         return HttpResponse("Please upload a .psf file when uploading a .crd file")
-    CRDToPDB(file)
     file.title = "PSF/CRD Uploaded"
     file.author = file.owner.username
     file.journal = "No Information"
@@ -1624,9 +1579,24 @@ def parseEnergy(file,output_filename,enerobj=None):
 
     return render_to_response('html/displayenergy.html',{'linelist':energy_lines})
 
-#When somebody uploads a file or visits /fileupload/ they will get the upload form
-#This then processes the form and sends it over to the parser
+def getSegs(Molecule,Struct,auto_append=False):
+    for seg in Molecule.iter_seg():
+        newSeg = structure.models.Segment()
+        newSeg.structure = struct
+        if auto_append:
+            newSeg.is_appended = 'y'
+        else:
+            newSeg.is_appended = 'n'
+        newSeg.name = seg.segid
+        newSeg.type = seg.segType
+        newSeg.save()
+
 def newupload(request, template="html/fileupload.html"):
+    doc =\
+    """
+    Handle a new file being uploaded.
+    """
+
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     tempfile = PDBFile()
@@ -1666,80 +1636,89 @@ def newupload(request, template="html/fileupload.html"):
         lessonid = lesson_obj.id
     # end of checking for lesson   
 
-    error = re.compile('\W')
-    try:
-        tempid = request.POST['pdbid']
-    except:
-        tempid = "null"
-    try:
-        temp_sequ = request.POST['sequ']
-        if(not temp_sequ):
-            temp_sequ = "null"
-    except:
-        temp_sequ = "null"
-
-    filepid = getValidPid()
     try:
         request.FILES['pdbupload'].name
         pdb_uploaded_by_user = 1
     except:
         pdb_uploaded_by_user = 0
+
     if pdb_uploaded_by_user:
         filename = request.FILES['pdbupload'].name
         filename = filename.lower()
-        filename = cleanName(filename)
-        #gets rid of .pdb, attatches the Process ID number, then reappends .pdb
-        removepdb = re.compile('.pdb')
+        struct = structure.models.Structure()
+        struct.owner = request.user
+        if lesson_obj:
+            struct.lesson_type = lessontype
+            struct.lesson_id = lessonid
 
-        #If there is a crd/cor file is must be named differently
-        #the name will change back to a .pdb once the crd/cor file
-        #has been converted to a pdb file
-        #Tim Miller: 05/14/2008 -- add support for multi-model PDBs by
-        #getting an array of files for PDBs
-        if not 'crd' in filename and not 'cor' in filename:
-            filename = removepdb.sub('',filename) + "-" + str(filepid) + ".pdb"
-            temp = open(location + filename,'w')
-            for fchunk in request.FILES['pdbupload'].chunks():
-                temp.write(fchunk)
-            temp.close()
-            modelinfo = getModels(filename,u,location,lessontype,lessonid)
-            #Checks and sees if RTF/PRM files were uploaded and if so it saves them
-            models = modelinfo['models']
-            errors = modelinfo['errors']
-            if len(models) < 1:
-                # parse error
-                return render_to_response('html/problem.html', {'errorList': errors})
-            elif len(models) == 1:
-                file = models[0]
-                file.getRtfPrm(request,makeGoModel,makeBLNModel)
-                if lessontype:
-                    file.lesson_type = lessontype
-                    file.lesson_id = lessonid
-                    file.save()
-                    try:
-                        lesson_obj.onFileUpload(request.POST)
-                    except:
-                        # TODO, scream
-                        pass
-                return HttpResponseRedirect('/charmming/editpdbinfo/'+file.filename)
-            else:
-                # editMultiModel does not return, but renders the HTML to the user
-                return editMultiModel(request,models,makeGoModel,makeBLNModel)
+        # figure out where this file is going to go and put it there.
+        tmpdname = filename.split('.')[0]
+        dname = tmpdname
+        version = -1
+        while os.path.exists(location + '/' + dname):
+            version += 1
+            dname = tmpdname + "-" + str(version)
+
+        os.mkdir(location + '/' + dname)
+        fullpath = location + '/' + dname + '/' + filename
+        temp = open(fullpath, 'w')
+        for fchunk in request.FILES['pdbupload'].chunks():
+            temp.write(fchunk)
+
+
+        if filename.endswith('crd') or filename.endswith('cor'):
+            # set up the new structure object
+            struct = structure.models.Structure()
+            struct.name = dname
+
+            crd = charmming.io.crd.CRDFile(fullpath)
+            thisMol = crd.iter_models.next()
+            getSegs(thisMol,struct,auto_append=True)
         else:
-            file = PDBFile()
-            file.pid = filepid
-            file.owner = request.user
-            file.location = location
-            if lesson_obj:
-                file.lesson_type = lessontype
-                file.lesson_id = lessonid
-            return handleCrdPsf(filename,file,request)
+            pdb = charmming.io.pdb.PDBFile(fullpath)
+            if len(pdb.keys) > 1:
+                mnum = 1
+                for model in pdb.iter_models():
+                    mdname = dname + "-mod-%d" % mnum
+                    os.mkdir(location + '/' + mdname)
+ 
+                    struct = structure.models.Structure()
+                    struct.name = mdname
+                    struct.append_status = 'n'
+                    struct.getHeader(pdb.header)
+
+                    model.parse()
+                    getSegs(model,struct)
+                    
+                    struct.save()
+
+                    mnum += 1
+            else:
+                struct = structure.models.Structure()
+                struct.name = dname
+                struct.append_status('n')
+                struct.getHeader(pdb.header)
+
+                thisMol = pdb.iter_models().next()
+                thisMol.parse()
+                getSegs(model,struct)
+
+        # unselect the existing structure
+        oldfile = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        oldfile.selected = ''
+        oldfile.save()
+
+        # set this structure as selected
+        struct.selected = 'y'
+        struct.save()
+        return HttpResponseRedirect('/charmming/editpdbinfo/'+struct.name)
+
     #The below code handles custom sequences
-    elif(temp_sequ != "null"):
-        file = PDBFile()
+    elif request.POST.has_key('sequ'):
+        file = structure.models.Structure()
         file.owner = u
         file.location = location
-        file.pid = filepid
+
         if lesson_obj:
             file.lesson_type = lessontype
             file.lesson_id = lessonid
@@ -1812,14 +1791,15 @@ def newupload(request, template="html/fileupload.html"):
                 pass
 	return HttpResponseRedirect('/charmming/editpdbinfo/'+file.filename)
 
-    elif(tempid != "null"):
+    # handle downloading the PDB from PDB.org
+    elif request.POST.has_key('pdbid'):
         pdbid = request.POST['pdbid']
         pdbid = pdbid.strip()
         pdbid = pdbid.lower()
         if(error.search(pdbid)):
             return HttpResponse('PDB filename invalid')
         cif = re.compile('\Zcif')
-        filename = pdbid + "-" + str(filepid)
+        filename = pdbid
 
         #Because .cif files are standard and PDBs are not, the following block
         #downloads a cif file then converts it to PDB
@@ -1905,76 +1885,6 @@ def scanPsfForSegs(file):
     return segid_list
 
 
-
-def CRDToPDB(file):
-    segid_list = scanPsfForSegs(file)
-    os.chdir(file.location)
-    crd_file = "crd-" + file.filename
-    psf_file = "psf-" + file.stripDotCRD(file.filename) + ".psf"
-    rtf_prm_dict = file.getRtfPrmPath()
-    charmm_inp = """* CRD to PDB
-*
-
-bomlev -1
-
-! Read in Topology and  Parameter files
-
-open unit 1 card read name """ + rtf_prm_dict['rtf'] + """
-read RTF card unit 1
-close unit 1
-
-open unit 1 card read name """ + rtf_prm_dict['prm'] + """
-read PARA card unit 1
-close unit 1"""
-    for seg in segid_list:
-        charmm_inp += """
-
-open unit 1 form read name """ + psf_file + """ 
-read psf card unit 1
-close unit 1
-
-open unit 1 card read name """ + crd_file + """
-read coor card unit 1 resid
-close unit 1
-
-dele atom select .not. segid """ + seg + """ end
-
-open unit 1 write card name new_""" + file.stripDotCRD(file.filename) + """-""" + seg + """-final.psf
-write psf card unit 1
-close unit 1
-
-open unit 1 write card name new_""" + file.stripDotCRD(file.filename) + """-""" + seg + """-final.crd
-write coor card unit 1
-close unit 1
-
-open unit 1 write card name new_""" + file.stripDotCRD(file.filename) + """-""" + seg + """.pdb
-write coor pdb unit 1
-close unit 1
-
-
-open unit 1 write card name new_""" + file.stripDotCRD(file.filename) + """-""" + seg + """-final.pdb
-write coor pdb unit 1
-close unit 1
-
-dele atom sele all end
-"""
-    charmm_inp += """
-
-stop
-"""
-    crd_charmm_inp = "charmm-crd-" + file.stripDotCRD(file.filename) + ".inp"
-    crd_charmm_out = "charmm-crd-" + file.stripDotCRD(file.filename) + ".out"
-    crd_charmm_inp_handle = open(file.location + crd_charmm_inp,'w')
-    crd_charmm_inp_handle.write(charmm_inp)
-    crd_charmm_inp_handle.close()
-    cmd = "%s < %s > %s" % (charmming_config.charmm_exe,crd_charmm_inp,crd_charmm_out)
-    os.system(cmd)
-    file.filename = file.stripDotCRD(file.filename) + ".pdb"
-    file.save()
-    #os.remove(crd_charmm_inp)
-    #os.remove(crd_file)
-
-
 # This algorithm isn't efficient b/c it checks all atoms unnecessarily
 def get_proto_res(file):
     protonizable = []
@@ -2015,116 +1925,12 @@ def protonate(file):
     return render_to_response('html/protonate.html')    
 
 
-def pad_left(s, n):
-   npad = n - len(s)
-   if npad < 0:
-      raise "Bad padding specified for %s." % s
-   elif npad == 0:
-      return s
-   else:
-      return ' ' * npad + s
-
-def pad_right(s, n):
-   npad = n - len(s)
-   if npad < 0:
-      raise "Bad padding specified for %s." % s
-   elif npad == 0:
-      return s
-   else:
-      return s + ' ' * npad
-
-def make_pdb_line(tag,atom_number,atype,test_res,cur_seg,resid,remainder):
-   new_line = pad_right(tag, 6)
-   new_line += (pad_left(atom_number, 5) + ' ')
-   # extra space blanks out the altLoc field, which we don't need
-   if len(atype) == 4:
-      new_line += (atype + " ")
-   else:
-      new_line += (" " + pad_right(atype, 3) + " ")
-   # TIP3 has 4 characters, so we may need to knock out the extra space
-   new_line += (pad_right(test_res, 4) + cur_seg)
-   new_line += (pad_left(resid, 5) + remainder)
-   return new_line
-
 def parser(file):
 
     #getHeader retrives Header information like title, etc.
     file.getHeader()
     os.chdir(file.location)
 
-    mycmd = "PYTHONPATH=%s python %s/pdbinfo/parser_v3.py %s" % (charmming_config.charmming_root,charmming_config.charmming_root,file.filename)
-    status, output = commands.getstatusoutput(mycmd)
-
-    if status != 0:
-        raise ParseException("There was an unexpected error with your PDB. Unfortunately we are unable to provide details as to why your PDB failed. Please check and make sure your PDB is valid and if it is, please report this bug. ")
-    olines = output.split('\n')
-
-    natoms = 0
-    nwarn = 0
-    warnings = []
-    for ln in olines:
-        ln = ln.strip()
-        if not ln:
-            continue
-        try:
-            tg,pl = ln.split('=')
-        except:
-            pass
-        if tg == 'natom':
-            natoms = int(pl)
-        elif tg == 'nwarn':
-            nwarn = int(pl)
-        elif tg == 'warnings' and nwarn > 0:
-            pl = pl.replace('[','')
-            pl = pl.replace(']','')
-            pl = pl.replace('\'','')
-            warnings = pl.split(',')
-        elif tg == 'seg':
-            segids = pl
-        elif tg == 'autoDomain':
-            file.domains = pl
-        elif tg == 'fs4list':
-            pl = pl.strip()
-            if pl:
-                pl = pl[:-1] # remove trailing comma
-                file.fes4list = pl
-    
-    # FixMe: check that nwarn == len(warnings)
-    if nwarn > 0:
-        warningsfp = open(file.location + '/' + file.stripDotPDB(file.filename) + "-warnings.txt","w")
-        for line in warnings:
-            warningsfp.write(line + "\n")
-        warningsfp.close()
-    if natoms < 0:
-        raise ParseException("There was an unexpected error with your PDB. Unfortunately we are unable to provide details as to why your PDB failed. Please check and make sure your PDB is valid and if it is, please report this bug. ")
-
-    # FIXME: make the atom limit configurable...
-    if natoms > charmming_config.maxatoms:
-        raise ParseException("This PDB exceeded the maximum atom number limit (%d). This limit can only be expanded if you install this GUI on your own machine. The number of atoms your PDB contains is: %d" % (maxatoms,natoms))
-    file.natom = natoms
-    try:
-        file.save()
-    except:
-        raise ParseException("Error saving file!!!")
-
-    os.chdir(file.location)
-
-    #parses the stdout
-    segids = str(segids)
-    segids = segids.replace('[','')
-    segids = segids.replace(']','')
-    segids = segids.replace('\'','')
-    list_of_segids  = segids.split(',')
-    dashHet = re.compile('-het')
-    dashGoodHet = re.compile('-goodhet')
-    #determines whether the segid is normal, goodhet, or badhet and files it accordingly
-    for segid in list_of_segids:
-        if(dashGoodHet.search(segid)):
-            file.good_het += segid.strip() + " "
-        elif(dashHet.search(segid)):
-            file.nongood_het += segid.strip() + " "
-        else:
-            file.segids += segid.strip() + " "
     #removes ending and staritng whitespace
     file.good_het = file.good_het.strip()
     file.nongood_het = file.nongood_het.strip()

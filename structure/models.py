@@ -31,33 +31,55 @@ import solvation, lessonaux, apbs
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
 
-class PDBFile(models.Model):
+class StructureFile(models.Model):
+    structure   = models.ForeignKey(Structure)
+    path        = models.CharField(max_length=100)
+    version     = models.PositiveIntegerField(default=1)
+    type        = models.CharField(max_length=20)
+    description = models.CharField(max_length=500)
+
+    # temp variable
+    fd    = None
+
+    def open(self,mode):
+        self.fd = open(path,mode)
+
+    def close(self):
+        self.fd.close()
+
+class Segment(models.Model):
+    structure   = models.ForeignKey(Structure)
+    is_appended = models.CharField(max_length=1)
+    name        = models.CharField(max_length=4)
+    type        = models.CharField(max_length=10)
+    patch_first = models.CharField(max_length=100)
+    patch_last  = models.CharField(max_length=100)
+    rtf_list    = models.CharField(max_length=500)
+    prm_list    = models.CharField(max_length=500)
+
+class Patch(models.Model):
+    structure   = models.ForeignKey(Structure)
+    patch_name  = models.CharField(max_length=10)
+    patch_atoms = models.CharField(max_length=100)
+
+class Structure(models.Model):
 
     owner = models.ForeignKey(User)
     lesson_type = models.CharField(max_length=50,null=True)
     lesson_id = models.PositiveIntegerField(default=0,null=True)
 
-    natom = models.PositiveIntegerField(default=0)
-    pdbupload = models.FileField(upload_to='usr/')
-    filename = models.CharField(max_length=100)
-    segpatch_name = models.CharField(max_length=100)
-    patch_name = models.CharField(max_length=100)
+    natom  = models.PositiveIntegerField(default=0)
+    name   = models.CharField(max_length=100)
+    pickle = models.CharField(max_length=100)
+
     pdb_disul = models.CharField(max_length=100)
     location = models.CharField(max_length=200) 
     title = models.CharField(max_length=250) 
     author = models.CharField(max_length=250) 
     journal = models.CharField(max_length=250)
     pub_date = models.DateTimeField(default=datetime.datetime.now)
-    rtf = models.CharField(max_length=250)  
-    rtf_append_replace = models.CharField(max_length=250,null=True)  
-    prm = models.CharField(max_length=250)  
-    prm_append_replace = models.CharField(max_length=250,null=True)  
     selected = models.CharField(max_length=1)  
-    good_het = models.CharField(max_length=250)  
-    nongood_het = models.CharField(max_length=250)  
-    segids = models.CharField(max_length=250)
-    pid = models.CharField(max_length=6)
-    append_status = models.CharField(max_length=250) 
+    append_status = models.CharField(max_length=1) 
     solvation_structure = models.CharField(max_length=50) 
     crystal_x = models.DecimalField(max_digits=8,decimal_places=5,null=True)
     crystal_y = models.DecimalField(max_digits=8,decimal_places=5,null=True)
@@ -119,332 +141,6 @@ class PDBFile(models.Model):
            rarr.append((firstr[0],firstr[1],secondr[0],secondr[1]))
         dfp.close()
         return rarr
-
-    # This is a dumb way of counting the atoms, but what the hey
-    def countAtomsInPDB(self,filename):
-        ifp = open(filename, "r")
-        if not ifp:
-            return 0
-        count = 0
-        for line in ifp:
-            if line.startswith("ATOM") or line.startswith("HETATM"):
-                count += 1
-        ifp.close()
-        return count
-
-    def countAtomsInSeg(self,seg):
-        pdbfilename = "new_" + self.stripDotPDB(self.filename) + "-" + seg + ".pdb"
-        return self.countAtomsInPDB(pdbfilename)
-	
-    def countSolvatedAtoms(self):
-        try:
-            solvation_params = solvation.models.solvationParams.objects.filter(pdb=self,selected='y')[0]
-	except:
-	    return 0
-        if not "Done" in solvation_params.statusHTML:
-            return 0
-        try:
-           solvpdb = "new_" + self.stripDotPDB(self.filename) + "-solvated.pdb"
-           os.stat(solvpdb)
-        except:
-           return 0
-        return self.countAtomsInPDB(solvpdb)
-
-    def countNeutralizedAtoms(self):
-        solvation_params = solvation.models.solvationParams(pdb=self,selected='y')[0]
-        if not "Done" in solvation_params.statusHTML:
-            return 0
-        try:
-           solvpdb = "new_" + self.stripDotPDB(self.filename) + "-neutralized.pdb"
-           os.stat(solvpdb)
-        except:
-           return 0
-        return self.countAtomsInPDB(solvpdb)
-
-    def countMinimizedAtoms(self):
-        minimize_params = solvation.models.solvationParams(pdb=self,selected='y')[0]
-        if not "Done" in minimize_params.statusHTML:
-            return 0
-        try:
-           minpdb = "new_" + self.stripDotPDB(self.filename) + "-min.pdb"
-           os.stat(solvpdb)
-        except:
-           return 0
-        return self.countAtomsInPDB(minpdb)
-   
-    #pre: requires the residue number of the current PDB line
-    #pre: requires a list of each PDB line separated by word(whitespace)
-    #prints out the PDB in CHARMM-readable format
-    def formatLine(self,res_number,linefields2):
-        if(res_number < 10):
-            try:
-                line = " ".join(linefields2)
-                printline = '%-6s%5s  %-4s%-4s%s   %-2s    %7s %7s %7s  %4s %4s\n'\
-                %(linefields2[0],int(linefields2[1]),linefields2[2],\
-                linefields2[3],linefields2[4],linefields2[5],linefields2[6],\
-                linefields2[7],linefields2[8],linefields2[9],linefields2[10])
-            except:
-                 printline = line + '\n'
-        elif(res_number < 1000):
-            try:
-                line = " ".join(linefields2)
-                printline = '%-6s%5s  %-4s%-4s%s%4s     %7s %7s %7s  %4s %4s\n'\
-                %(linefields2[0],int(linefields2[1]),linefields2[2],\
-                linefields2[3],linefields2[4],linefields2[5],linefields2[6],\
-                linefields2[7],linefields2[8],linefields2[9], linefields2[10])
-            except:
-                printline = line + '\n'
-        else:
-            try:
-                line = " ".join(linefields2)
-                printline = '%-6s%5s  %-4s%-4s%s %4s    %7s %7s %7s  %4s %4s\n'\
-                %(linefields2[0],int(linefields2[1]),linefields2[2],\
-                linefields2[3],linefields2[4],linefields2[5],linefields2[6],\
-                linefields2[7],linefields2[8],linefields2[9], linefields2[10])
-            except:
-                printline = line + '\n'
-        return printline
-
-    #pre: options must be a string that is minimize or solvate
-    #pre: this will remove the minimzie or solvated file
-    #pre: appropriately
-    #This is used so -f.pdb files aren't listed
-    #and only files that solvation/minimization take
-    #advantage of are returned
-
-    #Options allow you to exclude items from the list
-    def getLimitedFileList(self,options):
-        #file_list = self.getFileList()
-        dash_f = re.compile('-final')
-	#solvated = re.compile('-solv')
-	#md = re.compile('-md')
-	#ld = re.compile('-ld')
-	#sgld = re.compile('-sgld')
-	minimized = re.compile('-min')
-	seg_list = self.segids.split()
-	het_list = self.good_het.split()
-	tip_list = self.nongood_het.split()
-	os.chdir(self.location)
-	protein_list = []
-
-	for item in seg_list + het_list + tip_list:
-	    try:
-	        if os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb"):
-		    protein_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-            except:
-                try:
-                    if os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb"):
-                        protein_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-                except:
-                    pass
-
-	try:
-	    if os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-min" + ".pdb") and options != "minimization":
-	        protein_list.append("new_" + self.stripDotPDB(self.filename) + "-min" +".pdb")
-        except:
-	    pass
-	try:
-	    if os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-solv" + ".pdb") and options != "solvation":
-	        protein_list.append("new_" + self.stripDotPDB(self.filename) + "-solv" +".pdb")
-        except:
-	    pass
-	try:
-	    if os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-neutralized.pdb") and options != "solvation":
-	        protein_list.append("new_" + self.stripDotPDB(self.filename) + "-neutralized.pdb")
-        except:
-	    pass
-	try:
-	    if os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-md" + ".pdb"):
-	        protein_list.append("new_" + self.stripDotPDB(self.filename) + "-md" +".pdb")
-        except:
-	    pass
-	try:
-	    if os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-mdavg" + ".pdb"):
-	        protein_list.append("new_" + self.stripDotPDB(self.filename) + "-mdavg" +".pdb")
-        except:
-	    pass
-	try:
-	    if os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-ld" + ".pdb"):
-	        protein_list.append("new_" + self.stripDotPDB(self.filename) + "-ld" + ".pdb")
-        except:
-	    pass
-	try:
-	    if os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-sgld" + ".pdb"):
-	        protein_list.append("new_" + self.stripDotPDB(self.filename) + "-sgld" + ".pdb")
-        except:
-	    pass
-	return protein_list
-   
-
-   
-    #This returns every single file that has been made through the interface
-    def getAllFiles(self):
-        file_list = []
-        seg_list = self.segids.split(' ')
-        tip_list = self.good_het.split(' ')
-        het_list = self.nongood_het.split(' ')
-        done = re.compile('Done')
-        fail = re.compile('Failed')
-        for item in seg_list:
-            try:
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-                temphandle.close()
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.psf")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.crd")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".out")
-                temphandle.close()
-            except:
-                pass
-        for item in tip_list:
-            try:
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-                temphandle.close()
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.psf")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.crd")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".out")
-                temphandle.close()
-            except:
-                pass
-        for item in het_list:
-            try:
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.psf")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.crd")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".out")
-                temphandle.close()
-            except:
-               pass
-        if done.search(self.append_status):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-final.pdb")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-final.psf")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-final.crd")
-            file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-append.inp")
-            file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-append.out")
-	try:
-            minimize_params = solvation.models.solvationParams(pdb=self,selected='y')[0]
-	except:
-	    minimize_params = ''
-        if done.search(minimize_params.statusHTML):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-min.pdb")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-min.psf")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-min.crd")
-        if fail.search(minimize_params.statusHTML) or done.search(minimize_params.statusHTML):
-            file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-min.inp")
-            try:
-                os.stat(self.location + "charmm-" + self.stripDotPDB(self.filename) + "-min.out")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-min.out")
-            except:
-                pass
-	try:
-	    solvation_params = solvation.models.solvationParams.objects.filter(pdb = self, selected = 'y')[0]	
-	except:
-	    solvation_params = ''
-        if done.search(solvation_params.statusHTML):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-solv.pdb")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-solv.psf")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-solv.crd")
-            try:
-                os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-neutralized.crd")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-solv.pdb")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-solv.psf")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-solv.crd")
-            except:
-                pass
-        if fail.search(solvation_params.statusHTML) or done.search(solvation_params.statusHTML):
-            file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-solv.inp")
-            file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-solv.out")
-            file_list.append("/solvation/water.crd")
-            file_list.append("/scripts/savegv.py")
-            file_list.append("/scripts/savechrg.py")
-            file_list.append("/scripts/calcewald.pl")
-            try:
-                os.stat(self.location + "charmm-" + self.stripDotPDB(self.filename) + "-neutralize.inp")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-neutralize.inp")
-                os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-neutralized.pdb")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-neutralized.pdb")
-                os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-neutralized.psf")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-neutralized.psf")
-                os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-neutralized.crd")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-neutralized.crd")
-                file_list.append("loop-" + self.stripDotPDB(self.filename) + ".log")
-            except:
-                pass
-            try:
-                os.stat(self.location + "charmm-" + self.stripDotPDB(self.filename) + "-neutralize.out")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-neutralize.out")
-            except:
-                pass
-	try:
-	    md_status = dynamics.models.mdParams.objects.filter(pdb = self, selected='y')[0].statusHTML
-	except:
-	    md_status = ''
-        if done.search(md_status):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-md.pdb")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-md.psf")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-md.crd")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-md.dcd")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-md.res")
-        if fail.search(md_status) or done.search(md_status):
-            file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-md.inp")
-            file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-md.out")
-	try:
-	    ld_status = dynamics.models.ldParams.objects.filter(pdb = self, selected='y')[0].statusHTML
-	except:
-	    ld_status = ''
-        if(ld_status):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-ld.pdb")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-ld.psf")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-ld.crd")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-ld.dcd")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-ld.res")
-        if fail.search(ld_status) or done.search(ld_status):
-            file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-ld.inp")
-            file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-ld.out")
-	try:
-	    sgld_status = dynamics.models.sgldParams.objects.filter(pdb = self, selected='y')[0].statusHTML
-	except:
-	    sgld_status = ''
-        if(done.search(sgld_status)):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-sgld.pdb")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-sgld.psf")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-sgld.crd")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-sgld.dcd")
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-sgld.res")
-        if fail.search(sgld_status) or done.search(sgld_status):
-            file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-sgld.inp")
-            file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-sgld.out")
-	try:
-	    md_movie_status = dynamics.models.mdParams.objects.filter(pdb = self, selected='y')[0].md_movie_status
-	except:
-	    md_movie_status = ''
-        if done.search(md_movie_status):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-md-mainmovie.pdb")
-	try:
-	    ld_movie_status = dynamics.models.mdParams.objects.filter(pdb = self, selected='y')[0].ld_movie_status
-	except:
-	    ld_movie_status = ''
-        if done.search(ld_movie_status):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-ld-mainmovie.pdb")
-	try:
-	    sgld_movie_status = dynamics.models.mdParams.objects.filter(pdb = self, selected='y')[0].sgld_movie_status
-	except:
-	    sgld_movie_status = ''
-        if done.search(sgld_movie_status):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-sgld-mainmovie.pdb")
-
-        return file_list
 
     # Updates the status of in progress operations
     def updateActionStatus(self):
@@ -542,126 +238,8 @@ class PDBFile(models.Model):
     
         self.save()
 
-    # Returns a list of PDB files with -final
-    def getDashFPDBList(self):
-        file_list = []
-	total_list = []
-        seg_list = self.segids.split(' ')
-	het_list = self.nongood_het.split(' ')
-	tip_list = self.good_het.split(' ')
-	big_list = seg_list + tip_list + het_list
-        for item in big_list:
-            try:
-    	        os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-    	        file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-	    except:
-	        pass
-	return file_list
-  
-    #Returns a list of PDB protein segments
-    def getProteinSegPDBList(self):
-        file_list = []
-        seg_list = self.segids.split(' ')
-        for item in seg_list:
-  	    fname = "new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb"
-            try:
-    	        os.stat(self.location + fname)
-    	        file_list.append(fname)
-	    except:
-                fname = "new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb"
-                try:
-                    os.stat(self.location + fname)
-                    file_list.append(fname)
-                except:
-                    pass
-
-        return file_list
-    
-    #Returns a list of Goodhet PDBs
-    def getGoodHetPDBList(self):
-        file_list = []
-        tip_list = self.good_het.split(' ')
-        for item in tip_list:
-            try:
-    	        os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-    	        file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-	    except:
-                try:
-             	    os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-                    file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-                except:
-	            pass
-	return file_list
-   
-    #Returns a list of NonGoodhet PDBs
-    def getNonGoodHetPDBList(self):
-        file_list = []
-        het_list = self.nongood_het.split(' ')
-        for item in het_list:
-            try:
-    	        os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-    	        file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-	    except:
-                try:
-                    os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-                    file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-                except:
-	            pass
-	return file_list
-  
-    #Gets basic protein segment file list for the download files page
-    def getDownloadSegmentList(self):
-        file_list = []
-        seg_list = self.segids.split(' ')
-        tip_list = self.good_het.split(' ')
-        het_list = self.nongood_het.split(' ')
-        done = re.compile('Done')
-        fail = re.compile('Failed')
-        for item in seg_list:
-            try:
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-                temphandle.close()
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.psf")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.crd")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".out")
-                temphandle.close()
-            except:
-                pass
-        for item in tip_list:
-            try:
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-                temphandle.close()
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.psf")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.crd")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".out")
-                temphandle.close()
-            except:
-                pass
-        for item in het_list:
-            try:
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-                temphandle = open(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + "-f.pdb",'r')
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.psf")
-                file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.crd")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-                file_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".out")
-                temphandle.close()
-            except:
-               pass
-        return file_list
-    
     #Returns a list of files not specifically associated with the structure
-    def getNonProteinFiles(self):
+    def getNonStructureFiles(self):
         file_list = []
 	file_list.append("/solvation/water.crd")
         file_list.append("/scripts/savegv.py")
@@ -669,220 +247,16 @@ class PDBFile(models.Model):
         file_list.append("/scripts/calcewald.pl")
         return file_list
 
-    #Gets list of PDBs that have been processed
-    def getFileList(self):
-
-        file_list = []
-        seg_list = self.segids.split(' ')
-        tip_list = self.good_het.split(' ')
-        het_list = self.nongood_het.split(' ')
-
-        done = re.compile('Done')
-        for item in seg_list + het_list + tip_list:
-            try:
-                if os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb"):
-                    file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + "-final.pdb")
-            except:
-                try:
-                    if os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb"):
-                       	file_list.append("new_" + self.stripDotPDB(self.filename) + "-" + item + ".pdb")
-               	except:
-                    pass
-
-	if(done.search(self.append_status)):
-          file_list.append("new_" + self.stripDotPDB(self.filename) + "-final.pdb")
-	try:
-	    minimize_params = minimization.models.minimizeParams.objects.filter(pdb=self,selected='y')[0].statusHTML
-	except:
-	    minimize_params = ''
-        if(done.search(minimize_params)):
-          file_list.append("new_" + self.stripDotPDB(self.filename) + "-min.pdb")
-	try:
-	    solvation_params = solvation.models.solvationParams.objects.filter(pdb = self, selected = 'y')[0].statusHTML
-	except:
-	    solvation_params = ''
-        if(done.search(solvation_params)):
-           file_list.append("new_" + self.stripDotPDB(self.filename) + "-solv.pdb")
-           try:
-              os.stat(self.location + "new_" + self.stripDotPDB(self.filename) + "-neutralized.pdb")
-              file_list.append("new_" + self.stripDotPDB(self.filename) + "-neutralized.pdb")
-           except:
-              pass
-	try:
-	    md_status = dynamics.models.mdParams.objects.filter(pdb = self, selected = 'y')[0].statusHTML
-	except:
-	    md_status = ''
-        if(done.search(md_status)):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-md.pdb")
-	
-        try:
-	    nma_status = normalmodes.models.nmodeParams.objects.filter(pdb = self, selected = 'y')[0].statusHTML
-	except:
-	    nma_status = ''
-	if(done.search(nma_status)):
-            nmtrjnum = getNormalModeMovieNum(self)
-            for trj in range(nmtrjnum):
-                trj += 1
-                file_list.append('new_' + self.stripDotPDB(self.filename) + '-nma-mainmovie-' + str(trj) + '.pdb')
-	try:
-	    md_movie_status = dynamics.models.mdParams.objects.filter(pdb = self, selected = 'y')[0].md_movie_status
-	except:
-	    md_movie_status = ''
-        if(md_movie_status):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-md-mainmovie.pdb")
-	try:
-	    ld_status = dynamics.models.ldParams.objects.filter(pdb = self, selected = 'y')[0].statusHTML
-	except:
-	    ld_status = ''
-        if(done.search(ld_status)):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-ld.pdb")
-	try:
-	    ld_movie_status = dynamics.models.ldParams.objects.filter(pdb = self, selected = 'y')[0].ld_movie_status
-	except:
-	    ld_movie_status = ''
-        if(ld_movie_status):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-ld-mainmovie.pdb")
-	try:
-	    sgld_status = dynamics.models.sgldParams.objects.filter(pdb = self, selected = 'y')[0].statusHTML
-	except:
-	    sgld_status = ''
-        if(done.search(sgld_status)):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-sgld.pdb")
-	try:
-	    sgld_movie_status = dynamics.models.sgldParams.objects.filter(pdb = self, selected = 'y')[0].sgld_movie_status
-	except:
-	    sgld_movie_status = ''
-        if(sgld_movie_status):
-            file_list.append("new_" + self.stripDotPDB(self.filename) + "-sgld-mainmovie.pdb")
-        
-        return file_list 
-    
-    #Checks for all input files that may have been created
-    #and returns it as a list
-    def getInputList(self):
-        input_list = []
-        seg_list = self.segids.split()
-        het_list = self.nongood_het.split(' ')
-        tip_list = self.good_het.split(' ')
-        done = re.compile('Done')
-        fail = re.compile('Failed')
-
-	for item in het_list:
-	    try:
-    	        os.stat(self.location + "charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-    	        input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-    	        input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".out")
-	    except:
-	        pass
-        for item in seg_list:
-            try:
-    	        os.stat(self.location + "charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-    	        input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-    	        input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".out")
-    	    except:
-    	        pass
-        for item in tip_list:
-            try:
-    	        os.stat(self.location + "charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-    	        input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".inp")
-    	        input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-" + item + ".out")
-    	    except:
-    	        pass
-        try:
-    	    os.stat(self.location + "charmm-" + self.stripDotPDB(self.filename) + "-energy" + ".inp")
-    	    input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-energy" + ".inp")
-    	    input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-energy" + ".out")
-    	except:
-    	    pass
-	if(done.search(self.append_status)):
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-append.inp")
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-append.out")
-	try:
-	    minimize_status = minimization.models.minimizeParams.objects.filter(pdb = self, selected = 'y')[0].statusHTML
-	except:
-	    minimize_status = ''
-        if done.search(minimize_status) or fail.search(minimize_status):
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-min.inp")
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-min.out")
-	try:
-	    solvation_status = solvation.models.solvationParams.objects.filter(pdb = self, selected = 'y')[0].statusHTML
-	except:
-	    solvation_status = ''
-        if done.search(solvation_status) or fail.search(solvation_status):
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-solv.inp")
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-solv.out")
-            try:
-                os.stat(self.location + "charmm-" + self.stripDotPDB(self.filename) + "-neutralize.inp")
-                input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-neutralize.inp")
-            except:
-                pass
-            try:
-                os.stat(self.location + "charmm-" + self.stripDotPDB(self.filename) + "-neutralize.out")
-                input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-neutralize.out")
-            except:
-                pass
-	try:
-	    nma_status = normalmodes.models.nmodeParams.objects.filter(pdb = self, selected = 'y')[0].statusHTML
-	except:
-	    nma_status = ''
-        if done.search(nma_status) or fail.search(nma_status):
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-nmodes.inp")
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-nmodes.out")
-        #get parameter and check status
-	try:
-	    md_status = dynamics.models.mdParams.objects.filter(pdb = self, selected = 'y')[0].statusHTML
-	except:
-	    md_status = ''
-        if done.search(md_status) or fail.search(md_status):
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-md.inp")
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-md.out")
-            
-	try:
-	    ld_status = dynamics.models.ldParams.objects.filter(pdb = self, selected = 'y')[0].statusHTML
-	except:
-	    ld_status = ''
-        if done.search(ld_status) or fail.search(ld_status):
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-ld.inp")
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-ld.out")
-            
-	try:
-	    sgld_status = dynamics.models.sgldParams.objects.filter(pdb = self, selected = 'y')[0].statusHTML
-	except:
-	    sgld_status = ''
-        if done.search(sgld_status) or fail.search(sgld_status):
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-sgld.inp")
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-sgld.out")
-
-        try:
-            os.stat(self.location + "charmm-" + self.stripDotPDB(self.filename) + "-rmsd.inp")
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-rmsd.inp")
-            os.stat(self.location + "charmm-" + self.stripDotPDB(self.filename) + "-rmsd.out")
-            input_list.append("charmm-" + self.stripDotPDB(self.filename) + "-rmsd.out")
-        except:
-            pass
-
-        loc = os.getcwd()
-        os.chdir(self.location)
-        input_list += glob.glob("redox-%s-*.inp" % self.stripDotPDB(self.filename))
-        input_list += glob.glob("redox-%s-*.out" % self.stripDotPDB(self.filename))
-        os.chdir(loc)
-
-        return input_list 
-
     #takes the information from the Remark statement of
     #a PDB and determines the title, jrnl, and author
-    def getHeader(self):
-        dfp = None
-        dspatchfile = self.location + "/pdb_disulfides-" + self.stripDotPDB(self.filename) + ".patch"
-
+    def getHeader(self,pdbHeader):
         remark = re.compile('REMARK')
         title = re.compile('TITLE')
         jrnl = re.compile('JRNL')
         author = re.compile('AUTHOR') 
         ref = re.compile('REF') 
         refn = re.compile('REFN')
-        temp = open(self.location + "/" + self.filename, 'r')
-        for line in temp:
+        for line in pdbHeader.split('\n'):
 	    #ignore remark statements
             if(remark.match(line)):            
                 break
@@ -894,19 +268,17 @@ class PDBFile(models.Model):
                 self.journal = self.journal + line.strip()
             elif line.startswith("SSBOND"):
                 # process disulfide bridges
-                if not dfp:
-                    dfp = open(dspatchfile, 'w')
-                    self.pdb_disul = dspatchfile
-                    self.save()
-                tlist = string.splitfields(line)
+                dspatch = structure.Patch()
+                dspatch.structure = self
+                dspatch.patch_name = 'disul'
                 try:
-                    dfp.write('%s:%s-%s:%s\n' % (tlist[3].lower(), tlist[4], tlist[6].lower(), tlist[7]))
+                    dspatch.patch_atoms = '%s:%s-%s:%s\n' % (tlist[3].lower(), tlist[4], tlist[6].lower(), tlist[7])
+                    dspatch.save()
                 except:
                     # ToDo, we should raise some sort of parse error here, but for now just pass
                     pass
-        if dfp:
-            dfp.close()
-	if(self.title):
+
+	if self.title:
             self.title = (title.sub('',self.title))
             if len(self.title) > 249:
                 self.title = self.title[0:248]
@@ -929,27 +301,6 @@ class PDBFile(models.Model):
 	    self.journal = "No information found"
         temp.close()
  
-    #pre: 
-    #post: Returns 1 if there is only  a custom 
-    #topology file, 2 if there is only a custom 
-    #parameter, 3 if both, -1 if none
-    def ifExistsRtfPrm(self):
-        if self.rtf and self.prm:
-            if self.prm.startswith("genrtf") or self.prm.startswith("antechamber"):
-                return -1
-	    return 3
-	if self.rtf:
-            if self.rtf.startswith("genrtf") or self.rtf.startswith("antechamber"):
-                return -1
-	    return 1
-	if self.prm:
-            if self.prm.startswith("genrtf") or self.prm.startswith("antechamber"):
-                return -1
-	    return 2
-	else:
-	    return -1
-
-
     #pre:requires a request object
     #checks if there was a topology or parameter file
     #and if there was it will store the information
@@ -1160,77 +511,6 @@ class PDBFile(models.Model):
 	else:
 	    self.prm = ""
 
-    #pre:requires a reference to itself
-    #Returns the path of a rtf/prm file depending on
-    #whether the user uploaded one of not
-    def getRtfPrmPath(self):
-        rtf_prm_dict = {}
-	# in the case where genRTF has been made, it should be appended and the RTF/PRM
-	# should not be changed either
-	rtf_prm_dict["rtf"] = "/usr/local/charmming/toppar/top_all27_prot_na.rtf"
-        rtf_prm_dict["prm"] = "/usr/local/charmming/toppar/par_all27_prot_na.prm"
-	return rtf_prm_dict
-
-    #pre:requires a string
-    #If a line contains segid-goodhet, this function will
-    #return the segid
-    def segidFromGoodhet(self,line_with_goodhet):
-        strip_goodhet = re.compile('-goodhet')
-	list_without_goodhet = strip_goodhet.sub('',line_with_goodhet)
-	line_without_goodhet = ' '.join(list_without_goodhet)
-	return line_without_goodhet
-
-    #pre: requires a string
-    #This will return a string of the filename without
-    #the .crd
-    def stripDotCOR(self, old_filename):
-        new_filename = old_filename
-	pdb = re.compile('.cor')
-        new_filename = 	pdb.sub('',new_filename)
-        return new_filename
-    
-    #pre: requires a string
-    #This will return a string of the filename without
-    #the .crd
-    def stripDotCRD(self, old_filename):
-        new_filename = old_filename
-	pdb = re.compile('.crd')
-        new_filename = 	pdb.sub('',new_filename)
-        return new_filename
-    
-    #pre: requires a string
-    #This will return a string of the filename without
-    #the .pdb
-    def stripDotPDB(self, old_filename):
-        new_filename = old_filename
-	pdb = re.compile('.pdb')
-        new_filename = 	pdb.sub('',new_filename)
-	return new_filename
-
-    #pre: requires a string
-    #This will return a string of the filename without
-    #the prefix new_
-    def stripNew(self, old_filename):
-        new_filename = old_filename
-	new = re.compile('new_')
-        new_filename = 	new.sub('',new_filename)
-	return new_filename
-	
-    #pre: requires a filename in the format new_temp-seg.pdb
-    #This strips out the new_temp-
-    def getSegIdFromFilename(self, old_filename):
-        tempregex = re.compile('new_\w*-\d*-')
-        new_filename = 	tempregex.sub('',old_filename)
-	new_filename = self.stripDotPDB(new_filename)
-        nfl = new_filename.split("-")[1:]
-        if len(nfl) > 1:
-           if "het" == nfl[1] or "goodhet" == nfl[1] or "pro" == nfl[1] or "rna" == nfl[1] or "dna" == nfl[1] or "go" == nfl[1] or "bln" == nfl[1]:
-              return '-'.join(nfl[:2])
-           else:
-              return nfl[0]
-        else:
-           return nfl[0]
-
     # Tim Miller, make hetid RTF/PRM using antechamber
     def makeAntechamber(self,hetids,doHyd):
         os.putenv("ACHOME", "/usr/local/charmming/antechamber")
@@ -1360,21 +640,6 @@ class PDBFile(models.Model):
         os.chdir(cwd)
 
     
-    #pre: requires a list of segids
-    #post: reveals if there is already a basic input for 
-    #the segids. This is done so a person can solvate
-    #before minimization
-    
-    def ifBasicInputExists(self,seg):
-        cpath = self.location + 'new_' + self.stripDotPDB(self.filename) + '-' + seg + '-final.crd'
-        ppath = self.location + 'new_' + self.stripDotPDB(self.filename) + '-' + seg + '-final.psf'
-	try:
-	   os.stat(cpath)
-	   os.stat(ppath)
-	except:
-	   return False
-	return True
-
     #pre: Requires a valid CHARMM title
     #This will make and return the header files for a CHARMM file such as the paramter/topology
     #paths and CHARMM title
@@ -1474,28 +739,6 @@ open read unit 84 card name /usr/local/charmming/solvation/scpism.inp
  
 	return charmm_inp
 	
-    def getTopologyList(self):
-        rtf_prm_dict = self.getRtfPrmPath()
-        rlist = []
-        if self.rtf_append_replace == None or self.rtf_append_replace == 'append':
-            rlist.append(rtf_prm_dict['rtf'])
-            if self.rtf:
-                rlist.append(self.rtf)
-        else:
-            rlist.append(self.rtf)
-        return rlist
-
-    def getParameterList(self):
-        rtf_prm_dict = self.getRtfPrmPath()
-        rlist = []
-        if not self.prm_append_replace or self.prm_append_replace == 'append':
-            rlist.append(rtf_prm_dict['prm'])
-            if self.prm:
-                rlist.append(self.prm)
-        else:
-            rlist.append(self.prm)
-        return rlist
-
     def makeBasicInput_tpl(self,seg,postdata,scriptlist):
         goodhet = re.compile('goodhet')
         line_is_goodhet = 0
