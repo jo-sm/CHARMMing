@@ -6,12 +6,12 @@ from django.contrib.auth.models import User
 from lessons.models import LessonProblem
 from minimization.models import minimizeParams
 import os, re
-import pdbinfo, lessonaux, charmming_config
+import structure, lessonaux, charmming_config
 
 
 class Lesson4(models.Model):
     # data for lessons (should not be overridden by subclasses)
-    # specifying both user and PDBFile is redundant (since the PDBFile references the user),
+    # specifying both user and Structure is redundant (since the Structure references the user),
     # but makes it easier to look up all lessons being done by a particular user.
     user = models.ForeignKey(User)
     nSteps = models.PositiveIntegerField(default=4)
@@ -23,7 +23,7 @@ class Lesson4(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson4',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         all_segids = file.segids.split() + file.good_het.split() + file.nongood_het.split()
         try:
             filename1 = file.location + 'prm-' + file.stripDotPDB(file.filename) + '.crd.prm'
@@ -67,7 +67,7 @@ class Lesson4(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson4',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         mp = minimizeParams.objects.filter(pdb=file,selected='y')[0]
         if mp.sdsteps != 100:
             lessonprob = LessonProblem(lesson_type='lesson4',lesson_id=self.id,errorstep=4,severity=2,description='SD steps were not set to 100.')

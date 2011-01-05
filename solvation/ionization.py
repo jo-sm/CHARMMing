@@ -16,7 +16,6 @@
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
 import os
-from pdbinfo.models import PDBFile, PDBFileForm
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from solvation.models import solvationParams

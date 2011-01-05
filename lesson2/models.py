@@ -8,7 +8,7 @@ from solvation.models import solvationParams
 from minimization.models import minimizeParams
 from dynamics.models import mdParams
 import os, re
-import pdbinfo, lessonaux, charmming_config
+import structure, lessonaux, charmming_config
 
 class Lesson2(models.Model):
     # data for lessons (should not be overridden by subclasses)
@@ -24,7 +24,7 @@ class Lesson2(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson2',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         all_segids = file.segids.split() + file.good_het.split() + file.nongood_het.split()
         try:
             filename1 = '%s/mytemplates/lessons/lesson2/par_all27_cmap_chol.prm' % charmming_config.charmming_root
@@ -69,7 +69,7 @@ class Lesson2(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson2',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         mp = minimizeParams.objects.filter(pdb=file,selected='y')[0]
         if filename not in ['new_' + file.stripDotPDB(file.filename) + '-neutralized']:
             lessonprob = LessonProblem(lesson_type='lesson2',lesson_id=self.id,errorstep=3,severity=2,description='Please minimize the neutralized PDB.')
@@ -122,7 +122,7 @@ class Lesson2(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson2',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         sp = solvationParams.objects.filter(pdb=file,selected='y')[0]
 
         #This ensures the user selected the right PDBs
@@ -190,7 +190,7 @@ class Lesson2(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson2',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         mdp = mdParams.objects.filter(pdb=file,selected='y')[0]
 
         if float(self.curStep) == 3.0:

@@ -2,7 +2,7 @@ from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
-from pdbinfo.models import PDBFile, PDBFileForm
+from structure.models import Structure
 from lessons.models import LessonProblem
 from lesson.models import Lesson
 from django.contrib.auth.models import User
@@ -17,7 +17,7 @@ import os
 def lessonDisplay(request):
     PDBFile().checkRequestData(request)
     try:
-        file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return render_to_response('html/lesson.html')
     #If its a lesson object, get the id by the file id

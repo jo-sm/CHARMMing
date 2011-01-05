@@ -22,12 +22,11 @@ from django.shortcuts import render_to_response
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User,Group
 from wiki.models import *
-from pdbinfo.models import *
-import os
-import re
-import smtplib
 from django.core.mail import mail_admins
 from BeautifulSoup import BeautifulSoup, Comment
+import structure.models
+import os, re, smtplib
+
 #The general Wiki will be the generic wiki 
 def loadGeneric(request,boardname):
     if not request.user.is_authenticated():

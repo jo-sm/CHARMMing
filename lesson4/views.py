@@ -19,7 +19,7 @@ from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
-from pdbinfo.models import PDBFile, PDBFileForm 
+from structure.models import Structure
 from lessons.models import LessonProblem
 from lesson4.models import Lesson4
 from django.contrib.auth.models import User
@@ -34,9 +34,9 @@ import os
 def lesson4Display(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    Structure.checkRequestData(request)
     try:
-        file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return render_to_response('html/lesson4.html')
     #If its a lesson1 object, get the id by the file id

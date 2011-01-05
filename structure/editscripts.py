@@ -18,8 +18,8 @@
 
 import re
 import os
-from pdbinfo.models import PDBFile
-from pdbinfo.aux import parseEnergy
+from structure.models import Structure
+from structure.aux import parseEnergy
 from django.http import HttpResponseRedirect, HttpResponse
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
@@ -33,7 +33,7 @@ import account
 def runJob(request):
     if not account.views.isUserTrustworthy(request.user):
         return False
-    file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+    file = Structure.objects.filter(owner=request.user,selected='y')[0]
     scriptlist = request.POST['scriptlist'].split(',')
     jobtype = request.POST['jobtype']
     user_id = file.owner.id
@@ -128,7 +128,7 @@ def runJob(request):
 def changeScript(request):
     if not account.views.isUserTrustworthy(request.user):
         return False
-    file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+    file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     charmm_filename = request.POST['filename']
     input_text = request.POST['text']
     os.chdir(file.location)
@@ -141,7 +141,7 @@ def changeScript(request):
 def getInputData(request):
     if not account.views.isUserTrustworthy(request.user):
         return False
-    file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+    file = Structure.objects.filter(owner=request.user,selected='y')[0]
     file.checkRequestData(request)
     os.chdir(file.location)
     charmm_filename = request.POST['filename']

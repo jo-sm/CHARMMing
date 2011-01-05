@@ -19,13 +19,13 @@ from django.template.loader import get_template
 from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
-from pdbinfo.models import PDBFile, PDBFileForm 
-from pdbinfo.aux import checkNterPatch
+from structure.models import Structure
+from structure.aux import checkNterPatch
 from minimization.views import append_tpl
 from solvation.ionization import neutralize_tpl
 from solvation.models import solvationParams
 from account.views import isUserTrustworthy
-from pdbinfo.editscripts import generateHTMLScriptEdit
+from structure.editscripts import generateHTMLScriptEdit
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
@@ -38,10 +38,10 @@ import lessonaux, charmming_config
 def solvationformdisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    Structure.checkRequestData(request)
     try:
         #chooses the file based on if it is selected or not
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
     os.chdir(file.location)

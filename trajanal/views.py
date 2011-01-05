@@ -15,13 +15,13 @@
 #  Government disclaim all warranties, express or implied, including
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
-import pdbinfo
+import structure
 import output
 import django.shortcuts, django.http, django.template, django.template.loader
 import minimization.views
 from django.contrib.auth.models import User
 from trajanal.models import trajAnalParams, trajanalFileForm
-from pdbinfo.aux import checkNterPatch
+from structure.aux import checkNterPatch
 from account.views import isUserTrustworthy
 import charmming_config
 
@@ -57,7 +57,7 @@ def trajanalformdisplay(request):
         return django.shortcuts.render_to_response('html/loggedout.html')
     #chooses the file based on if it is selected or not
     try:
-        file =  pdbinfo.models.PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
 	return django.http.HttpResponse("Please submit a structure first.")
 

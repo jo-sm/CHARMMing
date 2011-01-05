@@ -8,7 +8,7 @@ from minimization.models import minimizeParams
 from dynamics.models import mdParams, ldParams, sgldParams
 from normalmodes.models import nmodeParams
 import os
-import pdbinfo
+import structure
 import lessonaux
 import re
 from django.template import Context, loader

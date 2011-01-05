@@ -18,7 +18,7 @@
 
 import re, os
 import django.shortcuts, django.http, django.template.loader, django.template
-import pdbinfo.models
+import structure.models
 import minimization.views
 import apbs.models
 import charmming_config, output, scheduler
@@ -26,11 +26,11 @@ import charmming_config, output, scheduler
 def redoxformdisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    pdbinfo.models.PDBFile().checkRequestData(request)
+    structure.models.Structure.checkRequestData(request)
 
     #chooses the file based on if it is selected or not
     try:
-        file = pdbinfo.models.PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return django.http.HttpResponse("Please submit a structure first.")
 

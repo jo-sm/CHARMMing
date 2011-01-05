@@ -19,9 +19,9 @@ from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
-from pdbinfo.models import PDBFile, PDBFileForm 
-from pdbinfo.qmmm import makeQChem, handleLinkAtoms
-from pdbinfo.editscripts import generateHTMLScriptEdit
+from structure.models import Structure
+from structure.qmmm import makeQChem, handleLinkAtoms
+from structure.editscripts import generateHTMLScriptEdit
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
@@ -36,7 +36,7 @@ import lessons
    
 def displayLessonStatus(request):
     try:
-        file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse('')
 

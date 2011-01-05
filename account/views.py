@@ -16,13 +16,11 @@
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
 from django.contrib import auth
-#from pdbinfo.models import *
-#from pdbinfo.views import *
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User,Group
-from pdbinfo.models import PDBFile
+from structure.models import Structure
 from account.models import *
 import django.forms
 import os, re, smtplib, random, string
@@ -260,7 +258,7 @@ def login(request):
         auth.login(request, user)
         #check to see if there is a lesson for the lesson status bar
         try:
-            file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+            file = Structure.objects.filter(owner=request.user,selected='y')[0]
             lessontype = file.lesson_type
         except:
             lessontype = None
@@ -299,7 +297,7 @@ def skeleton(request):
         
         #check to see if there is a lesson for the lesson status bar
         try:
-            file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+            file = Structure.objects.filter(owner=request.user,selected='y')[0]
             lessontype = file.lesson_type
         except:
             lessontype = None
@@ -326,4 +324,3 @@ def logout(request):
     auth.logout(request)
     # Redirect to a success page.
     return HttpResponseRedirect("/charmming", {'logout':1})
-# Create your views here.

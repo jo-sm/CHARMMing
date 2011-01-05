@@ -8,12 +8,12 @@ from solvation.models import solvationParams
 from minimization.models import minimizeParams
 from dynamics.models import mdParams
 import os
-import pdbinfo, lessonaux, charmming_config
+import structure, lessonaux, charmming_config
 import re
 
 class Lesson1(models.Model):
     # data for lessons (should not be overridden by subclasses)
-    # specifying both user and PDBFile is redundant (since the PDBFile references the user),
+    # specifying both user and Structure is redundant (since the Structure references the user),
     # but makes it easier to look up all lessons being done by a particular user.
     user = models.ForeignKey(User)
     nSteps = models.PositiveIntegerField(default=4)
@@ -25,7 +25,7 @@ class Lesson1(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         all_segids = file.segids.split() + file.good_het.split() + file.nongood_het.split()
         try:
             filename1 = '%s/mytemplates/lessons/lesson1/1water.psf' % charmming_config.charmming_root 
@@ -56,7 +56,7 @@ class Lesson1(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         mp = minimizeParams.objects.filter(pdb=file,selected='y')[0]
         if filename not in ['new_' + file.stripDotPDB(file.filename) + '-solv']:
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=3,severity=2,description='Please minimize the solvated PDB.')
@@ -109,7 +109,7 @@ class Lesson1(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         sp = solvationParams.objects.filter(pdb=file,selected='y')[0]
         pdb_list = lessonaux.getPDBListFromPostdata(file,postdata)
 
@@ -172,7 +172,7 @@ class Lesson1(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         mdp = mdParams.objects.filter(pdb=file,selected='y')[0]
         if filename not in ['new_' + file.stripDotPDB(file.filename) + '-min.pdb']:
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=2,description='Please run dynamics on the minimized PDB (-min).')

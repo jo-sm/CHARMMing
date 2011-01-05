@@ -18,8 +18,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django import forms
-import pdbinfo
-
 
 # trajectory analysis parameters
 class trajAnalParams(models.Model):

@@ -20,10 +20,10 @@ from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
-from pdbinfo.models import PDBFile, PDBFileForm, goModel 
-from pdbinfo.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
-from pdbinfo.editscripts import generateHTMLScriptEdit
-from pdbinfo.aux import checkNterPatch
+from structure.models import Structure, goModel 
+from structure.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
+from structure.editscripts import generateHTMLScriptEdit
+from structure.aux import checkNterPatch
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
@@ -41,10 +41,10 @@ import commands
 def minimizeformdisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    Structure.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
     os.chdir(file.location)
@@ -99,7 +99,7 @@ def minimizeformdisplay(request):
 	    except:
 	        tempid = "null"
         if tempid != "null":
-            file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+            file =  Structure.objects.filter(owner=request.user,selected='y')[0]
 	    try:
 	        if(request.POST['usepatch']):
 		    file.handlePatching(request.POST)

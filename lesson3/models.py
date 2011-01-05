@@ -9,7 +9,7 @@ from minimization.models import minimizeParams
 from dynamics.models import mdParams
 from dynamics.models import ldParams, sgldParams
 import os, re
-import pdbinfo, lessonaux, charmming_config
+import structure, lessonaux, charmming_config
 
 class Lesson3(models.Model):
     # data for lessons (should not be overridden by subclasses)
@@ -31,7 +31,7 @@ class Lesson3(models.Model):
 	    for lessn in oldlessons:
 	        if lessn.curStep == 3:
 		    oldlesson = lessn
-                    file = pdbinfo.models.PDBFile.objects.filter(owner=self.user,lesson_id=oldlesson.id)[0]
+                    file = structure.models.Structure.objects.filter(owner=self.user,lesson_id=oldlesson.id)[0]
 	            second_upload = 1
 		    break
             lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=file.id,errorstep=4,severity=9,description='You must perform the other steps first! This is the last step of the lesson!')
@@ -39,7 +39,7 @@ class Lesson3(models.Model):
 	    second_upload = 0
 	if second_upload == 1:
 	    try:
-                file2 = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+                file2 = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
                 filename1 = '%s/mytemplates/lessons/lesson3/1yjp-a.pdb' % charmming_config.charmming_root
                 filename2 = '%s/mytemplates/lessons/lesson3/1yjp-a-goodhet.pdb' % charmming_config.charmming_root
 		filename3 = file2.location + 'new_' + file2.stripDotPDB(file2.filename) + '-a-pro.pdb'
@@ -58,7 +58,7 @@ class Lesson3(models.Model):
 	    file2.save()
 	    self.delete()
 	else:
-            file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+            file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
             try:
                 filename1 = '%s/mytemplates/lessons/lesson3/1yjp-sequ.pdb' % charmming_config.charmming_root
                 filename2 = file.location + 'new_' + file.stripDotPDB(file.filename) + '-sequ-pro.pdb'
@@ -83,7 +83,7 @@ class Lesson3(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson3',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         mp = minimizeParams.objects.filter(pdb=file,selected='y')[0]
         pdb_list = lessonaux.getPDBListFromPostdata(file,postdata)
         acceptable_pdb_list = ['new_' + file.stripDotPDB(file.filename) + '-sequ-pro.pdb']
@@ -159,7 +159,7 @@ class Lesson3(models.Model):
             LessonProblem.objects.filter(lesson_type='lesson3',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = pdbinfo.models.PDBFile.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
         sgldp = sgldParams.objects.filter(pdb=file,selected='y')[0]
 
         #there should only be one filename in the PDBList from postdata and that should be

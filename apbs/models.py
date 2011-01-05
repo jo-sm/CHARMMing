@@ -18,7 +18,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 import django.forms
-import pdbinfo
+import structure
 
 class apbsParams(models.Model):
     gdim_x = models.PositiveIntegerField(default=0)
@@ -30,7 +30,7 @@ class apbsParams(models.Model):
 
 class redoxParams(models.Model):
     selected = models.CharField(max_length=1)
-    pdb = models.ForeignKey(pdbinfo.models.PDBFile,null=True)
+    pdb = models.ForeignKey(structure.models.Structure,null=True)
     statusHTML = models.CharField(max_length=250)
     segments = models.CharField(max_length=250)
     redoxsite = models.CharField(max_length=250) # segid + 1-/2- or 2-/3-

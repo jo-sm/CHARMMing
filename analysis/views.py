@@ -19,7 +19,7 @@
 from django.template.loader import get_template
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
-from pdbinfo.models import PDBFile
+from structure.models import Structure
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from django.template import *
@@ -197,10 +197,10 @@ def calcRMSD_tpl(file,postdata,mlist):
 def rmsformdisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    Structure.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
     os.chdir(file.location)
@@ -312,10 +312,10 @@ import dynamics.models
 def domdprop(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    Structure.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
 
@@ -346,10 +346,10 @@ def domdprop(request):
 def getmdprop(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    Structure.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
 

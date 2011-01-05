@@ -19,14 +19,14 @@ from django import forms
 from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
-from pdbinfo.models import PDBFile, PDBFileForm 
-from pdbinfo.qmmm import makeQChem, makeQChem_tpl, writeQMheader
+from structure.models import Structure 
+from structure.qmmm import makeQChem, makeQChem_tpl, writeQMheader
 from minimization.views import append_tpl
 from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeParams
 from account.views import isUserTrustworthy
-from pdbinfo.editscripts import generateHTMLScriptEdit
-from pdbinfo.aux import checkNterPatch
+from structure.editscripts import generateHTMLScriptEdit
+from structure.aux import checkNterPatch
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
@@ -36,10 +36,11 @@ import re, copy, os, shutil
 import lessonaux, charmming_config
 
 #returns atom number
+# Must be re-written
 def calcAtomNumber(request):
-    PDBFile().checkRequestData(request)
+    Structure.checkRequestData(request)
     try:
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        struct =  Structure.objects.filter(owner=request.user,selected='y')[0]
         os.chdir(file.location)
     except:
         return HttpResponse("Please submit a structure first.")
@@ -53,7 +54,7 @@ def calcAtomNumber(request):
     time_list = time_filenames.split(',')
     total_atom_num = 0
     for pdb in time_list: 
-        total_atom_num += file.countAtomsInPDB(pdb)
+        total_atom_num += struct.countAtomsInPDB(pdb)
     x = total_atom_num
     return HttpResponse(str(int(x)))
 
@@ -62,10 +63,10 @@ def calcAtomNumber(request):
 def normalmodesformdisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    Structure.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
     os.chdir(file.location)
@@ -614,7 +615,7 @@ def makeNmaMovie_tpl(file,postdata,filename,scriptlist,num_trjs,typeoption):
     #because the PDBs must be appended together after the above script has been run.
     #Once the DAG and query stuff has been implemented, this is how the following code should
     #be changed to
-    #1. Create a new field in the PDBFile object called movie_status
+    #1. Create a new field in the Structure object called movie_status
     #2. In the status method, check to see if movie_status is done
     #3. If it is done, call the method combinePDBsForMovie(...): right below the following code.
 
@@ -639,86 +640,6 @@ def makeNmaMovie_tpl(file,postdata,filename,scriptlist,num_trjs,typeoption):
         nmm.statusHTML = statsDisplay(sstring,newJobID)
         #nmm.nma_movie_status = "<font color=33CC00>Done</font>"
         nmm.save()
-        file.save()
-        return "Done."
-
-#makes NMA Movie
-def makeNmaMovie(file,postdata,filename,scriptlist,num_trjs,typeoption):
-    nmm = nmodeParams.objects.filter(pdb = file, selected = 'y')[0]
-    charmm_inp = """* NMA Movie making
-*
-
-bomlev -1
-
-open read unit 2 card name new_""" + file.stripDotPDB(file.filename) + """-nmodes.psf
-read psf card unit 2
-close unit 2
-"""
-    if typeoption == 'enm':
-        charmm_inp += """
-! Define CGREG to be all atoms. The stream file
-! will delete all of these (in this case, setting the
-! entire model to be coarse grained).
-DEFIne CGREG SELEct ALL END
-
-! Define CGATS to be all of the alpha carbons. These
-! will be the atoms that get left behind from the
-! deletion. 
-DEFIne CGATS SELEct ATOM * * CA END
-
-! I've set the VDW type for a coarse-grained atom to be
-! 98 in the custom RTF. We need to tell the stream this.
-SET cgtype 98
-
-! define CG centers with appropriate mass
-STREAM /usr/local/charmming/coarsegrain.str
-"""
-    charmm_inp += """
-set currtrj 1
-calc maxtrj """ + str(num_trjs) + """ + 1
-label outerloop
- open read unit 10 file name new_""" + file.stripDotPDB(file.filename) + """-mtraj_@currtrj.trj
- traj firstu 10 skip 1
-
- set i 1
-  label loop
-  traj read
-  open unit 1 card write name new_""" + file.stripDotPDB(file.filename) + """-nmapremovie@i-@currtrj.pdb
-  write coor pdb unit 1
-  **Cords
-  *
-  incr i by 1
-  if i lt 13 goto loop
- 
- incr currtrj by 1
- if currtrj lt @maxtrj goto outerloop
-
-stop"""
-    #Run the script through charmm, this is not done under job queue at the moment
-    #because the PDBs must be appended together after the above script has been run.
-    #Once the DAG and query stuff has been implemented, this is how the following code should
-    #be changed to
-    #1. Create a new field in the PDBFile object called movie_status
-    #2. In the status method, check to see if movie_status is done
-    #3. If it is done, call the method combinePDBsForMovie(...): right below the following code.
-    movie_filename = 'charmm-' + file.stripDotPDB(file.filename) + '-nmamovie.inp' 
-    movie_handle = open(file.location + movie_filename,'w')
-    movie_handle.write(charmm_inp)
-    movie_handle.close()
-    user_id = file.owner.id
-    scriptlist.append(file.location + movie_filename)
-    if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
-        return generateHTMLScriptEdit(charmm_inp,scriptlist,'nma')
-    else:		
-        si = schedInterface()
-        newJobID = si.submitJob(user_id,file.location,scriptlist)
-	if file.lesson_type:
-	    lessonaux.doLessonAct(file,"onNMASubmit",postdata,None)
-        file.nma_jobID = newJobID
-        sstring = si.checkStatus(newJobID)
-        nmm.statusHTML = statsDisplay(sstring,newJobID)
-        #nmm.nma_movie_status = "<font color=33CC00>Done</font>"
-	nmm.save()
         file.save()
         return "Done."
 

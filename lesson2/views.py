@@ -19,7 +19,7 @@ from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
-from pdbinfo.models import PDBFile, PDBFileForm 
+from structure.models import PDBFile, PDBFileForm 
 from lessons.models import LessonProblem
 from lesson2.models import Lesson2
 from django.contrib.auth.models import User

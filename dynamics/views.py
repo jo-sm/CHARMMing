@@ -18,10 +18,10 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template.loader import get_template
-from pdbinfo.models import PDBFile, PDBFileForm 
+from structure.models import Structure 
 from account.views import isUserTrustworthy
-from pdbinfo.editscripts import generateHTMLScriptEdit
-from pdbinfo.aux import checkNterPatch
+from structure.editscripts import generateHTMLScriptEdit
+from structure.aux import checkNterPatch
 from minimization.views import append_tpl
 from dynamics.models import mdParams,ldParams,sgldParams
 import rexModule
@@ -39,10 +39,10 @@ import lessonaux, output, charmming_config
 def lddisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    Structure.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
     os.chdir(file.location)
@@ -144,10 +144,10 @@ def lddisplay(request):
 def mddisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    Structure.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
     os.chdir(file.location)
@@ -712,7 +712,7 @@ stop"""
     #because the PDBs must be appended together after the above script has been run.
     #Once the DAG and query stuff has been implemented, this is how the following code should
     #be changed to
-    #1. Create a new field in the PDBFile object called movie_status
+    #1. Create a new field in the Structure object called movie_status
     #2. In the status method, check to see if movie_status is done
     #3. If it is done, call the method combinePDBsForMovie(...): right below the following code.
     if(type == 'md'):
@@ -771,7 +771,7 @@ stop"""
     file.save()
 #    combinePDBsForMovie(file)
  
-#pre: Requires a PDBFile object
+#pre: Requires a Structure object
 #Combines all the smaller PDBs make in the above method into one large PDB that
 #jmol understands
 #type is md,ld,or sgld

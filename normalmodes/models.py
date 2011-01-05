@@ -19,11 +19,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 from scheduler.schedInterface import schedInterface
-import pdbinfo
+import structure
 import django.forms
 
 class nmodeParams(models.Model):
-    pdb = models.ForeignKey(pdbinfo.models.PDBFile,null=True)
+    pdb = models.ForeignKey(structure.models.Structure,null=True)
     statusHTML = models.CharField(max_length=250)
     # type 1 = all atom, 2 - ENM
     type = models.PositiveIntegerField(default=0)
