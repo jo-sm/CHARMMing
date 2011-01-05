@@ -37,7 +37,6 @@ from django.core.mail import mail_admins
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
-from pdb_preparer import getModels
 from account.views import isUserTrustworthy
 from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch

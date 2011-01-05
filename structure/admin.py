@@ -1,7 +1,7 @@
 from django.contrib import admin
 from structure.models import Structure, energyParams, goModel, blnModel
 
-class pdbfileAdmin(admin.ModelAdmin):
+class structureAdmin(admin.ModelAdmin):
     pass
 
 admin.site.register(Structure, structureAdmin)
