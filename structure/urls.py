@@ -21,8 +21,8 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 
 urlpatterns = patterns('',
-     (r'^html/fileupload/$','pdbinfo.views.upload'),
-     (r'^html/viewpdbs/$','pdbinfo.views.viewpdbs'),
+     (r'^html/fileupload/$','structure.views.upload'),
+     (r'^html/viewpdbs/$','structure.views.viewpdbs'),
      (r'^html/skeleton/$',  'account.views.skeleton'),
 
     # Uncomment this for admin:
