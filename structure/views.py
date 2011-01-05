@@ -47,7 +47,7 @@ import structure.models
 from lesson_config import *
 import os, sys, re, copy, datetime, time, stat
 import mimetypes, string, random, glob, traceback, commands
-import charmming, charmming_config
+import charmming.io, charmming_config
 
 def getJobTime(request):
     if not request.user.is_authenticated():
