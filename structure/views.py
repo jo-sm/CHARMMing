@@ -75,7 +75,7 @@ def deleteFile(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     #make sure request data isn't malicious
-    PDBFile.checkRequestData(request)
+    structure.models.Structure.checkRequestData(request)
     delete_filename = request.POST['filename']
     deleteAll = 0
     remove_extension = re.compile('\.\S*')
@@ -83,9 +83,9 @@ def deleteFile(request):
 
     if(delete_filename == "all_files"):
         deleteAll = 1
-        total_files = PDBFile.objects.filter(owner=request.user)
+        total_files = Structure.objects.filter(owner=request.user)
     else:
-       file =  PDBFile.objects.filter(owner=request.user,filename=delete_filename)[0]
+       file =  Structure.objects.filter(owner=request.user,filename=delete_filename)[0]
        total_files = [file]
     for eachfile in total_files[::-1]:
         file = eachfile
@@ -171,7 +171,7 @@ def deleteFile(request):
 
         if file.selected == 'y' and deleteAll == 0:
             file.selected = ''
-            allFileList = PDBFile.objects.filter(owner=request.user)
+            allFileList = Structure.objects.filter(owner=request.user)
             if len(allFileList) >= 2:
                 # We need to change the selection to another file, arbitrarilty we choose
                 # the first one.
@@ -223,7 +223,7 @@ def downloadFilesPage(request,mimetype=None):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     try:
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return render_to_response('html/nopdbuploaded.html')
     os.chdir(file.location)
@@ -529,31 +529,32 @@ def downloadFilesPage(request,mimetype=None):
 def downloadTarFile(request,mimetype=None):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBfile =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
-    tar_filename = PDBfile.stripDotPDB(PDBfile.filename) + '.tar.gz'
-    tar_directory = PDBfile.location + PDBfile.stripDotPDB(PDBfile.filename)
-    os.system('rm -rf ' + tar_directory)
-    os.mkdir(tar_directory)
+    structure =  Structure.objects.filter(owner=request.user,selected='y')[0]
+    tar_filename = structure.name + '.tar.gz'
 
-    os.chdir(PDBfile.location)
-    os.system('rm -f ' + tar_filename)
-    os.system('cp *' + PDBfile.stripDotPDB(PDBfile.filename) + '* ' + tar_directory)
-    os.system('cp -r proto_' + PDBfile.stripDotPDB(PDBfile.filename) + ' ' + tar_directory)
+    username = request.user.username
+    os.chdir(charmming_config.user_home + username)
+
+    try:
+        os.unlink(tar_filename)
+    except:
+        pass
 
     # remove condor logs and error files
-    os.system('rm -f ' + tar_directory + '/*.{err,log}')
+    os.system('rm -f ' + struct.name + '/*.{err,log}')
 
-    os.system('cp ' + charmming_config.data_home + '/solvation/water.crd ' + tar_directory)
-    os.system('cp ' + charmming_config.data_home + '/calcewald.pl ' + tar_directory)
-    os.system('cp ' + charmming_config.data_home + '/savegv.py ' + tar_directory)
-    os.system('cp ' + charmming_config.data_home + '/savechrg.py ' + tar_directory)
-    os.system('cp ' + charmming_config.data_home + '/toppar/top_all27_prot_na.rtf ' + charmming_config.data_home + '/toppar/par_all27_prot_na.prm ' + tar_directory)
-    os.system('tar -czf ' + tar_filename + ' ' + PDBfile.stripDotPDB(PDBfile.filename))
-    username = request.user.username
+    os.system('cp ' + charmming_config.data_home + '/solvation/water.crd ' + struct.name)
+    os.system('cp ' + charmming_config.data_home + '/calcewald.pl ' + struct.name)
+    os.system('cp ' + charmming_config.data_home + '/savegv.py ' + struct.name)
+    os.system('cp ' + charmming_config.data_home + '/savechrg.py ' + struct.name)
+    os.system('cp ' + charmming_config.data_home + '/toppar/top_all27_prot_na.rtf ' + charmming_config.data_home + '/toppar/par_all27_prot_na.prm ' + struct.name)
+    os.system('tar -czf ' + tar_filename + ' ' + struct.name)
+    statinfo = os.stat(tar_filename)
     if mimetype is None:
         mimetype,encoding = mimetypes.guess_type("%s/%s/%s" % (charmming_config.user_home,username,tar_filename))
     response = HttpResponse(mimetype=mimetype)
-    response['Content-Disposition'] = 'attachment; filename=%s' %tar_filename
+    response['Content-Disposition'] = 'attachment; filename=%s' % tar_filename
+    response['Content-Length'] = statinfo.st_size
     response.write(file(charmming_config.user_home + "/" + username + "/" + tar_filename, "rb").read())
     return response
 
@@ -582,7 +583,7 @@ def downloadGenericFiles(request,filename, mimetype = None):
 def viewDynamicOutputContainer(request,jobtype):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+    file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     file.checkRequestData(request)
     file.checkForMaliciousCode(jobtype,request)
     if jobtype in ['minimization']:
@@ -634,7 +635,7 @@ def viewDynamicOutputContainer(request,jobtype):
 def viewDynamicOutput(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+    file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     file.checkRequestData(request)
     inputname = request.POST['inputname']
     return downloadProcessFiles(request,inputname)
@@ -666,7 +667,7 @@ def viewProcessFiles(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     try:
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please select a structure first.")
 
@@ -749,7 +750,7 @@ def visualize(request,filename):
         return render_to_response('html/loggedout.html')
     try:
         username = request.user.username
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
         file_list = file.getFileList()
         het_list = file.getNonGoodHetPDBList()
         tip_list = file.getGoodHetPDBList()
@@ -830,9 +831,9 @@ def viewstatus(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     try:
-        file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return render_to_response('html/statusreport.html', {'PDBFile': None })
+        return render_to_response('html/statusreport.html', {'structure': None })
     done = re.compile('Done')
 
     try:
@@ -893,14 +894,14 @@ def viewstatus(request):
         solv_param = solvationParams.objects.filter(pdb=file,selected='y')[0]
     except:
         solv_param = None
-    return render_to_response('html/statusreport.html', {'PDBFile': file, 'mini_param':mini_param, 'solv_param':solv_param, 'md_param':md_param, \
+    return render_to_response('html/statusreport.html', {'structure': file, 'mini_param':mini_param, 'solv_param':solv_param, 'md_param':md_param, \
                                                          'nma_param':nma_param,'ld_param':ld_param,'sgld_param':sgld_param, 'redox_param': redox_param})
 
 #Used to report an error. Used in calling problem.html
 def reportError(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    structure.models.Structure.checkRequestData(request)
     try:
         if(request.POST['errordescription'] != ''):
             emailmsg = 'Bug Reported!\n'
@@ -921,7 +922,7 @@ def reportError(request):
 def editProtonation(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+    file = Structure.objects.filter(owner=request.user,selected='y')[0]
     file.checkRequestData(request)
     plines = {}
     hist_list = {}
@@ -1007,9 +1008,9 @@ def viewprotores(request,segid,resid):
 # This subroutine kicks of jobs to visualize the protonizable residues
 def subProtoVis(plist,epdb,request):
     if epdb:
-        file = PDBFile.objects.filter(owner=request.user,filename=epdb)[0]
+        file = Structure.objects.filter(owner=request.user,filename=epdb)[0]
     else:
-        file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file = Structure.objects.filter(owner=request.user,selected='y')[0]
     try:
         os.stat(file.location + "proto_" + file.stripDotPDB(file.filename))
     except:
@@ -1065,12 +1066,12 @@ def subProtoVis(plist,epdb,request):
 def editPDB(request,edit_pdb):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkForMaliciousCode(edit_pdb,request)
+    structure.models.Structure.checkForMaliciousCode(edit_pdb,request)
     if(edit_pdb):
-        file = PDBFile.objects.filter(owner=request.user,filename=edit_pdb)[0]
+        file = Structure.objects.filter(owner=request.user,filename=edit_pdb)[0]
         warnings = file.ifWarningsExist()
         try:
-            oldfile = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+            oldfile = Structure.objects.filter(owner=request.user,selected='y')[0]
             oldfile.selected = ''
             oldfile.save()
             file.selected='y'
@@ -1078,7 +1079,7 @@ def editPDB(request,edit_pdb):
         except:
             pass
     else:
-        file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file = Structure.objects.filter(owner=request.user,selected='y')[0]
         warnings = file.ifWarningsExist()
     try:
        if request.GET:
@@ -1117,7 +1118,7 @@ def editMultiModel(request,modlist,makeGo,makeBLN):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     # deselect the current PDB and arbitrarily select the first PDB in the list...
-    oldfile = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+    oldfile = Structure.objects.filter(owner=request.user,selected='y')[0]
     oldfile.selected = ''
     oldfile.save()
     file = modlist[0]
@@ -1154,7 +1155,7 @@ def editMultiModel(request,modlist,makeGo,makeBLN):
 def fileuploadform(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    file = PDBFileForm()
+    file = structure.models.PDBFileForm()
     lessonuser = 0
     groupList = request.user.groups.all()
     if request.user.groups.filter(name='lesson') or request.user.is_superuser:
@@ -1166,7 +1167,7 @@ def fileuploadform(request):
 def viewpdbs(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    user_pdbs = PDBFile.objects.filter(owner=request.user)
+    user_pdbs = Structure.objects.filter(owner=request.user)
     return render_to_response('html/viewpdbs.html', {'user_pdbs': user_pdbs})
 
 #This is for changing the currently selected PDB
@@ -1176,82 +1177,24 @@ def switchpdbs(request,switch_id):
         return render_to_response('html/loggedout.html')
 
     try:
-        oldfile =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        oldfile = Structure.objects.filter(owner=request.user,selected='y')[0]
         oldfile.selected = ''
         oldfile.save()
     except:
         pass
-    newfile = PDBFile.objects.filter(owner=request.user,filename=switch_id)[0] 
+    newfile = Structure.objects.filter(owner=request.user,filename=switch_id)[0] 
     newfile.selected = 'y'
     newfile.save()
     return render_to_response('html/switchpdb.html',{'oldfile':oldfile,'newfile':newfile})
-
-#handles crd/psf data
-def handleCrdPsf(filename,file,request):
-    crd = re.compile('.crd')
-    cor = re.compile('.cor')
-    filepid = file.pid
-    if crd.search(filename):
-        filename = file.stripDotCRD(filename) + "-" + str(filepid) + "-1"
-    elif cor.search(filename):
-        filename = file.stripDotCOR(filename) + "-" + str(filepid) + "-1"
-    filename = filename + ".crd"
-    file.filename = filename 
-    #Checks and sees if RTF/PRM files were uploaded and if so it saves them
-    file.getRtfPrm(request,False,False)
-    file.save()
-
-    #writes the uploaded information to a file with a unique PID
-    #If a user uploads a crd, it should be converted to PDB first
-    #If a user uploads a crd, they should also upload a psf
-    temp = open(file.location + "crd-" + filename,'w')
-    for fchunk in request.FILES['pdbupload'].chunks():
-        temp.write(fchunk)
-    temp.close()
-    try:
-        temp = open(file.location + "psf-" + file.stripDotCRD(filename) + ".psf",'w')
-        for fchunk in request.FILES['psfupload'].chunks():
-            temp.write(fchunk)
-        temp.close()
-    except:
-        return HttpResponse("Please upload a .psf file when uploading a .crd file")
-    file.title = "PSF/CRD Uploaded"
-    file.author = file.owner.username
-    file.journal = "No Information"
-    # The newly uploaded PDB becomes selected by default
-    # but first the previously selected PDB must become unselected
-    try:
-        test_select = PDBFile.objects.filter(owner=file.owner,selected='y')[0]
-        test_select.selected=''
-        test_select.save()
-    except:
-        pass
-    file.selected='y'
-    file.save()
-
-    # idea:
-    # get list of lessons that use CRD/PSF data from a lessons configuration file
-    # then iterate through it to see what kind of lesson_obj we need to create
-    #
-    #lessonbase = (lesson module).models.(lesson object).object.filter(...)
-    # the dictionary 'file_type' in lesson_config.py takes lesson number as its key and the corresponding value is the file type of the files the lesson uploads
-    # here we create lesson_obj only if the lesson uploads CRD/PSF files
-    try:
-        if file_type[file.lesson_type[6:]].find("CRD") != -1 or file_type[file.lesson_type[6:]].find("PSF") != -1:
-            lesson_obj = eval(file.lesson_type+'.models.'+file.lesson_type.capitalize()+'.objects.filter(user = file.owner,id=file.lesson_id)[0].onFileUpload(request.POST)')
-    except:
-        pass
-
-    return HttpResponseRedirect('/charmming/editpdbinfo/'+file.filename)
 
 #This calculates the energy
 def energyform(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    structure.models.Structure.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
-        file =  PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
     os.chdir(file.location)
@@ -1579,9 +1522,10 @@ def parseEnergy(file,output_filename,enerobj=None):
     return render_to_response('html/displayenergy.html',{'linelist':energy_lines})
 
 def getSegs(Molecule,Struct,auto_append=False):
+    Struct.save()
     for seg in Molecule.iter_seg():
         newSeg = structure.models.Segment()
-        newSeg.structure = struct
+        newSeg.structure = Struct
         if auto_append:
             newSeg.is_appended = 'y'
         else:
@@ -1598,7 +1542,7 @@ def newupload(request, template="html/fileupload.html"):
 
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    tempfile = PDBFile()
+
     try:
         tempfile.checkRequestData(request)
     except:
@@ -1644,8 +1588,6 @@ def newupload(request, template="html/fileupload.html"):
     if pdb_uploaded_by_user:
         filename = request.FILES['pdbupload'].name
         filename = filename.lower()
-        struct = structure.models.Structure()
-        struct.owner = request.user
         if lesson_obj:
             struct.lesson_type = lessontype
             struct.lesson_id = lessonid
@@ -1663,7 +1605,7 @@ def newupload(request, template="html/fileupload.html"):
         temp = open(fullpath, 'w')
         for fchunk in request.FILES['pdbupload'].chunks():
             temp.write(fchunk)
-
+        temp.close()
 
         if filename.endswith('crd') or filename.endswith('cor'):
             # set up the new structure object
@@ -1675,7 +1617,7 @@ def newupload(request, template="html/fileupload.html"):
             getSegs(thisMol,struct,auto_append=True)
         else:
             pdb = charmming.io.pdb.PDBFile(fullpath)
-            if len(pdb.keys) > 1:
+            if len(pdb.keys()) > 1:
                 mnum = 1
                 for model in pdb.iter_models():
                     mdname = dname + "-mod-%d" % mnum
@@ -1685,6 +1627,7 @@ def newupload(request, template="html/fileupload.html"):
                     struct.name = mdname
                     struct.append_status = 'n'
                     struct.getHeader(pdb.header)
+                    struct.owner = request.user
 
                     model.parse()
                     getSegs(model,struct)
@@ -1695,15 +1638,16 @@ def newupload(request, template="html/fileupload.html"):
             else:
                 struct = structure.models.Structure()
                 struct.name = dname
-                struct.append_status('n')
+                struct.append_status = 'n'
                 struct.getHeader(pdb.header)
+                struct.owner = request.user
 
                 thisMol = pdb.iter_models().next()
                 thisMol.parse()
-                getSegs(model,struct)
+                getSegs(thisMol,struct)
 
         # unselect the existing structure
-        oldfile = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        oldfile = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
         oldfile.selected = ''
         oldfile.save()
 
@@ -1772,7 +1716,7 @@ def newupload(request, template="html/fileupload.html"):
         # The newly uploaded PDB becomes selected by default
         # but first the previously selected PDB must become unselected
         try:
-            test_select = PDBFile.objects.filter(owner=file.owner,selected='y')[0]
+            test_select = structure.models.Structure.objects.filter(owner=file.owner,selected='y')[0]
             test_select.selected=''
             test_select.save()
         except:
@@ -1851,7 +1795,7 @@ def newupload(request, template="html/fileupload.html"):
             # editMultiModel does not return, but renders the HTML to the user
             return editMultiModel(request,models,makeGoModel,makeBLNModel)
 
-    form = PDBFileForm()
+    form = structure.models.PDBFileForm()
     return render_to_response('html/fileupload.html', {'form': form} )
 
 #Returns a list of segids in a PSF as a list
@@ -1922,27 +1866,3 @@ def get_proto_res(file):
 
 def protonate(file):
     return render_to_response('html/protonate.html')    
-
-
-def parser(file):
-
-    #getHeader retrives Header information like title, etc.
-    file.getHeader()
-    os.chdir(file.location)
-
-    #removes ending and staritng whitespace
-    file.good_het = file.good_het.strip()
-    file.nongood_het = file.nongood_het.strip()
-    file.segids = file.segids.strip()
-    file.save()
-    
-    #The newly uploaded PDB becomes selected by default
-    #but first the previously selected PDB must become unselected
-    try:
-        test_select = PDBFile.objects.filter(owner=file.owner,selected='y')[0]
-        test_select.selected=''
-        test_select.save()
-    except:
-        pass
-    file.selected='y'
-    file.save()

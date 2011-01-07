@@ -225,7 +225,7 @@ class Structure(models.Model):
         author = re.compile('AUTHOR') 
         ref = re.compile('REF') 
         refn = re.compile('REFN')
-        for line in pdbHeader.split('\n'):
+        for line in pdbHeader:
 	    #ignore remark statements
             if(remark.match(line)):            
                 break
@@ -268,7 +268,6 @@ class Structure(models.Model):
                 self.journal = self.journal[0:248]
 	else:
 	    self.journal = "No information found"
-        temp.close()
  
     #pre:requires a request object
     #checks if there was a topology or parameter file
