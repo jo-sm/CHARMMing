@@ -924,7 +924,7 @@ class StructureFile(models.Model):
 class Segment(models.Model):
     structure   = models.ForeignKey(Structure)
     is_appended = models.CharField(max_length=1)
-    name        = models.CharField(max_length=4)
+    name        = models.CharField(max_length=6)
     type        = models.CharField(max_length=10)
     patch_first = models.CharField(max_length=100)
     patch_last  = models.CharField(max_length=100)
