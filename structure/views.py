@@ -41,13 +41,14 @@ from account.views import isUserTrustworthy
 from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch
 import output, lesson1, lesson2, lesson3, lesson4, lessonaux
-import structure.models
+import structure.models, input
 # import all created lessons by importing lesson_config
 # also there is a dictionary called 'file_type' in lesson_config.py specififying the file type of files uploaded by the lessons  
 from lesson_config import *
 import os, sys, re, copy, datetime, time, stat
 import mimetypes, string, random, glob, traceback, commands
 import charmming.io, charmming_config
+import cPickle
 
 def getJobTime(request):
     if not request.user.is_authenticated():
@@ -1066,9 +1067,9 @@ def subProtoVis(plist,epdb,request):
 def editPDB(request,edit_pdb):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    structure.models.Structure.checkForMaliciousCode(edit_pdb,request)
+    input.checkForMaliciousCode(edit_pdb,request)
     if(edit_pdb):
-        file = Structure.objects.filter(owner=request.user,filename=edit_pdb)[0]
+        file = structure.models.Structure.objects.filter(owner=request.user,name=edit_pdb)[0]
         warnings = file.ifWarningsExist()
         try:
             oldfile = Structure.objects.filter(owner=request.user,selected='y')[0]
@@ -1079,7 +1080,7 @@ def editPDB(request,edit_pdb):
         except:
             pass
     else:
-        file = Structure.objects.filter(owner=request.user,selected='y')[0]
+        file = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
         warnings = file.ifWarningsExist()
     try:
        if request.GET:
@@ -1632,8 +1633,13 @@ def newupload(request, template="html/fileupload.html"):
                     model.parse()
                     getSegs(model,struct)
                     
-                    struct.save()
+                    pfname = location + dname + '/pdbpickle.dat'
+                    pickleFile = open(pfname,'w')
+                    cPickle.dump(pdb['model%d' % (mnum-1)],pickleFile)
+                    pickleFile.close()
+                    struct.pickle = pfname
 
+                    struct.save()
                     mnum += 1
             else:
                 struct = structure.models.Structure()
@@ -1646,10 +1652,20 @@ def newupload(request, template="html/fileupload.html"):
                 thisMol.parse()
                 getSegs(thisMol,struct)
 
+                pfname = location + dname + 'pdbpickle.dat'
+                pickleFile = open(pfname,'w')
+                cPickle.dump(pdb['model0'],pickleFile)
+                pickleFile.close()
+                struct.pickle = pfname
+
+
         # unselect the existing structure
-        oldfile = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
-        oldfile.selected = ''
-        oldfile.save()
+        try:
+            oldfile = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+            oldfile.selected = ''
+            oldfile.save()
+        except:
+            pass
 
         # set this structure as selected
         struct.selected = 'y'

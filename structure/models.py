@@ -24,7 +24,7 @@ from django.core.mail import mail_admins
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from normalmodes.aux import parseNormalModes, getNormalModeMovieNum
-import charmming_config
+import charmming_config, input
 import commands, datetime, sys, re, os, glob, smtplib
 import lesson1, normalmodes, dynamics, minimization
 import solvation, lessonaux, apbs
@@ -872,24 +872,10 @@ open read unit 84 card name /usr/local/charmming/solvation/scpism.inp
     #check request data for malicious code
     def checkRequestData(self,request):
         for parameter in request.POST:
-	    self.checkForMaliciousCode(request.POST[parameter],request)
+	    input.checkForMaliciousCode(request.POST[parameter],request)
         for parameter in request.GET:
-	    self.checkForMaliciousCode(request.GET[parameter],request)
+	    input.checkForMaliciousCode(request.GET[parameter],request)
 
-    #checks data for possible malicious code
-    def checkForMaliciousCode(self,text,request):
-        #syst is how charmm executes system commands
-        syst = re.compile('syst')
-	semicolon = re.compile(';')
-	osdot = re.compile('os\.')
-	if(syst.search(text) or semicolon.search(text) or osdot.search(text)):
-	    msg = "User :" + request.user.username + "\n tried to execute malicous code with:\n " + text + "\n"
-	    mail_admins('Malcious Code Warning',msg,fail_silently=False)
-	    sys.exit()
-	    return "Dangerous Data! Attempt has been logged."
-	return text
-        
-  
     #gets the restraints and returns them as a string
     def handleRestraints(self,request):
         try:
