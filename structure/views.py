@@ -829,11 +829,17 @@ def chemaxon(request,filename):
 
 #Allows the user to see what processes their PDBs are undergoing
 def viewstatus(request):
+    logfp = open('/tmp/foo', 'w')
+    logfp.write('in viewstatus\n')
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     try:
-        file = Structure.objects.filter(owner=request.user,selected='y')[0]
+        file = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+        logfp.write('got struct\n')
+        logfp.close()
     except:
+        logfp.write('got except\n')
+        logfp.close()
         return render_to_response('html/statusreport.html', {'structure': None })
     done = re.compile('Done')
 
@@ -1168,7 +1174,7 @@ def fileuploadform(request):
 def viewpdbs(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    user_pdbs = Structure.objects.filter(owner=request.user)
+    user_pdbs = structure.models.Structure.objects.filter(owner=request.user)
     return render_to_response('html/viewpdbs.html', {'user_pdbs': user_pdbs})
 
 #This is for changing the currently selected PDB
@@ -1178,12 +1184,12 @@ def switchpdbs(request,switch_id):
         return render_to_response('html/loggedout.html')
 
     try:
-        oldfile = Structure.objects.filter(owner=request.user,selected='y')[0]
+        oldfile = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
         oldfile.selected = ''
         oldfile.save()
     except:
         pass
-    newfile = Structure.objects.filter(owner=request.user,filename=switch_id)[0] 
+    newfile = structure.models.Structure.objects.filter(owner=request.user,filename=switch_id)[0] 
     newfile.selected = 'y'
     newfile.save()
     return render_to_response('html/switchpdb.html',{'oldfile':oldfile,'newfile':newfile})
@@ -1633,7 +1639,7 @@ def newupload(request, template="html/fileupload.html"):
                     model.parse()
                     getSegs(model,struct)
                     
-                    pfname = location + dname + '/pdbpickle.dat'
+                    pfname = location + dname + '/' + 'pdbpickle.dat'
                     pickleFile = open(pfname,'w')
                     cPickle.dump(pdb['model%d' % (mnum-1)],pickleFile)
                     pickleFile.close()
@@ -1652,7 +1658,7 @@ def newupload(request, template="html/fileupload.html"):
                 thisMol.parse()
                 getSegs(thisMol,struct)
 
-                pfname = location + dname + 'pdbpickle.dat'
+                pfname = location + dname + '/' + 'pdbpickle.dat'
                 pickleFile = open(pfname,'w')
                 cPickle.dump(pdb['model0'],pickleFile)
                 pickleFile.close()
@@ -1814,36 +1820,6 @@ def newupload(request, template="html/fileupload.html"):
     form = structure.models.PDBFileForm()
     return render_to_response('html/fileupload.html', {'form': form} )
 
-#Returns a list of segids in a PSF as a list
-def scanPsfForSegs(file):
-    psf = file.location + 'psf-' + file.stripDotCRD(file.filename) + '.psf'
-    psf_file = open(psf,'r')
-    natom = re.compile('NATOM')
-    nbond = re.compile('NBOND')
-    reached_natom = 0
-    base_segid = "not_a_real_segid"
-    test_segid = "this_is_also_not_a_real_segid"
-    segid_list = []
-    for line in psf_file:
-        if reached_natom == 0:
-            if(natom.search(line)):
-                reached_natom = 1
-            continue
-        psf_fields = line.split()
-        if psf_fields == []:
-            continue
-        if nbond.search(line):
-            break
-
-        test_segid = psf_fields[1].lower()
-        if test_segid != base_segid:
-            base_segid = test_segid
-            segid_list.append(base_segid)
-    file.segids = " ".join(segid_list)
-    file.save()
-    return segid_list
-
-
 # This algorithm isn't efficient b/c it checks all atoms unnecessarily
 def get_proto_res(file):
     protonizable = []
@@ -1851,33 +1827,16 @@ def get_proto_res(file):
     # all residues that we know how to protonize...
     possible_p = ['HIS','HSD','HSE','HSP','ASP','GLU','LYS']
 
-    seg_list = file.segids.split(' ')
-    for seg in seg_list:
-        fpath = file.location + "new_" + file.stripDotPDB(file.filename) + "-" + seg + ".pdb"
-        try:
-            fp = open(fpath, "r")
-            for line in fp:
-                line = line.strip()
-                if not line.startswith('ATOM'):
-                    continue
-                larr = string.splitfields(line)
+    fp = open(file.pickle, 'r')
+    mol = cPickle.load(fp)
+    fp.close()    
+    for seg in mol.iter_seg():
+        if not seg.segType == 'pro':
+            continue
+        for res in seg.iter_res():
+            if res.resName.upper() in possible_p:
+                protonizable.append((res.resName.upper(),seg.segid,res.resIndex)) 
 
-                # Is this bad boy something we can protonate?
-                if not larr[3] in possible_p:
-                    continue
-
-                # nested exceptions suck, but we're going to do them anyway.
-                try:
-                    restp = larr[3]
-                    segid = larr[4]
-                    resid = int(larr[5])
-                except:
-                    continue
-                if not (restp,segid,resid) in protonizable:
-                    protonizable.append((restp,segid,resid))
-            fp.close()
-        except:
-            pass
     return protonizable
 
 def protonate(file):

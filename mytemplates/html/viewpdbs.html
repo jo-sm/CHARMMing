@@ -40,18 +40,18 @@
 
 <form method="post" action=".">
 <table class="sortable resizable" border=2>
-<tr><th>Filename (click to edit)</th><th>Title</th><th>Date</th><th>Select this PDB</th><th>Delete <br> <a href="" onclick="send_delete_form('all_files');">All Files</a></th></tr>
+<tr><th>Name (click to edit)</th><th>Title</th><th>Date</th><th>Select this PDB</th><th>Delete <br> <a href="" onclick="send_delete_form('all_files');">All Files</a></th></tr>
 {% for PDBFile in user_pdbs %}
     {% if PDBFile.selected %}
         <tr bgcolor="yellow">
-           <td> <a href="/charmming/editpdbinfo/{{PDBFile.filename}}" title="Edit:{{ PDBFile.filename}}" rel="gb_page_center[800, 480]" ');">{{PDBFile.filename}}</a></td><td> {{ PDBFile.title }} </td> 
+           <td> <a href="/charmming/editpdbinfo/{{PDBFile.name}}" title="Edit:{{ PDBFile.name}}" rel="gb_page_center[800, 480]" ');">{{PDBFile.name}}</a></td><td> {{ PDBFile.title }} </td> 
            <td> {{ PDBFile.pub_date }} </td>
-           <td> <input type="radio" name="viewpdbs" id={{ PDBFile.filename }} onclick="send_select_form(this);parent.showLesson('{{PDBFile.lesson_type}}');" checked></td>
-           <td> <a href="" onclick="send_delete_form('{{PDBFile.filename}}')">X</a></td></tr>
+           <td> <input type="radio" name="viewpdbs" id={{ PDBFile.name }} onclick="send_select_form(this);parent.showLesson('{{PDBFile.lesson_type}}');" checked></td>
+           <td> <a href="" onclick="send_delete_form('{{PDBFile.name}}')">X</a></td></tr>
     {% else %}
-        <tr><td> <a href="/charmming/editpdbinfo/{{PDBFile.filename}}" title="Edit:{{ PDBFile.filename}}" rel="gb_page_center[800, 480]">{{PDBFile.filename}}</a></td><td>{{ PDBFile.title }} </td> <td>  {{ PDBFile.pub_date }} </td><td>
-        <input type="radio" name="viewpdbs" id={{ PDBFile.filename }} onclick="send_select_form(this);parent.showLesson('{{PDBFile.lesson_type}}');"></td>
-        <td><a href="" onclick="send_delete_form('{{PDBFile.filename}}')">X</a></td></tr>
+        <tr><td> <a href="/charmming/editpdbinfo/{{PDBFile.name}}" title="Edit:{{ PDBFile.name}}" rel="gb_page_center[800, 480]">{{PDBFile.name}}</a></td><td>{{ PDBFile.title }} </td> <td>  {{ PDBFile.pub_date }} </td><td>
+        <input type="radio" name="viewpdbs" id={{ PDBFile.name }} onclick="send_select_form(this);parent.showLesson('{{PDBFile.lesson_type}}');"></td>
+        <td><a href="" onclick="send_delete_form('{{PDBFile.name}}')">X</a></td></tr>
     {% endif %}
 {% endfor %}
 </table>
