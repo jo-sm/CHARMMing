@@ -1592,6 +1592,9 @@ def newupload(request, template="html/fileupload.html"):
     except:
         file_uploaded = 0
 
+    logfp = open('/tmp/newupload.txt', 'w')
+    logfp.write('In newupload\n')
+
     # begin gigantic if test
     if request.POST.has_key('sequ') and request.POST['sequ']:
         file = structure.models.Structure()
@@ -1671,6 +1674,7 @@ def newupload(request, template="html/fileupload.html"):
 	return HttpResponseRedirect('/charmming/editpdbinfo/'+file.filename)
 
     elif file_uploaded or request.POST.has_key('pdbid'):
+        logfp.write('Sequence not uploaded.\n')
         if file_uploaded:
             filename = request.FILES['pdbupload'].name
         elif request.POST.has_key('pdbid'):
@@ -1695,11 +1699,14 @@ def newupload(request, template="html/fileupload.html"):
 
         # Put the initial PDB onto the disk
         if file_uploaded:
+            logfp.write('Thinking I received a file.\n')
             temp = open(fullpath, 'w')
             for fchunk in request.FILES['pdbupload'].chunks():
                 temp.write(fchunk)
             temp.close()
         elif request.POST.has_key('pdbid'):
+            pdbid = request.POST['pdbid']
+            logfp.write('Trying to download from PDB.org pdbid = %s.\n' % pdbid)
             fullpath += '.pdb'
             try:
                 conn = HTTPConnection("www.pdb.org")
@@ -1709,12 +1716,17 @@ def newupload(request, template="html/fileupload.html"):
                 if resp.status != 200:
                         prob_string = "The PDB server returned error code %d." % resp.status
                         return render_to_response('html/problem.html',{'prob_string': prob_string})
+                logfp.write('got response status %d.\n' % resp.status)
                 pdb_file = resp.read()
-                if dne.search(pdb_file):
+                logfp.write('response has been read\n')
+                if "does not exist" in pdb_file:
+                    logfp.write("snap, the file was not found.\n")
                     outfp.close()
                     return render_to_response('html/problem.html',{'prob_string': 'The PDB server reports that the structure does not exist.'})
 
+                logfp.write("going to write the file.\n")
                 outfp.write(pdb_file)
+                logfp.write('output has been written\n')
                 outfp.close()
                 conn.close()
             except:
@@ -1723,6 +1735,7 @@ def newupload(request, template="html/fileupload.html"):
 
 
         if file_uploaded and ( filename.endswith('crd') or filename.endswith('cor') ):
+            logfp.write('trying to make the crd object\n')
             # set up the new structure object
             struct = structure.models.Structure()
             struct.name = dname
@@ -1732,6 +1745,7 @@ def newupload(request, template="html/fileupload.html"):
             getSegs(thisMol,struct,auto_append=True)
         
         else:
+            logfp.write('Trying to make the pdb object.\n')
             pdb = charmming.io.pdb.PDBFile(fullpath)
             if len(pdb.keys()) > 1:
                 mnum = 1
@@ -1787,6 +1801,7 @@ def newupload(request, template="html/fileupload.html"):
         return HttpResponseRedirect('/charmming/editpdbinfo/'+struct.name)
 
     # end of ye gigantic if test
+    logfp.close()
 
 
     form = structure.models.PDBFileForm()
