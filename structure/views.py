@@ -1588,98 +1588,12 @@ def newupload(request, template="html/fileupload.html"):
 
     try:
         request.FILES['pdbupload'].name
-        pdb_uploaded_by_user = 1
+        file_uploaded = 1
     except:
-        pdb_uploaded_by_user = 0
+        file_uploaded = 0
 
-    if pdb_uploaded_by_user:
-        filename = request.FILES['pdbupload'].name
-        filename = filename.lower()
-        if lesson_obj:
-            struct.lesson_type = lessontype
-            struct.lesson_id = lessonid
-
-        # figure out where this file is going to go and put it there.
-        tmpdname = filename.split('.')[0]
-        dname = tmpdname
-        version = -1
-        while os.path.exists(location + '/' + dname):
-            version += 1
-            dname = tmpdname + "-" + str(version)
-
-        os.mkdir(location + '/' + dname)
-        fullpath = location + '/' + dname + '/' + filename
-        temp = open(fullpath, 'w')
-        for fchunk in request.FILES['pdbupload'].chunks():
-            temp.write(fchunk)
-        temp.close()
-
-        if filename.endswith('crd') or filename.endswith('cor'):
-            # set up the new structure object
-            struct = structure.models.Structure()
-            struct.name = dname
-
-            crd = charmming.io.crd.CRDFile(fullpath)
-            thisMol = crd.iter_models.next()
-            getSegs(thisMol,struct,auto_append=True)
-        else:
-            pdb = charmming.io.pdb.PDBFile(fullpath)
-            if len(pdb.keys()) > 1:
-                mnum = 1
-                for model in pdb.iter_models():
-                    mdname = dname + "-mod-%d" % mnum
-                    os.mkdir(location + '/' + mdname)
- 
-                    struct = structure.models.Structure()
-                    struct.name = mdname
-                    struct.append_status = 'n'
-                    struct.getHeader(pdb.header)
-                    struct.owner = request.user
-
-                    model.parse()
-                    getSegs(model,struct)
-                    
-                    pfname = location + dname + '/' + 'pdbpickle.dat'
-                    pickleFile = open(pfname,'w')
-                    cPickle.dump(pdb['model%d' % (mnum-1)],pickleFile)
-                    pickleFile.close()
-                    struct.pickle = pfname
-
-                    struct.save()
-                    mnum += 1
-            else:
-                struct = structure.models.Structure()
-                struct.name = dname
-                struct.append_status = 'n'
-                struct.getHeader(pdb.header)
-                struct.owner = request.user
-
-                thisMol = pdb.iter_models().next()
-                thisMol.parse()
-                getSegs(thisMol,struct)
-
-                pfname = location + dname + '/' + 'pdbpickle.dat'
-                pickleFile = open(pfname,'w')
-                cPickle.dump(pdb['model0'],pickleFile)
-                pickleFile.close()
-                struct.pickle = pfname
-
-
-        # unselect the existing structure
-        try:
-            oldfile = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
-            oldfile.selected = ''
-            oldfile.save()
-        except:
-            pass
-
-        # set this structure as selected
-        struct.selected = 'y'
-        struct.save()
-        return HttpResponseRedirect('/charmming/editpdbinfo/'+struct.name)
-
-    #The below code handles custom sequences
-    elif request.POST.has_key('sequ'):
+    # begin gigantic if test
+    if request.POST.has_key('sequ') and request.POST['sequ']:
         file = structure.models.Structure()
         file.owner = u
         file.location = location
@@ -1756,71 +1670,128 @@ def newupload(request, template="html/fileupload.html"):
                 pass
 	return HttpResponseRedirect('/charmming/editpdbinfo/'+file.filename)
 
-    # handle downloading the PDB from PDB.org
-    elif request.POST.has_key('pdbid'):
-        pdbid = request.POST['pdbid']
-        pdbid = pdbid.strip()
-        pdbid = pdbid.lower()
-        if(error.search(pdbid)):
-            return HttpResponse('PDB filename invalid')
-        cif = re.compile('\Zcif')
-        filename = pdbid
+    elif file_uploaded or request.POST.has_key('pdbid'):
+        if file_uploaded:
+            filename = request.FILES['pdbupload'].name
+        elif request.POST.has_key('pdbid'):
+            filename = request.POST['pdbid'].strip().lower()
+        filename = filename.lower()
 
-        #Because .cif files are standard and PDBs are not, the following block
-        #downloads a cif file then converts it to PDB
-        dne = re.compile("does not exist")
-        try:
+        # figure out where this file is going to go
+        tmpdname = filename.split('.')[0]
+        dname = tmpdname
+        version = -1
+        while os.path.exists(location + '/' + dname):
+            version += 1
+            dname = tmpdname + "-" + str(version)
+
+        os.mkdir(location + '/' + dname)
+        fullpath = location + '/' + dname + '/' + filename
+    
+        # BTM, fix me -- I am in the wrong place
+        if lesson_obj:
+            struct.lesson_type = lessontype
+            struct.lesson_id = lessonid
+
+        # Put the initial PDB onto the disk
+        if file_uploaded:
+            temp = open(fullpath, 'w')
+            for fchunk in request.FILES['pdbupload'].chunks():
+                temp.write(fchunk)
+            temp.close()
+        elif request.POST.has_key('pdbid'):
+            fullpath += '.pdb'
+            try:
                 conn = HTTPConnection("www.pdb.org")
                 conn.request("GET", "/pdb/download/downloadFile.do?fileFormat=pdb&compression=NO&structureId=%s" % pdbid)
                 resp = conn.getresponse()
-                outfp = open(location + "/" + filename + ".pdb", 'w+')
+                outfp = open(fullpath, 'w+')
                 if resp.status != 200:
                         prob_string = "The PDB server returned error code %d." % resp.status
                         return render_to_response('html/problem.html',{'prob_string': prob_string})
-                cif_file = resp.read()
-                if dne.search(cif_file):
-                        outfp.close()
-                        return render_to_response('html/problem.html',{'prob_string': 'The PDB server reports that the structure does not exist.'})
+                pdb_file = resp.read()
+                if dne.search(pdb_file):
+                    outfp.close()
+                    return render_to_response('html/problem.html',{'prob_string': 'The PDB server reports that the structure does not exist.'})
 
-                outfp.write(cif_file)
+                outfp.write(pdb_file)
                 outfp.close()
                 conn.close()
-        except:
+            except:
                 # print an error page...
                 return render_to_response('html/problem.html',{'prob_string': 'There was an exception processing the file -- contact the server administrator for more details.'})
 
-        os.chdir(location)
-        filename = filename + ".pdb"
 
-        modelinfo = getModels(filename,u,location,lessontype,lessonid)
-        models = modelinfo['models']
-        errors = modelinfo['errors']
-        if len(models) < 1:
-            # parse error
-            return render_to_response('html/problem.html', {'prob_string': 'The PDB parser did not find any valid models.'})
-        elif len(models) == 1:
-            file = models[0]
-            #check of parameter/topology files
-            file.getRtfPrm(request,makeGoModel,makeBLNModel)
-            if lesson_obj:
-                file.lesson_type = lessontype
-                file.lesson_id = lessonid
-                file.save()
-                try:
-                    lesson_obj.onFileUpload(request.POST)
-                except:
-                    # TODO, scream
-                    pass
+        if file_uploaded and ( filename.endswith('crd') or filename.endswith('cor') ):
+            # set up the new structure object
+            struct = structure.models.Structure()
+            struct.name = dname
 
-            return HttpResponseRedirect('/charmming/editpdbinfo/'+file.filename)
+            pdb = charmming.io.crd.CRDFile(fullpath)
+            thisMol = pdb.iter_models.next()
+            getSegs(thisMol,struct,auto_append=True)
+        
         else:
-            # editMultiModel does not return, but renders the HTML to the user
-            return editMultiModel(request,models,makeGoModel,makeBLNModel)
+            pdb = charmming.io.pdb.PDBFile(fullpath)
+            if len(pdb.keys()) > 1:
+                mnum = 1
+                for model in pdb.iter_models():
+                    mdname = dname + "-mod-%d" % mnum
+                    os.mkdir(location + '/' + mdname)
+ 
+                    struct = structure.models.Structure()
+                    struct.name = mdname
+                    struct.append_status = 'n'
+                    struct.getHeader(pdb.header)
+                    struct.owner = request.user
+
+                    model.parse()
+                    getSegs(model,struct)
+                    
+                    pfname = location + dname + '/' + 'pdbpickle.dat'
+                    pickleFile = open(pfname,'w')
+                    cPickle.dump(pdb['model%d' % (mnum-1)],pickleFile)
+                    pickleFile.close()
+                    struct.pickle = pfname
+
+                    struct.save()
+                    mnum += 1
+            else:
+                struct = structure.models.Structure()
+                struct.name = dname
+                struct.append_status = 'n'
+                struct.getHeader(pdb.header)
+                struct.owner = request.user
+
+                thisMol = pdb.iter_models().next()
+                thisMol.parse()
+                getSegs(thisMol,struct)
+
+                pfname = location + dname + '/' + 'pdbpickle.dat'
+                pickleFile = open(pfname,'w')
+                cPickle.dump(pdb['model0'],pickleFile)
+                pickleFile.close()
+                struct.pickle = pfname
+
+        # unselect the existing structure
+        try:
+            oldfile = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+            oldfile.selected = ''
+            oldfile.save()
+        except:
+            pass
+
+        # set this structure as selected
+        struct.selected = 'y'
+        struct.save()
+        return HttpResponseRedirect('/charmming/editpdbinfo/'+struct.name)
+
+    # end of ye gigantic if test
+
 
     form = structure.models.PDBFileForm()
     return render_to_response('html/fileupload.html', {'form': form} )
 
-# This algorithm isn't efficient b/c it checks all atoms unnecessarily
 def get_proto_res(file):
     protonizable = []
 
