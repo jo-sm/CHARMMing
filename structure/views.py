@@ -54,7 +54,7 @@ def getJobTime(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     file = structure.models.Structure.objects.filter(owner=request.user)[0]
-    file.checkRequestData(request)
+    inpput.checkRequestData(request)
     os.chdir(file.location)
     if request.POST['time_filenames'] =="":
         return HttpResponse("")
@@ -73,106 +73,52 @@ def uploadError(request,problem):
 
 # Deletes user specified file from database and files relating to it
 def deleteFile(request):
+    logfp = open("/tmp/delfile.txt", "w")
+    logfp.write("In delfile\n")
+    logfp.flush()
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     #make sure request data isn't malicious
-    structure.models.Structure.checkRequestData(request)
-    delete_filename = request.POST['filename']
+    input.checkRequestData(request)
+    if request.POST.has_key('filename'):
+        delete_filename = request.POST['filename']
+    else:
+        return HttpResponse('Bad')
+
     deleteAll = 0
     remove_extension = re.compile('\.\S*')
     #If user wants to remove all files, visit /deletefile/all_files/
 
+    logfp.write("point a\n")
+    logfp.flush()
     if(delete_filename == "all_files"):
         deleteAll = 1
-        total_files = Structure.objects.filter(owner=request.user)
+        total_files = structure.models.Structure.objects.filter(owner=request.user)
     else:
-       file =  Structure.objects.filter(owner=request.user,filename=delete_filename)[0]
-       total_files = [file]
-    for eachfile in total_files[::-1]:
-        file = eachfile
-        file_list = file.getFileList()
-        input_list = file.getInputList()
-        for item in file_list:
-            try:
-                os.remove(file.location + item)
-                #Must also delete crd/psf files
-                temp_item = remove_extension.sub('',item)
-                psf = temp_item + ".psf"
-                crd = temp_item + ".crd"
-                os.remove(file.location + psf)
-                os.remove(file.location + crd)
-            except:
-                pass
-        for item in input_list:
-            try:
-                os.remove(file.location + item)
-                #The submitJob routine creates a log and error file
-                #so they must also be removed
-                temp_item = remove_extension.sub('',item)
-                err = temp_item + ".err"
-                log = temp_item + ".log"
-                os.remove(file.location + err)
-                os.remove(file.location + log)
-            except:
-                pass
-        os.chdir(file.location)
-        os.system("rm -rf " + file.location  + "*" + file.stripDotPDB(file.filename) + "*")
-        os.system("rm -f ANTECHAMBER* ATOMTYPE.INF")
+        file = structure.models.Structure.objects.filter(owner=request.user,name=delete_filename)[0]
+        total_files = [file]
+
+    logfp.write("point b\n")
+    logfp.flush()
+    for s in total_files[::-1]:
+        os.chdir(charmming_config.user_home + '/' + request.user.username)
+        os.system("rm -rf " + s.name)
 
         # clean up other models that are left behind.
-        try:
-            minimizations = minimizeParams.objects.filter(pdb=file,user=file.owner)
-            for mnm in minimizations:
-                mnm.delete()
-        except:
-            pass
-        try:
-            solvs = solvationParams.objects.filter(pdb=file)
-            for mnm in solvs:
-                mnm.delete()
-        except:
-            pass
-        try:
-            mds = mdParams.objects.filter(pdb=file)
-            for mnm in mds:
-                mnm.delete()
-        except:
-            pass
-        try:
-            lds = ldParams.objects.filter(pdb=file)
-            for mnm in lds:
-                mnm.delete()
-        except:
-            pass
-        try:
-            sglds = sgldParams.objects.filter(pdb=file)
-            for mnm in sglds:
-                mnm.delete()
-        except:
-            pass
-        try:
-            nmas = nmodeParams.objects.filter(pdb=file)
-            for mnm in nmas:
-                mnm.delete()
-        except:
-            pass
-        try:
-            eobs = energyParams.objects.filter(pdb=file)
-            for eo in eobs:
-                eo.delete()
-        except:
-            pass
+        objstodel = []
+        for typ in minimizeParams, solvationParams, mdParams, ldParams, sgldParams, nmodeParams, \
+                   structure.models.energyParams, structure.models.Segment:
+            try:
+                objstodel.append(typ.objects.filter(pdb=s))
+            except:
+                pass
 
-        try:
-            redoxparms = redoxParams.objects.filter(pdb=file)
-            for ro in redoxparms:
-                ro.delete()
-        except:
-            pass
+        for obj in objstodel:
+            obj.delete()
 
-        if file.selected == 'y' and deleteAll == 0:
-            file.selected = ''
-            allFileList = Structure.objects.filter(owner=request.user)
+        if s.selected == 'y' and deleteAll == 0:
+            s.selected = ''
+            allFileList = structure.models.Structure.objects.filter(owner=request.user)
             if len(allFileList) >= 2:
                 # We need to change the selection to another file, arbitrarilty we choose
                 # the first one.
@@ -181,7 +127,10 @@ def deleteFile(request):
                          candidateSwitch.selected = 'y'
                          candidateSwitch.save()
                          break
-        file.delete()
+
+        s.delete()
+    logfp.write("point c\n")
+    logfp.close()
     return HttpResponse('Done')
 
 
@@ -585,8 +534,8 @@ def viewDynamicOutputContainer(request,jobtype):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     file =  Structure.objects.filter(owner=request.user,selected='y')[0]
-    file.checkRequestData(request)
-    file.checkForMaliciousCode(jobtype,request)
+    input.checkRequestData(request)
+    input.checkForMaliciousCode(jobtype,request)
     if jobtype in ['minimization']:
         charmm_filename = 'charmm-' + file.stripDotPDB(file.filename) + '-min.out'
         try:
@@ -637,7 +586,7 @@ def viewDynamicOutput(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     file =  Structure.objects.filter(owner=request.user,selected='y')[0]
-    file.checkRequestData(request)
+    input.checkRequestData(request)
     inputname = request.POST['inputname']
     return downloadProcessFiles(request,inputname)
 
@@ -908,7 +857,7 @@ def viewstatus(request):
 def reportError(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    structure.models.Structure.checkRequestData(request)
+    input.checkRequestData(request)
     try:
         if(request.POST['errordescription'] != ''):
             emailmsg = 'Bug Reported!\n'
@@ -930,7 +879,7 @@ def editProtonation(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     file = Structure.objects.filter(owner=request.user,selected='y')[0]
-    file.checkRequestData(request)
+    input.checkRequestData(request)
     plines = {}
     hist_list = {}
 
@@ -1198,7 +1147,7 @@ def switchpdbs(request,switch_id):
 def energyform(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    structure.models.Structure.checkRequestData(request)
+    input.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
         file =  Structure.objects.filter(owner=request.user,selected='y')[0]
@@ -1550,10 +1499,7 @@ def newupload(request, template="html/fileupload.html"):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
-    try:
-        tempfile.checkRequestData(request)
-    except:
-        pass
+    input.checkRequestData(request)
     nmodels = 1
     makeGoModel = False
     makeBLNModel = False
