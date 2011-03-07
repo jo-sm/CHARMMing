@@ -14,3 +14,10 @@ def checkForMaliciousCode(text,request):
         return "Dangerous Data! Attempt has been logged."
     return text
 
+
+#check request data for malicious code
+def checkRequestData(request):
+    for parameter in request.POST:
+        checkForMaliciousCode(request.POST[parameter],request)
+    for parameter in request.GET:
+        checkForMaliciousCode(request.GET[parameter],request)

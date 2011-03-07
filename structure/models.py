@@ -869,13 +869,6 @@ open read unit 84 card name /usr/local/charmming/solvation/scpism.inp
 	except:
 	    return ''
 
-    #check request data for malicious code
-    def checkRequestData(self,request):
-        for parameter in request.POST:
-	    input.checkForMaliciousCode(request.POST[parameter],request)
-        for parameter in request.GET:
-	    input.checkForMaliciousCode(request.GET[parameter],request)
-
     #gets the restraints and returns them as a string
     def handleRestraints(self,request):
         try:

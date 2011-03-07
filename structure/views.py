@@ -964,9 +964,9 @@ def viewprotores(request,segid,resid):
 # This subroutine kicks of jobs to visualize the protonizable residues
 def subProtoVis(plist,epdb,request):
     if epdb:
-        file = Structure.objects.filter(owner=request.user,filename=epdb)[0]
+        file = structure.models.Structure.objects.filter(owner=request.user,name=epdb)[0]
     else:
-        file = Structure.objects.filter(owner=request.user,selected='y')[0]
+        file = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     try:
         os.stat(file.location + "proto_" + file.stripDotPDB(file.filename))
     except:
