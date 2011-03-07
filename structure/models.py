@@ -904,7 +904,7 @@ open read unit 84 card name /usr/local/charmming/solvation/scpism.inp
         # now append the inherent files
         seglst = Segment.objects.filter(structure=self)
         for s in seglst:
-            rlist.append(("segment-%s" % s, "Segment %s" % s))
+            rlist.append((s.name, "Segment %s" % s.name))
 
         return rlist
     

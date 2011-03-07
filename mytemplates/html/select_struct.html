@@ -1,0 +1,12 @@
+<table cellspacing="2" cellpadding="2">
+   {% for f in filename_list %}
+     <tr>
+       <td>{{ f.1 }}</td>
+       {% ifequal f.1|slice:":3" "Seg" %}
+         <td><input type="checkbox" name="unappended_seg_{{ f.0 }}" value="{{ f.0 }}" /></td>
+       {% else %}
+         <td><input type="radio" name="appended_struct" value="{{ f.0 }}" /></td>
+       {% endifequal %}
+     </tr>
+   {% endfor %}
+</table>
