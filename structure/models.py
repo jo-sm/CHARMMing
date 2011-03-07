@@ -884,6 +884,36 @@ open read unit 84 card name /usr/local/charmming/solvation/scpism.inp
 	return restraints
 
 
+    ### CHARMMing > 0.9 methods go here. Eventually, all of the methods above this point ###
+    ### should be brought below it and cleaned up, or eliminated.                        ###
+
+    def getMoleculeFiles(self):
+        """Get all molecule files associated with this structure. Note that "inherent"
+           structural objects (i.e. the individual segment files) do not have StructureFile
+           objects --- they're handled through the segment objects. The file name and
+           description is returned as a tuple.
+        """
+        rlist = []
+
+        # get list of all .psf files associated w/ this structure ... it is assumed that if the
+        # psf exists then the crd will as well.
+        for x in StructureFile.objects.filter(structure=self):
+            if x.path.endswith('.psf'):
+                rlist.append((x.path.replace(".psf",""), x.description))
+
+        # now append the inherent files
+        seglst = Segment.objects.filter(structure=self)
+        for s in seglst:
+            rlist.append(("segment-%s" % s, "Segment %s" % s))
+
+        return rlist
+    
+
+    def getCHARMMFiles(self):
+        """Get all CHARMM input, output, and stram files associated with this structure.
+        """
+        return [x for x in structure.models.StructureFile.objects.filter(structure=self) if x.endswith(".inp") or x.endswith(".out")]
+
 class StructureFile(models.Model):
     structure   = models.ForeignKey(Structure)
     path        = models.CharField(max_length=100)

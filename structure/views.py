@@ -1156,20 +1156,10 @@ def energyform(request):
     os.chdir(file.location)
 
     #creates a list of filenames associated with the PDB
-    filename_list = file.getLimitedFileList("blank")
+    filename_list = file.getMoleculeFiles()
     disulfide_list = file.getPDBDisulfides()
-
-    # Tim Miller: 03-09-2009 we need to pass a segpatch_list (containing
-    # both the list of segments and their default NTER patches) to the
-    # template.
-    propatch_list = []
-    nucpatch_list = []
-    for seg in seg_list:
-       	if seg.endswith("-pro"):
-            defpatch = checkNterPatch(file,seg)
-            propatch_list.append((seg,defpatch))
-        elif seg.endswith("-dna") or seg.endswith("-rna"):
-            nucpatch_list.append((seg,"5TER","3TER"))
+    # FIXME, we need to do something about terminal patching
+    # here...
 
     energy_lines = ''
     try:
@@ -1193,7 +1183,6 @@ def energyform(request):
             except:
                 tempid = "null"
         if(tempid!="null"):
-            seg_list = file.segids.split(' ')
             try:
                 if(request.POST['usepatch']):
                     file.handlePatching(request.POST)
@@ -1202,21 +1191,17 @@ def energyform(request):
                 file.patch_name = ""
                 file.save()
             scriptlist = []
-            if(filename != min_pdb and filename != solv_pdb and filename != md_pdb and filename != ld_pdb and filename != sgld_pdb and filename != neu_pdb):
+            if need_append:
                 seg_list = append_tpl(request.POST,filename_list,file,scriptlist)
-                energy_this_file = 'new_' + file.stripDotPDB(file.filename) + "-final.pdb"
+                energy_this_file = 'new_' + file.stripDotPDB(file.filename) + '-final.pdb'
                 return calcEnergy_tpl(request,file,seg_list,energy_this_file,scriptlist)
             else:
                 return calcEnergy_tpl(request,file,seg_list,filename,scriptlist)
 
     doCustomShake = 1
-    if file.ifExistsRtfPrm() < 0:
-        doCustomShake = 0
     trusted = isUserTrustworthy(request.user)
-    return render_to_response('html/energyform.html', {'filename_list': filename_list,'propatch_list':propatch_list,'solv_pdb':solv_pdb,'neu_pdb':neu_pdb, \
-      'min_pdb':min_pdb,'md_pdb':md_pdb,'ld_pdb':ld_pdb,'sgld_pdb':sgld_pdb,'het_list':het_list,'tip_list':tip_list,'protein_list':protein_list, 'file': file, \
-      'docustshake': doCustomShake,'energy_lines':energy_lines,'trusted':trusted,'disulfide_list': disulfide_list, 'seg_list': seg_list, \
-      'nucpatch_list': nucpatch_list, 'nucleic_list': nucleic_list, 'userup_list': userup_list, 'go_list': go_list, 'bln_list': bln_list})
+    return render_to_response('html/energyform.html', {'filename_list': filename_list,\
+      'energy_lines':energy_lines,'trusted':trusted,'disulfide_list': disulfide_list})
 
 
 def calcEnergy_tpl(request,file,seg_list,min_pdb,scriptlist): 
