@@ -1150,31 +1150,13 @@ def energyform(request):
     input.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
-        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
+        file =  structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
     os.chdir(file.location)
-    temp = file.stripDotPDB(file.filename)
+
     #creates a list of filenames associated with the PDB
     filename_list = file.getLimitedFileList("blank")
-    #filename_list = file.getFileList()
-    solv_pdb = "new_" + file.stripDotPDB(file.filename) + "-solv.pdb"
-    neu_pdb = "new_" + file.stripDotPDB(file.filename) + "-neutralized.pdb"
-    min_pdb = "new_" + file.stripDotPDB(file.filename) + "-min.pdb"
-    md_pdb = "new_" + file.stripDotPDB(file.filename) + "-md.pdb"
-    ld_pdb = "new_" + file.stripDotPDB(file.filename) + "-ld.pdb"
-    sgld_pdb = "new_" + file.stripDotPDB(file.filename) + "-sgld.pdb"
-    seg_list = file.segids.split(' ')
-    het_list = file.getNonGoodHetPDBList()
-    tip_list = file.getGoodHetPDBList()
-    seg2_list = file.getProteinSegPDBList()
-    protein_list = [x for x in seg2_list if x.endswith("-pro.pdb") or x.endswith("-pro-final.pdb")]
-    go_list = [x for x in seg2_list if x.endswith("-go.pdb") or x.endswith("-go-final.pdb")]
-    bln_list = [x for x in seg2_list if x.endswith("-bln.pdb") or x.endswith("-bln-final.pdb")]
-    nucleic_list = [x for x in seg2_list if x.endswith("-dna.pdb") or x.endswith("-dna-final.pdb") or x.endswith("-rna.pdb") or x.endswith("-rna-final.pdb")]
-    userup_list = [x for x in seg2_list if not ( x.endswith("-pro.pdb") or x.endswith("-pro-final.pdb") or x.endswith("-dna.pdb") or x.endswith("-dna-final.pdb") \
-                     or x.endswith("-rna.pdb") or x.endswith("-rna-final.pdb") or x.endswith("het.pdb") or x.endswith("het-final.pdb") or x.endswith("-go.pdb") \
-                     or x.endswith("-go-final.pdb") or x.endswith("-bln.pdb")  or x.endswith("-bln-final.pdb") ) ]
     disulfide_list = file.getPDBDisulfides()
 
     # Tim Miller: 03-09-2009 we need to pass a segpatch_list (containing
@@ -1538,9 +1520,6 @@ def newupload(request, template="html/fileupload.html"):
     except:
         file_uploaded = 0
 
-    logfp = open('/tmp/newupload.txt', 'w')
-    logfp.write('In newupload\n')
-
     # begin gigantic if test
     if request.POST.has_key('sequ') and request.POST['sequ']:
         file = structure.models.Structure()
@@ -1620,7 +1599,6 @@ def newupload(request, template="html/fileupload.html"):
 	return HttpResponseRedirect('/charmming/editpdbinfo/'+file.filename)
 
     elif file_uploaded or request.POST.has_key('pdbid'):
-        logfp.write('Sequence not uploaded.\n')
         if file_uploaded:
             filename = request.FILES['pdbupload'].name
         elif request.POST.has_key('pdbid'):
@@ -1645,14 +1623,12 @@ def newupload(request, template="html/fileupload.html"):
 
         # Put the initial PDB onto the disk
         if file_uploaded:
-            logfp.write('Thinking I received a file.\n')
             temp = open(fullpath, 'w')
             for fchunk in request.FILES['pdbupload'].chunks():
                 temp.write(fchunk)
             temp.close()
         elif request.POST.has_key('pdbid'):
             pdbid = request.POST['pdbid']
-            logfp.write('Trying to download from PDB.org pdbid = %s.\n' % pdbid)
             fullpath += '.pdb'
             try:
                 conn = HTTPConnection("www.pdb.org")
@@ -1662,17 +1638,12 @@ def newupload(request, template="html/fileupload.html"):
                 if resp.status != 200:
                         prob_string = "The PDB server returned error code %d." % resp.status
                         return render_to_response('html/problem.html',{'prob_string': prob_string})
-                logfp.write('got response status %d.\n' % resp.status)
                 pdb_file = resp.read()
-                logfp.write('response has been read\n')
                 if "does not exist" in pdb_file:
-                    logfp.write("snap, the file was not found.\n")
                     outfp.close()
                     return render_to_response('html/problem.html',{'prob_string': 'The PDB server reports that the structure does not exist.'})
 
-                logfp.write("going to write the file.\n")
                 outfp.write(pdb_file)
-                logfp.write('output has been written\n')
                 outfp.close()
                 conn.close()
             except:
@@ -1681,17 +1652,16 @@ def newupload(request, template="html/fileupload.html"):
 
 
         if file_uploaded and ( filename.endswith('crd') or filename.endswith('cor') ):
-            logfp.write('trying to make the crd object\n')
             # set up the new structure object
             struct = structure.models.Structure()
             struct.name = dname
+            struct.location = location + dname
 
             pdb = charmming.io.crd.CRDFile(fullpath)
             thisMol = pdb.iter_models.next()
             getSegs(thisMol,struct,auto_append=True)
         
         else:
-            logfp.write('Trying to make the pdb object.\n')
             pdb = charmming.io.pdb.PDBFile(fullpath)
             if len(pdb.keys()) > 1:
                 mnum = 1
@@ -1700,6 +1670,7 @@ def newupload(request, template="html/fileupload.html"):
                     os.mkdir(location + '/' + mdname)
  
                     struct = structure.models.Structure()
+                    struct.location = location + mdname
                     struct.name = mdname
                     struct.append_status = 'n'
                     struct.getHeader(pdb.header)
@@ -1718,6 +1689,7 @@ def newupload(request, template="html/fileupload.html"):
                     mnum += 1
             else:
                 struct = structure.models.Structure()
+                struct.location = location + dname
                 struct.name = dname
                 struct.append_status = 'n'
                 struct.getHeader(pdb.header)
@@ -1747,8 +1719,6 @@ def newupload(request, template="html/fileupload.html"):
         return HttpResponseRedirect('/charmming/editpdbinfo/'+struct.name)
 
     # end of ye gigantic if test
-    logfp.close()
-
 
     form = structure.models.PDBFileForm()
     return render_to_response('html/fileupload.html', {'form': form} )
