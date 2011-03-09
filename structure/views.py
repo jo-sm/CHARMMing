@@ -1169,39 +1169,39 @@ def energyform(request):
         energyfp.close()
     except:
         pass
-    done = re.compile('Done')
+
+
+    enefile = None
+    need_append = True
     for i in range(len(filename_list)):
         #First check and see if the selected choices are segids
         #Otherwise see if it is a solvated/minimized PDB
-        try:
-            tempid = request.POST[filename_list[i]]
-            filename = filename_list[i]
-        except:
-            try:
-                tempid = request.POST['solv_or_min']
-                filename = request.POST['solv_or_min']
-            except:
-                tempid = "null"
-        if(tempid!="null"):
-            try:
-                if(request.POST['usepatch']):
-                    file.handlePatching(request.POST)
-            except:
-                #If there is no patch, make sure patch_name is zero 
-                file.patch_name = ""
-                file.save()
-            scriptlist = []
-            if need_append:
-                seg_list = append_tpl(request.POST,filename_list,file,scriptlist)
-                energy_this_file = 'new_' + file.stripDotPDB(file.filename) + '-final.pdb'
-                return calcEnergy_tpl(request,file,seg_list,energy_this_file,scriptlist)
-            else:
-                return calcEnergy_tpl(request,file,seg_list,filename,scriptlist)
+        if request.POST.has_key('unappended_seg_%s' % filename_list[i][0]):
+            enefile = filename_list[i][0]
 
-    doCustomShake = 1
-    trusted = isUserTrustworthy(request.user)
-    return render_to_response('html/energyform.html', {'filename_list': filename_list,\
-      'energy_lines':energy_lines,'trusted':trusted,'disulfide_list': disulfide_list})
+    if enefile is None and request.POST.has_key('appended_struct'):
+        enefile = request.POST['appended_struct']
+        need_append = False
+        if request.POST['usepatch']:
+            file.handlePatching(request.POST)
+        else:
+            #If there is no patch, make sure patch_name is zero 
+            file.patch_name = ""
+            file.save()
+
+    if enefile:
+        scriptlist = []
+        if need_append:
+            seg_list = append_tpl(request.POST,filename_list,file,scriptlist)
+            energy_this_file = file.name + '-final.crd'
+            return calcEnergy_tpl(request,file,seg_list,energy_this_file,scriptlist)
+        else:
+            return calcEnergy_tpl(request,file,seg_list,enefile,scriptlist)
+    else:
+        doCustomShake = 1
+        trusted = isUserTrustworthy(request.user)
+        return render_to_response('html/energyform.html', {'filename_list': filename_list,\
+          'energy_lines':energy_lines,'trusted':trusted,'disulfide_list': disulfide_list})
 
 
 def calcEnergy_tpl(request,file,seg_list,min_pdb,scriptlist): 
