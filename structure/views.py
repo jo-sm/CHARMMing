@@ -22,7 +22,6 @@ from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from minimization.models import minimizeParams
-from minimization.views import append_tpl
 from dynamics.models import mdParams, ldParams, sgldParams
 from solvation.models import solvationParams
 from account.models import *
@@ -47,7 +46,7 @@ import structure.models, input
 from lesson_config import *
 import os, sys, re, copy, datetime, time, stat
 import mimetypes, string, random, glob, traceback, commands
-import charmming.io, charmming_config
+import charmming.io, charmming_config, minimization
 import cPickle
 
 def getJobTime(request):
@@ -1163,20 +1162,23 @@ def energyform(request):
 
     energy_lines = ''
     try:
-        energyfp = open('energy-' + file.stripDotPDB(file.filename) + '.txt','r')
+        energyfp = open('energy.txt','r')
         for line in energyfp:
             energy_lines += line
         energyfp.close()
     except:
         pass
 
-
     enefile = None
     need_append = True
+    append_list = []
     for i in range(len(filename_list)):
-        #First check and see if the selected choices are segids
-        #Otherwise see if it is a solvated/minimized PDB
         if request.POST.has_key('unappended_seg_%s' % filename_list[i][0]):
+            try:
+                thestr = structure.models.Segment.objects.filter(structure=file, name=filename_list[i][0])[0]
+                append_list.append(thestr)
+            except:
+                return HttpResponse('Bad segment')
             enefile = filename_list[i][0]
 
     if enefile is None and request.POST.has_key('appended_struct'):
@@ -1192,7 +1194,7 @@ def energyform(request):
     if enefile:
         scriptlist = []
         if need_append:
-            seg_list = append_tpl(request.POST,filename_list,file,scriptlist)
+            seg_list = minimization.views.append_tpl(request.POST,append_list,file,scriptlist)
             energy_this_file = file.name + '-final.crd'
             return calcEnergy_tpl(request,file,seg_list,energy_this_file,scriptlist)
         else:
@@ -1455,6 +1457,10 @@ def getSegs(Molecule,Struct,auto_append=False):
             newSeg.is_appended = 'n'
         newSeg.name = seg.segid
         newSeg.type = seg.segType
+
+        if seg.segType in ['pro','rna','dna']:
+            newSeg.rtf_list = 'top_all27_prot_na.rtf'
+            newSeg.prm_list = 'par_all27_prot_na.prm'
         newSeg.save()
 
 def newupload(request, template="html/fileupload.html"):

@@ -608,207 +608,6 @@ class Structure(models.Model):
         os.chdir(cwd)
 
     
-    #pre: Requires a valid CHARMM title
-    #This will make and return the header files for a CHARMM file such as the paramter/topology
-    #paths and CHARMM title
-    def makeCHARMMInputHeader(self, charmm_title, postdata):
-	rtf_prm_dict = self.getRtfPrmPath()
-        if self.rtf_append_replace == None or self.rtf_append_replace == 'append':
-            charmm_inp = """* """ + charmm_title + """
-*
-bomlev -2
-
-! Read in Topology and  Parameter files
-
-open unit 1 card read name """ + rtf_prm_dict['rtf'] + """ 
-read RTF card unit 1
-close unit 1"""
-            if(self.rtf):
-	        charmm_inp = charmm_inp + """
-
-open unit 1 card read name """ + self.rtf + """ 
-read rtf card append unit 1
-close unit 1"""
-        else:
-            charmm_inp = """* """ + charmm_title + """
-*
-bomlev -2
-
-! Read in Topology and  Parameter files
-
-open unit 1 card read name """ + self.rtf + """ 
-read RTF card unit 1
-close unit 1"""
-
-
-        if postdata.has_key("useqmmm"):
-            charmm_inp += """
-read rtf card append
-* QM/MM topology (for link atom)
-*
-   22     1
-mass    98 QQH    1.00800 ! link atom
-
-end
-"""
-
-        if not self.prm_append_replace or self.prm_append_replace == 'append':
-            charmm_inp = charmm_inp + """
-
-open unit 1 card read name """ + rtf_prm_dict['prm'] + """ 
-read PARA card unit 1
-close unit 1
-"""
-            if(self.prm):
-	        charmm_inp = charmm_inp + """
-
-open unit 1 card read name """ + self.prm + """ 
-read para card append unit 1
-close unit 1
-
-""" 
-        else:
-            charmm_inp = charmm_inp + """
-
-open unit 1 card read name """ + self.prm + """ 
-read PARA card unit 1
-close unit 1
-"""
-
-        if postdata.has_key("useqmmm"):
-            charmm_inp = charmm_inp + """
-read param card append
-* QM/MM parameters (for link atom)
-*
-
-BONDS
-qqh  cc      0.0       1.0    ! Link atom
-
-ANGLES
-qqh  cc   ct1    0.0        0.0    ! Link atom
-
-NONBONDED
-qqh    0.000000   0.000000     0.000000 ! Link atom
-
-end
-"""
-
-	   
-        try:
-            postdata['solvate_implicitly']
-            charmm_inp = charmm_inp + """
-
-!This is for implicit solvation
-!Scpism.inp is really a parameter file
-open read unit 84 card name /usr/local/charmming/solvation/scpism.inp
-"""
-        except:
-            pass
- 
-	return charmm_inp
-	
-    def makeBasicInput_tpl(self,seg,postdata,scriptlist):
-        goodhet = re.compile('goodhet')
-        line_is_goodhet = 0
-        segid = seg
-
-        #output line allows for shorthand notation so when
-        #secnding charmm output write commands, output_line will be
-        #a-goodhet or a
-        output_line = "-" + segid
-        #charmm_inp = self.makeCHARMMInputHeader('Run Segment Through CHARMM',postdata)
-
-        # template dictionary passes the needed variables to the template
-        template_dict = {}
-        template_dict['topology_list'] = self.getTopologyList()
-        template_dict['parameter_list'] = self.getParameterList()
-        template_dict['filebase'] = self.stripDotPDB(self.filename)
-        template_dict['seg'] = seg
-        template_dict['suffix'] = ''
-
-        #Custom user sequences are treated differently
-        if(seg == 'sequ-pro'):
-            #The sequ filename stores in the PDBInfo filename
-            #differs from the actual filename due to comaptibility
-            #problems otherwise so sequ_filename is the actual filename
-            sequ_filename = "new_" + self.stripDotPDB(self.filename) + "-sequ-pro.pdb"
-            sequ_handle = open(self.location + sequ_filename,'r')
-            sequ_line = sequ_handle.read()
-            sequ_line.strip()
-            sequ_list = sequ_line.split(' ')
-            number_of_sequences = len(sequ_list)
-            template_dict['sequ_line'] = sequ_line
-            template_dict['number_of_sequences'] = `number_of_sequences`  
-        else:
-            #if the line resembles a-tip
-            #this will make it become a and set a flag
-            if(goodhet.search(seg)):
-                segid = self.segidFromGoodhet(seg)
-                output_line = "-" + segid + "-goodhet"
-                line_is_goodhet = 1
-                template_dict['suffix'] = '-goodhet'
-
-        template_dict['line_is_goodhet'] = line_is_goodhet  
-
-        # handles patching if it exists, but we don't want to patch goodhet segments
-        # since we haven't generated them yet.
-        # Tim Miller: Mar 9, 2009 -- we also want to make sure we don't patch hetatom
-        # segments along with regular protein statement, hence the third clause of the
-        # following if...
-        template_dict['larr_list'] = []
-        template_dict['segpatch_name'] = self.segpatch_name 
-        if(self.segpatch_name and not line_is_goodhet and not segid.endswith("-het")):
-            segre = re.compile('SEGMENT ([a-z]+)')
-
-            patch_file = open(self.location + self.segpatch_name,'r')
-            for line in patch_file:
-                larr = line.split('::')
-                if len(larr) != 2:
-                    # ToDo, really ought to throw an error here
-                    continue
-                # check for the correct line for this segment.
-                m = segre.match(larr[0])
-                if not m:
-                    # ToDo, really ought to throw an error here
-                    continue
-                if m.group(1) == segid:
-                    template_dict['larr_list'].append(larr[1])
-
-        template_dict['endswith_het'] = segid.endswith("-het")
-        template_dict['endswith_dna'] = segid.endswith("-dna")
-        template_dict['endswith_rna'] = segid.endswith("-rna")
-        template_dict['pproto'] = ''
-        template_dict['location'] = self.location
-        if not line_is_goodhet:
-            # we need to handle protonation patching (if it exists)
-            try:
-                os.stat(self.location + "pproto_" + self.stripDotPDB(self.filename) + "-" + segid + ".str")
-                template_dict['pproto'] = 'y'
-            except:
-                pass
-
-
-        # if we have bad hetatms, use the genrtf supplied coordinate file...
-        #unless they have their own replace topology parameter file
-        template_dict['rtf_append_replace'] = self.rtf_append_replace
-        template_dict['prm_append_replace'] = self.prm_append_replace
-        template_dict['segid'] = segid
-        template_dict['output_line'] = output_line
-
-        t = get_template('%s/mytemplates/input_scripts/makeBasicInput_template.inp' % charmming_config.charmming_root)
-        charmm_inp = output.tidyInp(t.render(Context(template_dict)))
-
-        user_id = self.owner.id
-        os.chdir(self.location)
-        charmm_inp_filename = "charmm-"  + self.stripDotPDB(self.filename) + output_line + ".inp"
-        charmm_inp_file = open(charmm_inp_filename, 'w')
-        charmm_inp_file.write(charmm_inp)
-        charmm_inp_file.close()
-        #send to job queue
-        si = schedInterface()
-        #si.submitJob(user_id,self.location,charmm_inp_filename)
-        scriptlist.append(charmm_inp_filename)
-
     def handlePatching(self,postdata):
         seg_list = self.segids.split()
         #used in disulfide bond patching
@@ -886,6 +685,88 @@ open read unit 84 card name /usr/local/charmming/solvation/scpism.inp
 
     ### CHARMMing > 0.9 methods go here. Eventually, all of the methods above this point ###
     ### should be brought below it and cleaned up, or eliminated.                        ###
+
+    def setupSeg(self,seg,postdata,scriptlist):
+        # template dictionary passes the needed variables to the template
+        template_dict = {}
+        template_dict['topology_list'] = seg.rtf_list.split(',')
+        template_dict['parameter_list'] = seg.prm_list.split(',')
+        template_dict['segname'] = seg.name
+
+        #Custom user sequences are treated differently
+        if(seg == 'sequ-pro'):
+            #The sequ filename stores in the PDBInfo filename
+            #differs from the actual filename due to comaptibility
+            #problems otherwise so sequ_filename is the actual filename
+            sequ_filename = "new_" + self.stripDotPDB(self.filename) + "-sequ-pro.pdb"
+            sequ_handle = open(self.location + sequ_filename,'r')
+            sequ_line = sequ_handle.read()
+            sequ_line.strip()
+            sequ_list = sequ_line.split(' ')
+            number_of_sequences = len(sequ_list)
+            template_dict['sequ_line'] = sequ_line
+            template_dict['number_of_sequences'] = `number_of_sequences`  
+
+        template_dict['line_is_goodhet'] = seg.name.endswith('good')
+
+        # handles patching if it exists, but we don't want to patch goodhet segments
+        # since we haven't generated them yet.
+        # Tim Miller: Mar 9, 2009 -- we also want to make sure we don't patch hetatom
+        # segments along with regular protein statement, hence the third clause of the
+        # following if...
+        template_dict['larr_list'] = []
+        template_dict['segpatch_name'] = self.segpatch_name 
+        if(self.segpatch_name and not line_is_goodhet and not seg.name.endswith("-het")):
+            segre = re.compile('SEGMENT ([a-z]+)')
+
+            patch_file = open(self.location + self.segpatch_name,'r')
+            for line in patch_file:
+                larr = line.split('::')
+                if len(larr) != 2:
+                    # ToDo, really ought to throw an error here
+                    continue
+                # check for the correct line for this segment.
+                m = segre.match(larr[0])
+                if not m:
+                    # ToDo, really ought to throw an error here
+                    continue
+                if m.group(1) == segid:
+                    template_dict['larr_list'].append(larr[1])
+
+        template_dict['endswith_het'] = segid.endswith("-het")
+        template_dict['endswith_dna'] = segid.endswith("-dna")
+        template_dict['endswith_rna'] = segid.endswith("-rna")
+        template_dict['pproto'] = ''
+        template_dict['location'] = self.location
+        if not line_is_goodhet:
+            # we need to handle protonation patching (if it exists)
+            try:
+                os.stat(self.location + "pproto_" + self.stripDotPDB(self.filename) + "-" + segid + ".str")
+                template_dict['pproto'] = 'y'
+            except:
+                pass
+
+
+        # if we have bad hetatms, use the genrtf supplied coordinate file...
+        #unless they have their own replace topology parameter file
+        template_dict['segid'] = seg.name
+        template_dict['output_line'] = output_line
+
+        t = get_template('%s/mytemplates/input_scripts/makeBasicInput_template.inp' % charmming_config.charmming_root)
+        charmm_inp = output.tidyInp(t.render(Context(template_dict)))
+
+        user_id = self.owner.id
+        os.chdir(self.location)
+        charmm_inp_filename = "build-"  + seg.name + ".inp"
+        charmm_inp_file = open(charmm_inp_filename, 'w')
+        charmm_inp_file.write(charmm_inp)
+        charmm_inp_file.close()
+        #send to job queue
+        si = schedInterface()
+        #si.submitJob(user_id,self.location,charmm_inp_filename)
+        scriptlist.append(charmm_inp_filename)
+
+
 
     def getMoleculeFiles(self):
         """Get all molecule files associated with this structure. Note that "inherent"

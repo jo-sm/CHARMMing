@@ -20,7 +20,7 @@ from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
-from structure.models import Structure, goModel 
+from structure.models import Structure, Segment, goModel 
 from structure.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
 from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch
@@ -29,11 +29,8 @@ from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from minimization.models import minimizeParams
-import charmming_config
-import output
-import lessonaux
-import re
-import copy
+import charmming_config, output, lessonaux
+import re, copy
 import os, shutil
 import commands
 
@@ -144,172 +141,50 @@ def minimizeformdisplay(request):
       'propatch_list': propatch_list, 'nucleic_list': nucleic_list, 'nucpatch_list': nucpatch_list, 'seg_list': seg_list, 'userup_list': userup_list, 'go_list': go_list, \
       'bln_list': bln_list} )
 
-# go models need to be concatenated together and have their topology and parameter files generated
-def handle_gomodel_append(file,gosegs):
-    try:
-        # only one go model associated with a PDB for now...
-        gmp = goModel.objects.filter(pdb = file, selected = 'y')[0]
-    except:
-        # die noisily
-	raise "no go model parameters found"
-
-    # cat together all of the files
-    appended_go_pdb = "%s/new_%s-gosegs.pdb" % (file.location, file.stripDotPDB(file.filename))
-    outfp = open(appended_go_pdb, 'w')
-    for seg in gosegs:
-        # we want to operate on the -pro segment, not the -go segment.
-        infnm = '%s/new_%s-%s.pdb' % (file.location, file.stripDotPDB(file.filename), seg.replace('-go','-pro'))
-        inpfp = open(infnm, 'r')
-        for line in inpfp:
-            outfp.write(line)
-        inpfp.close()
-    outfp.close()
-
-    # need to run the alpha_carbon command and append the Go model TOP/PAR so CHARMMing will use it
-    if gmp.domainData:
-        mycmd = "PYTHONPATH=%s %s/cg_models/alpha_carbon/alpha_carbon.py --input=%s --data=%s/etc/cg --output=%s --stride_path=/usr/local/bin --contacts=%s --nScale=%s --domainScale=%s --domain_string=%s --kBond=%s --kAngle=%s" \
-                % (charmming_config.charmming_root,charmming_config.charmming_root,appended_go_pdb,charmming_config.charmming_root,file.location,gmp.contactType,gmp.nScale,gmp.domainScale,gmp.domainData,gmp.kBond,gmp.kAngle)
-    else:
-        mycmd = "PYTHONPATH=%s %s/cg_models/alpha_carbon/alpha_carbon.py --input=%s --data=%s/etc/cg --output=%s --stride_path=/usr/local/bin --contacts=%s --nScale=%s --domainScale=%f --kBond=%s --kAngle=%s" \
-                % (charmming_config.charmming_root,charmming_config.charmming_root,appended_go_pdb,charmming_config.charmming_root,file.location,gmp.contactType,gmp.nScale,gmp.domainScale,gmp.kBond,gmp.kAngle)
-    status, output = commands.getstatusoutput(mycmd)
-    if status != 0:
-        raise "alpha_carbon.py failed!"
-
-    # rename cg_new to new_
-    os.rename("%s/cg_new_%s-gosegs.pdb" % (file.location,file.stripDotPDB(file.filename)), appended_go_pdb)
-
-    file.rtf = "cg_new_%s-gosegs.rtf" % file.stripDotPDB(file.filename)
-    file.prm = "cg_new_%s-gosegs.prm" % file.stripDotPDB(file.filename)
-    file.rtf_append_replace = 'append'
-    file.prm_append_replace = 'append'
-    file.save()
-    return "gosegs"
-
-def append_tpl(postdata,filename_list,file,scriptlist):
-   min_seg_list = []
-   min_tip_list = []
-   min_het_list = []
-   go_seg_list = []
-   bln_seg_list = []
-   all_segids = file.segids.split()
-   rtf_prm_dict = file.getRtfPrmPath()
+def append_tpl(postdata,segment_list,file,scriptlist):
+   all_segids = Segment.objects.filter(structure=file)
    charmm_inp = ""
    dohbuild = False
    prm_builder = "gennrtf"
    # template dictionary passes the needed variables to the template
    template_dict = {}
 
-   try:
-       if postdata['usepatch']:
-           use_patch = 1
-   except:
+   if postdata.has_key('usepatch'):
+       use_patch = 1
+   else:
        use_patch = 0
-   try:
-       if postdata['parmgen'] == 'antechamber':
+   if postdata.has_key('parmgen') and postdata['parmgen'] == 'antechamber':
            prm_builder = "antechamber"
-   except:
-       pass
 
-   for i in range(len(filename_list)):
-       try:
-           tempdata = postdata[filename_list[i]]
-       except:
-           tempdata = ''
-       #The indexes of filename_list and seg_list correlate so if a filename is chosen
-       #then the corresponding index of seg_list should  be minimized
-       if tempdata:
-           if '-goodhet' in filename_list[i]:
-               min_seg_list.append(file.getSegIdFromFilename(filename_list[i]))
-           elif '-het' in filename_list[i]:
-               min_het_list.append(file.getSegIdFromFilename(filename_list[i]))
-           else:
-               if '-go' in filename_list[i]:
-                   go_seg_list.append(file.getSegIdFromFilename(filename_list[i]))
-               if '-bln' in filename_list[i]:
-                   bln_seg_list.append(file.getSegIdFromFilename(filename_list[i]))
-               min_seg_list.append(file.getSegIdFromFilename(filename_list[i]))
+   segs_to_append = []
+   go_seg_list    = []
+   bln_seg_list   = []
+   for segment in segment_list:
+       sname = segment.name
+       if sname.endswith('-go'):
+           go_seg_list.append(sname)
+       elif sname.endswith('-bln'):
+           bln_seg_list.append(sname)
+       segs_to_append.append(sname)
+       file.setupSeg(segment,postdata,scriptlist)
 
    # sanity check
    if len(go_seg_list) > 0 and len(bln_seg_list) > 0:
        raise "Cannot mix go and BLN models!!!"
 
    #runs each segment through CHARMM before appending begins
-   if len(go_seg_list) > 0:
-       finalgoseg = handle_gomodel_append(file,go_seg_list)
    if len(bln_seg_list) > 0:
        # copy RTF and RPM in place
-       shutil.copy("%s/etc/cg/bln_topology.rtf" % charmming_config.charmming_root, "%s/bln_topology.rtf" % file.location)
-       shutil.copy("%s/bln_new_%s-%s.prm" % (file.location,file.stripDotPDB(file.filename),bln_seg_list[0].replace('-bln','-pro')), "%s/bln_parameter.prm" % (file.location))
-       file.rtf = "bln_topology.rtf"
-       file.prm = "bln_parameter.prm"
-       file.rtf_append_replace = 'replace'
-       file.prm_append_replace = 'replace'
        file.doblncharge = 't'
        file.save()
    else:
        file.doblncharge = 'f'
        file.save()
 
-   if min_het_list:
-       if not file.rtf or not file.prm:
-           if prm_builder == 'antechamber':
-               file.makeAntechamber(min_het_list,postdata.has_key("addhyd"))
-           else:
-               file.makeGenRTF(min_het_list,postdata.has_key("addhyd"))
-
-       #Now that the het atoms have been made CHARMM-compliant
-       #we can add the min_het_list to min_seg_list
-       min_seg_list = min_seg_list + min_het_list
-
-   if min_seg_list:
-       buildcount = 0
-       for theSeg in min_seg_list:
-           if not file.ifBasicInputExists(theSeg) or postdata.has_key('edit_script'):
-               file.makeBasicInput_tpl(theSeg,postdata,scriptlist)
-               buildcount += 1
-       if buildcount > 0 or use_patch:
-           dohbuild = True
-
-   #charmm_inp = file.makeCHARMMInputHeader('Append the PDBs',postdata)
    template_dict['useqmmm'] = postdata.has_key("useqmmm")	 
-   template_dict['topology_list'] = file.getTopologyList()
-   template_dict['parameter_list'] = file.getParameterList()
-   template_dict['filebase'] = file.stripDotPDB(file.filename)
-   template_dict['min_seg_list'] = min_seg_list
-   template_dict['min_seg_0'] = ''
-
-   if min_seg_list:
-       template_dict['min_seg_0'] = min_seg_list[0] 
+   template_dict['seglist'] = segs_to_append
    
-   t = get_template('%s/mytemplates/input_scripts/append_template.inp' % charmming_config.charmming_root)
    # since template limits using certain python functions, here a list of dictionaries is used to pass mult-variables 
-   template_dict['het_list'] = []
-
-   for i in range(1,len(min_seg_list)):
-       #if(i != 0):
-       # het as a dictionary will pass four variables with four keys ('seg', 'good', 'bad' and 'other') for each 'i' to the tamplate 
-       het = {}
-       het['seg'] = min_seg_list[i]
-       het['good'] = ''
-       het['bad'] = ''
-       het['other'] = ''  
-
-       goodhet = re.compile('goodhet')
-       badhet = re.compile('-het')
-
-       #if there are goodhets then the segid is parsed from the list of sections to minimize/append
-
-       if(goodhet.search(min_seg_list[i])):
-           segid = file.segidFromGoodhet(min_seg_list[i])
-           het['good'] = segid  
-       elif(badhet.search(min_seg_list[i])):
-           het['bad'] = min_seg_list[i]
-       else:
-           het['other'] = min_seg_list[i]
-       # all het dictionaries are stored in the het_list
-       template_dict['het_list'].append(het)
-
    template_dict['patch_name'] = ''
    if file.patch_name:
        template_dict['patch_name'] = 'true'
@@ -324,35 +199,29 @@ def append_tpl(postdata,filename_list,file,scriptlist):
        pfp.close()
 
    template_dict['dohbuild'] = ''
-
    if dohbuild:
        template_dict['dohbuild'] = 'true'
-       template_dict['min_het_list'] = min_het_list
-       if min_het_list:
-           template_dict['min_het_0'] = min_het_list[0]
-
    template_dict['blncharge'] = file.doblncharge == 't'
 
    user_id = file.owner.id
    os.chdir(file.location)
-   append_filename = "charmm-" + file.stripDotPDB(file.filename) + "-append.inp"
+   append_filename = "append.inp"
    template_dict['headqmatom'] = 'blankme'
-   template_dict['output_name'] = 'new_' + file.stripDotPDB(file.filename) + '-final'
+   template_dict['output_name'] = 'appended'
+
+   t = get_template('%s/mytemplates/input_scripts/append_template.inp' % charmming_config.charmming_root)
    charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
    inp_out = open(append_filename,'w')
    inp_out.write(charmm_inp)
    inp_out.close()
+
    file.append_status = "Done"
    file.save()
-   #send to job queue
-   #print "Submitting append job."
-   #si = schedInterface()
-   #si.submitJob(user_id,file.location,append_filename)
    scriptlist.append(file.location + append_filename)
 
    #This will return a list of segments used
-   return min_seg_list
+   return segs_to_append
 
 
 def minimize_tpl(request,file,final_pdb_name,scriptlist):
