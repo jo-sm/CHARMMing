@@ -186,17 +186,7 @@ def append_tpl(postdata,segment_list,file,scriptlist):
    
    # since template limits using certain python functions, here a list of dictionaries is used to pass mult-variables 
    template_dict['patch_name'] = ''
-   if file.patch_name:
-       template_dict['patch_name'] = 'true'
-
-       pfp = open(file.location + file.patch_name, 'r')
-       #patch_list will store the line starting with 'patch disu' in pfp
-       template_dict['patch_list'] = []
-       for pline in pfp:
-           pline = pline.strip()
-           if pline.startswith('patch disu'):
-               template_dict['patch_list'].append(pline)
-       pfp.close()
+   # To-Do do we need to handle any post-append patching here???
 
    template_dict['dohbuild'] = ''
    if dohbuild:
@@ -216,7 +206,7 @@ def append_tpl(postdata,segment_list,file,scriptlist):
    inp_out.write(charmm_inp)
    inp_out.close()
 
-   file.append_status = "Done"
+   file.append_status = 'y'
    file.save()
    scriptlist.append(file.location + append_filename)
 
