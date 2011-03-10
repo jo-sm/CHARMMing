@@ -1461,6 +1461,9 @@ def getSegs(Molecule,Struct,auto_append=False):
         if seg.segType in ['pro','rna','dna']:
             newSeg.rtf_list = 'top_all27_prot_na.rtf'
             newSeg.prm_list = 'par_all27_prot_na.prm'
+
+        # set default patching type
+        newSeg.set_default_patches()        
         newSeg.save()
 
 def newupload(request, template="html/fileupload.html"):

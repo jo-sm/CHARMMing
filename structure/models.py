@@ -30,6 +30,7 @@ import lesson1, normalmodes, dynamics, minimization
 import solvation, lessonaux, apbs
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
+import cPickle
 
 class Structure(models.Model):
 
@@ -607,32 +608,8 @@ class Structure(models.Model):
 
         os.chdir(cwd)
 
-    
-    def handlePatching(self,postdata):
-        seg_list = self.segids.split()
-        #used in disulfide bond patching
-        disustartsegid = [] 
-        disuendsegid = [] 
-        disustart = [] 
-        disuend = [] 
-	patch_list = []
-	patch_line = ""
-        for seg in seg_list:
-	    try:
-	        #this part of the patch contains the CTER/NTER type patches
-	        patch_list.append(postdata['first_patch'+seg])
-	        patch_list.append(postdata['last_patch'+seg])
-                patch_line = patch_line + "SEGMENT " + seg + " :: generate setu " + seg + " first " +\
-		             postdata['first_patch'+seg] + " last " + postdata['last_patch'+seg] + "\n"
-	    except:
-	        pass
-        if patch_line:
-            self.segpatch_name = 'new_' +  self.stripDotPDB(self.filename) + '-segpatch.txt'
-            self.save()
-            segpatch_fp = open(self.location + self.segpatch_name,'w')
-            segpatch_fp.write(patch_line)
-            segpatch_fp.close()
 
+    def setStructurePatches(self,file,postdata):
 	#This deals with the disulfide bond patching
         patch_line = ""
 	try:
@@ -654,7 +631,7 @@ class Structure(models.Model):
             patch_file = open(self.location + self.patch_name,'w')
             patch_file.write(patch_line)
             patch_file.close()
-
+    
     #returns the warnings as a list if a warnings file exists
     #false otherwise
     def ifWarningsExist(self):
@@ -715,30 +692,12 @@ class Structure(models.Model):
         # segments along with regular protein statement, hence the third clause of the
         # following if...
         template_dict['larr_list'] = []
-        template_dict['segpatch_name'] = self.segpatch_name 
-        if(self.segpatch_name and not line_is_goodhet and not seg.name.endswith("-het")):
-            segre = re.compile('SEGMENT ([a-z]+)')
-
-            patch_file = open(self.location + self.segpatch_name,'r')
-            for line in patch_file:
-                larr = line.split('::')
-                if len(larr) != 2:
-                    # ToDo, really ought to throw an error here
-                    continue
-                # check for the correct line for this segment.
-                m = segre.match(larr[0])
-                if not m:
-                    # ToDo, really ought to throw an error here
-                    continue
-                if m.group(1) == segid:
-                    template_dict['larr_list'].append(larr[1])
-
-        template_dict['endswith_het'] = segid.endswith("-het")
-        template_dict['endswith_dna'] = segid.endswith("-dna")
-        template_dict['endswith_rna'] = segid.endswith("-rna")
+        template_dict['endswith_het'] = seg.name.endswith("-het")
+        template_dict['endswith_dna'] = seg.name.endswith("-dna")
+        template_dict['endswith_rna'] = seg.name.endswith("-rna")
         template_dict['pproto'] = ''
         template_dict['location'] = self.location
-        if not line_is_goodhet:
+        if not seg.name.endswith('good'):
             # we need to handle protonation patching (if it exists)
             try:
                 os.stat(self.location + "pproto_" + self.stripDotPDB(self.filename) + "-" + segid + ".str")
@@ -750,8 +709,6 @@ class Structure(models.Model):
         # if we have bad hetatms, use the genrtf supplied coordinate file...
         #unless they have their own replace topology parameter file
         template_dict['segid'] = seg.name
-        template_dict['output_line'] = output_line
-
         t = get_template('%s/mytemplates/input_scripts/makeBasicInput_template.inp' % charmming_config.charmming_root)
         charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
@@ -761,6 +718,15 @@ class Structure(models.Model):
         charmm_inp_file = open(charmm_inp_filename, 'w')
         charmm_inp_file.write(charmm_inp)
         charmm_inp_file.close()
+
+        # now write out the PDB file if it doesn't exist
+        fp = open(self.pickle, 'r')
+        mol = cPickle.load(fp)
+        for s in mol.iter_seg():
+            if s.segid == seg.name:
+                s.write(self.location + "/" + "segment-" + seg.name + ".pdb", outformat="charmm")
+        fp.close()
+
         #send to job queue
         si = schedInterface()
         #si.submitJob(user_id,self.location,charmm_inp_filename)
@@ -820,6 +786,26 @@ class Segment(models.Model):
     patch_last  = models.CharField(max_length=100)
     rtf_list    = models.CharField(max_length=500)
     prm_list    = models.CharField(max_length=500)
+
+    def set_default_patches(self):
+        if self.type == 'pro':
+            self.patch_first = 'NTER'
+            self.patch_last  = 'CTER'
+        elif self.type == 'dna' or self.type == 'rna':
+            self.patch_first = '5TER'
+            self.patch_last  = '3TER'
+        else:
+            self.patch_first = 'NONE'
+            self.patch_last = 'NONE'
+        self.save()
+
+    def set_terminal_patches(self,postdata):
+        if postdata.has_key('first_patch' + self.name):
+            self.patch_first = postdata['first_patch' + self.name]
+        if postdata.has_key('last_patch' + segobj.name):
+            self.patch_last = postdata['first_patch' + self.name]
+        self.save()
+
 
 class Patch(models.Model):
     structure   = models.ForeignKey(Structure)
