@@ -29,12 +29,102 @@
 
     <center>
        <form id="min_form" method="post"  action="." onsubmit="return send_form(this,'/charmming/minimize/',makeUniqueDiv('change_min'),'status_min',[{%for item in filename_list%}'{{item}}',{% endfor%}]);">
-       {% include "html/select_struct.html" %}
+       <table>
+        {% for item in filename_list %}
+          {% for pdb in het_list %}
+            {% ifequal item pdb %}
+              <tr><td>Non CHARMM-Compliant Heteroatoms</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv');hideShowPatch(makeUniqueDiv('min_remove_patch'),true);hetatmDeter(makeUniqueDiv('hetatm_deter'),[{%for item in het_list%} '{{item}}',{% endfor %}]);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+ 
+          {% for pdb in tip_list %}
+            {% ifequal item pdb %}
+              <tr><td>CHARMM-Compliant Heteroatoms</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv');hideShowPatch(makeUniqueDiv('min_remove_patch'),true);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+ 
+          {% for pdb in protein_list %}
+            {% ifequal item pdb %}
+              <tr><td>Protein Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv');hideShowPatch(makeUniqueDiv('min_remove_patch'),true);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
 
-       <div id="hetatm_deter" style="display:none">
-         <hr noshade width="80%" size="3%">
-         <h2 align="center">HETATM parameter determination</h2>
-         <table>
+          {% for pdb in nucleic_list %}
+            {% ifequal item pdb %}
+              <tr><td>Nucleic Acid Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv');hideShowPatch(makeUniqueDiv('min_remove_patch'),true);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+          {% for pdb in go_list %}
+            {% ifequal item pdb %}
+              <tr><td>Protein segment transformed to Go model</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+          {% for pdb in bln_list %}
+            {% ifequal item pdb %}
+              <tr><td>Protein segment transformed to BLN model</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv_or_min');hideShowPatch(makeUniqueDiv('ener_remove_patch'),true);"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+          {% for pdb in userup_list %}
+            {% ifequal item pdb %}
+              <tr><td>User-uploaded Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" onclick="uncheckAllInList('solv');hideShowPatch(makeUniqueDiv('min_remove_patch'),true);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td>
+              </tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% endifequal %}
+          {% endfor %}
+
+        {% endfor %}
+
+        {% for item in filename_list %}
+          {% ifequal item solv_pdb %}
+            <tr><td>Solvated PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% endifequal %}
+ 
+          {% ifequal item neu_pdb %}
+            <tr><td>Neutralized and Solvated PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% endifequal %}
+
+          {% ifequal item min_pdb %}
+            <tr><td>Already minimized protein</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+            <tr><td colspan=3><hr width="100%"></td></tr>
+          {% else %}
+            {% ifequal item md_pdb %}
+              <tr><td>MD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+              <tr><td colspan=3><hr width="100%"></td></tr>
+            {% else %}
+              {% ifequal item ld_pdb %}
+                <tr><td>LD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+                <tr><td colspan=3><hr width="100%"></td></tr>
+              {% else %}
+                {% ifequal item sgld_pdb %}
+                  <tr><td>SGLD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="radio" name='solv' value="{{item}}" onclick="uncheckAllInList('{%for i in filename_list%}{{i}} {%endfor%}');hideShowPatch(makeUniqueDiv('min_remove_patch'),false);getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"/> </td></tr>
+                  <tr><td colspan=3><hr width="100%"></td></tr>
+                {% endifequal %}
+              {% endifequal %}
+            {% endifequal %}
+          {% endifequal %}
+
+        {% endfor %}
+
+       </table>
+<div id="hetatm_deter" style="display:none">
+       <hr noshade width="80%" size="3%">
+       <h2 align="center">HETATM parameter determination</h2>
+       <table>
           <tr>
             <td>GENRTF </td><td><input type="radio" name="parmgen" value="genrtf" checked></td><td><a href="." title="More CHARMM centric with generic parameters">?</a></td>
           </tr>
@@ -44,15 +134,14 @@
           <tr>
             <td>Determine coordinates for HETATM hydrogen based on valence rules</td><td><input type="checkbox" name="addhyd" value="addhyd"></td>
           </tr>
-         </table>
-       </div>
-
+       </table>
+</div>
        <hr noshade width="80%" size=3%>
        <h2 align="center">Minimization Parameters</h2>
        <table>
         <tr><td><p><label for="id_sdsteps"> SDSteps</td><td></label> <input type="text" name="sdsteps" id="sdsteps" value=100 size=5 onChange="getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"> </P></td></tr><br />
         <tr><td><p><label for="id_abnr"> ABNR</td><td></label> <input type="text" name="abnr" id="abnr" value=1000 size=5 onChange="getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');">  </P></td></tr><br />
-        <tr><td><p><label for="id_tolg"> Gradient tolerance</td><td></label> <input type="text" name="tolg" id="tolg" value=0.05 size=5> </P></td></tr>
+        <tr><td><p><label for="id_tolg"> tolerance applied to the average gradient?</td><td></label> <input type="text" name="tolg" id="tolg" value=0.05 size=5> </P></td></tr>
         <!--<input type="submit" name="action" value="Upload" /><br />-->
        </table>
        <hr noshade width="80%" size=3%>
@@ -192,8 +281,7 @@
        </div>
        <tr><td><p class="fontmed">Use shake</p></td><td><input type="checkbox" id="use_shake" name="apply_shake" onclick="checkShake(makeUniqueDiv('use_shake'),makeUniqueDiv('apply_shake'));" checked></td></tr>
       <div id="apply_shake" class="fontmed" style="display:block">
-
-        <!-- Use custom shake if the user applies their own topology/parameter file-->
+<!-- Use custom shake if the user applies their own topology/parameter file-->
        {% if docustshake %}
          Use CHARMM Defaults for Shake: <input type="radio"  id='which_shake' value="use_default_shake" name='which_shake' onclick="showCustomShake(makeUniqueDiv('custom_shake'),false);"><br>
          Define my own shake selection: <input type="radio" id="define_shake" name="which_shake" value="define_shake" onclick="showCustomShake(makeUniqueDiv('custom_shake'),true);" checked>
@@ -217,7 +305,7 @@
        {% if trusted %}
         TRUSTED USER: Edit these scripts: <input type="checkbox" id="edit_script" name="edit_script"><br><br>
        {% endif %}
-       <input type="submit" value="Minimize" />
+       <input type="submit" value="Minimize"/>
        <br>
        <br>
 

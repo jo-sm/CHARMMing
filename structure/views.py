@@ -53,7 +53,7 @@ def getJobTime(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     file = structure.models.Structure.objects.filter(owner=request.user)[0]
-    inpput.checkRequestData(request)
+    input.checkRequestData(request)
     os.chdir(file.location)
     if request.POST['time_filenames'] =="":
         return HttpResponse("")
