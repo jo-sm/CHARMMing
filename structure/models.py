@@ -520,6 +520,7 @@ class Patch(models.Model):
 # are ready to be run through minimization, dynamics, etc.
 class WorkingStructure(models.Model):
     structure = models.ForeignKey(Structure)
+    identifier = models.CharField(max_length=20,default='')
 
     selected = models.CharField(max_length=1,default='n')
     doblncharge = models.CharField(max_length=1,default='f')

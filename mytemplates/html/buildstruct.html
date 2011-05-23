@@ -1,0 +1,48 @@
+<head>
+  <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
+  <link href="/charmming/css/windows2/default.css" rel="stylesheet" type="text/css"/>
+  <link href="/charmming/css/windows2/spread.css" rel="stylesheet" type="text/css"/>
+  <link href="/charmming/css/windows2/alert.css" rel="stylesheet" type="text/css"/>
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+</head>
+<body>
+<div id="Edit Structure" style="text-align: center;">
+
+  <h1>Editing structure {{ structname }}</h1>
+  <hr />
+
+  {% if haveworkingstruct %}
+    <div id="swapstruct">
+      <h2>Choose which built structure you wish to use.</h2>
+      <form method="post" action="/charmming/swapstruct/" >
+        <select name="choosestruct">
+          {% for str in built_list %}
+            <option value="{{ str%identifier }}" {% ifequals str%selected 'y' %}selected{% endifequals %}>{{ str%identifier }}</option>
+          {% endfor %}
+        </select>
+        <input type="submit" value="Switch structures" />
+      </form>
+    </div>
+  {% endif %}
+
+  <div id="newbuild">
+     <h2>Configure patching and chemical properties of the structure</h2>
+     <hr />
+     <form method="post" action="/charmming/modstruct/" >
+        <h3>Choose Segments and Patching</h3>
+ 
+        <table cellspacing="2" cellpadding="2">
+          {% for seg in seg_list %}
+             <tr><td>{{ seg%name }}</td><td>{{ seg%type }}</td></tr>
+          {% endfor %}
+        </table>
+
+        <h3>Choose Protonation State</h3>
+        <h3>Choose Disulfide Patching</h3>
+        <h3>Apply Restraints</h3>
+     </form>     
+  </div>
+
+</div>
+</body>

@@ -49,16 +49,6 @@ import mimetypes, string, random, glob, traceback, commands
 import charmming.io, charmming_config, minimization
 import cPickle
 
-def getJobTime(request):
-    if not request.user.is_authenticated():
-        return render_to_response('html/loggedout.html')
-    file = structure.models.Structure.objects.filter(owner=request.user)[0]
-    input.checkRequestData(request)
-    os.chdir(file.location)
-    if request.POST['time_filenames'] =="":
-        return HttpResponse("")
-    return HttpResponse(file.calcJobTime(request.POST['time_filenames'],request.POST['nstep']))
-
 # problem during upload
 def uploadError(request,problem):
     if not request.user.is_authenticated():
@@ -111,6 +101,11 @@ def deleteFile(request):
                 objstodel.append(typ.objects.filter(pdb=s))
             except:
                 pass
+
+        try:
+            objstodel.extend(structture.models.WorkingStructure.objects.filter(structure=s))
+        except:
+            pass
 
         for obj in objstodel:
             obj.delete()
@@ -1708,12 +1703,51 @@ def newupload(request, template="html/fileupload.html"):
         # set this structure as selected
         struct.selected = 'y'
         struct.save()
-        return HttpResponseRedirect('/charmming/editpdbinfo/'+struct.name)
+        return HttpResponseRedirect('/charmming/buildstruct/')
 
     # end of ye gigantic if test
 
     form = structure.models.PDBFileForm()
     return render_to_response('html/fileupload.html', {'form': form} )
+
+# This function populates the form for building a structure
+def buildstruct(request):
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+
+    input.checkRequestData(request)
+
+    try:
+        str = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return HttpResponse("Please submit a structure first.")
+
+    tdict = {}
+    
+    ws = []
+    wrkstruct = structure.models.WorkingStructure.objects.filter(structure=str)
+    if len(wrkstruct) > 0:
+        ws.extend(wrkstruct)
+    tdict['built_list'] = ws
+
+    sl = []
+    sl.extend(structure.models.Segment.objects.filter(structure=str))
+    tdict['seg_list'] = sl
+
+    return render_to_response('html/buildstruct.html', tdict)
+
+
+def modstruct(request):
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+
+    input.checkRequestData(request)
+
+def swap(request):
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+
+    input.checkRequestData(request)
 
 def get_proto_res(file,mdlname):
     protonizable = []
