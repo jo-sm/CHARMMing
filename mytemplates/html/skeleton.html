@@ -122,19 +122,20 @@
             <span>Basic functions</span>
             <a title="Opens a new tab." href="javascript:openNewTab();timeoutWikipage('General');">Open A New Tab</a>
             <a title="Closes all open tabs." href="javascript:closeAllTabs()">Close All Tabs</a>
-            <a title="Read the CHARMM tutorial." href="javascript:openWin('spread', 'Tutorial Doc', 200, 100, 1100, 600,'/tutorial/index.shtml','null');timeoutWikipage('Tutorial');">View the tutorial</a>
+            <a title="Read the CHARMM tutorial." href="javascript:openWin('spread', 'Tutorial Doc', 200, 100, 1100, 600,'http://www.charmmtutorial.org','null');timeoutWikipage('Tutorial');">View the tutorial</a>
             <a title="CHARMMing usage information and credits." href="javascript:openNewURL('/charmming/about/','About CHARMMing');timeoutWikipage('General');">About CHARMMing</a>
          </div>
          <div>
-            <span>File Manager</span>
+            <span>Structures</span>
             <a title="Submit a structure to manipulate." href="javascript:openNewURL('/charmming/fileupload/','Submit Structure');timeoutWikipage('Submit Structure');">Submit Structure</a>
-            <a title="Work with a different structure or edit the structure information." href="javascript:openNewURL('/charmming/viewpdbscontainer/','Select PDB');timeoutWikipage('Select PDB');">Select/Edit PDBs</a>
+            <a title="Work with a different structure or edit the structure information." href="javascript:openNewURL('/charmming/viewpdbscontainer/','Select PDB');timeoutWikipage('Select PDB');">Change/Delete Structures</a>
+            <a title="Change the patching, protonation, and other chemical properties of the current structure." href="javascript:openNewURL('/charmming/buildstruct/','Build Steructure');timeoutWikipage('Build');">Build Structure</a>
             <a title="Download all files associated with this structure." href="javascript:openNewURL('/charmming/downloadfilescontainer/','Download Files');timeoutWikipage('Download Files');">Download Files</a>
             <a title="View the 3D structure of your molecule." href="javascript:openNewURL('/charmming/visualize/','View PDBs');timeoutWikipage('View PDBs');">View PDBs</a>
             <a title="View all the input/output scripts this site has generated for you." href="javascript:openNewURL('/charmming/viewprocessfiles/','Process Files');timeoutWikipage('View Process Files');">View Process Files</a>
          </div>
          <div>
-            <span>Structure</span>
+            <span>Calculations</span>
             <a title="Runs a simple energy calculation. This can be used to generate a PSF/CRD file quickly while also informing you of the energy of your system." href=javascript:openNewURL("/charmming/energy/",'Energy');timeoutWikipage('Energy')>Energy</a>
             <a title="Minimizes the system's energy, trying to simulate absolute zero. This should be done before dynamics runs." href=javascript:openNewURL("/charmming/minimize/",'Minimization');timeoutWikipage('Minimization')>Minimize</a>
             <a title="Solvate your protein in a water structure." href=javascript:openNewURL("/charmming/solvate/",'Solvation');timeoutWikipage('Solvation');>Solvate</a>
@@ -143,7 +144,7 @@
             <a title="Langevin Dynamics is used to quickly induce protein conformation change. Useful in studying protein folding." href="javascript:openNewURL('/charmming/dynamics/ld/','Langevin Dynamics');timeoutWikipage('Langevin Dynamics');">Langevin Dynamics</a>
          </div>
          <div>
-            <span>Analysis</span>
+            <span>Analyses</span>
             <a title="Get properties from an MD run." href="javascript:openNewURL('/charmming/analysis/mdprop/','RMSD calculator');timeoutWikipage('MDANAL');">MD Properties</a>
             <a title="Analyze the root mean square deviation of various conformations of your structure." href="javascript:openNewURL('/charmming/analysis/rmsd/','RMSD calculator');timeoutWikipage('RMSD');">RMSD calculator</a>
             <a title="Perform an Oxidation/Reduction calculation using APBS." href="javascript:openNewURL('/charmming/analysis/redox/','REDOX calculator');timeoutWikipage('Redox');">Redox</a>
