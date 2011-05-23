@@ -1354,13 +1354,8 @@ def calcEnergy_tpl(request,file,seg_list,min_pdb,scriptlist):
             linkatoms = None
         eobj.qmmmsel = qmsel
 
-#        charmm_inp = makeQChem(charmm_inp, file, exch, corr, bs, qmsel, "SP", charge, multi, file.stripDotPDB(min_pdb) + ".crd", linkatoms)
         template_dict = makeQChem_tpl(template_dict, file, exch, corr, bs, qmsel, "SP", charge, multi, file.stripDotPDB(min_pdb) + ".crd", linkatoms)
 
-#        if "achtung, bad QM" in charmm_inp:
-#            return HttpResponse("<b>Bad QM parameter specified!</b>\n")
-#        elif "you changed the QM region" in charmm_inp:
-#            return HttpResponse("<b>You changed the QM region from the previous structure. That's not allowed!</b>\n")
     else:
         eobj.useqmmm = 'n'
 
@@ -1672,14 +1667,7 @@ def newupload(request, template="html/fileupload.html"):
 
                     model.parse()
                     getSegs(model,struct)
-                    
-                    pfname = location + dname + '/' + 'pdbpickle.dat'
-                    pickleFile = open(pfname,'w')
-                    cPickle.dump(pdb['model%d' % (mnum-1)],pickleFile)
-                    pickleFile.close()
-                    struct.pickle = pfname
-
-                    struct.save()
+                   
                     mnum += 1
             else:
                 struct = structure.models.Structure()
@@ -1693,11 +1681,13 @@ def newupload(request, template="html/fileupload.html"):
                 thisMol.parse()
                 getSegs(thisMol,struct)
 
-                pfname = location + dname + '/' + 'pdbpickle.dat'
-                pickleFile = open(pfname,'w')
-                cPickle.dump(pdb['model0'],pickleFile)
-                pickleFile.close()
-                struct.pickle = pfname
+        # store the pickle file containing the structure
+        pfname = location + dname + '/' + 'pdbpickle.dat'
+        pickleFile = open(pfname,'w')
+        cPickle.dump(pdb,pickleFile)
+        pickleFile.close()
+        struct.pickle = pfname        
+
 
         # unselect the existing structure
         try:
@@ -1717,14 +1707,15 @@ def newupload(request, template="html/fileupload.html"):
     form = structure.models.PDBFileForm()
     return render_to_response('html/fileupload.html', {'form': form} )
 
-def get_proto_res(file):
+def get_proto_res(file,mdlname):
     protonizable = []
 
     # all residues that we know how to protonize...
     possible_p = ['HIS','HSD','HSE','HSP','ASP','GLU','LYS']
 
     fp = open(file.pickle, 'r')
-    mol = cPickle.load(fp)
+    pdb = cPickle.load(fp)
+    mol = pdb[mdlname]
     fp.close()    
     for seg in mol.iter_seg():
         if not seg.segType == 'pro':

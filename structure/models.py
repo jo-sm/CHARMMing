@@ -35,6 +35,7 @@ import cPickle
 class Structure(models.Model):
 
     owner = models.ForeignKey(User)
+    selected = models.CharField(max_length=1,default='n')
     lesson_type = models.CharField(max_length=50,null=True)
     lesson_id = models.PositiveIntegerField(default=0,null=True)
 
@@ -48,41 +49,9 @@ class Structure(models.Model):
     author = models.CharField(max_length=250) 
     journal = models.CharField(max_length=250)
     pub_date = models.DateTimeField(default=datetime.datetime.now)
-    selected = models.CharField(max_length=1)  
-    append_status = models.CharField(max_length=1) 
-    solvation_structure = models.CharField(max_length=50) 
-    crystal_x = models.DecimalField(max_digits=8,decimal_places=5,null=True)
-    crystal_y = models.DecimalField(max_digits=8,decimal_places=5,null=True)
-    crystal_z = models.DecimalField(max_digits=8,decimal_places=5,null=True)
     domains = models.CharField(max_length=250,default='')
     fes4list = models.CharField(max_length=250,default='')
-    doblncharge = models.CharField(max_length=1,default='f')
     
-    minimization_jobID = models.PositiveIntegerField(default=0)
-    solvation_jobID = models.PositiveIntegerField(default=0)
-    nma_jobID = models.PositiveIntegerField(default=0)
-    ld_jobID = models.PositiveIntegerField(default=0)
-    md_jobID = models.PositiveIntegerField(default=0)
-    sgld_jobID = models.PositiveIntegerField(default=0)
-    redox_jobID = models.PositiveIntegerField(default=0)
-
-    def calcJobTime(self,time_filenames,nstep):
-        time_filenames = time_filenames.rstrip(',')
-        time_list = time_filenames.split(',')
-	total_atom_num = 0
-	a = .053
-	b = 20
-	for pdb in time_list:
-            total_atom_num += self.countAtomsInPDB(pdb)
-	x = total_atom_num 
-	time = a*x + b 
-        time = time * (int(nstep)/1000)
-	time = time/60
-        decimal = time - int(time)
-        if decimal > 0.5:
-          return str(int(time) + 1)
-        return str(int(time))
-		
     # get a list of disulfide bonds in the PDB (we parse these out in getHeader, this
     # function just returns a nice list for the template to use.
     # Note: this returns a list of tuples
@@ -111,102 +80,6 @@ class Structure(models.Model):
            rarr.append((firstr[0],firstr[1],secondr[0],secondr[1]))
         dfp.close()
         return rarr
-
-    # Updates the status of in progress operations
-    def updateActionStatus(self):
-        done = re.compile('Done')
-        fail = re.compile('Failed')
-        si = schedInterface()        
-
-        if self.minimization_jobID != 0:
-            sstring = si.checkStatus(self.minimization_jobID)
-	    miniparam_obj = minimization.models.minimizeParams.objects.filter(pdb=self,selected='y')[0]
-            miniparam_obj.statusHTML = statsDisplay(sstring,self.minimization_jobID)
-	    miniparam_obj.save()
-            if done.search(miniparam_obj.statusHTML) or fail.search(miniparam_obj.statusHTML):
-               self.minimization_jobID = 0
-               if self.lesson_type:
-                   lessonaux.doLessonAct(self,'onMinimizeDone')
-        if self.solvation_jobID != 0:
-            sstring = si.checkStatus(self.solvation_jobID)
-	    solvparam_obj = solvation.models.solvationParams.objects.filter(pdb=self,selected='y')[0]
-            solvparam_obj.statusHTML = statsDisplay(sstring,self.solvation_jobID)
-	    solvparam_obj.save()
-            if done.search(solvparam_obj.statusHTML):
-               self.solvation_jobID = 0
-               if self.lesson_type:
-                   lessonaux.doLessonAct(self,'onSolvationDone')
-        if self.nma_jobID != 0:
-            sstring = si.checkStatus(self.nma_jobID)
-	    nmaparam_obj = normalmodes.models.nmodeParams.objects.filter(pdb=self,selected='y')[0]
-            nmaparam_obj.statusHTML = statsDisplay(sstring,self.nma_jobID)
-	    nmaparam_obj.save()
-            nma_status = statsDisplay(sstring,self.nma_jobID)
-            if done.search(nma_status):
-               self.nma_jobID = 0
-	       parseNormalModes(self)
-               if nmaparam_obj.nma_movie_req:
-	           nmaparam_obj.make_nma_movie = True
-                   nmaparam_obj.save()
-        if self.md_jobID != 0:
-            sstring = si.checkStatus(self.md_jobID)
-	    mdparam_obj = dynamics.models.mdParams.objects.filter(pdb=self,selected='y')[0]
-            mdparam_obj.statusHTML = statsDisplay(sstring,self.md_jobID)
-	    mdparam_obj.save()
-	    #self.md_status = statsDisplay(sstring)
-            if done.search(mdparam_obj.statusHTML) and mdparam_obj.md_movie_req:
-               self.md_jobID = 0
-	       mdparam_obj.make_md_movie = True
-               mdparam_obj.save()
-	       self.save()
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onMDDone')
-            elif done.search(mdparam_obj.statusHTML):
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onMDDone')
-               self.md_jobID = 0
-               self.save()
-        if self.ld_jobID != 0:
-            sstring = si.checkStatus(self.ld_jobID)
-	    ldparam_obj = dynamics.models.ldParams.objects.filter(pdb=self,selected='y')[0]
-            ldparam_obj.statusHTML = statsDisplay(sstring,self.ld_jobID)
-	    ldparam_obj.save()
-            if done.search(ldparam_obj.statusHTML) and ldparam_obj.ld_movie_req:
-	       ldparam_obj.make_ld_movie = True
-               ldparam_obj.save()
-               self.ld_jobID = 0
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onLDDone')
-            elif done.search(ldparam_obj.statusHTML):
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onLDDone')
-               self.ld_jobID = 0
-               self.save()
-        if self.sgld_jobID != 0:
-            sstring = si.checkStatus(self.sgld_jobID)
-	    sgldparam_obj = dynamics.models.sgldParams.objects.filter(pdb=self,selected='y')[0]
-            sgldparam_obj.statusHTML = statsDisplay(sstring,self.sgld_jobID)
-	    sgldparam_obj.save()
-            self.sgld_status = statsDisplay(sstring,self.sgld_jobID)
-            if done.search(sgldparam_obj.statusHTML) and sgldparam_obj.sgld_movie_req:
-	       sgldparam_obj.make_sgld_movie = True
-               sgldparam_obj.save()
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onSGLDDone')
-               self.sgld_jobID = 0
-            elif done.search(sgldparam_obj.statusHTML):
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onSGLDDone')
-               self.sgld_jobID = 0
-               self.save()
-        if self.redox_jobID != 0:
-            sstring = si.checkStatus(self.redox_jobID)
-            redox_obj = apbs.models.redoxParams.objects.filter(pdb=self,selected='y')[0]
-            redox_obj.statusHTML = statsDisplay(sstring,self.redox_jobID)
-            redox_obj.save()
-            # ToDo, add lesson hooks
-    
-        self.save()
 
     #Returns a list of files not specifically associated with the structure
     def getNonStructureFiles(self):
@@ -480,6 +353,301 @@ class Structure(models.Model):
 	else:
 	    self.prm = ""
 
+
+    ### CHARMMing > 0.9 methods go here. Eventually, all of the methods above this point ###
+    ### should be brought below it and cleaned up, or eliminated.                        ###
+
+    def getMoleculeFiles(self):
+        """Get all molecule files associated with this structure. Note that "inherent"
+           structural objects (i.e. the individual segment files) do not have StructureFile
+           objects --- they're handled through the segment objects. The file name and
+           description is returned as a tuple.
+        """
+        rlist = []
+
+        # get list of all .psf files associated w/ this structure ... it is assumed that if the
+        # psf exists then the crd will as well.
+        for x in StructureFile.objects.filter(structure=self):
+            if x.path.endswith('.psf'):
+                rlist.append((x.path.replace(".psf",""), x.description))
+
+        # now append the inherent files
+        seglst = Segment.objects.filter(structure=self)
+        for s in seglst:
+            rlist.append((s.name, "Segment %s" % s.name))
+
+        return rlist
+    
+
+    def getCHARMMFiles(self):
+        """Get all CHARMM input, output, and stram files associated with this structure.
+        """
+        return [x for x in structure.models.StructureFile.objects.filter(structure=self) if x.endswith(".inp") or x.endswith(".out")]
+
+class StructureFile(models.Model):
+    structure   = models.ForeignKey(Structure)
+    path        = models.CharField(max_length=100)
+    version     = models.PositiveIntegerField(default=1)
+    type        = models.CharField(max_length=20)
+    description = models.CharField(max_length=500)
+
+    # temp variable
+    fd    = None
+
+    def open(self,mode):
+        self.fd = open(path,mode)
+
+    def close(self):
+        self.fd.close()
+
+class Segment(models.Model):
+    structure   = models.ForeignKey(Structure)
+    isBuilt    = models.CharField(max_length=1)
+    name        = models.CharField(max_length=6)
+    type        = models.CharField(max_length=10)
+    patch_first = models.CharField(max_length=100)
+    patch_last  = models.CharField(max_length=100)
+    rtf_list    = models.CharField(max_length=500)
+    prm_list    = models.CharField(max_length=500)
+
+    def set_default_patches(self):
+        if self.type == 'pro':
+            self.patch_first = 'NTER'
+            self.patch_last  = 'CTER'
+        elif self.type == 'dna' or self.type == 'rna':
+            self.patch_first = '5TER'
+            self.patch_last  = '3TER'
+        else:
+            self.patch_first = 'NONE'
+            self.patch_last = 'NONE'
+        self.save()
+
+    def set_terminal_patches(self,postdata):
+        if postdata.has_key('first_patch' + self.name):
+            self.patch_first = postdata['first_patch' + self.name]
+        if postdata.has_key('last_patch' + segobj.name):
+            self.patch_last = postdata['first_patch' + self.name]
+        self.save()
+
+    # This method will handle the building of the segment, including
+    # any terminal patching
+    def build(self,scriptlist,mdlname,firstp=None,lastp=None):
+        if not firstp:
+            firstp = self.patch_first
+        if not lastp:
+            lastp = self.patch_last
+
+        # template dictionary passes the needed variables to the template
+        template_dict = {}
+        template_dict['topology_list'] = firstp
+        template_dict['parameter_list'] = lastp
+        template_dict['segname'] = self.name
+
+        #Custom user sequences are treated differently
+        if(seg == 'sequ-pro'):
+            #The sequ filename stores in the PDBInfo filename
+            #differs from the actual filename due to comaptibility
+            #problems otherwise so sequ_filename is the actual filename
+            sequ_filename = "new_" + self.stripDotPDB(self.filename) + "-sequ-pro.pdb"
+            sequ_handle = open(self.location + sequ_filename,'r')
+            sequ_line = sequ_handle.read()
+            sequ_line.strip()
+            sequ_list = sequ_line.split(' ')
+            number_of_sequences = len(sequ_list)
+            template_dict['sequ_line'] = sequ_line
+            template_dict['number_of_sequences'] = `number_of_sequences`  
+
+        template_dict['line_is_goodhet'] = seg.name.endswith('good')
+
+        # handles patching if it exists, but we don't want to patch goodhet segments
+        # since we haven't generated them yet.
+        # Tim Miller: Mar 9, 2009 -- we also want to make sure we don't patch hetatom
+        # segments along with regular protein statement, hence the third clause of the
+        # following if...
+        template_dict['larr_list'] = []
+        template_dict['endswith_het'] = self.name.endswith("-het")
+        template_dict['endswith_dna'] = self.name.endswith("-dna")
+        template_dict['endswith_rna'] = self.name.endswith("-rna")
+        template_dict['pproto'] = ''
+        template_dict['location'] = self.structure.location
+        if not self.name.endswith('good'):
+            # we need to handle protonation patching (if it exists)
+            try:
+                os.stat(self.Structure.location + "pproto_" + segid + ".str")
+                template_dict['pproto'] = 'y'
+            except:
+                pass
+
+
+        # if we have bad hetatms, use the genrtf supplied coordinate file...
+        #unless they have their own replace topology parameter file
+        template_dict['segid'] = self.Structure.name
+        t = get_template('%s/mytemplates/input_scripts/makeBasicInput_template.inp' % charmming_config.charmming_root)
+        charmm_inp = output.tidyInp(t.render(Context(template_dict)))
+
+        user_id = self.structure.owner.id
+        os.chdir(self.location)
+        charmm_inp_filename = "build-"  + self.name + ".inp"
+        charmm_inp_file = open(charmm_inp_filename, 'w')
+        charmm_inp_file.write(charmm_inp)
+        charmm_inp_file.close()
+
+        # now write out the PDB file if it doesn't exist
+        fp = open(self.Structure.pickle, 'r')
+        mol = (cPickle.load(fp))[mdlname]
+        for s in mol.iter_seg():
+            if s.segid == self.name:
+                s.write(self.location + "/" + "segment-" + seg.name + ".pdb", outformat="charmm")
+        fp.close()
+
+        #send to job queue
+        si = schedInterface()
+        #si.submitJob(user_id,self.location,charmm_inp_filename)
+        scriptlist.append(charmm_inp_filename)
+
+
+        self.isBuilt = 'y'
+        self.save()
+
+
+class Patch(models.Model):
+    structure   = models.ForeignKey(Structure)
+    patch_name  = models.CharField(max_length=10)
+    patch_atoms = models.CharField(max_length=100)
+
+
+# The idea is that the WorkingStructure class will hold structures that
+# are ready to be run through minimization, dynamics, etc.
+class WorkingStructure(models.Model):
+    structure = models.ForeignKey(Structure)
+
+    selected = models.CharField(max_length=1,default='n')
+    doblncharge = models.CharField(max_length=1,default='f')
+    isBuilt = models.CharField(max_length=1,default='f')
+    segments = models.ManyToManyField(Segment)
+
+    # job IDs
+    minimization_jobID = models.PositiveIntegerField(default=0)
+    solvation_jobID = models.PositiveIntegerField(default=0)
+    nma_jobID = models.PositiveIntegerField(default=0)
+    md_jobID = models.PositiveIntegerField(default=0)
+    ld_jobID = models.PositiveIntegerField(default=0)
+    sgld_jobID = models.PositiveIntegerField(default=0)
+    
+
+    def __init__(self,segids):
+        for sid in segids:
+            segobj = Segment.object.filter(name=sid,structure=self.structure)[0]
+            segments.add(segobj)
+
+    # This method 
+
+    # This method replaces minimization.append_tpl() -- it is the explicit
+    # step that builds a new structure and appends it to the PDB object
+    # in charmminglib.
+    def build(self):
+        self.isBuilt = 'y'
+        self.save()
+
+    # The methods below this point have been moved from the original Structure
+    # class. They need to be GUTS-ified.
+
+    # Updates the status of in progress operations
+    def updateActionStatus(self):
+        done = re.compile('Done')
+        fail = re.compile('Failed')
+        si = schedInterface()        
+
+        if self.minimization_jobID != 0:
+            sstring = si.checkStatus(self.minimization_jobID)
+	    miniparam_obj = minimization.models.minimizeParams.objects.filter(pdb=self,selected='y')[0]
+            miniparam_obj.statusHTML = statsDisplay(sstring,self.minimization_jobID)
+	    miniparam_obj.save()
+            if done.search(miniparam_obj.statusHTML) or fail.search(miniparam_obj.statusHTML):
+               self.minimization_jobID = 0
+               if self.lesson_type:
+                   lessonaux.doLessonAct(self,'onMinimizeDone')
+        if self.solvation_jobID != 0:
+            sstring = si.checkStatus(self.solvation_jobID)
+	    solvparam_obj = solvation.models.solvationParams.objects.filter(pdb=self,selected='y')[0]
+            solvparam_obj.statusHTML = statsDisplay(sstring,self.solvation_jobID)
+	    solvparam_obj.save()
+            if done.search(solvparam_obj.statusHTML):
+               self.solvation_jobID = 0
+               if self.lesson_type:
+                   lessonaux.doLessonAct(self,'onSolvationDone')
+        if self.nma_jobID != 0:
+            sstring = si.checkStatus(self.nma_jobID)
+	    nmaparam_obj = normalmodes.models.nmodeParams.objects.filter(pdb=self,selected='y')[0]
+            nmaparam_obj.statusHTML = statsDisplay(sstring,self.nma_jobID)
+	    nmaparam_obj.save()
+            nma_status = statsDisplay(sstring,self.nma_jobID)
+            if done.search(nma_status):
+               self.nma_jobID = 0
+	       parseNormalModes(self)
+               if nmaparam_obj.nma_movie_req:
+	           nmaparam_obj.make_nma_movie = True
+                   nmaparam_obj.save()
+        if self.md_jobID != 0:
+            sstring = si.checkStatus(self.md_jobID)
+	    mdparam_obj = dynamics.models.mdParams.objects.filter(pdb=self,selected='y')[0]
+            mdparam_obj.statusHTML = statsDisplay(sstring,self.md_jobID)
+	    mdparam_obj.save()
+	    #self.md_status = statsDisplay(sstring)
+            if done.search(mdparam_obj.statusHTML) and mdparam_obj.md_movie_req:
+               self.md_jobID = 0
+	       mdparam_obj.make_md_movie = True
+               mdparam_obj.save()
+	       self.save()
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onMDDone')
+            elif done.search(mdparam_obj.statusHTML):
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onMDDone')
+               self.md_jobID = 0
+               self.save()
+        if self.ld_jobID != 0:
+            sstring = si.checkStatus(self.ld_jobID)
+	    ldparam_obj = dynamics.models.ldParams.objects.filter(pdb=self,selected='y')[0]
+            ldparam_obj.statusHTML = statsDisplay(sstring,self.ld_jobID)
+	    ldparam_obj.save()
+            if done.search(ldparam_obj.statusHTML) and ldparam_obj.ld_movie_req:
+	       ldparam_obj.make_ld_movie = True
+               ldparam_obj.save()
+               self.ld_jobID = 0
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onLDDone')
+            elif done.search(ldparam_obj.statusHTML):
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onLDDone')
+               self.ld_jobID = 0
+               self.save()
+        if self.sgld_jobID != 0:
+            sstring = si.checkStatus(self.sgld_jobID)
+	    sgldparam_obj = dynamics.models.sgldParams.objects.filter(pdb=self,selected='y')[0]
+            sgldparam_obj.statusHTML = statsDisplay(sstring,self.sgld_jobID)
+	    sgldparam_obj.save()
+            self.sgld_status = statsDisplay(sstring,self.sgld_jobID)
+            if done.search(sgldparam_obj.statusHTML) and sgldparam_obj.sgld_movie_req:
+	       sgldparam_obj.make_sgld_movie = True
+               sgldparam_obj.save()
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onSGLDDone')
+               self.sgld_jobID = 0
+            elif done.search(sgldparam_obj.statusHTML):
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onSGLDDone')
+               self.sgld_jobID = 0
+               self.save()
+        if self.redox_jobID != 0:
+            sstring = si.checkStatus(self.redox_jobID)
+            redox_obj = apbs.models.redoxParams.objects.filter(pdb=self,selected='y')[0]
+            redox_obj.statusHTML = statsDisplay(sstring,self.redox_jobID)
+            redox_obj.save()
+            # ToDo, add lesson hooks
+    
+        self.save()
+
     # Tim Miller, make hetid RTF/PRM using antechamber
     def makeAntechamber(self,hetids,doHyd):
         os.putenv("ACHOME", "/usr/local/charmming/antechamber")
@@ -660,157 +828,10 @@ class Structure(models.Model):
 	return restraints
 
 
-    ### CHARMMing > 0.9 methods go here. Eventually, all of the methods above this point ###
-    ### should be brought below it and cleaned up, or eliminated.                        ###
-
-    def setupSeg(self,seg,postdata,scriptlist):
-        # template dictionary passes the needed variables to the template
-        template_dict = {}
-        template_dict['topology_list'] = seg.rtf_list.split(',')
-        template_dict['parameter_list'] = seg.prm_list.split(',')
-        template_dict['segname'] = seg.name
-
-        #Custom user sequences are treated differently
-        if(seg == 'sequ-pro'):
-            #The sequ filename stores in the PDBInfo filename
-            #differs from the actual filename due to comaptibility
-            #problems otherwise so sequ_filename is the actual filename
-            sequ_filename = "new_" + self.stripDotPDB(self.filename) + "-sequ-pro.pdb"
-            sequ_handle = open(self.location + sequ_filename,'r')
-            sequ_line = sequ_handle.read()
-            sequ_line.strip()
-            sequ_list = sequ_line.split(' ')
-            number_of_sequences = len(sequ_list)
-            template_dict['sequ_line'] = sequ_line
-            template_dict['number_of_sequences'] = `number_of_sequences`  
-
-        template_dict['line_is_goodhet'] = seg.name.endswith('good')
-
-        # handles patching if it exists, but we don't want to patch goodhet segments
-        # since we haven't generated them yet.
-        # Tim Miller: Mar 9, 2009 -- we also want to make sure we don't patch hetatom
-        # segments along with regular protein statement, hence the third clause of the
-        # following if...
-        template_dict['larr_list'] = []
-        template_dict['endswith_het'] = seg.name.endswith("-het")
-        template_dict['endswith_dna'] = seg.name.endswith("-dna")
-        template_dict['endswith_rna'] = seg.name.endswith("-rna")
-        template_dict['pproto'] = ''
-        template_dict['location'] = self.location
-        if not seg.name.endswith('good'):
-            # we need to handle protonation patching (if it exists)
-            try:
-                os.stat(self.location + "pproto_" + self.stripDotPDB(self.filename) + "-" + segid + ".str")
-                template_dict['pproto'] = 'y'
-            except:
-                pass
-
-
-        # if we have bad hetatms, use the genrtf supplied coordinate file...
-        #unless they have their own replace topology parameter file
-        template_dict['segid'] = seg.name
-        t = get_template('%s/mytemplates/input_scripts/makeBasicInput_template.inp' % charmming_config.charmming_root)
-        charmm_inp = output.tidyInp(t.render(Context(template_dict)))
-
-        user_id = self.owner.id
-        os.chdir(self.location)
-        charmm_inp_filename = "build-"  + seg.name + ".inp"
-        charmm_inp_file = open(charmm_inp_filename, 'w')
-        charmm_inp_file.write(charmm_inp)
-        charmm_inp_file.close()
-
-        # now write out the PDB file if it doesn't exist
-        fp = open(self.pickle, 'r')
-        mol = cPickle.load(fp)
-        for s in mol.iter_seg():
-            if s.segid == seg.name:
-                s.write(self.location + "/" + "segment-" + seg.name + ".pdb", outformat="charmm")
-        fp.close()
-
-        #send to job queue
-        si = schedInterface()
-        #si.submitJob(user_id,self.location,charmm_inp_filename)
-        scriptlist.append(charmm_inp_filename)
 
 
 
-    def getMoleculeFiles(self):
-        """Get all molecule files associated with this structure. Note that "inherent"
-           structural objects (i.e. the individual segment files) do not have StructureFile
-           objects --- they're handled through the segment objects. The file name and
-           description is returned as a tuple.
-        """
-        rlist = []
-
-        # get list of all .psf files associated w/ this structure ... it is assumed that if the
-        # psf exists then the crd will as well.
-        for x in StructureFile.objects.filter(structure=self):
-            if x.path.endswith('.psf'):
-                rlist.append((x.path.replace(".psf",""), x.description))
-
-        # now append the inherent files
-        seglst = Segment.objects.filter(structure=self)
-        for s in seglst:
-            rlist.append((s.name, "Segment %s" % s.name))
-
-        return rlist
-    
-
-    def getCHARMMFiles(self):
-        """Get all CHARMM input, output, and stram files associated with this structure.
-        """
-        return [x for x in structure.models.StructureFile.objects.filter(structure=self) if x.endswith(".inp") or x.endswith(".out")]
-
-class StructureFile(models.Model):
-    structure   = models.ForeignKey(Structure)
-    path        = models.CharField(max_length=100)
-    version     = models.PositiveIntegerField(default=1)
-    type        = models.CharField(max_length=20)
-    description = models.CharField(max_length=500)
-
-    # temp variable
-    fd    = None
-
-    def open(self,mode):
-        self.fd = open(path,mode)
-
-    def close(self):
-        self.fd.close()
-
-class Segment(models.Model):
-    structure   = models.ForeignKey(Structure)
-    is_appended = models.CharField(max_length=1)
-    name        = models.CharField(max_length=6)
-    type        = models.CharField(max_length=10)
-    patch_first = models.CharField(max_length=100)
-    patch_last  = models.CharField(max_length=100)
-    rtf_list    = models.CharField(max_length=500)
-    prm_list    = models.CharField(max_length=500)
-
-    def set_default_patches(self):
-        if self.type == 'pro':
-            self.patch_first = 'NTER'
-            self.patch_last  = 'CTER'
-        elif self.type == 'dna' or self.type == 'rna':
-            self.patch_first = '5TER'
-            self.patch_last  = '3TER'
-        else:
-            self.patch_first = 'NONE'
-            self.patch_last = 'NONE'
-        self.save()
-
-    def set_terminal_patches(self,postdata):
-        if postdata.has_key('first_patch' + self.name):
-            self.patch_first = postdata['first_patch' + self.name]
-        if postdata.has_key('last_patch' + segobj.name):
-            self.patch_last = postdata['first_patch' + self.name]
-        self.save()
-
-
-class Patch(models.Model):
-    structure   = models.ForeignKey(Structure)
-    patch_name  = models.CharField(max_length=10)
-    patch_atoms = models.CharField(max_length=100)
+# --- below this point are the classes for the various forms ---
 
 class PDBFileForm(forms.Form):
     pdbid = forms.CharField(max_length=5)   
