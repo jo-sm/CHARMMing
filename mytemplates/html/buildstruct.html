@@ -36,9 +36,10 @@
         <h4>Choose Segments and Patching</h4>
  
         <table align="center" cellspacing="2" cellpadding="2">
-          <tr><td>Segment Name</td><td>Segment type</td><td>First patch</td><td>Last patch</td></tr>
+          <tr><td>Selected</td><td>Segment Name</td><td>Segment type</td><td>First patch</td><td>Last patch</td></tr>
           {% for seg in seg_list %}
              <tr>
+               <td><input type="checkbox" name="select_{{ seg.name }}" value="y" /></td>
                <td>{{ seg.name }}</td><td>{{ seg.type }}</td>
                <td>
                  <select name="{{ seg.name }}_firstpatch">

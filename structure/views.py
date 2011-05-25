@@ -1746,6 +1746,60 @@ def modstruct(request):
 
     input.checkRequestData(request)
 
+    try:
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return HttpResponse("Please submit a structure")
+
+    segs = structure.models.Segment.objects.filter(structure=struct)
+    seglist = []
+    for s in segs:
+        ulkey = 'select_' + s.name
+        if request.POST.has_key(ulkey) and request.POST[ulkey] == 'y':
+            seglist.append(s.name)
+    if len(seglist) < 1:
+        return HttpResponse("You must choose at least one segment!")
+    new_ws = structure.models.WorkingStructure()
+    new_ws.associate(struct,seglist)
+    if not request.POST.has_key('wsidentifier'):
+        return HttpResponse("You must give this working structure an identifier")
+    if not request.POST['wsidentifier']:
+        return HttpResponse("You must give this working structure an identifier")
+
+    # to do, make this not contain spaces
+    new_ws.identifier = request.POST['wsidentifier']
+
+    # Figure out terminal patching
+    for seg in seglist:
+        segobj = structure.models.Segment.objects.filter(structure=struct,name=seg)[0]
+        fpvar = seg + '_firstpatch'
+        lpvar = seg + '_lastpatch'
+
+        if request.POST.has_key(fpvar):
+            segobj.patch_first = request.POST[fpvar]
+            segobj.save()
+        if request.POST.has_key(lpvar):
+            segobj.patch_last = request.POST[lpvar]
+            segobj.save()
+
+    # Figure out protonation patching
+
+    # Figure out disulfide patching
+
+    # switch to using the new work structure
+    try:
+        old_ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        pass
+    else:
+        old_ws.selected = 'n'
+        old_ws.save()
+
+    new_ws.selected = 'y'
+    new_ws.save()
+
+    return HttpResponse('Cool')
+
 def swap(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')

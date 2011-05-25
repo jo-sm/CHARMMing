@@ -402,7 +402,7 @@ class StructureFile(models.Model):
 
 class Segment(models.Model):
     structure   = models.ForeignKey(Structure)
-    isBuilt    = models.CharField(max_length=1)
+    isBuilt     = models.CharField(max_length=1)
     name        = models.CharField(max_length=6)
     type        = models.CharField(max_length=10)
     patch_first = models.CharField(max_length=100)
@@ -557,10 +557,13 @@ class WorkingStructure(models.Model):
     sgld_jobID = models.PositiveIntegerField(default=0)
     
 
-    def __init__(self,segids):
+    def associate(self,structref,segids):
         for sid in segids:
-            segobj = Segment.object.filter(name=sid,structure=self.structure)[0]
-            segments.add(segobj)
+            self.structure = structref
+            self.save()
+            segobj = Segment.objects.filter(name=sid,structure=structref)[0]
+            self.segments.add(segobj)
+            self.save()
 
     # This method 
 
