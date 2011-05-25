@@ -1449,6 +1449,9 @@ def parseEnergy(file,output_filename,enerobj=None):
 def getSegs(Molecule,Struct,auto_append=False):
     Struct.save()
     for seg in Molecule.iter_seg():
+        reslist = seg.iter_res()
+        firstres = reslist.next().resName
+
         newSeg = structure.models.Segment()
         newSeg.structure = Struct
         if auto_append:
@@ -1463,7 +1466,7 @@ def getSegs(Molecule,Struct,auto_append=False):
             newSeg.prm_list = 'par_all27_prot_na.prm'
 
         # set default patching type
-        newSeg.set_default_patches()        
+        newSeg.set_default_patches(firstres)        
         newSeg.save()
 
 def newupload(request, template="html/fileupload.html"):

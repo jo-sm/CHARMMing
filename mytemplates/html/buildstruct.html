@@ -7,18 +7,19 @@
   <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
 </head>
 <body>
+<center>
 <div id="Edit Structure" style="text-align: center;">
 
-  <h1>Editing structure {{ structname }}</h1>
+  <h2>Editing structure {{ structname }}</h2>
   <hr />
 
   {% if haveworkingstruct %}
     <div id="swapstruct">
-      <h2>Choose which built structure you wish to use.</h2>
+      <h3>Choose which built structure you wish to use.</h3>
       <form method="post" action="/charmming/swapstruct/" >
         <select name="choosestruct">
           {% for str in built_list %}
-            <option value="{{ str%identifier }}" {% ifequals str%selected 'y' %}selected{% endifequals %}>{{ str%identifier }}</option>
+            <option value="{{ str.identifier }}" {% ifequal str.selected 'y' %}selected{% endifequal %}>{{ str.identifier }}</option>
           {% endfor %}
         </select>
         <input type="submit" value="Switch structures" />
@@ -27,22 +28,44 @@
   {% endif %}
 
   <div id="newbuild">
-     <h2>Configure patching and chemical properties of the structure</h2>
+     <h3>Configure patching and chemical properties of the structure</h3>
      <hr />
      <form method="post" action="/charmming/modstruct/" >
-        <h3>Choose Segments and Patching</h3>
+        <b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" />
+        <hr />
+        <h4>Choose Segments and Patching</h4>
  
-        <table cellspacing="2" cellpadding="2">
+        <table align="center" cellspacing="2" cellpadding="2">
+          <tr><td>Segment Name</td><td>Segment type</td><td>First patch</td><td>Last patch</td></tr>
           {% for seg in seg_list %}
-             <tr><td>{{ seg%name }}</td><td>{{ seg%type }}</td></tr>
+             <tr>
+               <td>{{ seg.name }}</td><td>{{ seg.type }}</td>
+               <td>
+                 <select name="{{ seg.name }}_firstpatch">
+                 {% for opt in seg.possible_firstpatches %}
+                   <option value="{{ opt }}" {% ifequal opt seg.patch_first %}selected{% endifequal %}>{{ opt }}</option>
+                 {% endfor %}
+                 </select>
+               </td>
+               <td>
+                 <select name="{{ seg.name }}_lastpatch">
+                 {% for opt in seg.possible_lastpatches %}
+                   <option value="{{ opt }}" {% ifequal opt seg.patch_last %}selected{% endifequal %}>{{ opt }}</option>
+                 {% endfor %}
+                 </select>
+               </td>
+             </tr>
           {% endfor %}
         </table>
 
         <h3>Choose Protonation State</h3>
         <h3>Choose Disulfide Patching</h3>
         <h3>Apply Restraints</h3>
+
+        <input type="submit" value="Submit" />
      </form>     
   </div>
 
 </div>
+</center>
 </body>

@@ -410,9 +410,12 @@ class Segment(models.Model):
     rtf_list    = models.CharField(max_length=500)
     prm_list    = models.CharField(max_length=500)
 
-    def set_default_patches(self):
+    def set_default_patches(self,firstres):
         if self.type == 'pro':
-            self.patch_first = 'NTER'
+            if firstres == 'gly':
+                self.patch_first = 'GLYP'
+            else:
+                self.patch_first = 'NTER'
             self.patch_last  = 'CTER'
         elif self.type == 'dna' or self.type == 'rna':
             self.patch_first = '5TER'
@@ -421,6 +424,24 @@ class Segment(models.Model):
             self.patch_first = 'NONE'
             self.patch_last = 'NONE'
         self.save()
+
+    @property
+    def possible_firstpatches(self):
+        if self.type == 'pro':
+            return ['NTER','GLYP','PROP','ACE','ACP','NONE']
+        elif self.type == 'dna' or self.type == 'rna':
+            return ['5TER','5MET','5PHO','5POM','CY35']
+        else:
+            return ['NONE']
+
+    @property
+    def possible_lastpatches(self):
+        if self.type == 'pro' :
+            return ['CTER','CT1','CT2','CT3','ACP','NONE']
+        elif self.type == 'dna' or self.type == 'rna':
+            return ['3TER','3PHO','3POM','3CO3','CY35']
+        else:
+            return ['NONE']
 
     def set_terminal_patches(self,postdata):
         if postdata.has_key('first_patch' + self.name):
