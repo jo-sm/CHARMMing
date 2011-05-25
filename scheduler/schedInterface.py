@@ -23,6 +23,8 @@ import charmming_config
 class schedInterface:
 
    def checkStatus(self,jobID):
+      if jobID < 1:
+          return ''
       self.sock.send("STATUS\n")
       buf = self.sock.recv(512)
       if not buf.startswith("OK"):

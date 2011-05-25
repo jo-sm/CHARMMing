@@ -114,18 +114,10 @@ padding-bottom: 15px;
 }
 
 #maincolumn {
-width: 860px;
+width: 1074px;
 margin: 0px;
 float: left;
 padding-left:5px;
-}
-
-#rightcolumn {
-width: 200px;
-margin: 0px;
-float: right;
-padding-left: 0px;
-padding-top: 0px;
 }
 
 /*---------------------------------------------*/

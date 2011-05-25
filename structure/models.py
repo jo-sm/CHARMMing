@@ -554,6 +554,7 @@ class WorkingStructure(models.Model):
     nma_jobID = models.PositiveIntegerField(default=0)
     md_jobID = models.PositiveIntegerField(default=0)
     ld_jobID = models.PositiveIntegerField(default=0)
+    redox_jobID = models.PositiveIntegerField(default=0)
     sgld_jobID = models.PositiveIntegerField(default=0)
     
 
