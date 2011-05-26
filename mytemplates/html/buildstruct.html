@@ -14,9 +14,9 @@
   <hr />
 
   {% if haveworkingstruct %}
-    <div id="swapstruct">
+    <div id="swap_form">
       <h3>Choose which built structure you wish to use.</h3>
-      <form method="post" action="/charmming/swapstruct/" >
+      <form id="swap" method="post" action="/charmming/swapstruct/" onsubmit="return send_form_gener(this.form,'/charmming/swapstruct/',makeUniqueDiv('Edit Structure'));" >
         <select name="choosestruct">
           {% for str in built_list %}
             <option value="{{ str.identifier }}" {% ifequal str.selected 'y' %}selected{% endifequal %}>{{ str.identifier }}</option>
@@ -30,7 +30,7 @@
   <div id="newbuild">
      <h3>Configure patching and chemical properties of the structure</h3>
      <hr />
-     <form method="post" action="/charmming/modstruct/" >
+     <form id="config_form" method="post" action="/charmming/modstruct/" onsubmit="return send_form_gener(this.form,'/charmming/modstruct/',makeUniqueDiv('Edit Structure'));" >
         <b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" />
         <hr />
         <h4>Choose Segments and Patching</h4>

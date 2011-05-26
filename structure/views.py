@@ -1713,12 +1713,36 @@ def newupload(request, template="html/fileupload.html"):
     form = structure.models.PDBFileForm()
     return render_to_response('html/fileupload.html', {'form': form} )
 
+
+def get_proto_res(file,mdlname):
+    protonizable = []
+
+    # all residues that we know how to protonize...
+    possible_p = ['HIS','HSD','HSE','HSP','ASP','GLU','LYS']
+
+    fp = open(file.pickle, 'r')
+    pdb = cPickle.load(fp)
+    mol = pdb[mdlname]
+    fp.close()    
+    for seg in mol.iter_seg():
+        if not seg.segType == 'pro':
+            continue
+        for res in seg.iter_res():
+            if res.resName.upper() in possible_p:
+                protonizable.append((res.resName.upper(),seg.segid,res.resIndex)) 
+
+    return protonizable
+
+
+
 # This function populates the form for building a structure
 def buildstruct(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
     input.checkRequestData(request)
+
+    logfp = open('/tmp/bs.log', 'w')
 
     try:
         str = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
@@ -1729,8 +1753,13 @@ def buildstruct(request):
     
     ws = []
     wrkstruct = structure.models.WorkingStructure.objects.filter(structure=str)
+    logfp.write('got %d working structs.\n' % len(wrkstruct))
+    logfp.close()
     if len(wrkstruct) > 0:
+        tdict['haveworkingstruct'] = True
         ws.extend(wrkstruct)
+    else:
+        tdict['haveworkingstruct'] = False
     tdict['built_list'] = ws
 
     sl = []
@@ -1805,25 +1834,31 @@ def swap(request):
         return render_to_response('html/loggedout.html')
 
     input.checkRequestData(request)
+    try:
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return HttpResponse("Please select a structure")
+    if not request.POST.has_key('choosestruct'):
+        return HttpResponse("Invalid choice")
 
-def get_proto_res(file,mdlname):
-    protonizable = []
+    try:
+        old_ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        pass
+    else:
+        old_ws.selected = 'n'
+        old_ws.save()
 
-    # all residues that we know how to protonize...
-    possible_p = ['HIS','HSD','HSE','HSP','ASP','GLU','LYS']
+    try:
+        new_ws = structure.models.WorkingStructure.objects.filter(structure=struct,identifier=request.POST['choosestruct'])[0]
+    except:
+        return HttpResponse("Invalid structure selected")
+    else:
+        new_ws.selected = 'y'
+        new_ws.save()
 
-    fp = open(file.pickle, 'r')
-    pdb = cPickle.load(fp)
-    mol = pdb[mdlname]
-    fp.close()    
-    for seg in mol.iter_seg():
-        if not seg.segType == 'pro':
-            continue
-        for res in seg.iter_res():
-            if res.resName.upper() in possible_p:
-                protonizable.append((res.resName.upper(),seg.segid,res.resIndex)) 
+    return HttpResponse('Swapped')
 
-    return protonizable
 
 def protonate(file):
     return render_to_response('html/protonate.html')    

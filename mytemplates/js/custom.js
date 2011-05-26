@@ -555,6 +555,13 @@ function checkUncheck(div_id,other_div,change)
     }
    }
 
+
+
+function send_form_gener(form,url,div_to_change) 
+{
+  new Ajax.Updater(div_to_change,url,{method:'post', asynchronous:true, parameters:Form.serialize(form)});
+}
+
 function send_form_mdanal(form,link,divupdate)
 {
    new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
