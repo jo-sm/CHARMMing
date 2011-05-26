@@ -1788,12 +1788,13 @@ def modstruct(request):
             seglist.append(s.name)
     if len(seglist) < 1:
         return HttpResponse("You must choose at least one segment!")
-    new_ws = structure.models.WorkingStructure()
-    new_ws.associate(struct,seglist)
     if not request.POST.has_key('wsidentifier'):
         return HttpResponse("You must give this working structure an identifier")
     if not request.POST['wsidentifier']:
         return HttpResponse("You must give this working structure an identifier")
+
+    new_ws = structure.models.WorkingStructure()
+    new_ws.associate(struct,seglist)
 
     # to do, make this not contain spaces
     new_ws.identifier = request.POST['wsidentifier']
