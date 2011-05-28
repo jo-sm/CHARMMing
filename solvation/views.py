@@ -21,7 +21,6 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from structure.models import Structure
 from structure.aux import checkNterPatch
-from minimization.views import append_tpl
 from solvation.ionization import neutralize_tpl
 from solvation.models import solvationParams
 from account.views import isUserTrustworthy

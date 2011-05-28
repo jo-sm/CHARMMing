@@ -1,0 +1,15 @@
+<!-- Use custom shake if the user applies their own topology/parameter file-->
+  {% if docustshake %}
+     Use CHARMM Defaults for Shake: <input type="radio"  id='which_shake' value="use_default_shake" name='which_shake' onclick="showCustomShake(makeUniqueDiv('custom_shake'),false);"><br>
+     Define my own shake selection: <input type="radio" id="define_shake" name="which_shake" value="define_shake" onclick="showCustomShake(makeUniqueDiv('custom_shake'),true);" checked>
+     <br />
+     <div id="custom_shake">
+  {% else %}
+     Use CHARMM Defaults for Shake: <input type="radio" id='which_shake' value="use_default_shake" name='which_shake' onclick="showCustomShake(makeUniqueDiv('custom_shake'),false);" checked><br>
+     Define my own shake selection: <input type="radio" id="define_shake" name="which_shake" value="define_shake" onclick="showCustomShake(makeUniqueDiv('custom_shake'),true);">
+     <br />
+     <div id="custom_shake" style="display:none">
+  {% endif %}
+  shake bonh param sele <input type="text" name="shake_line" value="all"> end
+</div> <!-- end the div begun in the if statement -->
+

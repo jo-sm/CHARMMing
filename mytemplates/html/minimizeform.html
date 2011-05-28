@@ -5,221 +5,63 @@
   <br />
   <h1 align="center">Minimize</h1>
   <hr noshade width="80%" size=3%>
-  <h2 align="center">Select Structure</h3>
+  <h2 align="center">Working structure: {{ ws_identifier }}</h3>
   <br />
 
   <div id='change_min' style="text-align:center;">
     <div id="script_dothis" style="display:none;">
        makeUniqueDiv('min_form');
-       makeUniqueDiv('usepatch');
-       makeUniqueDiv('patch_area');
-       makeUniqueDiv('min_remove_patch');
-       makeUniqueDiv('num_patches');
        makeUniqueDiv('solvate_implicitly');
-       makeUniqueDiv('hetatm_deter');
        makeUniqueDiv('run_time_minestimate');
        makeUniqueDiv('useqmmm');
        makeUniqueDiv('qmmm_parameters');
+       makeUniqueDiv('apply_restraints');
+       makeUniqueDiv('apply_shake');
        refreshToolTips();
        var GB_ROOT_DIR = "/charmming/greybox/greybox/";
-       {% if disulfide_list %}
-       geneDisulfideLines([{% for item in disulfide_list %}'{{item.0}}','{{item.1}}','{{item.2}}','{{item.3}}',{% endfor %}],'{% for item in seg_list %}{{item}} {% endfor %}');
-       {% endif %}
     </div>
 
     <center>
        <form id="min_form" method="post"  action="." onsubmit="return send_form(this,'/charmming/minimize/',makeUniqueDiv('change_min'),'status_min',[{%for item in filename_list%}'{{item}}',{% endfor%}]);">
-       {% include "html/select_struct.html" %}
-
-       <div id="hetatm_deter" style="display:none">
-         <hr noshade width="80%" size="3%">
-         <h2 align="center">HETATM parameter determination</h2>
+         <hr noshade width="80%" size=3%>
+         <h2 align="center">Minimization Parameters</h2>
          <table>
-          <tr>
-            <td>GENRTF </td><td><input type="radio" name="parmgen" value="genrtf" checked></td><td><a href="." title="More CHARMM centric with generic parameters">?</a></td>
-          </tr>
-          <tr>
-            <td>Antechamber </td><td><input type="radio" name="parmgen" value="antechamber"></td><td><a href="." title="More AMBER centric but arguably better parameters">?</a></td>
-          </tr>
-          <tr>
-            <td>Determine coordinates for HETATM hydrogen based on valence rules</td><td><input type="checkbox" name="addhyd" value="addhyd"></td>
-          </tr>
+           <tr><td><p><label for="id_sdsteps"> SDSteps</td><td></label> <input type="text" name="sdsteps" id="sdsteps" value=100 size=5 onChange="getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"> </P></td></tr><br />
+           <tr><td><p><label for="id_abnr"> ABNR</td><td></label> <input type="text" name="abnrsteps" id="abnr" value=1000 size=5 onChange="getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');">  </P></td></tr><br />
+           <tr><td><p><label for="id_tolg"> Gradient tolerance</td><td></label> <input type="text" name="tolg" id="tolg" value=0.05 size=5> </P></td></tr>
          </table>
-       </div>
+         <hr noshade width="80%" size=3%>
 
-       <hr noshade width="80%" size=3%>
-       <h2 align="center">Minimization Parameters</h2>
-       <table>
-        <tr><td><p><label for="id_sdsteps"> SDSteps</td><td></label> <input type="text" name="sdsteps" id="sdsteps" value=100 size=5 onChange="getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"> </P></td></tr><br />
-        <tr><td><p><label for="id_abnr"> ABNR</td><td></label> <input type="text" name="abnr" id="abnr" value=1000 size=5 onChange="getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');">  </P></td></tr><br />
-        <tr><td><p><label for="id_tolg"> Gradient tolerance</td><td></label> <input type="text" name="tolg" id="tolg" value=0.05 size=5> </P></td></tr>
-        <!--<input type="submit" name="action" value="Upload" /><br />-->
-       </table>
-       <hr noshade width="80%" size=3%>
+         <h2 align="center">Other options</h2>
+         <table width="600px">
+           <tr><td width="490px"><p class="fonrmed">Use QM/MM calculations</td><td width="20px"><input id="useqmmm" type="checkbox" name="useqmmm" onclick="checkPatch(makeUniqueDiv('useqmmm'),makeUniqueDiv('qmmm_parameters'));removePBC('usepbc',this);"></td></tr>
+             <div id="qmmm_parameters" style="display:none;">
+                {% include "html/qmmm_params.html" %}
+             </div>
+           <tr><td><p class="fonrmed">Use Periodic Boundary Conditions (PBC) in minimization</td><td><input id="usepbc" type="checkbox" name="usepbc"></td></tr>
+           <tr><td><p class="fontmed">Minimize only hydrogens (fix non-hydrogens)</td><td><input id="fixnonh" type="checkbox" name="fixnonh"></td></tr>
+           <tr><td><p class="fontmed">Apply patch</td><td><input id="usepatch" type="checkbox" name="usepatch" onclick="checkPatch(makeUniqueDiv('usepatch'),makeUniqueDiv('patch_area'));"></td></tr>
+         </table>
 
-       <h2 align="center">Other options</h2>
-       <table width="600px">
-         <tr><td width="490px"><p class="fonrmed">Use QM/MM calculations</td><td width="20px"><input id="useqmmm" type="checkbox" name="useqmmm" onclick="checkPatch(makeUniqueDiv('useqmmm'),makeUniqueDiv('qmmm_parameters'));removePBC('usepbc',this);"></td></tr>
-       <div id="qmmm_parameters" style="display:none;">
-           <hr width="70%">
-       Exchange: <select style="position:absolute;left:250px" size="1" name="qmmm_exchange">
-          <option value="HF" selected>HF</option>
-          <option value="B">B</option>
-          <option value="B3">B3</option>
-        </select><br>
-       Charge: <select size="1" name="qmmm_charge" style="position:absolute;left:250px" >
-          <option value="-5"> -5 </option>
-          <option value="-4"> -4 </option>
-          <option value="-3"> -3 </option>
-          <option value="-2"> -2 </option>
-          <option value="-1"> -1 </option>
-          <option value="0" selected> 0 </option>
-          <option value="+1"> +1 </option>
-          <option value="+2"> +2 </option>
-          <option value="+3"> +3 </option>
-          <option value="+4"> +4 </option>
-          <option value="+5"> +5 </option>
-	</select><br>
-       Correlation: <select size="1" name="qmmm_correlation" style="position:absolute;left:250px" >
-          <option value="None" selected>None</option>
-          <option value="LYP">LYP</option>
-        </select><br>
-       Basis Set: <select size="1" name="qmmm_basisset" style="position:absolute;left:250px" >
-          <option value="STO-3G" selected>STO-3G</option>
-          <option value="3-21G*">3-21G*</option>
-          <option value="6-31G*">6-31G*</option>
-        </select><br>
-       Multiplicity: <select size="1" name="qmmm_multiplicity" style="position:absolute;left:250px" >
-          <option value="1" select>1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
-          <option value="10">10</option>
-        </select><br>
-	Define QM region: define qmregion sele <input type="text" id="qmsele" name="qmsele"> end<br>
-	<p class="fontmed">Enter number of link atoms (entering 0 causes CHARMMing to automatically determine
-           the link atoms): 
-           <input type="text" name="num_linkatoms" id="num_linkatoms" value="0" size="4"n onKeyUp="writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_linkatoms'),makeUniqueDiv('linkatom_lines'));">
-           <div id="linkatom_lines"></p>
+         <table width="600px">
+           <tr><td width="490px"><p class="fontmed">Use restraints</td><td width="20px"><input type="checkbox" id="use_restraints" name="apply_restraints" onclick="checkRestraints(makeUniqueDiv('use_restraints'),makeUniqueDiv('apply_restraints'));"></td></tr>
+           <div id="apply_restraints" style="display:none"></p>
+              <p class="fontmed">Enter number of separate minimizations that will use restraints:<input type="text" size="4" id="num_restraints" name="num_restraints" onkeyup="writeRestraintLines('restraint_lines');"><br>
+              <div id='restraint_lines'></p>
            </div>
-           <hr width="70%">
-       </div>
-         <tr><td><p class="fonrmed">Use Periodic Boundary Conditions (PBC) in minimization</td><td><input id="usepbc" type="checkbox" name="usepbc"></td></tr>
-         <tr><td><p class="fontmed">Minimize only hydrogens (fix non-hydrogens)</td><td><input id="fixnonh" type="checkbox" name="fixnonh"></td></tr>
-         <tr><td><p class="fontmed">Apply patch</td><td><input id="usepatch" type="checkbox" name="usepatch" onclick="checkPatch(makeUniqueDiv('usepatch'),makeUniqueDiv('patch_area'));"></td></tr>
-       </table>
-
-       <div id='min_remove_patch' style="display:block;">
-	 <table width="720px">
-         <div id=patch_area style="display:none"></p>
-           <hr width="70%">
-           {% for item in propatch_list %}
-             <p class="fontmed">
-             Segid:<font color="red">{{item.0}} </font>
-             First Patch:
-             <select size="1" name="first_patch{{item.0}}">
-               {% ifequal item.1 "nter" %}
-                 <option value="NTER" selected>NTER</option>
-               {% else %}
-                 <option value="NTER">NTER</option>
-               {% endifequal %}
-               {% ifequal item.1 "glyp" %}
-                 <option value="GLYP" selected>GLYP</option>
-               {% else %}
-                 <option value="GLYP">GLYP</option>
-               {% endifequal %}
-               {% ifequal item.1 "prop" %}
-                 <option value="PROP" selected>PROP</option>
-               {% else %}
-                 <option value="PROP">PROP</option>
-               {% endifequal %}
-               <option value="ACE">ACE</option>
-               <option value="ACP">ACP</option>
-               <option value="NONE">NONE</option>
-             </select>
-
-             Last Patch:
-             <select size="1" name="last_patch{{item.0}}">
-               <option value="CTER" selected>CTER</option>
-               <option value="CT1">CT1</option>
-               <option value="CT2">CT2</option>
-               <option value="CT3">CT3</option>
-               <option value="ACP">ACP</option>
-               <option value="NONE">NONE</option>
-             </select>
-             </p>
-           {% endfor %}
-           {% for item in nucpatch_list %}
-             <p class="fontmed">
-             Segid:<font color="red">{{item.0}} </font>
-             First Patch:
-             <select size="1" name="first_patch{{item.0}}">
-               <option value="5TER" selected>5TER</option>
-               <option value="5MET">5MET</option>
-               <option value="5PHO">5PHO</option>
-               <option value="5POM">5POM</option>
-               <option value="CY35">CY35</option>
-             </select>
-
-             Last Patch:
-             <select size="1" name="last_patch{{item.0}}">
-               <option value="3TER" selected>3TER</option>
-               <option value="3PHO">3PHO</option>
-               <option value="3POM">3POM</option>
-               <option value="3CO3">3CO3</option>
-               <option value="CY35">CY35</option>
-             </select>
-           {% endfor %}
-           <p class="fontmed">Enter number of disulfide patches: <input type="text" name="num_patches" id="num_patches" value="0" size="4"n onKeyUp="writeDisuLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_patches'),makeUniqueDiv('disulfide_solv'));"></p>
-
-           <div id="disulfide_solv">
+           <tr><td><p class="fontmed">Use shake</p></td><td><input type="checkbox" id="use_shake" name="apply_shake" onclick="checkShake(makeUniqueDiv('use_shake'),makeUniqueDiv('apply_shake'));" checked></td></tr>
+           <div id="apply_shake" class="fontmed" style="display:block">
+              {% include 'html/shake_params.html' %}
            </div>
-         </div>
-       </div>
-       </table>
-       </div>
-       <table width="600px">
-       <tr><td width="490px"><p class="fontmed">Use restraints</td><td width="20px"><input type="checkbox" id="use_restraints" name="apply_restraints" onclick="checkRestraints(makeUniqueDiv('use_restraints'),makeUniqueDiv('apply_restraints'));"></td></tr>
-       <div id="apply_restraints" style="display:none"></p>
-         <p class="fontmed">Enter number of separate minimizations that will use restraints:<input type="text" size="4" id="num_restraints" name="num_restraints" onkeyup="writeRestraintLines('restraint_lines');"><br>
-         <div id='restraint_lines'></p>
-         </div>
-       </div>
-       <tr><td><p class="fontmed">Use shake</p></td><td><input type="checkbox" id="use_shake" name="apply_shake" onclick="checkShake(makeUniqueDiv('use_shake'),makeUniqueDiv('apply_shake'));" checked></td></tr>
-      <div id="apply_shake" class="fontmed" style="display:block">
-
-        <!-- Use custom shake if the user applies their own topology/parameter file-->
-       {% if docustshake %}
-         Use CHARMM Defaults for Shake: <input type="radio"  id='which_shake' value="use_default_shake" name='which_shake' onclick="showCustomShake(makeUniqueDiv('custom_shake'),false);"><br>
-         Define my own shake selection: <input type="radio" id="define_shake" name="which_shake" value="define_shake" onclick="showCustomShake(makeUniqueDiv('custom_shake'),true);" checked>
-         <br>
-         <div id="custom_shake">
-       {% else %}
-         Use CHARMM Defaults for Shake: <input type="radio" id='which_shake' value="use_default_shake" name='which_shake' onclick="showCustomShake(makeUniqueDiv('custom_shake'),false);" checked><br>
-         Define my own shake selection: <input type="radio" id="define_shake" name="which_shake" value="define_shake" onclick="showCustomShake(makeUniqueDiv('custom_shake'),true);">
-         <br>
-         <div id="custom_shake" style="display:none">
-       {% endif %}
-        shake bonh param sele <input type="text" name="shake_line" value="all"> end
-       </div>
-      </div>
-       <tr><td><p class="fontmed">Solvate implicitly with SCPISM</td><td><input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></td></tr>
-       </table>
-       <hr noshade width="80%" size=3%>
-       <br/>
-       <i>   The estimated run time, based on your options, for this job is <div id='run_time_minestimate'></div> minutes.</i>
-       <br />
-       {% if trusted %}
-        TRUSTED USER: Edit these scripts: <input type="checkbox" id="edit_script" name="edit_script"><br><br>
-       {% endif %}
-       <input type="submit" value="Minimize" />
-       <br>
-       <br>
+           <tr><td><p class="fontmed">Solvate implicitly with SCPISM</td><td><input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></td></tr>
+         </table>
+         <hr noshade width="80%" size=3%>
+         <br/>
+           <i>   The estimated run time, based on your options, for this job is <div id='run_time_minestimate'></div> minutes.</i>
+         <br />
+         <input type="submit" value="Minimize" />
+         <br />
+         <br />
 
        </form>
     </center>

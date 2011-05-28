@@ -1199,7 +1199,6 @@ def energyform(request):
     if enefile:
         scriptlist = []
         if need_append:
-            seg_list = minimization.views.append_tpl(request.POST,append_list,file,scriptlist)
             energy_this_file = file.name + '-final.crd'
             return calcEnergy_tpl(request,file,seg_list,energy_this_file,scriptlist)
         else:

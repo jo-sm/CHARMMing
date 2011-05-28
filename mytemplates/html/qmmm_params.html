@@ -1,0 +1,48 @@
+<hr width="70%">
+  Exchange: <select style="position:absolute;left:250px" size="1" name="qmmm_exchange">
+              <option value="HF" selected>HF</option>
+              <option value="B">B</option>
+              <option value="B3">B3</option>
+            </select><br>
+  Charge: <select size="1" name="qmmm_charge" style="position:absolute;left:250px" >
+            <option value="-5"> -5 </option>
+            <option value="-4"> -4 </option>
+            <option value="-3"> -3 </option>
+            <option value="-2"> -2 </option>
+            <option value="-1"> -1 </option>
+            <option value="0" selected> 0 </option>
+            <option value="+1"> +1 </option>
+            <option value="+2"> +2 </option>
+            <option value="+3"> +3 </option>
+            <option value="+4"> +4 </option>
+            <option value="+5"> +5 </option>
+          </select><br>
+  Correlation: <select size="1" name="qmmm_correlation" style="position:absolute;left:250px" >
+                  <option value="None" selected>None</option>
+                  <option value="LYP">LYP</option>
+               </select><br>
+  Basis Set: <select size="1" name="qmmm_basisset" style="position:absolute;left:250px" >
+                 <option value="STO-3G" selected>STO-3G</option>
+                 <option value="3-21G*">3-21G*</option>
+                 <option value="6-31G*">6-31G*</option>
+             </select><br>
+  Multiplicity: <select size="1" name="qmmm_multiplicity" style="position:absolute;left:250px" >
+                  <option value="1" select>1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                </select><br />
+
+<p class="fontmed">Define QM region: define qmregion sele <input type="text" id="qmsele" name="qmsele"> end</p>
+<p class="fontmed">Enter number of link atoms (entering 0 causes CHARMMing to automatically determine the link atoms): 
+
+<input type="text" name="num_linkatoms" id="num_linkatoms" value="0" size="4"n onKeyUp="writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_linkatoms'),makeUniqueDiv('linkatom_lines'));">
+<div id="linkatom_lines"></div></p>
+<hr width="70%">
+</div>

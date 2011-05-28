@@ -22,7 +22,6 @@ from structure.models import Structure
 from account.views import isUserTrustworthy
 from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch
-from minimization.views import append_tpl
 from dynamics.models import mdParams,ldParams,sgldParams
 import rexModule
 from django.contrib.auth.models import User

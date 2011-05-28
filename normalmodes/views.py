@@ -21,7 +21,6 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from structure.models import Structure 
 from structure.qmmm import makeQChem, makeQChem_tpl, writeQMheader
-from minimization.views import append_tpl
 from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeParams
 from account.views import isUserTrustworthy

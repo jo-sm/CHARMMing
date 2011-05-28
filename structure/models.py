@@ -530,150 +530,6 @@ class Segment(models.Model):
         self.isBuilt = 'y'
         self.save()
 
-
-class Patch(models.Model):
-    structure   = models.ForeignKey(Structure)
-    patch_name  = models.CharField(max_length=10)
-    patch_atoms = models.CharField(max_length=100)
-
-
-# The idea is that the WorkingStructure class will hold structures that
-# are ready to be run through minimization, dynamics, etc.
-class WorkingStructure(models.Model):
-    structure = models.ForeignKey(Structure)
-    identifier = models.CharField(max_length=20,default='')
-
-    selected = models.CharField(max_length=1,default='n')
-    doblncharge = models.CharField(max_length=1,default='f')
-    isBuilt = models.CharField(max_length=1,default='f')
-    segments = models.ManyToManyField(Segment)
-
-    # job IDs
-    minimization_jobID = models.PositiveIntegerField(default=0)
-    solvation_jobID = models.PositiveIntegerField(default=0)
-    nma_jobID = models.PositiveIntegerField(default=0)
-    md_jobID = models.PositiveIntegerField(default=0)
-    ld_jobID = models.PositiveIntegerField(default=0)
-    redox_jobID = models.PositiveIntegerField(default=0)
-    sgld_jobID = models.PositiveIntegerField(default=0)
-    
-
-    def associate(self,structref,segids):
-        for sid in segids:
-            self.structure = structref
-            self.save()
-            segobj = Segment.objects.filter(name=sid,structure=structref)[0]
-            self.segments.add(segobj)
-            self.save()
-
-    # This method 
-
-    # This method replaces minimization.append_tpl() -- it is the explicit
-    # step that builds a new structure and appends it to the PDB object
-    # in charmminglib.
-    def build(self):
-        self.isBuilt = 'y'
-        self.save()
-
-    # The methods below this point have been moved from the original Structure
-    # class. They need to be GUTS-ified.
-
-    # Updates the status of in progress operations
-    def updateActionStatus(self):
-        done = re.compile('Done')
-        fail = re.compile('Failed')
-        si = schedInterface()        
-
-        if self.minimization_jobID != 0:
-            sstring = si.checkStatus(self.minimization_jobID)
-	    miniparam_obj = minimization.models.minimizeParams.objects.filter(pdb=self,selected='y')[0]
-            miniparam_obj.statusHTML = statsDisplay(sstring,self.minimization_jobID)
-	    miniparam_obj.save()
-            if done.search(miniparam_obj.statusHTML) or fail.search(miniparam_obj.statusHTML):
-               self.minimization_jobID = 0
-               if self.lesson_type:
-                   lessonaux.doLessonAct(self,'onMinimizeDone')
-        if self.solvation_jobID != 0:
-            sstring = si.checkStatus(self.solvation_jobID)
-	    solvparam_obj = solvation.models.solvationParams.objects.filter(pdb=self,selected='y')[0]
-            solvparam_obj.statusHTML = statsDisplay(sstring,self.solvation_jobID)
-	    solvparam_obj.save()
-            if done.search(solvparam_obj.statusHTML):
-               self.solvation_jobID = 0
-               if self.lesson_type:
-                   lessonaux.doLessonAct(self,'onSolvationDone')
-        if self.nma_jobID != 0:
-            sstring = si.checkStatus(self.nma_jobID)
-	    nmaparam_obj = normalmodes.models.nmodeParams.objects.filter(pdb=self,selected='y')[0]
-            nmaparam_obj.statusHTML = statsDisplay(sstring,self.nma_jobID)
-	    nmaparam_obj.save()
-            nma_status = statsDisplay(sstring,self.nma_jobID)
-            if done.search(nma_status):
-               self.nma_jobID = 0
-	       parseNormalModes(self)
-               if nmaparam_obj.nma_movie_req:
-	           nmaparam_obj.make_nma_movie = True
-                   nmaparam_obj.save()
-        if self.md_jobID != 0:
-            sstring = si.checkStatus(self.md_jobID)
-	    mdparam_obj = dynamics.models.mdParams.objects.filter(pdb=self,selected='y')[0]
-            mdparam_obj.statusHTML = statsDisplay(sstring,self.md_jobID)
-	    mdparam_obj.save()
-	    #self.md_status = statsDisplay(sstring)
-            if done.search(mdparam_obj.statusHTML) and mdparam_obj.md_movie_req:
-               self.md_jobID = 0
-	       mdparam_obj.make_md_movie = True
-               mdparam_obj.save()
-	       self.save()
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onMDDone')
-            elif done.search(mdparam_obj.statusHTML):
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onMDDone')
-               self.md_jobID = 0
-               self.save()
-        if self.ld_jobID != 0:
-            sstring = si.checkStatus(self.ld_jobID)
-	    ldparam_obj = dynamics.models.ldParams.objects.filter(pdb=self,selected='y')[0]
-            ldparam_obj.statusHTML = statsDisplay(sstring,self.ld_jobID)
-	    ldparam_obj.save()
-            if done.search(ldparam_obj.statusHTML) and ldparam_obj.ld_movie_req:
-	       ldparam_obj.make_ld_movie = True
-               ldparam_obj.save()
-               self.ld_jobID = 0
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onLDDone')
-            elif done.search(ldparam_obj.statusHTML):
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onLDDone')
-               self.ld_jobID = 0
-               self.save()
-        if self.sgld_jobID != 0:
-            sstring = si.checkStatus(self.sgld_jobID)
-	    sgldparam_obj = dynamics.models.sgldParams.objects.filter(pdb=self,selected='y')[0]
-            sgldparam_obj.statusHTML = statsDisplay(sstring,self.sgld_jobID)
-	    sgldparam_obj.save()
-            self.sgld_status = statsDisplay(sstring,self.sgld_jobID)
-            if done.search(sgldparam_obj.statusHTML) and sgldparam_obj.sgld_movie_req:
-	       sgldparam_obj.make_sgld_movie = True
-               sgldparam_obj.save()
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onSGLDDone')
-               self.sgld_jobID = 0
-            elif done.search(sgldparam_obj.statusHTML):
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onSGLDDone')
-               self.sgld_jobID = 0
-               self.save()
-        if self.redox_jobID != 0:
-            sstring = si.checkStatus(self.redox_jobID)
-            redox_obj = apbs.models.redoxParams.objects.filter(pdb=self,selected='y')[0]
-            redox_obj.statusHTML = statsDisplay(sstring,self.redox_jobID)
-            redox_obj.save()
-            # ToDo, add lesson hooks
-    
-        self.save()
-
     # Tim Miller, make hetid RTF/PRM using antechamber
     def makeAntechamber(self,hetids,doHyd):
         os.putenv("ACHOME", "/usr/local/charmming/antechamber")
@@ -802,6 +658,149 @@ class WorkingStructure(models.Model):
 
         os.chdir(cwd)
 
+
+
+class Patch(models.Model):
+    structure   = models.ForeignKey(Structure)
+    patch_name  = models.CharField(max_length=10)
+    patch_atoms = models.CharField(max_length=100)
+
+
+# The idea is that the WorkingStructure class will hold structures that
+# are ready to be run through minimization, dynamics, etc.
+class WorkingStructure(models.Model):
+    structure = models.ForeignKey(Structure)
+    identifier = models.CharField(max_length=20,default='')
+
+    selected = models.CharField(max_length=1,default='n')
+    doblncharge = models.CharField(max_length=1,default='f')
+    isBuilt = models.CharField(max_length=1,default='f')
+    segments = models.ManyToManyField(Segment)
+
+    # job IDs
+    minimization_jobID = models.PositiveIntegerField(default=0)
+    solvation_jobID = models.PositiveIntegerField(default=0)
+    nma_jobID = models.PositiveIntegerField(default=0)
+    md_jobID = models.PositiveIntegerField(default=0)
+    ld_jobID = models.PositiveIntegerField(default=0)
+    redox_jobID = models.PositiveIntegerField(default=0)
+    sgld_jobID = models.PositiveIntegerField(default=0)
+    
+
+    def associate(self,structref,segids):
+        for sid in segids:
+            self.structure = structref
+            self.save()
+            segobj = Segment.objects.filter(name=sid,structure=structref)[0]
+            self.segments.add(segobj)
+            self.save()
+
+    # This method 
+
+    # This method replaces minimization.append_tpl() -- it is the explicit
+    # step that builds a new structure and appends it to the PDB object
+    # in charmminglib.
+    def build(self,scriptlist):
+        self.isBuilt = 'y'
+        self.save()
+
+    # The methods below this point have been moved from the original Structure
+    # class. They need to be GUTS-ified.
+
+    # Updates the status of in progress operations
+    def updateActionStatus(self):
+        done = re.compile('Done')
+        fail = re.compile('Failed')
+        si = schedInterface()        
+
+        if self.minimization_jobID != 0:
+            sstring = si.checkStatus(self.minimization_jobID)
+	    miniparam_obj = minimization.models.minimizeParams.objects.filter(pdb=self,selected='y')[0]
+            miniparam_obj.statusHTML = statsDisplay(sstring,self.minimization_jobID)
+	    miniparam_obj.save()
+            if done.search(miniparam_obj.statusHTML) or fail.search(miniparam_obj.statusHTML):
+               self.minimization_jobID = 0
+               if self.lesson_type:
+                   lessonaux.doLessonAct(self,'onMinimizeDone')
+        if self.solvation_jobID != 0:
+            sstring = si.checkStatus(self.solvation_jobID)
+	    solvparam_obj = solvation.models.solvationParams.objects.filter(pdb=self,selected='y')[0]
+            solvparam_obj.statusHTML = statsDisplay(sstring,self.solvation_jobID)
+	    solvparam_obj.save()
+            if done.search(solvparam_obj.statusHTML):
+               self.solvation_jobID = 0
+               if self.lesson_type:
+                   lessonaux.doLessonAct(self,'onSolvationDone')
+        if self.nma_jobID != 0:
+            sstring = si.checkStatus(self.nma_jobID)
+	    nmaparam_obj = normalmodes.models.nmodeParams.objects.filter(pdb=self,selected='y')[0]
+            nmaparam_obj.statusHTML = statsDisplay(sstring,self.nma_jobID)
+	    nmaparam_obj.save()
+            nma_status = statsDisplay(sstring,self.nma_jobID)
+            if done.search(nma_status):
+               self.nma_jobID = 0
+	       parseNormalModes(self)
+               if nmaparam_obj.nma_movie_req:
+	           nmaparam_obj.make_nma_movie = True
+                   nmaparam_obj.save()
+        if self.md_jobID != 0:
+            sstring = si.checkStatus(self.md_jobID)
+	    mdparam_obj = dynamics.models.mdParams.objects.filter(pdb=self,selected='y')[0]
+            mdparam_obj.statusHTML = statsDisplay(sstring,self.md_jobID)
+	    mdparam_obj.save()
+            if done.search(mdparam_obj.statusHTML) and mdparam_obj.md_movie_req:
+               self.md_jobID = 0
+	       mdparam_obj.make_md_movie = True
+               mdparam_obj.save()
+	       self.save()
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onMDDone')
+            elif done.search(mdparam_obj.statusHTML):
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onMDDone')
+               self.md_jobID = 0
+               self.save()
+        if self.ld_jobID != 0:
+            sstring = si.checkStatus(self.ld_jobID)
+	    ldparam_obj = dynamics.models.ldParams.objects.filter(pdb=self,selected='y')[0]
+            ldparam_obj.statusHTML = statsDisplay(sstring,self.ld_jobID)
+	    ldparam_obj.save()
+            if done.search(ldparam_obj.statusHTML) and ldparam_obj.ld_movie_req:
+	       ldparam_obj.make_ld_movie = True
+               ldparam_obj.save()
+               self.ld_jobID = 0
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onLDDone')
+            elif done.search(ldparam_obj.statusHTML):
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onLDDone')
+               self.ld_jobID = 0
+               self.save()
+        if self.sgld_jobID != 0:
+            sstring = si.checkStatus(self.sgld_jobID)
+	    sgldparam_obj = dynamics.models.sgldParams.objects.filter(pdb=self,selected='y')[0]
+            sgldparam_obj.statusHTML = statsDisplay(sstring,self.sgld_jobID)
+	    sgldparam_obj.save()
+            self.sgld_status = statsDisplay(sstring,self.sgld_jobID)
+            if done.search(sgldparam_obj.statusHTML) and sgldparam_obj.sgld_movie_req:
+	       sgldparam_obj.make_sgld_movie = True
+               sgldparam_obj.save()
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onSGLDDone')
+               self.sgld_jobID = 0
+            elif done.search(sgldparam_obj.statusHTML):
+               if self.lesson_type:
+                  lessonaux.doLessonAct(self,'onSGLDDone')
+               self.sgld_jobID = 0
+               self.save()
+        if self.redox_jobID != 0:
+            sstring = si.checkStatus(self.redox_jobID)
+            redox_obj = apbs.models.redoxParams.objects.filter(pdb=self,selected='y')[0]
+            redox_obj.statusHTML = statsDisplay(sstring,self.redox_jobID)
+            redox_obj.save()
+            # ToDo, add lesson hooks
+    
+        self.save()
 
     def setStructurePatches(self,file,postdata):
 	#This deals with the disulfide bond patching

@@ -20,7 +20,7 @@ from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
-from structure.models import Structure, Segment, goModel 
+from structure.models import Structure, WorkingStructure, Segment, goModel 
 from structure.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
 from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch
@@ -41,130 +41,21 @@ def minimizeformdisplay(request):
     input.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
-        file = Structure.objects.filter(owner=request.user,selected='y')[0]
+        struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
-    os.chdir(file.location)
+    try:
+       ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
-    filename_list = file.getMoleculeFiles()
-    disulfide_list = file.getPDBDisulfides()
-
-    scriptlist = []
-
-    #
-    # we need to fix up terminal group patching here...
-    #
-
-    minfile = None
-    need_append = True
-    append_list = []
-    for i in range(len(filename_list)):
-        if request.POST.has_key('unappended_seg_%s' % filename_list[i][0]):
-            try:
-                thestr = Segment.objects.filter(structure=file, name=filename_list[i][0])[0]
-            except:
-                return HttpResponse('Bad segment %s' % filename_list[i][0])
-            append_list.append(thestr)
-            minfile = filename_list[i][0]
-
-    if minfile is None and request.POST.has_key('appended_struct'):
-        minfile = request.POST['appended_struct']
-        need_append = False
-        if request.POST['usepatch']:
-            file.handlePatching(request.POST)
-        else:
-            #If there is no patch, make sure patch_name is zero 
-            file.patch_name = ""
-            file.save()
-
-    if minfile:
+    if request.POST.has_key('sdsteps') or request.POST.has_key('abnrsteps'):
         scriptlist = []
-        if need_append:
-            seg_list = append_tpl(request.POST,append_list,file,scriptlist)
-            min_file = file.name + '-final.crd'
-            return minimize_tpl(request,file,min_file,scriptlist)
-        else:
-            return minimize_tpl(request,file,minfile,scriptlist)
+        if ws.isBuilt != 't':
+            ws.build(scriptlist)
+        return minimize_tpl(request,file,minfile,scriptlist)
     else:
-        doCustomShake = 1
-        trusted = isUserTrustworthy(request.user)
-        return render_to_response('html/minimizeform.html', {'filename_list': filename_list,\
-          'trusted':trusted,'disulfide_list': disulfide_list})
-
-
-
-def append_tpl(postdata,segment_list,file,scriptlist):
-   all_segids = Segment.objects.filter(structure=file)
-   charmm_inp = ""
-   dohbuild = False
-   prm_builder = "gennrtf"
-   # template dictionary passes the needed variables to the template
-   template_dict = {}
-
-   if postdata.has_key('usepatch'):
-       use_patch = 1
-   else:
-       use_patch = 0
-   if postdata.has_key('parmgen') and postdata['parmgen'] == 'antechamber':
-           prm_builder = "antechamber"
-
-   segs_to_append = []
-   go_seg_list    = []
-   bln_seg_list   = []
-   for segment in segment_list:
-       sname = segment.name
-       if sname.endswith('-go'):
-           go_seg_list.append(sname)
-       elif sname.endswith('-bln'):
-           bln_seg_list.append(sname)
-       segs_to_append.append(sname)
-       file.setupSeg(segment,postdata,scriptlist)
-
-   # sanity check
-   if len(go_seg_list) > 0 and len(bln_seg_list) > 0:
-       raise "Cannot mix go and BLN models!!!"
-
-   #runs each segment through CHARMM before appending begins
-   if len(bln_seg_list) > 0:
-       # copy RTF and RPM in place
-       file.doblncharge = 't'
-       file.save()
-   else:
-       file.doblncharge = 'f'
-       file.save()
-
-   template_dict['useqmmm'] = postdata.has_key("useqmmm")	 
-   template_dict['seglist'] = segs_to_append
-   
-   # since template limits using certain python functions, here a list of dictionaries is used to pass mult-variables 
-   template_dict['patch_name'] = ''
-   # To-Do do we need to handle any post-append patching here???
-
-   template_dict['dohbuild'] = ''
-   if dohbuild:
-       template_dict['dohbuild'] = 'true'
-   template_dict['blncharge'] = file.doblncharge == 't'
-
-   user_id = file.owner.id
-   os.chdir(file.location)
-   append_filename = "append.inp"
-   template_dict['headqmatom'] = 'blankme'
-   template_dict['output_name'] = 'appended'
-
-   t = get_template('%s/mytemplates/input_scripts/append_template.inp' % charmming_config.charmming_root)
-   charmm_inp = output.tidyInp(t.render(Context(template_dict)))
-
-   inp_out = open(append_filename,'w')
-   inp_out.write(charmm_inp)
-   inp_out.close()
-
-   file.append_status = 'y'
-   file.save()
-   scriptlist.append(file.location + append_filename)
-
-   #This will return a list of segments used
-   return segs_to_append
-
+        return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier})
 
 def minimize_tpl(request,file,final_pdb_name,scriptlist):
     postdata = request.POST
