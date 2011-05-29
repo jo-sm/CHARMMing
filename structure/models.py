@@ -409,6 +409,7 @@ class Segment(models.Model):
     patch_last  = models.CharField(max_length=100)
     rtf_list    = models.CharField(max_length=500)
     prm_list    = models.CharField(max_length=500)
+    toppar_src  = models.CharField(max_length=50)
 
     def set_default_patches(self,firstres):
         if self.type == 'pro':
@@ -452,7 +453,7 @@ class Segment(models.Model):
 
     # This method will handle the building of the segment, including
     # any terminal patching
-    def build(self,scriptlist,mdlname,firstp=None,lastp=None):
+    def build(self,scriptlist):
         if not firstp:
             firstp = self.patch_first
         if not lastp:
@@ -460,8 +461,8 @@ class Segment(models.Model):
 
         # template dictionary passes the needed variables to the template
         template_dict = {}
-        template_dict['topology_list'] = firstp
-        template_dict['parameter_list'] = lastp
+        template_dict['topology_list'] = self.patch_first
+        template_dict['parameter_list'] = self.patch_last
         template_dict['segname'] = self.name
 
         #Custom user sequences are treated differently
@@ -499,16 +500,15 @@ class Segment(models.Model):
             except:
                 pass
 
-
         # if we have bad hetatms, use the genrtf supplied coordinate file...
-        #unless they have their own replace topology parameter file
-        template_dict['segid'] = self.Structure.name
+        # unless they have their own replace topology parameter file
+        template_dict['segid'] = self.name
         t = get_template('%s/mytemplates/input_scripts/makeBasicInput_template.inp' % charmming_config.charmming_root)
         charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
         user_id = self.structure.owner.id
         os.chdir(self.location)
-        charmm_inp_filename = "build-"  + self.name + ".inp"
+        charmm_inp_filename = self.structure.location + "/build-"  + self.name + ".inp"
         charmm_inp_file = open(charmm_inp_filename, 'w')
         charmm_inp_file.write(charmm_inp)
         charmm_inp_file.close()
@@ -658,8 +658,6 @@ class Segment(models.Model):
 
         os.chdir(cwd)
 
-
-
 class Patch(models.Model):
     structure   = models.ForeignKey(Structure)
     patch_name  = models.CharField(max_length=10)
@@ -701,6 +699,24 @@ class WorkingStructure(models.Model):
     # step that builds a new structure and appends it to the PDB object
     # in charmminglib.
     def build(self,scriptlist):
+        tdict = {}
+        # step 1: check if all segments are built
+        tdict['seg_list'] = []
+        for segobj in self.segments:
+            if segobj.isBuilt != 't':
+                segobj.build(scriptlist)
+            tdict.seg_list.append(segobj.name)
+
+        t = get_template('%s/mytemplates/input_scripts/append_template.inp' % charmming_config.charmming_root)
+        charmm_inp = output.tidyInp(t.render(Context(template_dict)))
+
+        user_id = self.structure.owner.id
+        os.chdir(self.location)
+        charmm_inp_filename = self.structure.location + "/build-"  + self.identifier + ".inp"
+        charmm_inp_file = open(charmm_inp_filename, 'w')
+        charmm_inp_file.write(charmm_inp)
+        charmm_inp_file.close()
+
         self.isBuilt = 'y'
         self.save()
 

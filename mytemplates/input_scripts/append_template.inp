@@ -6,13 +6,9 @@
   {% if forloop.first %}  blankme
 
     ! Read PSF from file
-    open unit 1 form read name new_{{filebase}}-{{item}}-final.psf
-    read psf card unit 1
-    close unit 1    
+    read psf card name new_{{filebase}}-{{item}}-final.psf
   {% else %}  blankme
-    open unit 1 form read name new_{{filebase}}-{{item}}-final.psf
-    read psf card append unit 1
-    close unit 1        
+    read psf card append bane  new_{{filebase}}-{{item}}-final.psf
   {% endif %}  blankme
 {% endfor %}  blankme
 {% if min_seg_0 %}  blankme
