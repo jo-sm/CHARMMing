@@ -1741,8 +1741,6 @@ def buildstruct(request):
 
     input.checkRequestData(request)
 
-    logfp = open('/tmp/bs.log', 'w')
-
     try:
         str = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
@@ -1752,14 +1750,19 @@ def buildstruct(request):
     
     ws = []
     wrkstruct = structure.models.WorkingStructure.objects.filter(structure=str)
-    logfp.write('got %d working structs.\n' % len(wrkstruct))
-    logfp.close()
     if len(wrkstruct) > 0:
         tdict['haveworkingstruct'] = True
         ws.extend(wrkstruct)
     else:
         tdict['haveworkingstruct'] = False
     tdict['built_list'] = ws
+
+    # get list of all of the models that we can use
+    st_models = []
+    fp = open(str.pickle, 'r')
+    pdb = cPickle.load(fp)
+    fp.close()
+    tdict['model_list'] = pdb.keys()
 
     sl = []
     sl.extend(structure.models.Segment.objects.filter(structure=str))
@@ -1793,14 +1796,15 @@ def modstruct(request):
         return HttpResponse("You must give this working structure an identifier")
 
     new_ws = structure.models.WorkingStructure()
+    new_ws.modelName = request.POST['basemodel']
     new_ws.associate(struct,seglist)
 
     # to do, make this not contain spaces
     new_ws.identifier = request.POST['wsidentifier']
+    new_ws.save()
 
     # Figure out terminal patching
-    for seg in seglist:
-        segobj = structure.models.Segment.objects.filter(structure=struct,name=seg)[0]
+    for segobj in new_ws.segments.all():
         fpvar = seg + '_firstpatch'
         lpvar = seg + '_lastpatch'
 

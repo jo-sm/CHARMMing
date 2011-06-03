@@ -33,6 +33,13 @@
      <form id="config_form" method="post" action="/charmming/modstruct/" onsubmit="return send_form_gener('config_form','/charmming/modstruct/',makeUniqueDiv('Edit Structure'));" >
         <b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" />
         <hr />
+        <b>Please choose which model you want this working structure based from:</b>
+        <select name="basemodel">
+           {% for modelname in model_list %}
+             <option value="{{ modelname }}">{{ modelname }}</option>
+           {% endfor %}
+        </select>
+        <hr />
         <h4>Choose Segments and Patching</h4>
  
         <table align="center" cellspacing="2" cellpadding="2">
@@ -44,14 +51,14 @@
                <td>
                  <select name="{{ seg.name }}_firstpatch">
                  {% for opt in seg.possible_firstpatches %}
-                   <option value="{{ opt }}" {% ifequal opt seg.patch_first %}selected{% endifequal %}>{{ opt }}</option>
+                   <option value="{{ opt }}" {% ifequal opt seg.default_patch_first %}selected{% endifequal %}>{{ opt }}</option>
                  {% endfor %}
                  </select>
                </td>
                <td>
                  <select name="{{ seg.name }}_lastpatch">
                  {% for opt in seg.possible_lastpatches %}
-                   <option value="{{ opt }}" {% ifequal opt seg.patch_last %}selected{% endifequal %}>{{ opt }}</option>
+                   <option value="{{ opt }}" {% ifequal opt seg.default_patch_last %}selected{% endifequal %}>{{ opt }}</option>
                  {% endfor %}
                  </select>
                </td>

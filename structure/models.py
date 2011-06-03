@@ -402,28 +402,26 @@ class StructureFile(models.Model):
 
 class Segment(models.Model):
     structure   = models.ForeignKey(Structure)
-    isBuilt     = models.CharField(max_length=1)
     name        = models.CharField(max_length=6)
     type        = models.CharField(max_length=10)
-    patch_first = models.CharField(max_length=100)
-    patch_last  = models.CharField(max_length=100)
+    default_patch_first = models.CharField(max_length=100)
+    default_patch_last  = models.CharField(max_length=100)
     rtf_list    = models.CharField(max_length=500)
     prm_list    = models.CharField(max_length=500)
-    toppar_src  = models.CharField(max_length=50)
 
     def set_default_patches(self,firstres):
         if self.type == 'pro':
             if firstres == 'gly':
-                self.patch_first = 'GLYP'
+                self.default_patch_first = 'GLYP'
             else:
-                self.patch_first = 'NTER'
-            self.patch_last  = 'CTER'
+                self.default_patch_first = 'NTER'
+            self.default_patch_last  = 'CTER'
         elif self.type == 'dna' or self.type == 'rna':
-            self.patch_first = '5TER'
-            self.patch_last  = '3TER'
+            self.default_patch_first = '5TER'
+            self.default_patch_last  = '3TER'
         else:
-            self.patch_first = 'NONE'
-            self.patch_last = 'NONE'
+            self.default_patch_first = 'NONE'
+            self.default_patch_last = 'NONE'
         self.save()
 
     @property
@@ -444,6 +442,14 @@ class Segment(models.Model):
         else:
             return ['NONE']
 
+
+class WorkingSegment(Segment):
+    isBuilt     = models.CharField(max_length=1)
+    patch_first = models.CharField(max_length=100)
+    patch_last  = models.CharField(max_length=100)
+    builtPSF    = models.CharField(max_length=100)
+    builtCRD    = models.CharField(max_length=100)
+
     def set_terminal_patches(self,postdata):
         if postdata.has_key('first_patch' + self.name):
             self.patch_first = postdata['first_patch' + self.name]
@@ -453,12 +459,7 @@ class Segment(models.Model):
 
     # This method will handle the building of the segment, including
     # any terminal patching
-    def build(self,scriptlist):
-        if not firstp:
-            firstp = self.patch_first
-        if not lastp:
-            lastp = self.patch_last
-
+    def build(self,mdlname,scriptlist):
         # template dictionary passes the needed variables to the template
         template_dict = {}
         template_dict['topology_list'] = self.patch_first
@@ -466,7 +467,7 @@ class Segment(models.Model):
         template_dict['segname'] = self.name
 
         #Custom user sequences are treated differently
-        if(seg == 'sequ-pro'):
+        if(self.name == 'sequ-pro'):
             #The sequ filename stores in the PDBInfo filename
             #differs from the actual filename due to comaptibility
             #problems otherwise so sequ_filename is the actual filename
@@ -479,7 +480,7 @@ class Segment(models.Model):
             template_dict['sequ_line'] = sequ_line
             template_dict['number_of_sequences'] = `number_of_sequences`  
 
-        template_dict['line_is_goodhet'] = seg.name.endswith('good')
+        template_dict['line_is_goodhet'] = self.name.endswith('good')
 
         # handles patching if it exists, but we don't want to patch goodhet segments
         # since we haven't generated them yet.
@@ -507,14 +508,13 @@ class Segment(models.Model):
         charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
         user_id = self.structure.owner.id
-        os.chdir(self.location)
         charmm_inp_filename = self.structure.location + "/build-"  + self.name + ".inp"
         charmm_inp_file = open(charmm_inp_filename, 'w')
         charmm_inp_file.write(charmm_inp)
         charmm_inp_file.close()
 
         # now write out the PDB file if it doesn't exist
-        fp = open(self.Structure.pickle, 'r')
+        fp = open(self.structure.pickle, 'r')
         mol = (cPickle.load(fp))[mdlname]
         for s in mol.iter_seg():
             if s.segid == self.name:
@@ -673,7 +673,9 @@ class WorkingStructure(models.Model):
     selected = models.CharField(max_length=1,default='n')
     doblncharge = models.CharField(max_length=1,default='f')
     isBuilt = models.CharField(max_length=1,default='f')
-    segments = models.ManyToManyField(Segment)
+    segments = models.ManyToManyField(WorkingSegment)
+
+    modelName = models.CharField(max_length=100,default='model0')
 
     # job IDs
     minimization_jobID = models.PositiveIntegerField(default=0)
@@ -690,7 +692,21 @@ class WorkingStructure(models.Model):
             self.structure = structref
             self.save()
             segobj = Segment.objects.filter(name=sid,structure=structref)[0]
-            self.segments.add(segobj)
+
+            # right now I can't think of any better way to copy all the data
+            # from the segment pbject to the working segment object, so we just
+            # do it by hand.
+            wseg = WorkingSegment()
+            wseg.structure = segobj.structure
+            wseg.name = segobj.name
+            wseg.type = segobj.type
+            wseg.default_patch_first = segobj.default_patch_first
+            wseg.default_patch_last = segobj.default_patch_last
+            wseg.rtf_list = segobj.rtf_list
+            wseg.prm_list = segobj.prm_list
+            wseg.save()
+
+            self.segments.add(wseg)
             self.save()
 
     # This method 
@@ -702,9 +718,9 @@ class WorkingStructure(models.Model):
         tdict = {}
         # step 1: check if all segments are built
         tdict['seg_list'] = []
-        for segobj in self.segments:
+        for segobj in self.segments.all():
             if segobj.isBuilt != 't':
-                segobj.build(scriptlist)
+                segobj.build(self.modelName,scriptlist)
             tdict.seg_list.append(segobj.name)
 
         t = get_template('%s/mytemplates/input_scripts/append_template.inp' % charmming_config.charmming_root)

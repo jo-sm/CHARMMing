@@ -1100,51 +1100,9 @@ function send_form_changepassword(form,link,divupdate)
 
 function send_form(form,link,divchange,divupdate,filenames) 
 {
- if(filenames)
- {
-   var ifsegchecked = 0;
-    for(i=0;i<filenames.length;i++)
-    {
-      if(document.getElementById('id_' + filenames[i])) {
-        if(document.getElementById('id_' + filenames[i]).checked) {
-          ifsegchecked = 1;
-        }
-      }
-    }
-    if(ifsegchecked == 0)
-    {
-     Dialog.alert("<center>Please select a PDB segment to continue.</center>", {width:300, height:100, okLabel: "close"});
-     return false;
-    }
-    if(link == '/charmming/minimize/')
-    {
-     sdsteps = parseInt(document.getElementById('sdsteps').value)
-     if(sdsteps > 1000) {      
-       Dialog.alert("<center>You have exceeded the maximum number of allowed SD steps (1000) for minimization. You can remove this limit if you install this interface on your own server.</center>", {width:300, height:100, okLabel: "close"});
-       return false;
-     }
-     abnr = parseInt(document.getElementById('abnr').value)
-     if(abnr > 1000) {      
-       Dialog.alert("<center>You have exceeded the maximum number of allowed ABNR steps (1000) for minimization. You can remove this limit if you install this interface on your own server.</center>", {width:300, height:100, okLabel: "close"});
-       return false;
-     }
-    }
- }
- if(document.getElementById('edit_script')) {
-   if(!document.getElementById('edit_script').checked) {
-     new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-     changeStatus(divchange,divupdate,"prep");
-     return false;
-   } else {
-     new Ajax.Updater(divchange,link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-     return false;
-   }
- } else {
-   new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-   changeStatus(divchange,divupdate,"prep");
-   return false;
- }
- 
+  new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
+  changeStatus(divchange,divupdate,"prep");
+  return false;
 }
 
 function changeStatus(divchange,divupdate,caller)

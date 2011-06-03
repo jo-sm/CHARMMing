@@ -2,7 +2,7 @@
 
 {% block title %}Append the PDBs{% endblock %}
 {% block read_struct %} blankme
-{% for item in min_seg_list %}  blankme      
+{% for item in seg_list %}  blankme      
   {% if forloop.first %}  blankme
 
     ! Read PSF from file
