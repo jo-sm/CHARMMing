@@ -408,6 +408,7 @@ class Segment(models.Model):
     default_patch_last  = models.CharField(max_length=100)
     rtf_list    = models.CharField(max_length=500)
     prm_list    = models.CharField(max_length=500)
+    is_working  = models.CharField(max_length=1,default='n')
 
     def set_default_patches(self,firstres):
         if self.type == 'pro':

@@ -1453,10 +1453,7 @@ def getSegs(Molecule,Struct,auto_append=False):
 
         newSeg = structure.models.Segment()
         newSeg.structure = Struct
-        if auto_append:
-            newSeg.is_appended = 'y'
-        else:
-            newSeg.is_appended = 'n'
+        newSeg.is_working = 'n'
         newSeg.name = seg.segid
         newSeg.type = seg.segType
 
@@ -1805,8 +1802,8 @@ def modstruct(request):
 
     # Figure out terminal patching
     for segobj in new_ws.segments.all():
-        fpvar = seg + '_firstpatch'
-        lpvar = seg + '_lastpatch'
+        fpvar = segobj.name + '_firstpatch'
+        lpvar = segobj.name + '_lastpatch'
 
         if request.POST.has_key(fpvar):
             segobj.patch_first = request.POST[fpvar]
