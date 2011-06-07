@@ -463,11 +463,15 @@ class WorkingSegment(Segment):
     def build(self,mdlname,scriptlist):
         # template dictionary passes the needed variables to the template
         template_dict = {}
-        template_dict['topology_list'] = self.patch_first
-        template_dict['parameter_list'] = self.patch_last
+        template_dict['topology_list'] = self.rtf_list
+        template_dict['parameter_list'] = self.prm_list
+        template_dict['patch_first'] = self.patch_first
+        template_dict['patch_last'] = self.patch_last
         template_dict['segname'] = self.name
+        template_dict['outname'] = self.name + '-' + str(self.id)
 
-        #Custom user sequences are treated differently
+        # Custom user sequences are treated differently
+        # NB: this has not been gutsified at all...
         if(self.name == 'sequ-pro'):
             #The sequ filename stores in the PDBInfo filename
             #differs from the actual filename due to comaptibility
@@ -481,53 +485,41 @@ class WorkingSegment(Segment):
             template_dict['sequ_line'] = sequ_line
             template_dict['number_of_sequences'] = `number_of_sequences`  
 
-        template_dict['line_is_goodhet'] = self.name.endswith('good')
+        # ToDo: right around here is where we would want to handle any
+        # protonation patching for this sequence.
 
-        # handles patching if it exists, but we don't want to patch goodhet segments
-        # since we haven't generated them yet.
-        # Tim Miller: Mar 9, 2009 -- we also want to make sure we don't patch hetatom
-        # segments along with regular protein statement, hence the third clause of the
-        # following if...
-        template_dict['larr_list'] = []
-        template_dict['endswith_het'] = self.name.endswith("-het")
-        template_dict['endswith_dna'] = self.name.endswith("-dna")
-        template_dict['endswith_rna'] = self.name.endswith("-rna")
-        template_dict['pproto'] = ''
-        template_dict['location'] = self.structure.location
-        if not self.name.endswith('good'):
-            # we need to handle protonation patching (if it exists)
-            try:
-                os.stat(self.Structure.location + "pproto_" + segid + ".str")
-                template_dict['pproto'] = 'y'
-            except:
-                pass
-
-        # if we have bad hetatms, use the genrtf supplied coordinate file...
-        # unless they have their own replace topology parameter file
-        template_dict['segid'] = self.name
-        t = get_template('%s/mytemplates/input_scripts/makeBasicInput_template.inp' % charmming_config.charmming_root)
-        charmm_inp = output.tidyInp(t.render(Context(template_dict)))
-
-        user_id = self.structure.owner.id
-        charmm_inp_filename = self.structure.location + "/build-"  + self.name + ".inp"
-        charmm_inp_file = open(charmm_inp_filename, 'w')
-        charmm_inp_file.write(charmm_inp)
-        charmm_inp_file.close()
-
-        # now write out the PDB file if it doesn't exist
+        # now write out the PDB file in case it doesn't exist
         fp = open(self.structure.pickle, 'r')
         mol = (cPickle.load(fp))[mdlname]
         for s in mol.iter_seg():
             if s.segid == self.name:
-                s.write(self.location + "/" + "segment-" + seg.name + ".pdb", outformat="charmm")
+                fname = self.structure.location + "/" + "segment-" + self.name + ".pdb"
+                s.write(fname, outformat="charmm")
+                template_dict['pdb_in'] = fname
+                break
         fp.close()
 
-        #send to job queue
+        # write out the job script
+        t = get_template('%s/mytemplates/input_scripts/buildSeg.inp' % charmming_config.charmming_root)
+        charmm_inp = output.tidyInp(t.render(Context(template_dict)))
+        charmm_inp_filename = self.structure.location + "/build-"  + self.identifier + ".inp"
+        charmm_inp_file = open(charmm_inp_filename, 'w')
+        charmm_inp_file.write(charmm_inp)
+        charmm_inp_file.close()
+
+        user_id = self.structure.owner.id
+        os.chdir(self.location)
+        charmm_inp_filename = self.structure.location + "/build-"  + self.identifier + ".inp"
+        charmm_inp_file = open(charmm_inp_filename, 'w')
+        charmm_inp_file.write(charmm_inp)
+        charmm_inp_file.close()
+
+        # send to job queue
         si = schedInterface()
-        #si.submitJob(user_id,self.location,charmm_inp_filename)
         scriptlist.append(charmm_inp_filename)
 
-
+        self.builtPSF = template_dict['outname'] + '.psf'
+        self.builtCRD = template_dict['outname'] + '.crd'
         self.isBuilt = 'y'
         self.save()
 
@@ -711,8 +703,6 @@ class WorkingStructure(models.Model):
             self.segments.add(wseg)
             self.save()
 
-    # This method 
-
     # This method replaces minimization.append_tpl() -- it is the explicit
     # step that builds a new structure and appends it to the PDB object
     # in charmminglib.
@@ -720,13 +710,15 @@ class WorkingStructure(models.Model):
         tdict = {}
         # step 1: check if all segments are built
         tdict['seg_list'] = []
+        tdict['output_name'] = self.identifier
+        tdict['blncharge'] = False # we're not handling BLN models for now
         for segobj in self.segments.all():
             if segobj.isBuilt != 't':
                 segobj.build(self.modelName,scriptlist)
-            tdict.seg_list.append(segobj.name)
+            tdict.seg_list.append(segobj)
 
-        t = get_template('%s/mytemplates/input_scripts/append_template.inp' % charmming_config.charmming_root)
-        charmm_inp = output.tidyInp(t.render(Context(template_dict)))
+        t = get_template('%s/mytemplates/input_scripts/append.inp' % charmming_config.charmming_root)
+        charmm_inp = output.tidyInp(t.render(Context(tdict)))
 
         user_id = self.structure.owner.id
         os.chdir(self.location)

@@ -1,0 +1,41 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}Append multiple segments into a final structure{% endblock %}
+
+{% block read_struct %} blankme
+  {% for segobj in seg_list %}  blankme      
+    {% if forloop.first %}  blankme
+      ! Read PSF from file
+      read psf card name {{ segobj.builtPSF }}
+    {% else %}  blankme
+      read psf card append bane  {{ segobj.builtPSF }}
+    {% endif %}  blankme
+  {% endfor %}  blankme
+
+  {% for segobj in seg_list %} blankme
+    {% if forloop.first %} blankme
+      ! read coordinates
+      read coor card name {{ segobj.builtCRD }}
+    {% else %} blankme
+      read coor card append name {{ segobj.builtCRD }}
+    {% endif %} blankme
+  {% endfor %} blankme
+
+{% endblock %} blankme
+
+{% block body %} blankme
+
+  ! This is where we need to do disulfide and other multi-segment
+  ! patching if it exists
+
+  {% if blncharge %} blankme
+    stream charges.str
+  {% endif %} blankme
+
+  ! calculate energy
+  energy
+
+  {% include "input_scripts/write_out_struct.inp" %}
+
+{% endblock %} blankme
+

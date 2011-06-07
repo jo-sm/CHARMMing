@@ -1,0 +1,45 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}Run Segment Through CHARMM {% endblock %}
+
+{% block body %} blankme
+
+{% ifequal seg 'sequ-pro' %} blankme
+  read sequence card
+  * User-defined Sequence
+  *
+  {{ number_of_sequences }}
+  {{ sequ_line }}
+
+  generate {{ segname }} setup
+
+  ic para
+  ic seed 1 N 1 CA 1 C
+  ic build
+
+  coor orie
+  hbuild
+
+{% else %}
+  read sequence pdb name {{ pdb_in }}
+  generate {{ segname }} setu first {{ patch_first }} last {{ patch_last }}
+
+  read coor pdb name {{ pdb_in }}
+  ic para
+  ic fill preserve
+  ic build
+  hbuild
+{% endifequal %}
+
+! write out the protein structure file (psf) and
+! the coordinate file in pdb and crd format.
+
+write psf card name {{ outname }}.psf
+* PSF
+*
+
+write coor card name {{ outname }}.crd
+* Coords
+*
+
+{% endblock %} blankme

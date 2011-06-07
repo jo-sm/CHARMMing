@@ -1,19 +1,11 @@
 ioform extended
 
-open write unit 1 card name {{output_name}}.pdb
-write coor pdb unit 1
-* {{output_name}}.pdb
-{{headqmatom}} 
-*
-
-open write unit 1 card name {{output_name}}.psf
-write psf card unit 1
+write psf card name {{ output_name }}.psf
 * {{output_name}}.psf
 {{headqmatom}}
 *
 
-open write unit 1 card name {{output_name}}.crd
-write coor card unit 1
+write coor card name {{ output_name }}.crd
 * {{output_name}}.crd
 {{headqmatom}}
 *
