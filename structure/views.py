@@ -96,16 +96,19 @@ def deleteFile(request):
         # clean up other models that are left behind.
         objstodel = []
         for typ in minimizeParams, solvationParams, mdParams, ldParams, sgldParams, nmodeParams, \
-                   structure.models.energyParams, structure.models.Segment:
+                   structure.models.energyParams:
             try:
                 objstodel.append(typ.objects.filter(pdb=s))
             except:
                 pass
 
-        try:
-            objstodel.extend(structture.models.WorkingStructure.objects.filter(structure=s))
-        except:
-            pass
+        logfp.write("point c\n")
+        logfp.flush()
+        objstodel.extend(structure.models.WorkingStructure.objects.filter(structure=s))
+        objstodel.extend(structure.models.WorkingSegment.objects.filter(structure=s))
+        objstodel.extend(structure.models.Segment.objects.filter(structure=s))
+        logfp.write("point d\n")
+        logfp.flush()
 
         for obj in objstodel:
             obj.delete()
@@ -123,7 +126,7 @@ def deleteFile(request):
                          break
 
         s.delete()
-    logfp.write("point c\n")
+    logfp.write("point e\n")
     logfp.close()
     return HttpResponse('Done')
 
@@ -1762,7 +1765,7 @@ def buildstruct(request):
     tdict['model_list'] = pdb.keys()
 
     sl = []
-    sl.extend(structure.models.Segment.objects.filter(structure=str))
+    sl.extend(structure.models.Segment.objects.filter(structure=str,is_working='n'))
     tdict['seg_list'] = sl
 
     return render_to_response('html/buildstruct.html', tdict)
@@ -1779,7 +1782,7 @@ def modstruct(request):
     except:
         return HttpResponse("Please submit a structure")
 
-    segs = structure.models.Segment.objects.filter(structure=struct)
+    segs = structure.models.Segment.objects.filter(structure=struct,is_working='n')
     seglist = []
     for s in segs:
         ulkey = 'select_' + s.name

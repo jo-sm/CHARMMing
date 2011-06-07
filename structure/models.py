@@ -698,6 +698,7 @@ class WorkingStructure(models.Model):
             # from the segment pbject to the working segment object, so we just
             # do it by hand.
             wseg = WorkingSegment()
+            wseg.is_working = 'y'
             wseg.structure = segobj.structure
             wseg.name = segobj.name
             wseg.type = segobj.type
