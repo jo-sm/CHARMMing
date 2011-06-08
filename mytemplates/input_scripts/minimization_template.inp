@@ -50,7 +50,7 @@
   ! save the charge for posterity...
   scalar charge stat sele all end
   set totch = ?stot
-  syst "/usr/local/charmming/savechrg.py @TOTCH {{file.location}}{{filebase}}.charge"
+  syst "/usr/local/charmming/savechrg.py @TOTCH {{workstruct.location}}{{filebase}}.charge"
 {% endblock %} blankme
 
 

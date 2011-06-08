@@ -21,7 +21,7 @@ from scheduler.schedInterface import schedInterface
 import structure
 
 class minimizeParams(models.Model):
-    pdb = models.ForeignKey(structure.models.Structure,null=True)
+    struct = models.ForeignKey(structure.models.WorkingStructure,null=True)
     statusHTML = models.CharField(max_length=250)
     sdsteps = models.PositiveIntegerField(default=0)
     abnrsteps = models.PositiveIntegerField(default=0)

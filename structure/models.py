@@ -384,22 +384,6 @@ class Structure(models.Model):
         """
         return [x for x in structure.models.StructureFile.objects.filter(structure=self) if x.endswith(".inp") or x.endswith(".out")]
 
-class StructureFile(models.Model):
-    structure   = models.ForeignKey(Structure)
-    path        = models.CharField(max_length=100)
-    version     = models.PositiveIntegerField(default=1)
-    type        = models.CharField(max_length=20)
-    description = models.CharField(max_length=500)
-
-    # temp variable
-    fd    = None
-
-    def open(self,mode):
-        self.fd = open(path,mode)
-
-    def close(self):
-        self.fd.close()
-
 class Segment(models.Model):
     structure   = models.ForeignKey(Structure)
     name        = models.CharField(max_length=6)
@@ -463,8 +447,8 @@ class WorkingSegment(Segment):
     def build(self,mdlname,scriptlist):
         # template dictionary passes the needed variables to the template
         template_dict = {}
-        template_dict['topology_list'] = self.rtf_list
-        template_dict['parameter_list'] = self.prm_list
+        template_dict['topology_list'] = self.rtf_list.split(' ')
+        template_dict['parameter_list'] = self.prm_list.split(' ')
         template_dict['patch_first'] = self.patch_first
         template_dict['patch_last'] = self.patch_last
         template_dict['segname'] = self.name
@@ -502,17 +486,13 @@ class WorkingSegment(Segment):
         # write out the job script
         t = get_template('%s/mytemplates/input_scripts/buildSeg.inp' % charmming_config.charmming_root)
         charmm_inp = output.tidyInp(t.render(Context(template_dict)))
-        charmm_inp_filename = self.structure.location + "/build-"  + self.identifier + ".inp"
+        charmm_inp_filename = self.structure.location + "/build-"  + template_dict['outname'] + ".inp"
         charmm_inp_file = open(charmm_inp_filename, 'w')
         charmm_inp_file.write(charmm_inp)
         charmm_inp_file.close()
 
         user_id = self.structure.owner.id
-        os.chdir(self.location)
-        charmm_inp_filename = self.structure.location + "/build-"  + self.identifier + ".inp"
-        charmm_inp_file = open(charmm_inp_filename, 'w')
-        charmm_inp_file.write(charmm_inp)
-        charmm_inp_file.close()
+        os.chdir(self.structure.location)
 
         # send to job queue
         si = schedInterface()
@@ -661,6 +641,8 @@ class Patch(models.Model):
 # are ready to be run through minimization, dynamics, etc.
 class WorkingStructure(models.Model):
     structure = models.ForeignKey(Structure)
+    #solvParams = models.ForeignKey(solvation.models.solvationParams)
+
     identifier = models.CharField(max_length=20,default='')
 
     selected = models.CharField(max_length=1,default='n')
@@ -703,10 +685,35 @@ class WorkingStructure(models.Model):
             self.segments.add(wseg)
             self.save()
 
-    # This method replaces minimization.append_tpl() -- it is the explicit
-    # step that builds a new structure and appends it to the PDB object
-    # in charmminglib.
+    def getTopologyList(self):
+        """
+        Returns a list of all topology files used by all the segments
+        in this WorkingStructure.
+        """
+        rlist = set()
+        for segobj in self.segments.all():
+            for rtf in segobj.rtf_list.split(' '):
+                rlist.add(rtf)
+        return rlist
+
+    def getParameterList(self):
+        """
+        Returns a list of all parameter files used by all the segments
+        in this WorkingStructure.
+        """
+        rlist = set()
+        for segobj in self.segments.all():
+            for prm in segobj.prm_list.split(' '):
+                rlist.add(prm)
+        return rlist
+
     def build(self,scriptlist):
+        """
+        This method replaces minimization.append_tpl() -- it is the explicit
+        step that builds a new structure and appends it to the PDB object
+        in charmminglib.
+        """
+
         tdict = {}
         # step 1: check if all segments are built
         tdict['seg_list'] = []
@@ -715,13 +722,15 @@ class WorkingStructure(models.Model):
         for segobj in self.segments.all():
             if segobj.isBuilt != 't':
                 segobj.build(self.modelName,scriptlist)
-            tdict.seg_list.append(segobj)
+            tdict['seg_list'].append(segobj)
 
+        tdict['topology_list'] = self.getTopologyList()
+        tdict['parameter_list'] = self.getParameterList()
         t = get_template('%s/mytemplates/input_scripts/append.inp' % charmming_config.charmming_root)
         charmm_inp = output.tidyInp(t.render(Context(tdict)))
 
         user_id = self.structure.owner.id
-        os.chdir(self.location)
+        os.chdir(self.structure.location)
         charmm_inp_filename = self.structure.location + "/build-"  + self.identifier + ".inp"
         charmm_inp_file = open(charmm_inp_filename, 'w')
         charmm_inp_file.write(charmm_inp)
@@ -878,9 +887,21 @@ class WorkingStructure(models.Model):
 	                  con_sele + ' end\n'
 	return restraints
 
+class StructureFile(models.Model):
+    structure   = models.ForeignKey(WorkingStructure)
+    path        = models.CharField(max_length=100)
+    version     = models.PositiveIntegerField(default=1)
+    type        = models.CharField(max_length=20)
+    description = models.CharField(max_length=500)
 
+    # temp variable
+    fd    = None
 
+    def open(self,mode):
+        self.fd = open(path,mode)
 
+    def close(self):
+        self.fd.close()
 
 # --- below this point are the classes for the various forms ---
 

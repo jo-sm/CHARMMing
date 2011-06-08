@@ -53,11 +53,11 @@ def minimizeformdisplay(request):
         scriptlist = []
         if ws.isBuilt != 't':
             ws.build(scriptlist)
-        return minimize_tpl(request,file,minfile,scriptlist)
+        return minimize_tpl(request,ws,scriptlist)
     else:
         return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier})
 
-def minimize_tpl(request,file,final_pdb_name,scriptlist):
+def minimize_tpl(request,workstruct,scriptlist):
     postdata = request.POST
     #deals with changing the selected minimize_params
     try:
@@ -69,12 +69,12 @@ def minimize_tpl(request,file,final_pdb_name,scriptlist):
 
     #change the status of the file regarding minimization 
     sdsteps = postdata['sdsteps']
-    abnr = postdata['abnr']
+    abnr = postdata['abnrsteps']
     tolg = postdata['tolg']
-    os.chdir(file.location)
+    os.chdir(workstruct.structure.location)
     
     try:
-        selectedparam = minimizeParams.objects.filter(pdbfile = file,selected='y')[0]
+        selectedparam = minimizeParams.objects.filter(struct=workstruct,selected='y')[0]
         selectedparam.selected = 'n'
 	selectedparam.save()
     except:
@@ -113,13 +113,15 @@ def minimize_tpl(request,file,final_pdb_name,scriptlist):
 
     # template dictionary passes the needed variables to the template 
     template_dict = {}
-    template_dict['topology_list'] = file.getTopologyList()
-    template_dict['parameter_list'] = file.getParameterList()
-    template_dict['filebase'] = file.name    
+    template_dict['topology_list'] = workstruct.getTopologyList()
+    template_dict['parameter_list'] = workstruct.getParameterList()
+    template_dict['filebase'] = workstruct.identifier    
+
+    # ack, this is totally wrong, ToDo, FIXME
     template_dict['restraints'] = '' 
     try:
         postdata['apply_restraints']
-        template_dict['restraints'] = file.handleRestraints(request)
+        template_dict['restraints'] = workstruct.handleRestraints(request)
     except:
         pass
     
@@ -131,16 +133,12 @@ def minimize_tpl(request,file,final_pdb_name,scriptlist):
         pass
 
     template_dict['solvate_implicitly'] = solvate_implicitly
-    template_dict['fixnonh'] = 0 
-    try:
-        postdata['fixnonh']
+    if postdata.has_key('fixnonh'):
         template_dict['fixnonh'] = 1
-    except:
-        #If there is a topology or paramter file then don't constrain anything
-        if file.ifExistsRtfPrm() < 0:
-            template_dict['fixnonh'] = 2 
+    else:
+        template_dict['fixnonh'] = 0
 
-    #handles shake
+    # handles shake
     template_dict['shake'] = request.POST.has_key('apply_shake')
     if request.POST.has_key('apply_shake'):
         template_dict['which_shake'] = postdata['which_shake']

@@ -1460,7 +1460,7 @@ def getSegs(Molecule,Struct,auto_append=False):
         newSeg.name = seg.segid
         newSeg.type = seg.segType
 
-        if seg.segType in ['pro','rna','dna']:
+        if seg.segType in ['pro','rna','dna','good']:
             newSeg.rtf_list = 'top_all27_prot_na.rtf'
             newSeg.prm_list = 'par_all27_prot_na.prm'
 

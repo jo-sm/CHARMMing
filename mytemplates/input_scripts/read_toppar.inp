@@ -1,13 +1,8 @@
 {% for item in topology_list %}blankme
    {% ifequal forloop.counter 1 %}blankme
-
-      open unit 1 card read name {{item}}
-      read RTF card unit 1
-      close unit 1
+      read rtf card name {{item}}
    {% else %}blankme
-      open unit 1 card read name {{item}}
-      read rtf card append unit 1
-      close unit 1
+      read rtf card append name {{item}}
    {% endifequal %}blankme
 {% endfor %}blankme
 
@@ -24,15 +19,9 @@ end
 wrnlev 1
 {% for item in parameter_list %}blankme
    {% ifequal forloop.counter 1 %}blankme
-
-      open unit 1 card read name {{item}}
-      read PARA card unit 1
-      close unit 1
+      read para card name {{item}}
    {% else %}blankme
-
-      open unit 1 card read name {{item}}
-      read para card append unit 1
-      close unit 1
+      read para card append name {{item}}
    {% endifequal %}blankme
 {% endfor %}blankme
 wrnlev 5

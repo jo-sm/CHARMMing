@@ -8,7 +8,7 @@
       ! Read PSF from file
       read psf card name {{ segobj.builtPSF }}
     {% else %}  blankme
-      read psf card append bane  {{ segobj.builtPSF }}
+      read psf card append name {{ segobj.builtPSF }}
     {% endif %}  blankme
   {% endfor %}  blankme
 

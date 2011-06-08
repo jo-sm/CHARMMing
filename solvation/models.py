@@ -21,13 +21,9 @@ from scheduler.schedInterface import schedInterface
 import structure
 
 class solvationParams(models.Model):
-    pdb = models.ForeignKey(structure.models.Structure,null=True)
-    statusHTML = models.CharField(max_length=250)
-    solvation_structure = models.CharField(max_length=50)
-    selected = models.CharField(max_length=1)
+    structure = models.ForeignKey(structure.models.WorkingStructure)
 
-    #Solv pref is the difference between letting the GUI decide dimensions or calculating 
-    #it manually
+    solvation_structure = models.CharField(max_length=50)
     solv_pref = models.CharField(max_length=50)
 
     #If the user has no preference on the structure size ("Let the GUI take care of it for me" option)
@@ -36,9 +32,9 @@ class solvationParams(models.Model):
 
     #If the user chooses to manually set preferences ("I want to set my own dimensions" option)
     #pref_x,y, and z will store that information
-    pref_x = models.DecimalField(max_digits=8,decimal_places=4,default=0)
-    pref_y = models.DecimalField(max_digits=8,decimal_places=4,default=0)
-    pref_z = models.DecimalField(max_digits=8,decimal_places=4,default=0)
+    xtl_x = models.DecimalField(max_digits=8,decimal_places=4,default=0)
+    xtl_y = models.DecimalField(max_digits=8,decimal_places=4,default=0)
+    xtl_z = models.DecimalField(max_digits=8,decimal_places=4,default=0)
 
     #The below are used for neutralization
     salt = models.CharField(max_length=5,null=True)
