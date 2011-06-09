@@ -157,48 +157,26 @@ def minimize_tpl(request,workstruct,scriptlist):
         pass
 
     # check to see if PBC needs to be used -- if so we have to set up Ewald
-    template_dict['usepbc'] = ''
-    template_dict['dopbc'] = 0
     try:
-        if postdata['usepbc']:
-            template_dict['usepbc'] =  postdata['usepbc']
-            if file.solvation_structure != 'sphere':
-                dopbc = 1
+        solvstruct = solvation.models.solvationParams.objects.filter(structure=workstruct)[0]
+    except:
+        solvstruct = None
+
+    # check and see if we're using periodic boundary conditions with solvation
+    if solvstruct:
+        template_dict['solvated'] = True
+        template_dict['solvation_structure'] = solvstruct
+
+        if postdata.has_key('usepbc'):
+            if solvstruct.solvation_structure != 'sphere':
                 template_dict['dopbc'] = 1
             else:
                 dopbc = 0
         else:
             dopbc = 0
-    except:
-        dopbc = 0
+    else:
+        template_dict['solvated'] = False
 
-    template_dict['solvation_structure'] = file.solvation_structure
-    template_dict['relative_boundary'] = 0
-    if dopbc:
-        relative_boundary = 0
-        if file.solvation_structure != '' and file.crystal_x < 0:
-            relative_boundary = 1
-
-        template_dict['relative_boundary'] = relative_boundary  
-        template_dict['dim_x'] = str(file.crystal_x)
-        template_dict['dim_z'] = str(file.crystal_z)
-        # Tim Miller test
-        greaterval = max(file.crystal_x,file.crystal_z)
-        template_dict['greaterval'] = str(greaterval)
-
-        # set up images
-        if file.solvation_structure == '' or solvate_implicitly:
-            pass  
-        else:
-            # we should have a solvation file to read from
-            try:
-                os.stat(file.location + "new_" + file.stripDotPDB(file.filename) + ".xtl")
-            except:
-                # need to throw some sort of error ... for now just toss cookies
-                return HttpResponse("Oops ... transfer file not found.")
-
-        # we need to get the ewald parameter
-        template_dict['file_location'] = file.location
     template_dict['useqmmm'] = postdata.has_key("useqmmm")
     template_dict['sdsteps'] = sdsteps
     template_dict['abnr'] = abnr
@@ -242,35 +220,36 @@ def minimize_tpl(request,workstruct,scriptlist):
     mp.statusHTML = "<font color=yellow>Processing</font>"
     mp.pdb = file
     mp.save()
-    file.save()
     t = get_template('%s/mytemplates/input_scripts/minimization_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     
-    user_id = file.owner.id
-    minimize_filename = file.location + "/" + file.name + "/minimize.inp"
+    user_id = workstruct.structure.owner.id
+    minimize_filename = workstruct.structure.location + "/minimize-" + workstruct.identifier + ".inp"
     inp_out = open(minimize_filename ,'w')
     inp_out.write(charmm_inp)
     inp_out.close()	
     scriptlist.append(minimize_filename)
-    file.save()
     if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
         return generateHTMLScriptEdit(charmm_inp,scriptlist,'minimization')
     else:
         si = schedInterface()
-        newJobID = si.submitJob(user_id,file.location,scriptlist)
-	if file.lesson_type:
-            lessonaux.doLessonAct(file,"onMinimizeSubmit",postdata,final_pdb_name)
-        file.save()
+        newJobID = si.submitJob(user_id,workstruct.structure.location,scriptlist)
+
+        # lessons are borked under the new order, ToDo: come back and fix this
+        #if file.lesson_type:
+        #    lessonaux.doLessonAct(file,"onMinimizeSubmit",postdata,final_pdb_name)
 
         if newJobID < 0:
            mp.statusHTML = "<font color=red>Failed</font>"
            mp.save()
         else:
-           file.minimization_jobID = newJobID
+           workstruct.minimization_jobID = newJobID
            sstring = si.checkStatus(newJobID)
            mp.statusHTML = statsDisplay(sstring,newJobID)
            mp.save()
-           file.save()   
-	return "Done."
+
+
+        workstruct.save()
+	return HttpResponse("Done.")
 
 
