@@ -1461,8 +1461,8 @@ def getSegs(Molecule,Struct,auto_append=False):
         newSeg.type = seg.segType
 
         if seg.segType in ['pro','rna','dna','good']:
-            newSeg.rtf_list = 'top_all27_prot_na.rtf'
-            newSeg.prm_list = 'par_all27_prot_na.prm'
+            newSeg.rtf_list = charmming_config.data_home + '/toppar/top_all27_prot_na.rtf'
+            newSeg.prm_list = charmming_config.data_home + '/toppar/par_all27_prot_na.prm'
 
         # set default patching type
         newSeg.set_default_patches(firstres)        
@@ -1609,7 +1609,8 @@ def newupload(request, template="html/fileupload.html"):
             version += 1
             dname = tmpdname + "-" + str(version)
 
-        os.mkdir(location + '/' + dname)
+        os.mkdir(location + '/' + dname, 0775)
+        os.chmod(location + '/' + dname, 0775)
         fullpath = location + '/' + dname + '/' + filename
     
         # BTM, fix me -- I am in the wrong place
@@ -1663,8 +1664,9 @@ def newupload(request, template="html/fileupload.html"):
                 mnum = 1
                 for model in pdb.iter_models():
                     mdname = dname + "-mod-%d" % mnum
-                    os.mkdir(location + '/' + mdname)
- 
+                    os.mkdir(location + '/' + mdname, 0775)
+                    os.chmod(location + '/' + mdname, 0775)
+
                     struct = structure.models.Structure()
                     struct.location = location + mdname
                     struct.name = mdname

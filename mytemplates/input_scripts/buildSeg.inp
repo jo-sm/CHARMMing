@@ -22,12 +22,14 @@
 
 {% else %}
   read sequence pdb name {{ pdb_in }}
-  generate {{ segname }} setu first {{ patch_first }} last {{ patch_last }}
+  generate {{ segname }} setu first {{ patch_first }} last {{ patch_last }} {{ noangdihe }}
 
   read coor pdb name {{ pdb_in }}
-  ic para
-  ic fill preserve
-  ic build
+  {% if doic %}
+    ic para
+    ic fill preserve
+    ic build
+  {% endif %}
   hbuild
 {% endifequal %}
 

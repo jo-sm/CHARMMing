@@ -453,6 +453,12 @@ class WorkingSegment(Segment):
         template_dict['patch_last'] = self.patch_last
         template_dict['segname'] = self.name
         template_dict['outname'] = self.name + '-' + str(self.id)
+        if self.type == 'good':
+            template_dict['doic']      = False
+            template_dict['noangdihe'] = 'noangle nodihedral'
+        else:
+            template_dict['doic']      = True
+            template_dict['noangdihe'] = ''
 
         # Custom user sequences are treated differently
         # NB: this has not been gutsified at all...
@@ -735,6 +741,7 @@ class WorkingStructure(models.Model):
         charmm_inp_file = open(charmm_inp_filename, 'w')
         charmm_inp_file.write(charmm_inp)
         charmm_inp_file.close()
+        scriptlist.append(charmm_inp_filename)
 
         self.isBuilt = 'y'
         self.save()
