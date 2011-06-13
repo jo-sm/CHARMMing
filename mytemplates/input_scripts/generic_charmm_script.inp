@@ -3,7 +3,7 @@
 {% block bomlev %} blankme
   prnlev 5
   wrnlev 5
-  bomlev -2
+  bomlev -1
 {% endblock %} blankme
 
 {% block toppar %} blankme

@@ -115,7 +115,8 @@ def minimize_tpl(request,workstruct,scriptlist):
     template_dict = {}
     template_dict['topology_list'] = workstruct.getTopologyList()
     template_dict['parameter_list'] = workstruct.getParameterList()
-    template_dict['filebase'] = workstruct.identifier    
+    template_dict['filebase'] = workstruct.identifier
+    template_dict['input_file'] = workstruct.identifier
 
     # ack, this is totally wrong, ToDo, FIXME
     template_dict['restraints'] = '' 

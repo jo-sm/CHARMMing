@@ -3,7 +3,6 @@
 {% block title %}Minimize PDB {% endblock %}
 
 {% block body %} blankme
-  {% include "input_scripts/fix_other_atoms.inp" %} 
   {% if restraints %} blankme
     {{restraints}}
   {% endif %} blankme
@@ -13,12 +12,6 @@
     {% endfor %} blankme
   {% endif %} blankme
   {% include 'input_scripts/solvate_implicity.inp' %}
-  {% ifequal fixnonh 1 %} blankme   
-    cons fix sele .not. hydrogen end
-  {% endifequal %} blankme 
-  {% ifequal fixnonh 2 %} blankme
-    cons fix sele .not. notfix end
-  {% endifequal %} blankme
   {% include 'input_scripts/use_shake.inp' %}
   {% if restraints %} blankme
     {{restraints}}
