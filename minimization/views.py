@@ -73,16 +73,9 @@ def minimize_tpl(request,workstruct,scriptlist):
     tolg = postdata['tolg']
     os.chdir(workstruct.structure.location)
     
-    try:
-        selectedparam = minimizeParams.objects.filter(struct=workstruct,selected='y')[0]
-        selectedparam.selected = 'n'
-	selectedparam.save()
-    except:
-        #No selected minimizeparam
-	pass
-
     # create a model for the minimization
     mp = minimizeParams(selected='y')
+    mp.struct = workstruct
     try:
         mp.sdsteps = int(sdsteps)
         mp.abnrsteps = int(abnr)

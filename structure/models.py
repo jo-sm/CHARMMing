@@ -26,8 +26,8 @@ from scheduler.statsDisplay import statsDisplay
 from normalmodes.aux import parseNormalModes, getNormalModeMovieNum
 import charmming_config, input
 import commands, datetime, sys, re, os, glob, smtplib
-import lesson1, normalmodes, dynamics, minimization
-import solvation, lessonaux, apbs
+import normalmodes, dynamics, minimization
+import solvation, lessons.models, apbs
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
 import cPickle
@@ -666,6 +666,9 @@ class WorkingStructure(models.Model):
     ld_jobID = models.PositiveIntegerField(default=0)
     redox_jobID = models.PositiveIntegerField(default=0)
     sgld_jobID = models.PositiveIntegerField(default=0)
+
+    # lesson
+    lesson = models.ForeignKey(lessons.models.Lesson,null=True)
     
 
     def associate(self,structref,segids):
@@ -751,93 +754,89 @@ class WorkingStructure(models.Model):
 
     # Updates the status of in progress operations
     def updateActionStatus(self):
-        done = re.compile('Done')
-        fail = re.compile('Failed')
         si = schedInterface()        
 
         if self.minimization_jobID != 0:
             sstring = si.checkStatus(self.minimization_jobID)
-	    miniparam_obj = minimization.models.minimizeParams.objects.filter(pdb=self,selected='y')[0]
+	    miniparam_obj = minimization.models.minimizeParams.objects.filter(struct=self,selected='y')[0]
             miniparam_obj.statusHTML = statsDisplay(sstring,self.minimization_jobID)
 	    miniparam_obj.save()
-            if done.search(miniparam_obj.statusHTML) or fail.search(miniparam_obj.statusHTML):
+
+            if 'Done' in miniparam_obj.statusHTML:
+                # ToDo, create a new Mol object for this
+                pass
+
+            if 'Done' in miniparam_obj.statusHTML or 'Fail' in miniparam_obj.statusHTML:
                self.minimization_jobID = 0
-               if self.lesson_type:
-                   lessonaux.doLessonAct(self,'onMinimizeDone')
+               if self.lesson:
+                   self.lesson.onMinimizeDone(self)
+
         if self.solvation_jobID != 0:
             sstring = si.checkStatus(self.solvation_jobID)
-	    solvparam_obj = solvation.models.solvationParams.objects.filter(pdb=self,selected='y')[0]
+	    solvparam_obj = solvation.models.solvationParams.objects.filter(struct=self,selected='y')[0]
             solvparam_obj.statusHTML = statsDisplay(sstring,self.solvation_jobID)
 	    solvparam_obj.save()
-            if done.search(solvparam_obj.statusHTML):
+            if 'Done' in solvparam_obj.statusHTML:
                self.solvation_jobID = 0
-               if self.lesson_type:
-                   lessonaux.doLessonAct(self,'onSolvationDone')
+               if self.lesson:
+                   self.lesson.onSolvationDone(self)
+
         if self.nma_jobID != 0:
             sstring = si.checkStatus(self.nma_jobID)
-	    nmaparam_obj = normalmodes.models.nmodeParams.objects.filter(pdb=self,selected='y')[0]
+	    nmaparam_obj = normalmodes.models.nmodeParams.objects.filter(struct=self,selected='y')[0]
             nmaparam_obj.statusHTML = statsDisplay(sstring,self.nma_jobID)
 	    nmaparam_obj.save()
             nma_status = statsDisplay(sstring,self.nma_jobID)
-            if done.search(nma_status):
+            if 'Done' in nma_status:
                self.nma_jobID = 0
 	       parseNormalModes(self)
                if nmaparam_obj.nma_movie_req:
 	           nmaparam_obj.make_nma_movie = True
                    nmaparam_obj.save()
+
         if self.md_jobID != 0:
             sstring = si.checkStatus(self.md_jobID)
-	    mdparam_obj = dynamics.models.mdParams.objects.filter(pdb=self,selected='y')[0]
+	    mdparam_obj = dynamics.models.mdParams.objects.filter(struct=self,selected='y')[0]
             mdparam_obj.statusHTML = statsDisplay(sstring,self.md_jobID)
 	    mdparam_obj.save()
-            if done.search(mdparam_obj.statusHTML) and mdparam_obj.md_movie_req:
+            if 'Done' in mdparam_obj.statusHTML:
                self.md_jobID = 0
-	       mdparam_obj.make_md_movie = True
-               mdparam_obj.save()
+               if dparam_obj.md_movie_req:
+	           mdparam_obj.make_md_movie = True
+                   mdparam_obj.save()
 	       self.save()
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onMDDone')
-            elif done.search(mdparam_obj.statusHTML):
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onMDDone')
-               self.md_jobID = 0
-               self.save()
+               if self.lesson:
+                  self.lesson.onMDDone(self)
+
         if self.ld_jobID != 0:
             sstring = si.checkStatus(self.ld_jobID)
-	    ldparam_obj = dynamics.models.ldParams.objects.filter(pdb=self,selected='y')[0]
+	    ldparam_obj = dynamics.models.ldParams.objects.filter(struct=self,selected='y')[0]
             ldparam_obj.statusHTML = statsDisplay(sstring,self.ld_jobID)
 	    ldparam_obj.save()
-            if done.search(ldparam_obj.statusHTML) and ldparam_obj.ld_movie_req:
-	       ldparam_obj.make_ld_movie = True
-               ldparam_obj.save()
+            if 'Done' in ldparam_obj.statusHTML:
+               if ldparam_obj.ld_movie_req:
+	           ldparam_obj.make_ld_movie = True
+                   ldparam_obj.save()
                self.ld_jobID = 0
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onLDDone')
-            elif done.search(ldparam_obj.statusHTML):
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onLDDone')
-               self.ld_jobID = 0
-               self.save()
+               if self.lesson:
+                  self.lesson.onLDDone(self)
+
         if self.sgld_jobID != 0:
             sstring = si.checkStatus(self.sgld_jobID)
-	    sgldparam_obj = dynamics.models.sgldParams.objects.filter(pdb=self,selected='y')[0]
+	    sgldparam_obj = dynamics.models.sgldParams.objects.filter(struct=self,selected='y')[0]
             sgldparam_obj.statusHTML = statsDisplay(sstring,self.sgld_jobID)
 	    sgldparam_obj.save()
             self.sgld_status = statsDisplay(sstring,self.sgld_jobID)
-            if done.search(sgldparam_obj.statusHTML) and sgldparam_obj.sgld_movie_req:
-	       sgldparam_obj.make_sgld_movie = True
-               sgldparam_obj.save()
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onSGLDDone')
+            if 'Done' in sgldparam_obj.statusHTML:
+               if sgldparam_obj.sgld_movie_req:
+	           sgldparam_obj.make_sgld_movie = True
+                   sgldparam_obj.save()
+               if self.lesson:
+                  self.lesson.onSGLDDone()
                self.sgld_jobID = 0
-            elif done.search(sgldparam_obj.statusHTML):
-               if self.lesson_type:
-                  lessonaux.doLessonAct(self,'onSGLDDone')
-               self.sgld_jobID = 0
-               self.save()
         if self.redox_jobID != 0:
             sstring = si.checkStatus(self.redox_jobID)
-            redox_obj = apbs.models.redoxParams.objects.filter(pdb=self,selected='y')[0]
+            redox_obj = apbs.models.redoxParams.objects.filter(struct=self,selected='y')[0]
             redox_obj.statusHTML = statsDisplay(sstring,self.redox_jobID)
             redox_obj.save()
             # ToDo, add lesson hooks
