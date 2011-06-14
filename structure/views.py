@@ -798,31 +798,31 @@ def viewstatus(request):
 
     if workingStruct:
         try:
-            mini_param = minimizeParams.objects.filter(pdb=workingStruct,selected='y')[0]
+            mini_param = minimizeParams.objects.filter(struct=workingStruct,selected='y')[0]
         except:
             mini_param = None
         try:
-            solv_param = solvationParams.objects.filter(pdb=workingStruct,selected='y')[0]
+            solv_param = solvationParams.objects.filter(struct=workingStruct,selected='y')[0]
         except:
             solv_param = None
         try:
-            md_param = mdParams.objects.filter(pdb=workingStruct,selected='y')[0]
+            md_param = mdParams.objects.filter(struct=workingStruct,selected='y')[0]
         except:
             md_param = None
         try:
-            ld_param = ldParams.objects.filter(pdb=workingStruct,selected='y')[0]
+            ld_param = ldParams.objects.filter(struct=workingStruct,selected='y')[0]
         except:
             ld_param = None
         try:
-            sgld_param = sgldParams.objects.filter(pdb=workingStruct,selected='y')[0]
+            sgld_param = sgldParams.objects.filter(struct=workingStruct,selected='y')[0]
         except:
             sgld_param = None
         try:
-            nma_param = nmodeParams.objects.filter(pdb=workingStruct,selected='y')[0]
+            nma_param = nmodeParams.objects.filter(struct=workingStruct,selected='y')[0]
         except:
             nma_param = None
         try:
-            redox_param = redoxParams.objects.filter(pdb=workingStruct,selected='y')[0]
+            redox_param = redoxParams.objects.filter(struct=workingStruct,selected='y')[0]
         except:
             redox_param = None
 
