@@ -893,21 +893,24 @@ class WorkingStructure(models.Model):
 	                  con_sele + ' end\n'
 	return restraints
 
-class StructureFile(models.Model):
+class WorkingFile(models.Model,file):
     structure   = models.ForeignKey(WorkingStructure)
     path        = models.CharField(max_length=100)
+    canonPath   = models.CharField(max_length=100) # added so we can do file versioning
     version     = models.PositiveIntegerField(default=1)
     type        = models.CharField(max_length=20)
-    description = models.CharField(max_length=500)
+    description = models.CharField(max_length=500,null=True)
+    parent      = models.ForeignKey('self',null=True)
 
-    # temp variable
-    fd    = None
+    # We should probably figure out a better way to do this; the problem
+    # is that I can't have a foreign key that points to multiple types, so
+    # I've implemented the "action" hack.
+    parentAction = models.CharField(max_length=6)
 
-    def open(self,mode):
-        self.fd = open(path,mode)
-
-    def close(self):
-        self.fd.close()
+    def backup(self):
+        # eventually, this will allow us to create new
+        # versions of files
+        pass
 
 # --- below this point are the classes for the various forms ---
 
