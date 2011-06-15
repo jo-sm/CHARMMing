@@ -746,11 +746,20 @@ class WorkingStructure(models.Model):
         charmm_inp_file.close()
         scriptlist.append(charmm_inp_filename)
 
+        # create workingFile object for the appended structure; this has no parent
+        wf = WorkingFile()
+        wf.structure = self
+        wf.path = self.structure.location + '/' + self.identifier + '.crd'
+        wf.canonPath = wf.path
+        wf.type = 'crd'
+        wf.description = 'appended structure'
+        wf.parentAction = 'build'
+        wf.save()
+
         self.isBuilt = 'y'
         self.save()
 
-    # The methods below this point have been moved from the original Structure
-    # class. They need to be GUTS-ified.
+        return wf
 
     # Updates the status of in progress operations
     def updateActionStatus(self):
@@ -762,7 +771,10 @@ class WorkingStructure(models.Model):
             miniparam_obj.statusHTML = statsDisplay(sstring,self.minimization_jobID)
 	    miniparam_obj.save()
 
-            if 'Done' in miniparam_obj.statusHTML:
+            if 'Fail' in miniparam_obj.statusHTML:
+                # Create a new WorkingFile reference for this
+                pass
+            elif 'Done' in miniparam_obj.statusHTML:
                 # ToDo, create a new Mol object for this
                 pass
 
@@ -843,6 +855,9 @@ class WorkingStructure(models.Model):
     
         self.save()
 
+    # The methods below this point have been moved from the original Structure
+    # class. They need to be GUTS-ified.
+
     def setStructurePatches(self,file,postdata):
 	#This deals with the disulfide bond patching
         patch_line = ""
@@ -866,19 +881,6 @@ class WorkingStructure(models.Model):
             patch_file.write(patch_line)
             patch_file.close()
     
-    #returns the warnings as a list if a warnings file exists
-    #false otherwise
-    def ifWarningsExist(self):
-        try:
-	    warnings = []
-	    warningsfp = open(self.location + self.stripDotPDB(self.filename) + "-warnings.txt","r")
-	    for line in warningsfp:
-	        warnings.append(line)
-	    warningsfp.close()
-	    return warnings
-	except:
-	    return ''
-
     #gets the restraints and returns them as a string
     def handleRestraints(self,request):
         try:
@@ -906,6 +908,17 @@ class WorkingFile(models.Model,file):
     # is that I can't have a foreign key that points to multiple types, so
     # I've implemented the "action" hack.
     parentAction = models.CharField(max_length=6)
+
+    @property
+    def basename(self):
+        bn = self.path.split('/')[-1]
+        return bn.split('.')[0]
+       
+
+    @property
+    def cbasename(self):
+        bn = self.canonPath.split('/')[-1]
+        return bn.split('.')[0]
 
     def backup(self):
         # eventually, this will allow us to create new

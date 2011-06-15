@@ -40,10 +40,6 @@
 
   {% include "input_scripts/write_out_struct.inp" %}
 
-  ! save the charge for posterity...
-  scalar charge stat sele all end
-  set totch = ?stot
-  syst "/usr/local/charmming/savechrg.py @TOTCH {{workstruct.location}}{{filebase}}.charge"
 {% endblock %} blankme
 
 

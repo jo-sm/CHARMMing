@@ -5,7 +5,13 @@
   <br />
   <h1 align="center">Minimize</h1>
   <hr noshade width="80%" size=3%>
-  <h2 align="center">Working structure: {{ ws_identifier }}</h3>
+  <center>
+    <h2>Working structure: {{ ws_identifier }}</h2>
+
+    {% for wf in wfs %}
+       <input type="radio" name="pstruct" value="{{ wf.id }}" />&nbsp;&nbsp;{{ wf.basename }}
+    {% endfor %}
+  </center>
   <br />
 
   <div id='change_min' style="text-align:center;">

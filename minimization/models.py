@@ -22,6 +22,7 @@ import structure
 
 class minimizeParams(models.Model):
     struct = models.ForeignKey(structure.models.WorkingStructure,null=True)
+    inpStruct = models.ForeignKey(structure.models.WorkingFile,null=True)
     statusHTML = models.CharField(max_length=250)
     sdsteps = models.PositiveIntegerField(default=0)
     abnrsteps = models.PositiveIntegerField(default=0)

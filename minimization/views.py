@@ -20,7 +20,7 @@ from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
-from structure.models import Structure, WorkingStructure, Segment, goModel 
+from structure.models import Structure, WorkingStructure, WorkingFile, Segment, goModel 
 from structure.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
 from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch
@@ -52,12 +52,20 @@ def minimizeformdisplay(request):
     if request.POST.has_key('sdsteps') or request.POST.has_key('abnrsteps'):
         scriptlist = []
         if ws.isBuilt != 't':
-            ws.build(scriptlist)
-        return minimize_tpl(request,ws,scriptlist)
+            isBuilt = False
+            pstruct = ws.build(scriptlist)
+            pstructID = pstruct.id
+        else:
+            isBuilt = True
+            pstructID = int(request.POST['pstruct'])
+                
+        return minimize_tpl(request,ws,isBuilt,pstructID,scriptlist)
     else:
-        return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier})
+        # get all workingFiles associated with this struct
+        wfs = WorkingFile.objects.filter(structure=struct,type='crd')
+        return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
 
-def minimize_tpl(request,workstruct,scriptlist):
+def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
     postdata = request.POST
     #deals with changing the selected minimize_params
     try:
@@ -102,14 +110,22 @@ def minimize_tpl(request,workstruct,scriptlist):
     else:
         mp.useqmmm = 'n'
 
-    mp.save()
 
     # template dictionary passes the needed variables to the template 
     template_dict = {}
     template_dict['topology_list'] = workstruct.getTopologyList()
     template_dict['parameter_list'] = workstruct.getParameterList()
-    template_dict['filebase'] = workstruct.identifier
-    template_dict['input_file'] = workstruct.identifier
+    template_dict['output_name'] = 'mini-' + workstruct.identifier
+
+    logfp = open('/tmp/pstruct', 'w')
+    logfp.write("pstructID = %d\n" % pstructID)
+    logfp.close()
+
+    pstruct = WorkingFile.objects.filter(id=pstructID)[0]
+    template_dict['input_file'] = pstruct.basename
+
+    mp.inpStruct = pstruct
+    mp.save()
 
     # ack, this is totally wrong, ToDo, FIXME
     template_dict['restraints'] = '' 
