@@ -1,0 +1,8 @@
+{% if workfiles %}
+  <table>
+  {% for wf in workfiles %}
+    <tr><td><input type="radio" name="pstruct" value="{{ wf.id }}" /></td><td>{{ wf.basename }}</td><td>{{ wf.description }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+

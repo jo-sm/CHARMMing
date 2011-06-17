@@ -10,9 +10,7 @@
 
       <h2>Working structure: {{ ws_identifier }}</h2>
 
-      {% for wf in wfs %}
-         <input type="radio" name="pstruct" value="{{ wf.id }}" />&nbsp;&nbsp;{{ wf.basename }}
-      {% endfor %}
+      {% include "html/workfiles.html" %}
     </center>
     <br />
 

@@ -31,6 +31,7 @@ import solvation, lessons.models, apbs
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
 import cPickle
+import charmming.io, charmming.lib
 
 class Structure(models.Model):
 
@@ -754,9 +755,9 @@ class WorkingStructure(models.Model):
         wf.type = 'crd'
         wf.description = 'appended structure'
         wf.parentAction = 'build'
+        wf.pdbkey = 'append_' + self.identifier
         wf.save()
 
-        self.isBuilt = 'y'
         self.save()
 
         return wf
@@ -764,6 +765,25 @@ class WorkingStructure(models.Model):
     # Updates the status of in progress operations
     def updateActionStatus(self):
         si = schedInterface()        
+
+        pickleFile = open(self.structure.pickle, 'r+')
+        pdb = cPickle.load(pickleFile)
+        mod = False
+
+        if self.isBuilt != 't':
+            # check if the PSF and CRD files for this structure exist
+            try:
+                os.stat(self.structure.location + '/' + self.identifier + '.psf')
+                os.stat(self.structure.location + '/' + self.identifier + '.crd')
+            except:
+                pass
+            else:
+                self.isBuilt = 't'
+                mod = True
+                molobj = charmming.io.pdb.get_molFromCRD(self.structure.location + '/' + self.identifier + '.crd')
+                pdb['append_' + self.identifier] = molobj
+                self.save()
+              
 
         if self.minimization_jobID != 0:
             sstring = si.checkStatus(self.minimization_jobID)
@@ -775,8 +795,23 @@ class WorkingStructure(models.Model):
                 # Create a new WorkingFile reference for this
                 pass
             elif 'Done' in miniparam_obj.statusHTML:
-                # ToDo, create a new Mol object for this
-                pass
+                # Create a new Mol object for this
+                fname = self.structure.location + '/mini-' + self.identifier + '.crd'
+                mod = True
+
+                molobj = charmming.io.pdb.get_molFromCRD(fname)
+                pdb['mini_' + self.identifier] = molobj 
+
+                wf = WorkingFile()
+                wf.structure = self
+                wf.path = fname
+                wf.canonPath = wf.path
+                wf.type = 'crd'
+                wf.description = 'minimized structure'
+                wf.parent = miniparam_obj.inpStruct
+                wf.parentAction = 'mini'
+                wf.pdbkey = 'mini_' + self.identifier
+                wf.save() 
 
             if 'Done' in miniparam_obj.statusHTML or 'Fail' in miniparam_obj.statusHTML:
                self.minimization_jobID = 0
@@ -853,6 +888,9 @@ class WorkingStructure(models.Model):
             redox_obj.save()
             # ToDo, add lesson hooks
     
+        if mod:
+            cPickle.dump(pdb,pickleFile)
+        pickleFile.close()
         self.save()
 
     # The methods below this point have been moved from the original Structure
@@ -897,6 +935,7 @@ class WorkingStructure(models.Model):
 
 class WorkingFile(models.Model,file):
     structure   = models.ForeignKey(WorkingStructure)
+    pdbkey      = models.CharField(max_length=100,null=True) # if this is a structure file, want to know where to find it
     path        = models.CharField(max_length=100)
     canonPath   = models.CharField(max_length=100) # added so we can do file versioning
     version     = models.PositiveIntegerField(default=1)

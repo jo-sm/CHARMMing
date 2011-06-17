@@ -29,7 +29,7 @@ from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
-import output
+import input, output
 import re, os, copy
 import lessonaux, charmming_config
 
@@ -43,28 +43,40 @@ def solvationformdisplay(request):
     except:
         return HttpResponse("Please submit a structure first.")
     try:
-        workstruct = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+        ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
-    if request.POST.has_key('foo'):
+    if request.POST.has_key('solvation_structure'):
+        scriptlist = []
+        if ws.isBuilt != 't':
+            isBuilt = False
+            pstruct = ws.build(scriptlist)
+            pstructID = pstruct.id
+        else:
+            isBuilt = True
+            pstructID = int(request.POST['pstruct'])
+
+        return minimize_tpl(request,ws,isBuilt,pstructID,scriptlist)
     else:
+        # get all workingFiles associated with this struct
+        wfs = WorkingFile.objects.filter(structure=ws,type='crd')
+        logfp = open('/tmp/workfile.txt', 'w')
+        logfp.write('Number of workfiles = %d\n' % len(wfs))
+        logfp.close()
+        return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
 
 
-    return render_to_response('html/solvationform.html', {})
-
-def solvate_tpl(request,file,solvate_this_file,scriptlist):
+def solvate_tpl(request,workingstruct,isBuilt,pstructID,scriptlist):
     postdata = request.POST
     #deals with changing the selected minimize_params
     try:
-        oldparam = solvationParams.objects.filter(pdb = file, selected = 'y')[0]
+        oldparam = solvationParams.objects.filter(struct=ws, selected='y')[0]
         oldparam.selected = 'n'
         oldparam.save()
     except:
         pass
 
-    crdstring = ''
-    solvate_filename = solvate_this_file
     sp = solvationParams()
     sp.selected = 'y'    
     sp.pdb = file
