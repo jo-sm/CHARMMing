@@ -2,11 +2,9 @@ ioform extended
 
 write psf card name {{ output_name }}.psf
 * {{output_name}}.psf
-{{headqmatom}} blankme
 *
 
 write coor card name {{ output_name }}.crd
 * {{output_name}}.crd
-{{headqmatom}} blankme
 *
 
