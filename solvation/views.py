@@ -19,7 +19,7 @@ from django.template.loader import get_template
 from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
-from structure.models import Structure
+from structure.models import Structure, WorkingStructure, WorkingFile
 from structure.aux import checkNterPatch
 from solvation.ionization import neutralize_tpl
 from solvation.models import solvationParams
@@ -37,116 +37,21 @@ import lessonaux, charmming_config
 def solvationformdisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    Structure.checkRequestData(request)
+    input.checkRequestData(request)
     try:
-        #chooses the file based on if it is selected or not
-        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
+        struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
-    os.chdir(file.location)
-    temp = file.stripDotPDB(file.filename)
-    #creates a list of filenames associated with the PDB
-    filename_list = file.getLimitedFileList('solvation')
-    seg_list = file.segids.split(' ') 
-    min_pdb = "new_" + file.stripDotPDB(file.filename) + "-min.pdb"
-    md_pdb = "new_" + file.stripDotPDB(file.filename) + "-md.pdb"
-    ld_pdb = "new_" + file.stripDotPDB(file.filename) + "-ld.pdb"
-    sgld_pdb = "new_" + file.stripDotPDB(file.filename) + "-sgld.pdb"
-    het_list = file.getNonGoodHetPDBList()
-    tip_list = file.getGoodHetPDBList()
-    seg2_list = file.getProteinSegPDBList()
-    protein_list = [x for x in seg2_list if x.endswith("-pro.pdb") or x.endswith("-pro-final.pdb")]
-    go_list = [x for x in seg2_list if x.endswith("-go.pdb") or x.endswith("-go-final.pdb")]
-    bln_list = [x for x in seg2_list if x.endswith("-bln.pdb") or x.endswith("-bln-final.pdb")]
-    nucleic_list = [x for x in seg2_list if x.endswith("-dna.pdb") or x.endswith("-dna-final.pdb") or x.endswith("-rna.pdb") or x.endswith("-rna-final.pdb")]
-    userup_list = [x for x in seg2_list if not ( x.endswith("-pro.pdb") or x.endswith("-pro-final.pdb") or x.endswith("-dna.pdb") or x.endswith("-dna-final.pdb") \
-                     or x.endswith("-rna.pdb") or x.endswith("-rna-final.pdb") or x.endswith("het.pdb") or x.endswith("het-final.pdb") or x.endswith("-go.pdb") \
-                     or x.endswith("-go-final.pdb") or x.endswith("-bln.pdb") or x.endswith("-bln-final.pdb") ) ]
-    disulfide_list = file.getPDBDisulfides()
-
-    # Tim Miller: 03-09-2009 we need to pass a segpatch_list (containing
-    # both the list of segments and their default NTER patches) to the
-    # template.
-    propatch_list = []
-    nucpatch_list = []
-    for seg in seg_list:
-        if seg.endswith("-pro"):
-            defpatch = checkNterPatch(file,seg)
-            propatch_list.append((seg,defpatch))
-        elif seg.endswith("-dna") or seg.endswith("-rna"):
-            nucpatch_list.append((seg,"5TER","3TER"))
-
-    #Adds minimized PDB for solvation
-    #The below block handles the corresponding tip files to PDB segIDs
-    for i in range(len(filename_list)):
-        try:
-            tempid = request.POST[filename_list[i]]
-	    filename = request.POST[filename_list[i]]
-	except:
-	    try:
-	        tempid = request.POST['min']
-	        filename = request.POST['min']
-	    except:
-	        tempid = "null"
-         
-        if(tempid!="null"):
-            try:
-                if(request.POST['usepatch']):
-                    file.handlePatching(request.POST)
-            except:
-                #If there is no patch, make sure patch_name is zero
-                file.patch_name = ""
-                file.save()
-
-	    #If a user wants to solvate a structure that hasnt been minimized/or run 
-	    #through charmm, then the append command must be run first
-            scriptlist = []
-	    if(filename != min_pdb and filename != md_pdb and filename != ld_pdb and filename != sgld_pdb):
-	        seg_list = file.segids.split(' ')
-		solvate_this_file = 'new_' + file.stripDotPDB(file.filename) + "-final.pdb"
-		#append the file and solvate it now
-	        append_tpl(request.POST, filename_list,file,scriptlist)
-	        html = solvate_tpl(request,file,solvate_this_file,scriptlist)
-                return HttpResponse(html)
-	    else:
-	        html = solvate_tpl(request,file,filename,scriptlist)
-                return HttpResponse(html)
     try:
-        os.stat(file.location + file.stripDotPDB(file.filename) + ".charge")
+        workstruct = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        chrge = "No charge has been calculated on the system yet."
+       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+
+    if request.POST.has_key('foo'):
     else:
-        try:
-            fp = open(file.location + file.stripDotPDB(file.filename) + ".charge", "r")
-            line = fp.readline()
-            fp.close()
-        except:
-            chrge = "No charge has been calculated on the system yet."
-        else:
-            chrge = "Total charge on the system (from last minimization): " + line.split('=')[1]
 
-    n = file.natom
-    timeP = "less than 5 minutes."
-    if n > 5200: 
-        timeP = "at least 1 hour.";
-    elif n > 4000: 
-        timeP = "about 30-60 minutes.";
-    elif n > 2650:
-        timeP = "about 20-30 minutes.";
-    elif n > 1350:
-        timeP = "from 5-20 minutes.";
-    elif n > 800:
-        timeP = "from 15 to 30 minutes.";
-    neut_est = "The estimated time for neutralization is " + timeP + " (actual time will vary based on solvation parameters and system load)."
 
-    doCustomShake = 1
-    if file.ifExistsRtfPrm() < 0:
-        doCustomShake = 0
-    trusted = isUserTrustworthy(request.user) 
-    return render_to_response('html/solvationform.html', {'filename_list': filename_list, 'propatch_list':propatch_list, 'min_pdb':min_pdb, 'md_pdb': md_pdb, \
-                                 'ld_pdb': ld_pdb, 'sgld_pdb': sgld_pdb, 'het_list':het_list,'tip_list':tip_list,'protein_list':protein_list,'chrge':chrge, \
-                                 'neut_est': neut_est, 'file':file, 'docustshake': doCustomShake,'trusted':trusted,'disulfide_list':disulfide_list, 'seg_list': seg_list, \
-                                 'nucpatch_list': nucpatch_list, 'nucleic_list': nucleic_list, 'userup_list': userup_list, 'go_list': go_list, 'bln_list': bln_list})
+    return render_to_response('html/solvationform.html', {})
 
 def solvate_tpl(request,file,solvate_this_file,scriptlist):
     postdata = request.POST

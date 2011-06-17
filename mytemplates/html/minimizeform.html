@@ -5,30 +5,31 @@
   <br />
   <h1 align="center">Minimize</h1>
   <hr noshade width="80%" size=3%>
-  <center>
-    <h2>Working structure: {{ ws_identifier }}</h2>
-
-    {% for wf in wfs %}
-       <input type="radio" name="pstruct" value="{{ wf.id }}" />&nbsp;&nbsp;{{ wf.basename }}
-    {% endfor %}
-  </center>
-  <br />
-
-  <div id='change_min' style="text-align:center;">
-    <div id="script_dothis" style="display:none;">
-       makeUniqueDiv('min_form');
-       makeUniqueDiv('solvate_implicitly');
-       makeUniqueDiv('run_time_minestimate');
-       makeUniqueDiv('useqmmm');
-       makeUniqueDiv('qmmm_parameters');
-       makeUniqueDiv('apply_restraints');
-       makeUniqueDiv('apply_shake');
-       refreshToolTips();
-       var GB_ROOT_DIR = "/charmming/greybox/greybox/";
-    </div>
-
+  <form id="min_form" method="post"  action="." onsubmit="return send_form(this,'/charmming/minimize/',makeUniqueDiv('change_min'),'status_min',[{%for item in filename_list%}'{{item}}',{% endfor%}]);">
     <center>
-       <form id="min_form" method="post"  action="." onsubmit="return send_form(this,'/charmming/minimize/',makeUniqueDiv('change_min'),'status_min',[{%for item in filename_list%}'{{item}}',{% endfor%}]);">
+
+      <h2>Working structure: {{ ws_identifier }}</h2>
+
+      {% for wf in wfs %}
+         <input type="radio" name="pstruct" value="{{ wf.id }}" />&nbsp;&nbsp;{{ wf.basename }}
+      {% endfor %}
+    </center>
+    <br />
+
+    <div id='change_min' style="text-align:center;">
+      <div id="script_dothis" style="display:none;">
+         makeUniqueDiv('min_form');
+         makeUniqueDiv('solvate_implicitly');
+         makeUniqueDiv('run_time_minestimate');
+         makeUniqueDiv('useqmmm');
+         makeUniqueDiv('qmmm_parameters');
+         makeUniqueDiv('apply_restraints');
+         makeUniqueDiv('apply_shake');
+         refreshToolTips();
+         var GB_ROOT_DIR = "/charmming/greybox/greybox/";
+      </div>
+
+      <center>
          <hr noshade width="80%" size=3%>
          <h2 align="center">Minimization Parameters</h2>
          <table>
@@ -69,8 +70,8 @@
          <br />
          <br />
 
-       </form>
-    </center>
-  </div>
+      </center>
+    </div>
+  </form>
 </div>
 
