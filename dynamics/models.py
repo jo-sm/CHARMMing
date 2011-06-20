@@ -33,7 +33,7 @@ class rexParams(models.Model):
 
 class mdParams(models.Model):
 
-    pdb = models.ForeignKey(structure.models.Structure,null=True)
+    structure = models.ForeignKey(structure.models.Structure,null=True)
     statusHTML = models.CharField(max_length=250)
     selected = models.CharField(max_length=1)
     sequence = models.PositiveIntegerField(default=1)

@@ -23,15 +23,8 @@ import structure
 class solvationParams(models.Model):
     structure = models.ForeignKey(structure.models.WorkingStructure)
 
+    # these contain the shape of the unit cell and its dimensions
     solvation_structure = models.CharField(max_length=50)
-    solv_pref = models.CharField(max_length=50)
-
-    #If the user has no preference on the structure size ("Let the GUI take care of it for me" option)
-    #Then no_pref_radius stores the distance from structure to edge of solvation structure
-    no_pref_radius = models.DecimalField(max_digits=8,decimal_places=4,default=0)
-
-    #If the user chooses to manually set preferences ("I want to set my own dimensions" option)
-    #pref_x,y, and z will store that information
     xtl_x = models.DecimalField(max_digits=8,decimal_places=4,default=0)
     xtl_y = models.DecimalField(max_digits=8,decimal_places=4,default=0)
     xtl_z = models.DecimalField(max_digits=8,decimal_places=4,default=0)
@@ -40,3 +33,22 @@ class solvationParams(models.Model):
     salt = models.CharField(max_length=5,null=True)
     concentration = models.DecimalField(max_digits=8,decimal_places=6,default=0)
     ntrials = models.PositiveIntegerField(default=0)
+
+    def check_valid(self):
+        if self.solvation_structure == 'cubic' or self.solvation_structure == 'rhdo':
+            return self.xtl_x == self.xtl_y == self.xtl_z
+        elif self.solvation_structure == 'tetra' or self.solvation_structure == 'hexa':
+            return self.xtl_x == self.xtl_y
+        else:
+            return True
+
+    @property
+    def angles(self):
+        if self.solvation_structure == 'cubic' or self.solvation_structure == 'tetra':
+            return (90., 90., 90.)
+        elif self.solvation_structure == 'rhdo':
+            return (60., 90., 60.)
+        elif self.solvation_structure == 'hexa':
+            return (90., 90., 120.)
+        else:
+            return (-1., -1., -1.)

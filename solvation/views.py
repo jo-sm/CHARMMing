@@ -57,7 +57,7 @@ def solvationformdisplay(request):
             isBuilt = True
             pstructID = int(request.POST['pstruct'])
 
-        return minimize_tpl(request,ws,isBuilt,pstructID,scriptlist)
+        return solvate_tpl(request,ws,isBuilt,pstructID,scriptlist)
     else:
         # get all workingFiles associated with this struct
         wfs = WorkingFile.objects.filter(structure=ws,type='crd')
@@ -87,56 +87,8 @@ def solvate_tpl(request,workingstruct,isBuilt,pstructID,scriptlist):
 
     sp.solvation_structure = solvation_structure
     sp.concentration = '0.0' # needs to be set here, will be set to proper value in ionization.py
+    sp.structure = workingstruct
 
-    file.solvation_params = sp
-    file.solvation_structure = solvation_structure
-    #Gets the user's solvation preference, either set_pref or no_pref
-    solv_pref = postdata['solv_pref']
-    relative_boundary = 0
-    pref_radius = 0
-    if(solv_pref == 'no_pref'):
-        sp.solv_pref = "no_pref"
-        relative_boundary = 1
-        try:
-            pref_radius = postdata['no_pref_radius']
-            sp.no_pref_radius = str(pref_radius)
-        except:
-            pref_radius = 10
-            sp.no_pref_radius = '10'
-    if(solv_pref == 'set_pref'):
-        sp.solv_pref = "set_pref"
-        pref_x = 5
-        sp.pref_x = '5'
-        pref_y = 5
-        sp.pref_y = '5'
-        pref_z = 5
-        sp.pref_z = '5'
-        try:
-            pref_x = postdata['set_x']
-            sp.pref_x = str(pref_x)
-        except:
-            pass
-
-        try:
-            pref_y = postdata['set_y']
-            sp.pref_y = str(pref_y)
-        except:
-            pass
-
-        try:
-            pref_z = postdata['set_z']
-            sp.pref_z = str(pref_z)
-        except:
-            pass
-
-    try:
-        if postdata['neutralize']:
-            doneut = 1
-        else:
-            doneut = 0
-    except:
-        doneut = 0
-    
     sp.save()
 
     # ok, let's figure out the angles

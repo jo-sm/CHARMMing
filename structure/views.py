@@ -46,7 +46,7 @@ import structure.models, input
 from lesson_config import *
 import os, sys, re, copy, datetime, time, stat
 import mimetypes, string, random, glob, traceback, commands
-import charmming.io, charmming_config, minimization
+import pychm.io, charmming_config, minimization
 import cPickle
 
 # problem during upload
@@ -1654,12 +1654,12 @@ def newupload(request, template="html/fileupload.html"):
             struct.name = dname
             struct.location = location + dname
 
-            pdb = charmming.io.crd.CRDFile(fullpath)
+            pdb = pychm.io.crd.CRDFile(fullpath)
             thisMol = pdb.iter_models.next()
             getSegs(thisMol,struct,auto_append=True)
         
         else:
-            pdb = charmming.io.pdb.PDBFile(fullpath)
+            pdb = pychm.io.pdb.PDBFile(fullpath)
             if len(pdb.keys()) > 1:
                 mnum = 1
                 for model in pdb.iter_models():

@@ -31,7 +31,7 @@ import solvation, lessons.models, apbs
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
 import cPickle
-import charmming.io, charmming.lib
+import pychm.io, pychm.lib
 
 class Structure(models.Model):
 
@@ -780,7 +780,7 @@ class WorkingStructure(models.Model):
             else:
                 self.isBuilt = 't'
                 mod = True
-                molobj = charmming.io.pdb.get_molFromCRD(self.structure.location + '/' + self.identifier + '.crd')
+                molobj = pychm.io.pdb.get_molFromCRD(self.structure.location + '/' + self.identifier + '.crd')
                 pdb['append_' + self.identifier] = molobj
                 self.save()
               
@@ -799,7 +799,7 @@ class WorkingStructure(models.Model):
                 fname = self.structure.location + '/mini-' + self.identifier + '.crd'
                 mod = True
 
-                molobj = charmming.io.pdb.get_molFromCRD(fname)
+                molobj = pychm.io.pdb.get_molFromCRD(fname)
                 pdb['mini_' + self.identifier] = molobj 
 
                 wf = WorkingFile()
