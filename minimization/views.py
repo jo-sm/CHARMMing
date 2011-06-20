@@ -62,7 +62,7 @@ def minimizeformdisplay(request):
         return minimize_tpl(request,ws,isBuilt,pstructID,scriptlist)
     else:
         # get all workingFiles associated with this struct
-        wfs = WorkingFile.objects.filter(structure=struct,type='crd')
+        wfs = WorkingFile.objects.filter(structure=ws,type='crd')
         return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
 
 def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
