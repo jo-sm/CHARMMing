@@ -28,6 +28,7 @@ class solvationParams(models.Model):
     xtl_x = models.DecimalField(max_digits=8,decimal_places=4,default=0)
     xtl_y = models.DecimalField(max_digits=8,decimal_places=4,default=0)
     xtl_z = models.DecimalField(max_digits=8,decimal_places=4,default=0)
+    spradius = models.DecimalField(max_digits=8,decimal_places=4,default=0)
 
     #The below are used for neutralization
     salt = models.CharField(max_length=5,null=True)

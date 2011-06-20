@@ -32,6 +32,9 @@
     stream charges.str
   {% endif %} blankme
 
+  ! orient structure
+  coor orient
+
   ! calculate energy
   energy
 

@@ -20,7 +20,6 @@ from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from structure.models import Structure, WorkingStructure, WorkingFile
-from structure.aux import checkNterPatch
 from solvation.ionization import neutralize_tpl
 from solvation.models import solvationParams
 from account.views import isUserTrustworthy
@@ -30,7 +29,7 @@ from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 import input, output
-import re, os, copy
+import re, os, copy, math
 import lessonaux, charmming_config
 
 #processes form data for minimization
@@ -77,132 +76,67 @@ def solvate_tpl(request,workingstruct,isBuilt,pstructID,scriptlist):
     except:
         pass
 
+    os.chdir(workingstruct.structure.location)
+
     sp = solvationParams()
     sp.selected = 'y'    
     sp.pdb = file
     sp.statusHTML = "<font color=yellow>Processing</font>"
 
     #file.solvation_status = "<font color=yellow>Processing</font>"
-    solvation_structure = postdata['solvation_structure']
-
-    sp.solvation_structure = solvation_structure
+    sp.solvation_structure = postdata['solvation_structure']
     sp.concentration = '0.0' # needs to be set here, will be set to proper value in ionization.py
     sp.structure = workingstruct
 
+    # set a, b, c, alpha, beta, gamma for run
+    if sp.solvation_structure == 'sphere':
+        sp.spradius = postdata.sphere_radius
+    else:
+        sp.xtl_x = postdata['set_x']
+        sp.xtl_y = postdata['set_y']
+        sp.xtl_z = postdata['set_z']
     sp.save()
 
-    # ok, let's figure out the angles
-    angles = ""
-    if solvation_structure == "cubic":
-        angles = "90.0 90.0 90.0"
-    elif solvation_structure == "rhdo":
-        angles = "60.0 90.0 60.0"
-    elif solvation_structure == "hexa":
-        angles = "90.0 90.0 120.0"
-  
-    #gets pathways of rtf/prm files depending on whether the user uploaded their own
-    rtf_prm_dict = file.getRtfPrmPath()
-    os.chdir(file.location)
+    if not sp.check_valid():
+        return HttpResponse("Invalid crystal structure definition")
+
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'] = file.getTopologyList()
-    template_dict['parameter_list'] = file.getParameterList()
-    template_dict['filebase'] = file.stripDotPDB(file.filename)
-    template_dict['solvation_structure'] = solvation_structure
-    template_dict['input_file'] = file.stripDotPDB(solvate_filename)
+    template_dict['angles'] = "%5.2f %5.2f %5.2f" % (sp.angles[0],sp.angles[1],sp.angles[2])
+    template_dict['topology_list'] = workingstruct.getTopologyList()
+    template_dict['parameter_list'] = workingstruct.getParameterList()
+    template_dict['solvation_structure'] = sp.solvation_structure
 
-    #If solvation structure is a sphere, it should be *2 divided by 2 because it extends from the center
-    template_dict['solv_pref'] = solv_pref
-    template_dict['pref_radius'] = str(float(pref_radius))
-    template_dict['pref_radius_double'] = str(float(pref_radius)*2)
+    pstruct = WorkingFile.objects.filter(id=pstructID)[0]
+    template_dict['input_file'] = pstruct.basename
+    template_dict['output_name'] = 'solv-' + workingstruct.identifier
 
-    if solv_pref == 'no_pref':
-        if solvation_structure == "sphere":
-            crdstring = "Sphere with a minimum edge distance of " + str(pref_radius)
-
-            # silly rabbit, spheres don't have valid crystal data...
-            file.crystal_x = '0'
-            file.crystal_y = '0'
-            file.crystal_z = '0'
-        elif solvation_structure == 'choose_for_me':
-            # need to prove we're using relative boundary
-            file.crystal_x = '-1'
-        else:
-            # horrific hack alert ... we have no mechanism of actually figuring out
-            # the crystal dimensions before we run CHARMM, so we're just going to save
-            # the user radius value in crystal_x, y, and z ... we can use this info
-            # to re-create the "real" unit cell dimension in minimization & dynamics.
-            # To indicate this, we negate the value.
-
-            # horrific hack part deux ... it's actually possible to do this, but requires
-            # writing the dimension into the h eader of the PDB/CRD
-            file.crystal_x = str(-float(pref_radius))
-            file.crystal_y = str(-float(pref_radius))    
-            file.crystal_z = str(-float(pref_radius))
-        # end  if(solv_pref == 'no_pref')
+    if sp.solvation_structure == 'sphere':
+        template_dict['spradius'] = postdata['spradius']
     else:
-        # here we want to check the user values on things -- fortunately, this makes our lives easy
-        template_dict['pref_x'] = pref_x
-        template_dict['pref_z'] = pref_z
-        if solvation_structure == "sphere":
-            file.crystal_x = str(pref_x)
-            file.crystal_y = '0.0'
-            file.crystal_z = '0.0'
-            crdstring = "Sphere with a radius of " + str(file.crystal_x)
-        elif solvation_structure == 'choose_for_me':
-            return HttpResponse("Sorry, the auto-chooser does not work with custom dimensions!")
-        elif solvation_structure == "hexa":
-            file.crystal_x = str(pref_x)
-            file.crystal_y = '0.0'
-            file.crystal_z = str(pref_z)
-            template_dict['tmgreaterval'] = max(file.crystal_x, file.crystal_z)
-            template_dict['tmsecondval'] = min(file.crystal_x, file.crystal_z)
-            crdstring = "Hexagonal crystal structure with x, z dimensions of " + str(file.crystal_x) + " and " + str(file.crystal_z)
-        else:
-            # else clause handles cubic and rhdo
-            file.crystal_x = str(pref_x)
-            file.crystal_y = '0.0'
-            file.crystal_z = '0.0'
-            crdstring = solvation_structure + " crystal structure with a dimension of " + str(file.crystal_x)
-    
-    #set angles for run
-    template_dict['angles'] = angles   
+        template_dict['xtl_x'] = float(sp.xtl_x)
+        template_dict['xtl_y'] = float(sp.xtl_y)
+        template_dict['xtl_z'] = float(sp.xtl_z)
 
-
-    # now we write out the newly solvated structure and we are done...
-    #Check and see if user supplies their own topology/paramter file
-    template_dict['file_location'] = file.location
-    template_dict['RtfPrm'] = ''
-    if file.ifExistsRtfPrm() < 0:
-        template_dict['RtfPrm'] = 'y'
-    template_dict['shake'] = request.POST.has_key('apply_shake')
-    if request.POST.has_key('apply_shake'):
-        template_dict['which_shake'] = postdata['which_shake']
-        template_dict['qmmmsel'] = ''
-        if postdata['which_shake'] == 'define_shake':
-            template_dict['shake_line'] = postdata['shake_line']
-            if postdata['shake_line'] != '':
-                file.checkForMaliciousCode(postdata['shake_line'],postdata)
-     
-    template_dict['output_name'] = "new_" + file.stripDotPDB(file.filename) + "-solv" 						
-    template_dict['headqmatom'] = "* solvation: @headstr"
+        # use spradius as the minimum safe sphere to cut around (replaces the old
+        # stuff in calc_delete.inp.
+        maxl = max(template_dict['xtl_x'], template_dict['xtl_y'], template_dict['xtl_z'])
+        template_dict['spradius'] = math.sqrt(3*maxl)/2.0
 
     t = get_template('%s/mytemplates/input_scripts/solvation_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     
     user_id = file.owner.id
-    solvate_input_filename = file.location + "charmm-" + file.stripDotPDB(file.filename) + "-solv.inp"
+    solvate_input_filename = workingstruct.structure.location + "/solv-" + workingstruct.identifier + ".inp"
     inp_out = open(solvate_input_filename,'w')
     inp_out.write(charmm_inp)
-    inp_out.close()  
+    inp_out.close()
+
     #change the status of the file regarding solvation
     scriptlist.append(solvate_input_filename)
-    file.save()
+    workingstruct.save()
     if doneut:
-#        neutralize(file,postdata,scriptlist)
         neutralize_tpl(file,postdata,scriptlist)
-    elif postdata.has_key('edit_script') and isUserTrustworthy(request.user):
-        return generateHTMLScriptEdit(charmm_inp,scriptlist,'solvation')
     else:
         file.save() 
         si = schedInterface()
@@ -214,6 +148,7 @@ def solvate_tpl(request,workingstruct,isBuilt,pstructID,scriptlist):
         file.solvation_params.statusHTML = statsDisplay(sstring,newJobID)
 	file.solvation_params.save()
         file.save() 
+
     return "Done"
 
 
