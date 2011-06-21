@@ -110,6 +110,8 @@ def solvate_tpl(request,workingstruct,isBuilt,pstructID,scriptlist):
     pstruct = WorkingFile.objects.filter(id=pstructID)[0]
     template_dict['input_file'] = pstruct.basename
     template_dict['output_name'] = 'solv-' + workingstruct.identifier
+    sp.inpStruct = pstruct
+    sp.save()
 
     if sp.solvation_structure == 'sphere':
         template_dict['spradius'] = postdata['spradius']
@@ -126,8 +128,8 @@ def solvate_tpl(request,workingstruct,isBuilt,pstructID,scriptlist):
     t = get_template('%s/mytemplates/input_scripts/solvation_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     
-    user_id = file.owner.id
-    solvate_input_filename = workingstruct.structure.location + "/solv-" + workingstruct.identifier + ".inp"
+    user_id = workingstruct.structure.owner.id
+    solvate_input_filename = workingstruct.structure.location + "/solvate-" + workingstruct.identifier + ".inp"
     inp_out = open(solvate_input_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
@@ -135,20 +137,25 @@ def solvate_tpl(request,workingstruct,isBuilt,pstructID,scriptlist):
     #change the status of the file regarding solvation
     scriptlist.append(solvate_input_filename)
     workingstruct.save()
+
+    doneut = postdata.has_key('salt') and postdata['salt'] != 'none'
     if doneut:
+        sp.salt = postdata['salt']
+        sp.concentration = float(postdata['concentration'])
+        sp.ntrials = int(postdata['ntrials'])
         neutralize_tpl(file,postdata,scriptlist)
     else:
-        file.save() 
         si = schedInterface()
-        newJobID = si.submitJob(user_id,file.location,scriptlist)
-        if file.lesson_type:
-            lessonaux.doLessonAct(file,"onSolvationSubmit",postdata)
-        file.solvation_jobID = newJobID
+        newJobID = si.submitJob(user_id,workingstruct.structure.location,scriptlist)
+        # Lessons are borked at the moment...
+        #if file.lesson_type:
+        #    lessonaux.doLessonAct(file,"onSolvationSubmit",postdata)
+        workingstruct.solvation_jobID = newJobID
         sstring = si.checkStatus(newJobID)
-        file.solvation_params.statusHTML = statsDisplay(sstring,newJobID)
-	file.solvation_params.save()
-        file.save() 
+        sp.statusHTML = statsDisplay(sstring,newJobID)
+        sp.save()
+        workingstruct.save() 
 
-    return "Done"
+    return HttpResponse("Done")
 
 

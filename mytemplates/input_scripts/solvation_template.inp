@@ -3,18 +3,11 @@
 {% block title %}Solvate Protein {% endblock %}
    ! solvation structure is {{solvation_structure}}
 
-   ! Read protein structure from PSF file
-
 {% block body %} blankme
 
-   ! TIM: orient about origin so the alignment is correct with the
+   ! orient about origin so the alignment is correct with the
    ! water crystal.
    coordinate orient
-
-   ! Takes statistics on coordinates to figure out the minimum, maximum, and
-   ! average values of the X, Y, and Z coordinates. These are stored in 
-   ! XMIN,XMAX,XAVE,YMIN,YMAX,YAVE,ZMIN,ZMAX,ZAVE.
-   coordinate statistics select all end
 
    ! Read in water sequence
    read sequ tip3 46656
@@ -31,15 +24,32 @@
    select .byres. (segid bwat .AND. type oh2 .and. -
    ((.not. (segid bwat .OR. hydrogen)) .around. 2.5)) end
 
-   {% ifequal solvation_structure "sphere" %}
-      ! handle sphere
-   {% else %}
-      ! handle periodic unit cell
-   {% endifequal %}
+   ! cut the water box down to a sphere
+   delete atom sort select .byres. ( .not. ( point 0. 0. 0. cut {{ spradius }} ) .and. ( segid bwat ) ) end
+   {% ifnotequal solvation_structure "sphere" %}
+      ! handle periodic unit cell, as follows: define the crystallographic
+      ! unit cell and set up images. Then force an image update. Any atoms
+      ! that have moved were originally outside of the unit cell and may
+      ! be deleted.
+      crystal define {{ solvation_structure }} {{ xtl_x }} {{ xtl_y }} {{ xtl_z }} {{ angles }}
+      crystal build noper 0
+      image byres sele segid bwat end
+
+      wrnlev 1 ! temporarily reduce number of warnings
+      coor copy comp ! back-up current coordinates to the comp set
+      update inbfrq 0 ! force image update
+
+      coor diff ! find differences between main and comp set
+      define sel1 select .byres. (property x .ne. 0.0 .or. property y .ne. 0.0 .or. property z .ne. 0.0) end
+      delete atom select sel1 end
+
+      wrnlev 5 ! restore old warning level
+   {% endifnotequal %}
 
    {% include 'input_scripts/use_shake.inp' %}
    ! Do a quick and dirty minimization to reduce bad image contacts...
-   mini sd nstep 100 nprint 1 tolgrd 100.0
+   update inbfrq -1 ! heuristic updates
+   mini sd nstep 50 nprint 1 tolgrd 100.0
    {% include 'input_scripts/write_out_struct.inp' %}
 {% endblock %}
 

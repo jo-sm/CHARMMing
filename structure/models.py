@@ -791,10 +791,7 @@ class WorkingStructure(models.Model):
             miniparam_obj.statusHTML = statsDisplay(sstring,self.minimization_jobID)
 	    miniparam_obj.save()
 
-            if 'Fail' in miniparam_obj.statusHTML:
-                # Create a new WorkingFile reference for this
-                pass
-            elif 'Done' in miniparam_obj.statusHTML:
+            if 'Done' in miniparam_obj.statusHTML:
                 # Create a new Mol object for this
                 fname = self.structure.location + '/mini-' + self.identifier + '.crd'
                 mod = True
@@ -823,7 +820,42 @@ class WorkingStructure(models.Model):
 	    solvparam_obj = solvation.models.solvationParams.objects.filter(struct=self,selected='y')[0]
             solvparam_obj.statusHTML = statsDisplay(sstring,self.solvation_jobID)
 	    solvparam_obj.save()
-            if 'Done' in solvparam_obj.statusHTML:
+
+            if 'Done' in miniparam_obj.statusHTML:
+                # Create a new Mol object for this
+                fname = self.structure.location + '/solv-' + self.identifier + '.crd'
+                mod = True
+
+                molobj = pychm.io.pdb.get_molFromCRD(fname)
+                pdb['solv_' + self.identifier] = molobj
+
+                wf = WorkingFile()
+                wf.structure = self
+                wf.path = fname
+                wf.canonPath = wf.path
+                wf.type = 'crd'
+                wf.description = 'solvated structure'
+                wf.parent = solvparam_obj.inpStruct
+                wf.parentAction = 'solv'
+                wf.pdbkey = 'solv_' + self.identifier
+                wf.save()
+
+                if solvparam_obj.salt:
+                    # create working file for neutralized struct
+                    wfn = WorkingFile()
+                    wfn.structure = self
+                    wfn.path = fname.replace('/solv-','/neut-')
+                    wfn.canonPath = wfn.path
+                    wfn.description = 'solvated and neutralized structure'
+                    wfn.parent = wf
+                    wfn.parentAction = 'neut'
+                    wfn.pdbkey = 'neut_' + self.identifier
+                    wfn.save()
+
+                    molobj = pychm.io.pdb.get_molFromCRD(wfn.path)
+                    pdb[wfn.pdbkey] = molobj
+
+            if 'Done' in solvparam_obj.statusHTML or 'Fail' in solvparam_obj.statusHTML:
                self.solvation_jobID = 0
                if self.lesson:
                    self.lesson.onSolvationDone(self)
@@ -890,6 +922,7 @@ class WorkingStructure(models.Model):
     
         if mod:
             cPickle.dump(pdb,pickleFile)
+
         pickleFile.close()
         self.save()
 

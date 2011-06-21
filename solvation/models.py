@@ -18,10 +18,12 @@
 from django.db import models
 from django.contrib.auth.models import User
 from scheduler.schedInterface import schedInterface
-import structure
+import structure.models
+from structure.models import WorkingFile
 
 class solvationParams(models.Model):
     structure = models.ForeignKey(structure.models.WorkingStructure)
+    inpStruct = models.ForeignKey(WorkingFile,null=True)
 
     # these contain the shape of the unit cell and its dimensions
     solvation_structure = models.CharField(max_length=50)
