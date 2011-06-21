@@ -123,7 +123,7 @@ def solvate_tpl(request,workingstruct,isBuilt,pstructID,scriptlist):
         # use spradius as the minimum safe sphere to cut around (replaces the old
         # stuff in calc_delete.inp.
         maxl = max(template_dict['xtl_x'], template_dict['xtl_y'], template_dict['xtl_z'])
-        template_dict['spradius'] = math.sqrt(3*maxl)/2.0
+        template_dict['spradius'] = math.sqrt(3*maxl**2)/2.0
 
     t = get_template('%s/mytemplates/input_scripts/solvation_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))

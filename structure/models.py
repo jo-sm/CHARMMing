@@ -817,11 +817,11 @@ class WorkingStructure(models.Model):
 
         if self.solvation_jobID != 0:
             sstring = si.checkStatus(self.solvation_jobID)
-	    solvparam_obj = solvation.models.solvationParams.objects.filter(struct=self,selected='y')[0]
+	    solvparam_obj = solvation.models.solvationParams.objects.filter(structure=self,selected='y')[0]
             solvparam_obj.statusHTML = statsDisplay(sstring,self.solvation_jobID)
 	    solvparam_obj.save()
 
-            if 'Done' in miniparam_obj.statusHTML:
+            if 'Done' in solvparam_obj.statusHTML:
                 # Create a new Mol object for this
                 fname = self.structure.location + '/solv-' + self.identifier + '.crd'
                 mod = True

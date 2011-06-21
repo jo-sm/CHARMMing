@@ -43,13 +43,17 @@
       define sel1 select .byres. (property x .ne. 0.0 .or. property y .ne. 0.0 .or. property z .ne. 0.0) end
       delete atom select sel1 end
 
-      wrnlev 5 ! restore old warning level
+      wrnlev 5  ! restore old warning level
+      coor copy ! restore original coordinates
    {% endifnotequal %}
 
    {% include 'input_scripts/use_shake.inp' %}
+   ! The TIP3 water model is only valid with SHAKE, so let's turn it on
+   shake bonh param
+
    ! Do a quick and dirty minimization to reduce bad image contacts...
    update inbfrq -1 ! heuristic updates
-   mini sd nstep 50 nprint 1 tolgrd 100.0
+   mini sd nstep 50 nprint 1 tolgrd 50.0
    {% include 'input_scripts/write_out_struct.inp' %}
 {% endblock %}
 

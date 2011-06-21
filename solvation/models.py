@@ -31,6 +31,8 @@ class solvationParams(models.Model):
     xtl_y = models.DecimalField(max_digits=8,decimal_places=4,default=0)
     xtl_z = models.DecimalField(max_digits=8,decimal_places=4,default=0)
     spradius = models.DecimalField(max_digits=8,decimal_places=4,default=0)
+    selected = models.CharField(max_length=1)
+    statusHTML = models.CharField(max_length=250)
 
     #The below are used for neutralization
     salt = models.CharField(max_length=5,null=True)
