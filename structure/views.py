@@ -802,7 +802,7 @@ def viewstatus(request):
         except:
             mini_param = None
         try:
-            solv_param = solvationParams.objects.filter(struct=workingStruct,selected='y')[0]
+            solv_param = solvationParams.objects.filter(structure=workingStruct,selected='y')[0]
         except:
             solv_param = None
         try:
