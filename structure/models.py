@@ -846,6 +846,7 @@ class WorkingStructure(models.Model):
                     wfn.structure = self
                     wfn.path = fname.replace('/solv-','/neut-')
                     wfn.canonPath = wfn.path
+                    wfn.type = 'crd'
                     wfn.description = 'solvated and neutralized structure'
                     wfn.parent = wf
                     wfn.parentAction = 'neut'
