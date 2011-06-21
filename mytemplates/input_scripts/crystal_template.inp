@@ -1,3 +1,0 @@
-! set up crystal
-crystal define {{ shape }} {{  dim_x }} {{ dim_y }} {{ dim_z }} {{ angles }}
-crystal build noper 0

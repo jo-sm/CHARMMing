@@ -60,7 +60,7 @@ def neutralize_tpl(workingstruct,sp,postdata,scriptlist):
     template_dict['concentration'] = concentration
     template_dict['ntrials'] = ntrials
     template_dict['solvation_structure'] = sp.solvation_structure
-    template_dict['fbame'] = workingstruct.identifier
+    template_dict['fname'] = workingstruct.identifier
 	
     t = get_template('%s/mytemplates/input_scripts/neutralize_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
@@ -83,8 +83,8 @@ def neutralize_tpl(workingstruct,sp,postdata,scriptlist):
         t = get_template('%s/mytemplates/input_scripts/cryst_template.inp' % charmming_config.charmming_root)
         cryst_inp = output.tidyInp(t.render(Context(t2_dict)))
 
-        cry_filename = workingstruct.identifier + "-crystl.str"
-        str_out = open(workingstruct.structure.location + cry_filename,'w+')
+        cry_filename = workingstruct.structure.location + '/' + workingstruct.identifier + "-crystl.str"
+        str_out = open(cry_filename,'w+')
         str_out.write(cryst_inp)
         str_out.close()
 

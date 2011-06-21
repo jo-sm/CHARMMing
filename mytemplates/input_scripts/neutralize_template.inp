@@ -131,7 +131,7 @@ random uniform iseed 314159               ! change iseed to sample diff states
 label placion
 time now
 
-open unit 10 write card name loop-neutralization-@ncfg.log
+open unit 10 write card name loop-neutralization-{{ fname }}-@ncfg.log
 outu 10
 
 ! read psf and coordinates of solvated protein
@@ -140,7 +140,7 @@ read coor card name {{ infile }}.crd
 
 ! RANDOM WATER REPLACEMENT
 set IONTYP = {{ cation }}
-stream {{ infile }}-addions.str
+stream {{ fname }}-addions.str
 
 ! ASSUMES WATER IS SEGID BWAT; RENUMBER THE WATER MOLECULES
 join bwat renum
@@ -156,11 +156,8 @@ CHARMM-scripts    ctonnb 8. vswitch imgfrq 5 wmin 1.0 -
 CHARMM-scripts    ewald pmew fftx 48 ffty 48  fftz 48  kappa .34 spline order 6
 
 ! BRIEF MIN OF IONS INSERTED INTO SOLVATED MODEL
+shake bonh param
 mini sd nstep 10 nprint 1
-
-! add shake for ABNR step
-shake bonh param sele notfix end
-
 mini abnr nstep 25 nprint 5
 
 ! KEY LOGICAL TEST; CONFIGS WITH HIGHER ENERGY REJECTED
