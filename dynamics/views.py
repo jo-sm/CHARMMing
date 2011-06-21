@@ -18,7 +18,7 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template.loader import get_template
-from structure.models import Structure 
+from structure.models import Structure, WorkingStructure, WorkingFile
 from account.views import isUserTrustworthy
 from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch
@@ -29,10 +29,8 @@ from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 import django.forms
-import re
-import copy, shutil
-import os
-import lessonaux, output, charmming_config
+import copy, shutil, os, re
+import lessonaux, input, output, charmming_config
 
 #processes form data for ld simulations
 def lddisplay(request):
@@ -143,126 +141,42 @@ def lddisplay(request):
 def mddisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    Structure.checkRequestData(request)
+    input.checkRequestData(request)
+
     #chooses the file based on if it is selected or not
     try:
-        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
+        struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
-    os.chdir(file.location)
-    temp = file.stripDotPDB(file.filename)
-    #creates a list of filenames associated with the PDB
-    filename_list = file.getLimitedFileList("blank")
-    #filename_list = file.getFileList()
-    solv_pdb = "new_" + file.stripDotPDB(file.filename) + "-solv.pdb"
-    neu_pdb = "new_" + file.stripDotPDB(file.filename) + "-neutralized.pdb"
-    min_pdb = "new_" + file.stripDotPDB(file.filename) + "-min.pdb"
-    md_pdb = "new_" + file.stripDotPDB(file.filename) + "-md.pdb"
-    ld_pdb = "new_" + file.stripDotPDB(file.filename) + "-ld.pdb"
-    sgld_pdb = "new_" + file.stripDotPDB(file.filename) + "-sgld.pdb"
-    seg_list = file.segids.split(' ')
-    het_list = file.getNonGoodHetPDBList()
-    tip_list = file.getGoodHetPDBList()
-    disulfide_list = file.getPDBDisulfides()
-    seg2_list = file.getProteinSegPDBList()
-    protein_list = [x for x in seg2_list if x.endswith("-pro.pdb") or x.endswith("-pro-final.pdb")]
-    go_list = [x for x in seg2_list if x.endswith("-go.pdb") or x.endswith("-go-final.pdb")]
-    bln_list = [x for x in seg2_list if x.endswith("-bln.pdb") or x.endswith("-bln-final.pdb")]
-    nucleic_list = [x for x in seg2_list if x.endswith("-dna.pdb") or x.endswith("-dna-final.pdb") or x.endswith("-rna.pdb") or x.endswith("-rna-final.pdb")]
-    userup_list = [x for x in seg2_list if not ( x.endswith("-pro.pdb") or x.endswith("-pro-final.pdb") or x.endswith("-dna.pdb") or x.endswith("-dna-final.pdb") \
-                     or x.endswith("-rna.pdb") or x.endswith("-rna-final.pdb") or x.endswith("het.pdb") or x.endswith("het-final.pdb") or x.endswith("-go.pdb") \
-                     or x.endswith("-go-final.pdb") or x.endswith("-bln.pdb") or x.endswith("-bln-final.pdb") ) ]
-    #filename_list = protein_list + tip_list + het_list
-    done = re.compile('Done')
-    atom_counts = {}
-
-    # Tim Miller: 03-09-2009 we need to pass a segpatch_list (containing
-    # both the list of segments and their default NTER patches) to the
-    # template.
-    propatch_list = []
-    nucpatch_list = []
-    for seg in seg_list:
-        if seg.endswith("-pro"):
-            defpatch = checkNterPatch(file,seg)
-            propatch_list.append((seg,defpatch))
-        elif seg.endswith("-dna") or seg.endswith("-rna"):
-            nucpatch_list.append((seg,"5TER","3TER"))
-
-
-    for i in range(len(filename_list)):
-        #First check and see if the selected choices are segids
-	#Otherwise see if it is a solvated/minimized PDB
-        try:
-            tempid = request.POST[filename_list[i]]
-	    filename = filename_list[i]
-        except:
-            try:
-                tempid = request.POST['solv_or_min']
-		filename = request.POST['solv_or_min']
-            except:
-                tempid = "null"
-        if(tempid!="null"):
-            seg_list = file.segids.split(' ')
-            try:
-                if(request.POST['usepatch']):
-                    file.handlePatching(request.POST)
-            except:
-                #If there is no patch, make sure patch_name is zero
-                file.patch_name = ""
-                file.save()
-            scriptlist = []
-            exelist    = []
-            nproclist  = []
-	    if(filename != min_pdb and filename != solv_pdb and filename != md_pdb and filename != ld_pdb and filename != sgld_pdb and filename != neu_pdb):
-	        seg_list = append_tpl(request.POST,filename_list,file,scriptlist)
-		md_this_file = 'new_' + file.stripDotPDB(file.filename) + "-final.pdb"
-                html = applymd_tpl(request,file,seg_list,md_this_file,scriptlist)
-                return HttpResponse(html)
-	    else:
-                html = applymd_tpl(request,file,seg_list,filename,scriptlist)
-                return HttpResponse(html)
-
-    atomCounts = {}
-    for seg in seg_list:
-        atomCounts[seg] = file.countAtomsInSeg(seg)
-    atomCounts['solv'] = file.countSolvatedAtoms()
-
-    doCustomShake = 1
-    if file.ifExistsRtfPrm() < 0:
-        doCustomShake = 0
-
-    if file.natom > 30000:
-        solv_time_est = "at least 4 hours"
-        unsolv_time_est = "at least half an hour"
-    elif file.natom > 15000:
-        solv_time_est = "between 2 to 4 hours"
-        unsolv_time_est = "between 15 and 30 minutes"
-    elif file.natom > 10000:
-        solv_time_est = "from 1 to 2 hours"
-        unsolv_time_est = "between 5 and 15 minutes"
-    elif file.natom > 5000:
-        solv_time_est = "from 30 minutes to an hour"
-        unsolv_time_est = "from 1 to 5 minutes"    
-    elif file.natom > 1000:
-        solv_time_est = "from 15 to 30 minutes"
-        unsolv_time_est = "less than a minute" 
-    else:
-        solv_time_est = "less than 15 minutes"
-        unsolv_time_est = "less than a minute" 
-    trusted = isUserTrustworthy(request.user)
-
-    # decide whether or not this run is restartable (check for non-empty restart file)
     try:
-        os.stat(file.location + "new_" + file.stripDotPDB(file.filename) + "-md.res")
-        canrestart = True
+        ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        canrestart = False
+       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
-    return render_to_response('html/mdform.html', {'filename_list': filename_list,'seg_list':seg_list,'solv_pdb':solv_pdb,'neu_pdb':neu_pdb,'min_pdb':min_pdb,'md_pdb':md_pdb, \
-                                                   'ld_pdb':ld_pdb,'sgld_pdb':sgld_pdb,'het_list':het_list,'tip_list':tip_list,'protein_list':protein_list, 'file': file, \
-                                                   'docustshake': doCustomShake, 'solv_time_est': solv_time_est, 'unsolv_time_est': unsolv_time_est, 'atomCounts': atomCounts, \
-                                                   'trusted':trusted, 'disulfide_list': disulfide_list, 'propatch_list': propatch_list, 'nucpatch_list': nucpatch_list, \
-                                                   'nucleic_list': nucleic_list, 'userup_list': userup_list, 'go_list': go_list, 'bln_list': bln_list, 'canrestart': canrestart})
+
+    if request.POST.has_key('mdtype'):
+        scriptlist = []
+        if ws.isBuilt != 't':
+            isBuilt = False
+            pstruct = ws.build(scriptlist)
+            pstructID = pstruct.id
+        else:
+            isBuilt = True
+            pstructID = int(request.POST['pstruct'])
+
+        applymd_tpl(request,file,seg_list,filename,scriptlist)
+
+    else:
+        # decide whether or not this run is restartable (check for non-empty restart file)
+        try:
+            os.stat(ws.structure.location + "/md-" + ws.identifier + ".res")
+            canrestart = True
+        except:
+            canrestart = False
+
+        # get all workingFiles associated with this struct
+        wfs = WorkingFile.objects.filter(structure=ws,type='crd')
+        return render_to_response('html/mdform.html', {'ws_identifier': ws.identifier,'workfiles': wfs,'canrestart': canrestart})
 
 def applyld_tpl(request,file,seg_list,min_pdb,scriptlist):
     postdata = request.POST
