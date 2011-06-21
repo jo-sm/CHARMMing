@@ -21,96 +21,90 @@ from scheduler.statsDisplay import statsDisplay
 from solvation.models import solvationParams
 from django.template.loader import get_template
 from django.template import *
+from shutil import copy
 import output, lessonaux, charmming_config
 
 # This function constructs an input script with template
-def neutralize_tpl(file,postdata,scriptlist):
-    sp = solvationParams.objects.filter(pdb=file,selected='y')[0]
+def neutralize_tpl(workingstruct,sp,postdata,scriptlist):
     cation = "POT"
-    try:
-        if postdata['salt'] == "nacl":
-            cation = "SOD"
-        elif postdata['salt'] == "cacl2":
-            cation = "CAL"
-        elif postdata['salt'] == "mgcl2":
-            cation = "MG"
-        elif postdata['salt'] == "cscl":
-            cation = "CES" 
-    except:
-        pass
+    if postdata['salt'] == "nacl":
+        cation = "SOD"
+    elif postdata['salt'] == "cacl2":
+        cation = "CAL"
+    elif postdata['salt'] == "mgcl2":
+        cation = "MG"
+    elif postdata['salt'] == "cscl":
+        cation = "CES" 
     sp.salt = cation
-    sp.save()
+
     try:
-        concentration = postdata['concentration']
+        concentration = float(postdata['concentration'])
     except:
-        concentration = "0.15"
+        concentration = 0.15
     sp.concentration = str(concentration)
     try:
-        ntrials = postdata['ntrials']
+        ntrials = int(postdata['ntrials'])
     except:
-        ntrials = 10
+        ntrials = 3
     sp.ntrials = ntrials
     sp.save()
-    os.chdir(file.location)
-    n_filename = "new_" + file.stripDotPDB(file.filename) + "-solv" 
+
+    os.chdir(workingstruct.structure.location)
 
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'] = file.getTopologyList()
-    template_dict['parameter_list'] = file.getParameterList()
-    template_dict['filebase'] = file.stripDotPDB(file.filename)
-    template_dict['n_filename'] = n_filename
-    template_dict['file_location'] = file.location
+    template_dict['topology_list'] = workingstruct.getTopologyList()
+    template_dict['parameter_list'] = workingstruct.getParameterList()
+    template_dict['infile'] = 'solv-' + workingstruct.identifier
     template_dict['cation'] = cation
     template_dict['concentration'] = concentration
     template_dict['ntrials'] = ntrials
-    template_dict['solvation_structure'] = file.solvation_structure
+    template_dict['solvation_structure'] = sp.solvation_structure
+    template_dict['fbame'] = workingstruct.identifier
 	
-    charmm_inp = file.makeCHARMMInputHeader('Neutralize system',postdata)
     t = get_template('%s/mytemplates/input_scripts/neutralize_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
-    neut_filename = file.location + "charmm-" + file.stripDotPDB(file.filename) + "-neutralize.inp"
+    neut_filename = workingstruct.structure.location + "/neutralize-" + workingstruct.identifier + ".inp"
     inp_out = open(neut_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
  
-    if file.solvation_structure != 'sphere':
+    if sp.solvation_structure != 'sphere':
         # set up the crystal file
         #cryst_inp = "* Crystal stream file\n*\n\n"
-        relative_boundary = 0
-        if float(file.crystal_x) < 0:
-            relative_boundary = 1
-        template_dict['relative_boundary'] = relative_boundary
-        dim_x = file.crystal_x
-        template_dict['dim_x'] = float(file.crystal_x)
-        dim_z = file.crystal_z
-        template_dict['dim_z'] = float(file.crystal_z)
-        greaterval = max(dim_x,dim_z)
-        template_dict['greaterval'] = str(greaterval)
+        t2_dict = {}
+        t2_dict['shape'] = sp.solvation_structure
+        t2_dict['dim_x'] = sp.xtl_x
+        t2_dict['dim_y'] = sp.xtl_y
+        t2_dict['dim_z'] = sp.xtl_z
+        t2_dict['angles'] = "%10.6f %10.6f %10.6f" % (sp.angles[0],sp.angles[1],sp.angles[2])
 
         t = get_template('%s/mytemplates/input_scripts/cryst_template.inp' % charmming_config.charmming_root)
-        cryst_inp = output.tidyInp(t.render(Context(template_dict)))
+        cryst_inp = output.tidyInp(t.render(Context(t2_dict)))
 
-        cry_filename = "charmm-" + file.stripDotPDB(file.filename) + "-crystl.str"
-        str_out = open(file.location + cry_filename,'w+')
+        cry_filename = workingstruct.identifier + "-crystl.str"
+        str_out = open(workingstruct.structure.location + cry_filename,'w+')
         str_out.write(cryst_inp)
         str_out.close()
 
 
     # copy the addions stream file
-    os.system("cp /usr/local/charmming/addions.str %s/new_%s-addions.str" % (file.location,file.stripDotPDB(file.filename)))
+    copy("%s/addions.str" % charmming_config.data_home, "%s/%s-addions.str" % (workingstruct.structure.location,workingstruct.identifier))
 
     # OK, let's let 'er rip...
-    user_id = file.owner.id
-    file.solvation_status = "<font color=yellow>Processing</font>"
-    file.save()
-    si = schedInterface()
+    user_id = workingstruct.structure.owner.id
+
     scriptlist.append(neut_filename)
-    newJobID = si.submitJob(user_id,file.location,scriptlist)    
-    if file.lesson_type:
-        lessonaux.doLessonAct(file,"onSolvationSubmit",postdata,None)
-    file.solvation_jobID = newJobID
+    si = schedInterface()
+    newJobID = si.submitJob(user_id,workingstruct.structure.location,scriptlist)    
+
+    # lessons are still borked
+    #if file.lesson_type:
+    #    lessonaux.doLessonAct(file,"onSolvationSubmit",postdata,None)
+
+    workingstruct.solvation_jobID = newJobID
     sstring = si.checkStatus(newJobID)
-    file.solvation_status = statsDisplay(sstring,newJobID)
-    file.save()
+    sp.statusHTML = statsDisplay(sstring,newJobID)
+    sp.save()
+    workingstruct.save()

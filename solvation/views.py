@@ -60,9 +60,6 @@ def solvationformdisplay(request):
     else:
         # get all workingFiles associated with this struct
         wfs = WorkingFile.objects.filter(structure=ws,type='crd')
-        logfp = open('/tmp/workfile.txt', 'w')
-        logfp.write('Number of workfiles = %d\n' % len(wfs))
-        logfp.close()
         return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
 
 
@@ -140,10 +137,7 @@ def solvate_tpl(request,workingstruct,isBuilt,pstructID,scriptlist):
 
     doneut = postdata.has_key('salt') and postdata['salt'] != 'none'
     if doneut:
-        sp.salt = postdata['salt']
-        sp.concentration = float(postdata['concentration'])
-        sp.ntrials = int(postdata['ntrials'])
-        neutralize_tpl(file,postdata,scriptlist)
+        neutralize_tpl(workingstruct,sp,postdata,scriptlist)
     else:
         si = schedInterface()
         newJobID = si.submitJob(user_id,workingstruct.structure.location,scriptlist)

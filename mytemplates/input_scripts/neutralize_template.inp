@@ -5,13 +5,8 @@
 {% block body %} blankme
 ! Read protein structure from PSF file
 
-open read formatted unit 27 name {{ n_filename }}.psf
-read psf card unit 27
-close unit 27
-
-open read unit 10 card name {{ file_location }}{{ n_filename }}.crd
-read coor card unit 10
-close unit 10
+read psf card name {{ infile }}.psf
+read coor card name {{ infile }}.crd
 
 ! Determine what type of ions being used
 set nneg CLA                              ! set segid of neg. ion
@@ -136,44 +131,27 @@ random uniform iseed 314159               ! change iseed to sample diff states
 label placion
 time now
 
-open unit 10 write card name loop-{{ filebase }}.log
+open unit 10 write card name loop-neutralization-@ncfg.log
 outu 10
-! LOOP LOG FILE OVERWRITTEN ON EACH PASS; GREATLY REDUCES OUTPUT
-! LAST PASS ALWAYS SAVED (IN EVENT OF FAILURE)
 
 ! read psf and coordinates of solvated protein
-open read formatted unit 27 name new_{{ filebase }}-solv.psf
-read psf card unit 27
-close unit 27
-
-open read unit 11 card name new_{{ filebase }}-solv.crd
-read coor card unit 11
-close unit 11
+read psf card name {{ infile }}.psf
+read coor card name {{ infile }}.crd
 
 ! RANDOM WATER REPLACEMENT
 set IONTYP = {{ cation }}
-stream {{ file_location }}new_{{ filebase }}-addions.str
+stream {{ infile }}-addions.str
 
 ! ASSUMES WATER IS SEGID BWAT; RENUMBER THE WATER MOLECULES
 join bwat renum
 
-{% ifequal solvation_structure 'sphere' %} blankme
-{% else %}
-! SETUP CRYSTAL (DEFINE, BUILD), IMAGE CENTERING W. MODIFIED PSF
-stream {{ file_location }}charmm-{{ filebase }}-crystl.str
-{% endifequal %} blankme
-
-DEFI notfix select RESN ALA .or. resn GLU .or. resn GLN .or. resn ASP .or. resn ASN .or. resn LEU -
- .or. resn GLY .or. resn LYS .or. resn SER .or. resn VAL .or. resn ARG .or. resn THR .or. resn PRO -
- .or. resn ILE .or. resn MET .or. resn PHE .or. resn TYR .or. resn CYS .or. resn TRP .or. resn HSD -
- .or. resn HSE .or. resn HSP .or. resn TIP3 .or. resn ZN2 .or. resn SOD .or. resn MG .or. resn FE -
- .or. resn CAL .or. resn CLA .or. resn POT .or. resn CES .or. resn GUA .or. resn ADE .or. resn CYT -
- .or. resn THY .or. resn URA .or. resn LSN .or. resn ASPP .or. resn GLUP end
-
-cons fix sele .not. notfix end
+{% ifnotequal solvation_structure 'sphere' %} blankme
+  ! SETUP CRYSTAL (DEFINE, BUILD), IMAGE CENTERING W. MODIFIED PSF
+  stream {{ fname }}-crystl.str
+{% endifnotequal %} blankme
 
 ! SETUP NONBOND
-update inbfrq 5 atom vatom cutnb 16.0 cutim 16.0 ctofnb 12. cdie eps 1. -
+update inbfrq -1 atom vatom cutnb 16.0 cutim 16.0 ctofnb 12. cdie eps 1. -
 CHARMM-scripts    ctonnb 8. vswitch imgfrq 5 wmin 1.0 -
 CHARMM-scripts    ewald pmew fftx 48 ffty 48  fftz 48  kappa .34 spline order 6
 
@@ -189,9 +167,8 @@ mini abnr nstep 25 nprint 5
 if @emin .lt. ?ENER goto test
 
 ! WRITE THE LATEST MINIMUM ENERGY RESULT; CONFIG ACCEPTED
-open unit 11 write card name {{ file_location }}new_{{ filebase }}-neutralized.psf
-write psf card unit 11
-* 1YJP in RHDO with @ICL CL- and @IPO NA+
+write psf card name neut-{{ fname }}.psf
+* Neutralized structure
 *
 
 ! DO AN UPDATE AND WRITE THE COOR FILE
@@ -199,16 +176,9 @@ update
 
 ioformat extended
 
-open unit 11 write card name {{ file_location }}new_{{ filebase }}-neutralized.crd
-write coor card unit 11
+write coor card name neut-{{ fname }}.crd
 * Neutralized structure.
 * SEED 314159 MC @NCFG edge ?XTLA E ?ENER PREV @EMIN
-*
-
-open unit 11 write card name {{ file_location }}new_{{ filebase }}-neutralized.pdb
-write coor pdb unit 11
-* Neutralized structure.
-* seed 314159 MC @NCFG edge ?XTLA E ?ENER PREV @EMIN
 *
 
 ! UPDATE MINIMUM ENERGY
@@ -217,10 +187,15 @@ set emin ?ENER
 ! TEST FOR EXIT, AND SETUP FOR NEXT PASS; REVERT TO STDOUT, CLOSE LOG
 label test
 crystal free
+
 shake off
+
 incr ncfg by 1
+
 time diff
+
 outu 6
 close unit 10
 if ncfg le @LAST goto placion
+
 {% endblock %} blankme
