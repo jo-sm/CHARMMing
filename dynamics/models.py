@@ -19,7 +19,7 @@ from django.db import models
 from django.contrib.auth.models import User
 import django.forms
 import structure
-
+from structure.models import WorkingStructure, WorkingFile
 
 #Replica exchange parameters
 class rexParams(models.Model):
@@ -33,58 +33,55 @@ class rexParams(models.Model):
 
 class mdParams(models.Model):
 
-    structure = models.ForeignKey(structure.models.Structure,null=True)
+    structure = models.ForeignKey(WorkingStructure,null=True)
+    inpStruct = models.ForeignKey(WorkingFile,null=True)
+
     statusHTML = models.CharField(max_length=250)
     selected = models.CharField(max_length=1)
     sequence = models.PositiveIntegerField(default=1)
     type = models.CharField(max_length=50)
     nstep = models.PositiveIntegerField(default=1000)
-    firstt = models.DecimalField(default=310.15,max_digits=8,decimal_places=3,null=True)
 
     #temp will represent the temperature Kelvin if "type" is heat
     temp = models.DecimalField(default=410.15,null=True,max_digits=8,decimal_places=3)
+    firstt = models.DecimalField(default=310.15,max_digits=8,decimal_places=3,null=True)
     finalt = models.DecimalField(default=410.15,null=True,max_digits=8,decimal_places=3)
     teminc = models.DecimalField(default=10.0,null=True,max_digits=8,decimal_places=3)
     ihtfrq = models.DecimalField(default=100.0,null=True,max_digits=8,decimal_places=3)
     tbath = models.DecimalField(default=410.15,null=True,max_digits=8,decimal_places=3)
-    scipism = models.BooleanField(default=False)
+    scpism = models.BooleanField(default=False)
     make_md_movie = models.BooleanField(default=False)
     md_movie_status = models.CharField(max_length=250,null=True)
     md_movie_req = models.BooleanField(default=False)
 
     replica_exchange = models.ForeignKey(rexParams,null=True)
-# Create your models here.
+
 
 class ldParams(models.Model):
 
-    pdb = models.ForeignKey(structure.models.Structure,null=True)
+    structure = models.ForeignKey(WorkingStructure,null=True)
+    inpStruct = models.ForeignKey(WorkingFile,null=True)    
+
     statusHTML = models.CharField(max_length=250)
     selected = models.CharField(max_length=1)
+
     nstep = models.PositiveIntegerField(default=1000)
     fbeta = models.DecimalField(default=60.0,null=True,max_digits=8,decimal_places=3)
-    scipism = models.BooleanField(default=False)
+    scpism = models.BooleanField(default=False)
     sgld = models.BooleanField(default=False)
     make_ld_movie = models.BooleanField(default=False)
     ld_movie_status = models.CharField(max_length=250,null=True)
     ld_movie_req = models.BooleanField(default=False)
     replica_exchange = models.ForeignKey(rexParams,null=True)
-# Create your models here.
 
-class sgldParams(models.Model):
 
-    pdb = models.ForeignKey(structure.models.Structure,null=True)
-    statusHTML = models.CharField(max_length=250)
-    selected = models.CharField(max_length=1)
-    nstep = models.PositiveIntegerField(default=1000)
-    fbeta = models.DecimalField(default=60.0,null=True,max_digits=8,decimal_places=3)
+class sgldParams(ldParams):
+
     tsgavg = models.DecimalField(default=0.5,null=True,max_digits=8,decimal_places=6)
     tempsg = models.DecimalField(default=1.0,null=True,max_digits=8,decimal_places=6)
-    scipism = models.BooleanField(default=False)
-    sgld = models.BooleanField(default=False)
     make_sgld_movie = models.BooleanField(default=False)
     sgld_movie_status = models.CharField(max_length=250,null=True)
     sgld_movie_req = models.CharField(max_length=250,null=True)
     sgld_movie_req = models.BooleanField(default=False)
-    replica_exchange = models.ForeignKey(rexParams,null=True)
 
 # Create your models here.
