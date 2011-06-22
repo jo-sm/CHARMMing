@@ -539,21 +539,19 @@ function checkUncheckNMA(div_id,other_div,change)
 }
 
 //for use with md
-function checkUncheck(div_id,other_div,change)
-   {
-    if(document.getElementById('useheat').checked)
-    {
+function checkUncheck(div_id,other1_div,other2_div,change)
+{
+  if(document.getElementById('useheat').checked) {
      changeTabLabel(AjaxTabs.GetFocusedTabId(),'Molecular Dynamics: Heating');
-     setVisible(div_id,change);
-     setVisible(other_div,"none");
-    }
-    else if(document.getElementById('useequi').checked)
-    {
-     changeTabLabel(AjaxTabs.GetFocusedTabId(),'Molecular Dynamics: Equilibrium');
-     setVisible(div_id,change);
-     setVisible(other_div,"none");
-    }
-   }
+  } else if(document.getElementById('usenve').checked) {
+     changeTabLabel(AjaxTabs.GetFocusedTabId(),'Molecular Dynamics: NVE');
+  } else if(document.getElementById('usenvt').checked) {
+     changeTabLabel(AjaxTabs.GetFocusedTabId(),'Molecular Dynamics: NVT');
+  }
+  setVisible(div_id,change);
+  setVisible(other1_div,"none");
+  setVisible(other2_div,"none");
+}
 
 
 

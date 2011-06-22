@@ -422,66 +422,21 @@ def applymd_tpl(request,workstruct,pstructID,,scriptlist):
     template_dict['mdtype'] = postdata['mdtype']
     template_dict['genavg_structure'] = request.POST.has_key('gen_avgstruct'):
 
-    if md == 'useheat':
+    if template_dict['mdtype'] == 'useheat':
         mdp.type = 'heat'
-        nstep = postdata['nstepht']
-        
-        template_dict['nstep'] = nstep
-        #If the user does replica exchange, the steps should be divided by 100 to work with the rex scripts
-        if(useReplicaExchange):
-            nstep = float(nstep)/100
-        
-        mdp.nstep = str(nstep)
-        ndcd = int(int(nstep)/10) # the dynamics trajectories we make have 10 frames
-        template_dict['ndcd'] = str(ndcd)
-        firstt = postdata['firstt']
-        mdp.firstt = str(firstt)
-        finalt = postdata['finalt']
-        mdp.finalt = str(finalt)
-        template_dict['firstt'] = firstt
-        template_dict['finalt'] = finalt
-        teminc = postdata['teminc']
-        mdp.teminc = str(teminc)
-        tbath = postdata['tbath']
-        mdp.tbath = str(tbath)
-        ihtfrq = postdata['ihtfrq']
-        mdp.ihtfrq = str(ihtfrq)
-        template_dict['ihtfrq'] = ihtfrq
-        template_dict['teminc'] = teminc
-        template_dict['tbath'] = tbath
+    elif template_dict['mdtype'] == 'usenve':
+        mdp.type = 'nve'
+    elif template_dict['mdtype'] == 'usenvt':
+        mdp.type = 'nvt'
 
-        mdp.temp = str(tbath)
-        mdp.save()
-
-    else:
-        # I hate Django...
-        mdp.firstt = '0.0'
-        mdp.finalt = '0.0'
-        mdp.teminc = '0.0'
-        mdp.ihtfrq = '0.0'
-        # Done hating Django...
-        mdp.type = 'equi'
-        nstep = postdata['nstepeq']
-       
-        mdp.nstep = str(nstep)
-        template_dict['nstep'] = nstep
-        ndcd = int(int(nstep)/10) # the dynamics trajectories we make have 10 frames
-        template_dict['ndcd'] = str(ndcd)
-        temp = postdata['temp']
-        mdp.temp = str(temp)
-        mdp.tbath = mdp.temp
-        template_dict['temp'] = temp
-        mdp.save()
-
-    template_dict['output_name'] = "new_"  + file.stripDotPDB(file.filename) + "-md"
     mdp.save()
-    user_id = file.owner.id
-    os.chdir(file.location)
+
+    user_id = workstruct.structure.owner.id
+    os.chdir(workstruct.structure.location)
     t = get_template('%s/mytemplates/input_scripts/applymd_template.inp' % charmming_config.charmming_root)
 
-    #else, write the normal start file and continue on
-    template_dict['restart'] = 0
-    md_filename = "charmm-" + file.stripDotPDB(file.filename) + "-md.inp"
+    # write out the file and let it go...
+    md_filename = "moldyn-" + workstruct.identifier + ".inp"
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     inp_out = open(file.location + md_filename,'w')
     inp_out.write(charmm_inp)
@@ -493,7 +448,7 @@ def applymd_tpl(request,workstruct,pstructID,,scriptlist):
 
     scriptlist.append(md_filename)
     if make_movie:
-       return makeJmolMovie(file,postdata,min_pdb,scriptlist,'md')
+       return makeJmolMovie(workstruct,postdata,scriptlist,'md')
     else:
         si = schedInterface()
         newJobID = si.submitJob(user_id,file.location,scriptlist,exedict,nprocdict)
@@ -510,7 +465,7 @@ def applymd_tpl(request,workstruct,pstructID,,scriptlist):
 #pre: Requires a file object, and the name of the psf/crd file to read in
 #Jmol requires the PDB to be outputted a certain a certain way for a movie to be displayed
 #it does not take DCD files
-def makeJmolMovie(file,postdata,psf_filename,scriptlist,type):
+def makeJmolMovie(workstruct,postdata,scriptlist,type):
     file.md_movie_status = ""
     charmm_inp = """* Movie making
 *
