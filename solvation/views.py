@@ -56,14 +56,14 @@ def solvationformdisplay(request):
             isBuilt = True
             pstructID = int(request.POST['pstruct'])
 
-        return solvate_tpl(request,ws,isBuilt,pstructID,scriptlist)
+        return solvate_tpl(request,ws,pstructID,scriptlist)
     else:
         # get all workingFiles associated with this struct
         wfs = WorkingFile.objects.filter(structure=ws,type='crd')
         return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
 
 
-def solvate_tpl(request,workingstruct,isBuilt,pstructID,scriptlist):
+def solvate_tpl(request,workingstruct,pstructID,scriptlist):
     postdata = request.POST
     #deals with changing the selected minimize_params
     try:

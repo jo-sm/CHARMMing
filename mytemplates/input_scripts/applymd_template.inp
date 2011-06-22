@@ -3,54 +3,33 @@
 {% block title %}Molecular Dynamics {% endblock %}
 
 {% block body %} blankme
-   {% include 'input_scripts/fix_other_atoms.inp' %}
-
-   {% if restraints %} blankme
-      {{restraints}}
-   {% endif %} blankme
    {% include 'input_scripts/solvate_implicity.inp' %}
 
    ! read crystal dimensional data from the crystal structure made in solvation
-   {% if relative_boundary %} blankme
-      stream crystl_{{filebase}}.str
-   {% endif %} blankme
+   {% if usepbc %} blankme
+      crystal defi {{ xtl_ucell }} {{ xtl_x }} {{ xtl_y }} {{ xtl_z }} {{ xtl_angles }}  
+      crystal build noper 0
 
-   {% if not solvation_structure or solvate_implicitly %} blankme
-   {% else %} blankme
-      {% ifequal solvation_structure 'sphere' %} blankme
-         ! we can't build a crystal for sphere so we just leave as is and do
-         ! vacuum boundary conditions
-      {% endifequal %} blankme
+      {% include 'input_scripts/zero_charge.inp' %}
    {% endif %} blankme
-
-   {% if dopbc %} blankme
-      {% include 'input_scripts/premade_crystal_img.inp' %}
-   {% endif %} blankme
-   {% include 'input_scripts/use_shake.inp' %}
 
    {% ifequal strtword "restart" %}
-       open unit 40 read card name new_{{filebase}}-md-old.res ! restart file that will be read
+       open unit 40 read card name {{restartname}} ! restart file that will be read
    {% endifequal %}
-   open unit 41 write card name new_{{filebase}}-md.res !restart file that will be written
-   open unit 31 write file name new_{{filebase}}-md.dcd !trajectory file name
+   open unit 41 write card name {{outname}}-md.res !restart file that will be written
+   open unit 31 write file name {{outname}}-md.dcd !trajectory file name
 
-   {% if dopbc %} blankme
-      {% include 'input_scripts/zero_charge.inp' %}
-      {% include 'input_scripts/calc_ewald.inp' %}
-      {% include 'input_scripts/standard_nonbond.inp' %}
-   {% else %}
-      {% include 'input_scripts/nopbc_nonbond.inp' %}
-   {% endif %} blankme
+   {% include 'input_scripts/write_out_struct.inp'%}
 
+   {% if genavg_struct %}
+      CHARMM-scripts open unit 31 read file name {{outname}}-md.dcd
+      CHARMM-scripts coor dyna firstu 31 nunit 1 sele .not. segid bwat end orient sele .not. segid bwat end
+      CHARMM-scripts write coor card name {{outname}}-mdavg.crd
+      CHARMM-scripts * Average coordinates from MD
+      CHARMM-scripts *
+   {% endif %}
+{% endblock %}
 
-
-   {% if dopbc %} blankme
-      ! calc pmass = total molecular mass / 50
-      ! calc tmass = pmass * 10
-      scalar mass stat
-      calc pmass = int ( ?stot  /  50.0 )
-      calc tmass = @pmass * 10
-   {% endif %} blankme
    {% ifequal md 'useheat' %} blankme
       dyna leap verlet {{ strtword }} -
       {% if dopbc %} blankme

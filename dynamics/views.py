@@ -23,11 +23,11 @@ from account.views import isUserTrustworthy
 from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch
 from dynamics.models import mdParams,ldParams,sgldParams
-import rexModule
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
+from solvation.models import solvationParams
 import django.forms
 import copy, shutil, os, re
 import lessonaux, input, output, charmming_config
@@ -164,7 +164,7 @@ def mddisplay(request):
             isBuilt = True
             pstructID = int(request.POST['pstruct'])
 
-        applymd_tpl(request,file,seg_list,filename,scriptlist)
+        applymd_tpl(request,ws,pstructID,scriptlist)
 
     else:
         # decide whether or not this run is restartable (check for non-empty restart file)
@@ -338,58 +338,42 @@ def applyld_tpl(request,file,seg_list,min_pdb,scriptlist):
     return "Done."
 
 #Generates MD script and runs it
-def applymd_tpl(request,file,seg_list,min_pdb,scriptlist):
+def applymd_tpl(request,workstruct,pstructID,,scriptlist):
     postdata = request.POST
 
     #deals with changing the selected minimize_params
     seqno = 1
     try:
-        oldparam = mdParams.objects.filter(pdb=file, selected='y')[0]
+        oldparam = mdParams.objects.filter(structure=workstruct, selected='y')[0]
         oldparam.selected = 'n'
         seqno = oldparam.sequence + 1
         oldparam.save()
     except:
         pass
 
-    mdp = mdParams(selected='y',pdb=file)
+    mdp = mdParams(selected='y',structure=workstruct)
     mdp.sequence = seqno
-    try:
-       make_movie = postdata['make_movie']
-       file.md_movie_req = True
-       mdp.md_movie_req = True
-    except:
-       make_movie = False
-       file.md_movie_req = False
-       mdp.md_movie_req = False
-    try:
-       solvate_implicitly = postdata['solvate_implicitly']
-       mdp.scipism = True
-    except:
+    mdp.make_movie = request.POST.has_key('make_movie'):
+    mdp.scpism = request.POST.has_key('solvate_implicitly')
+    if mdp.scpism:
+       solvate_implicitly = 1
+    else:
        solvate_implicitly = 0
-       mdp.scipism = False
     
-    #check for replica exchange
-    try:
-        postdata['use_replica_exchange']
-        useReplicaExchange = True
-    except:
-        useReplicaExchange = False
-
     # template dictionary passes the needed variables to the templat
     template_dict = {}     
-    template_dict['topology_list'] = file.getTopologyList()
-    template_dict['parameter_list'] = file.getParameterList()
-    template_dict['input_file'] = file.stripDotPDB(min_pdb)
-    template_dict['restraints'] = ''
-    template_dict['solvate_implicitly'] = solvate_implicitly
-    template_dict['useqmmm'] = ''
-    template_dict['qmmmsel'] = ''
-    template_dict['headqmatom'] = 'blankme'
-    template_dict['choose_me'] = 'y'
+    template_dict['topology_list'] = workstruct.getTopologyList()
+    template_dict['parameter_list'] = workstruct.getParameterList()
 
-    orig_rst = file.location + "new_" + file.stripDotPDB(file.filename) + "-md.res"
-    new_rst  = file.location + "new_" + file.stripDotPDB(file.filename) + "-md-old.res"
+    template_dict['outname'] = workstruct.identifier
+    pstruct = WorkingFile.objects.filter(id=pstructID)[0]
+    template_dict['input_file'] = pstruct.basename
+    template_dict['solvate_implicitly'] = solvate_implicitly
+
+    orig_rst = workstruct.structure.location + "/" + pstruct.basename + "-md.res"
+    new_rst  = workstruct.structure.location + "/" + pstruct.basename + "-md-old.res"
     if postdata.has_key('dorestart'):
+        template_dict['restartname'] = new_rst
         template_dict['strtword'] = "restart"
         try:
             shutil.copy(orig_rst,new_rst)
@@ -398,65 +382,45 @@ def applymd_tpl(request,file,seg_list,min_pdb,scriptlist):
     else:
         template_dict['strtword'] = "start"
 
-    try:
-        postdata['apply_restraints']
-        template_dict['restraints'] = file.handleRestraints(request)
-    except:
-        pass
+    # determine whether periodic boundary conditions should be applied, and if
+    # so pass the necessary crystal and image parameters
+    dopbc = False
+    if request.POST.has_key('usepbc'):
+        if request.POST.has_key('solvate_inplicitly'):
+            return HttpResponse('Invalid options')
+        
+        # decide if the structure we're dealing with has
+        # been solvated.
+        solvated = False
+        wfc = pstruct
+        while True:
+            if wfc.parentAction == 'solv':
+                solvated = True
+                break
+            if wfc.parent:
+                wfc = wfc.parent
+            else:
+                break
+        if not solvated:
+            return HttpResponse('Requested PBC on unsolvated structure')
 
-    # if we have a solvated structure that with crystal_x < 0 or we're
-    # doing vacuum or scpism with dynamics, then we need to figure out the structure
-    # diameter
-    relative_boundary = 0
-    if file.solvation_structure != '' and file.crystal_x < 0:
-        relative_boundary = 1
+        dopbc = True
+        try:
+            sp = solvationParams.objects.filter(structure=workingstructure,selected='y')[0]
+        except:
+            return HttpResponse("Err ... couldn't find solvation parameters")
+        template_dict['xtl_x'] = sp.xtl_x
+        template_dict['xtl_y'] = sp.xtl_y
+        template_dict['xtl_z'] = sp.xtl_z
+        template_dict['xtl_angles'] = "%10.6f %10.6f %10.6f" % (sp.angles[0],sp.angles[1],sp.angles[2])
+        template_dict['xtl_ucell'] = sp.solvation_structure
 
-    template_dict['filebase'] = file.stripDotPDB(file.filename)
-    template_dict['relative_boundary'] = relative_boundary
-    template_dict['dim_x'] = str(file.crystal_x) 
-    template_dict['dim_z'] = str(file.crystal_z) 
-    template_dict['solvation_structure'] = file.solvation_structure
-
-    # if we solvate implicitly or in vacuum, we don't wantto do PBC/PME
-    # 20 beyond the structure.
-    dopbc = 1
-    if file.solvation_structure == '' or solvate_implicitly:  
-        dopbc = 0
-    elif file.solvation_structure == 'sphere':
-        # we can't build a crystal for sphere so we just leave as is and do
-        # vacuum boundary conditions
-        dopbc = 0
-
-    # we need to set up images, but only if we're doing PBC/PME
     template_dict['dopbc'] = dopbc 
-    template_dict['file_location'] = file.location
-    if dopbc:
-        if file.solvation_structure == '' or solvate_implicitly:
-            pass  
-        else:
-            # we should have an image file from solvation to use...
-            try:
-                os.stat(file.location + "new_" + file.stripDotPDB(file.filename) + ".xtl")
-            except:
-                # need to throw some sort of error ... for now just toss cookies 
-                return HttpResponse("Oops ... transfer file not found.")
 
-    template_dict['shake'] = request.POST.has_key('apply_shake')
-    if request.POST.has_key('apply_shake'):
- 	template_dict['which_shake'] = postdata['which_shake']
-        if postdata['which_shake'] == 'define_shake':
-            template_dict['shake_line'] = postdata['shake_line']
-            if postdata['shake_line'] != '':
-                file.checkForMaliciousCode(postdata['shake_line'],postdata)
-
-    #md with either be useheat or useequi
-    md = postdata['md'] 
-    template_dict['md'] = md
-
-    if request.POST.has_key('gen_avgstruct'):
-        template_dict['genavg_struct'] = True
-    else:    
-        template_dict['genavg_struct'] = False
+    # The MD type can have three values: useheat, usenve, or
+    # usenvt (todo add NPT)
+    template_dict['mdtype'] = postdata['mdtype']
+    template_dict['genavg_structure'] = request.POST.has_key('gen_avgstruct'):
 
     if md == 'useheat':
         mdp.type = 'heat'
@@ -499,10 +463,6 @@ def applymd_tpl(request,file,seg_list,min_pdb,scriptlist):
         mdp.type = 'equi'
         nstep = postdata['nstepeq']
        
-       #If the user does replica exchange, the steps should be divided by 100 to work with the rex scripts
-        if(useReplicaExchange):
-            nstep = float(nstep)/100
-       
         mdp.nstep = str(nstep)
         template_dict['nstep'] = nstep
         ndcd = int(int(nstep)/10) # the dynamics trajectories we make have 10 frames
@@ -519,81 +479,33 @@ def applymd_tpl(request,file,seg_list,min_pdb,scriptlist):
     os.chdir(file.location)
     t = get_template('%s/mytemplates/input_scripts/applymd_template.inp' % charmming_config.charmming_root)
 
-    #In case of replica exchange, two output scripts need to be written, one with the start keyword
-    #thep second as a restart script
-    if(useReplicaExchange == True):
+    #else, write the normal start file and continue on
+    template_dict['restart'] = 0
+    md_filename = "charmm-" + file.stripDotPDB(file.filename) + "-md.inp"
+    charmm_inp = output.tidyInp(t.render(Context(template_dict)))
+    inp_out = open(file.location + md_filename,'w')
+    inp_out.write(charmm_inp)
+    inp_out.close()  
 
-        #Create and fill rexParams object
-        rexmdl = rexModule.createRexObjectFromPostData(request,mdp)
-        #Create configuration file to send to replica exchange scripts
-        rexModule.createConfigFileFromPostData(request,file,mdp)
-        #Create the rex wrapper c-shell script to call all of the rex scripts
-        rexModule.createRexWrapperCShellScript(file,rexmdl)
-        #Clean old files associated with run
-        rexModule.removeOldRexRunFiles(file)
-        
-        #write the non-restart input script
-        template_dict['restart'] = 0
-        charmm_inp = output.tidyInp(t.render(Context(template_dict)))
-        md_filename = "rexstart.inp"
-        inp_out = open(file.location + md_filename,'w')
-        inp_out.write(charmm_inp)
-        inp_out.close()  
-       
-        #write the restart input script
-        template_dict['restart'] = 1
-        charmm_inp = output.tidyInp(t.render(Context(template_dict)))
-        md_filename = "rex.inp"
-        inp_out = open(file.location + md_filename,'w')
-        inp_out.write(charmm_inp)
-        inp_out.close() 
+    # lessons are still borked
+    #if file.lesson_type:
+    #    lessonaux.doLessonAct(file,"onMDSubmit",postdata,min_pdb)
 
-    #Write configuration file for using the cover script to do replica exchange
-    else:
-        #else, write the normal start file and continue on
-        template_dict['restart'] = 0
-        md_filename = "charmm-" + file.stripDotPDB(file.filename) + "-md.inp"
-        charmm_inp = output.tidyInp(t.render(Context(template_dict)))
-        inp_out = open(file.location + md_filename,'w')
-        inp_out.write(charmm_inp)
-        inp_out.close()  
-
-    #change the status of the file regarding minimization 
-    if file.lesson_type:
-        # we need final_pdb_name
-        lessonaux.doLessonAct(file,"onMDSubmit",postdata,min_pdb)
-
-    #file.md_status = "<font color=yellow>Processing</font>"
-    #If using replica exchange, a custom script must be used to wrap it 
-    #having "customscript" in the script list will invoke the backend job submission to use a different script
-    #rather than a charmm executable
-    exedict = {}
-    nprocdict = {}
-    if(useReplicaExchange):
-        scriptlist.append("customscript")
-        exedict["customscript"] = file.location + file.stripDotPDB(file.filename) + "-rexwrapper.csh"
-        nprocdict["customscript"] = rexmdl.nbath
-    else:
-        scriptlist.append(file.location + md_filename)
-
+    scriptlist.append(md_filename)
     if make_movie:
-       print "applymd ... makeJmolMovie"
        return makeJmolMovie(file,postdata,min_pdb,scriptlist,'md')
     else:
-        print "applymd ... direct submit"
-        if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
-            return generateHTMLScriptEdit(charmm_inp,scriptlist,'md')
-        else:
-            si = schedInterface()
-            newJobID = si.submitJob(user_id,file.location,scriptlist,exedict,nprocdict)
-            file.md_jobID = newJobID
-            sstring = si.checkStatus(newJobID)
+        si = schedInterface()
+        newJobID = si.submitJob(user_id,file.location,scriptlist,exedict,nprocdict)
+        file.md_jobID = newJobID
+        sstring = si.checkStatus(newJobID)
 
-            mdp.statusHTML = statsDisplay(sstring,newJobID)
-            mdp.md_movie_status = None
+        mdp.statusHTML = statsDisplay(sstring,newJobID)
+        mdp.md_movie_status = None
 
-    file.save()
-    return "Done."
+    mdp.save()
+    workstruct.save()
+    return HttpResponse("Done.")
 
 #pre: Requires a file object, and the name of the psf/crd file to read in
 #Jmol requires the PDB to be outputted a certain a certain way for a movie to be displayed
