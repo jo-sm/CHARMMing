@@ -876,14 +876,32 @@ class WorkingStructure(models.Model):
 
         if self.md_jobID != 0:
             sstring = si.checkStatus(self.md_jobID)
-	    mdparam_obj = dynamics.models.mdParams.objects.filter(struct=self,selected='y')[0]
+	    mdparam_obj = dynamics.models.mdParams.objects.filter(structure=self,selected='y')[0]
             mdparam_obj.statusHTML = statsDisplay(sstring,self.md_jobID)
 	    mdparam_obj.save()
+
             if 'Done' in mdparam_obj.statusHTML:
+                # Create a new Mol object for this
+                fname = self.structure.location + '/md-' + self.identifier + '.crd'
+                mod = True
+
+                if mdparam_obj.md_movie_req:
+	            mdparam_obj.make_md_movie = True
+                    mdparam_obj.save()
+
+                wf = WorkingFile()
+                wf.structure = self
+                wf.path = fname
+                wf.canonPath = wf.path
+                wf.type = 'crd'
+                wf.description = 'structure after MD'
+                wf.parent = solvparam_obj.inpStruct
+                wf.parentAction = 'md'
+                wf.pdbkey = 'md_' + self.identifier
+                wf.save()
+
+            if 'Done' in mdparam_obj.statusHTML or 'Fail' in mdparam_obj.statusHTML:
                self.md_jobID = 0
-               if dparam_obj.md_movie_req:
-	           mdparam_obj.make_md_movie = True
-                   mdparam_obj.save()
 	       self.save()
                if self.lesson:
                   self.lesson.onMDDone(self)

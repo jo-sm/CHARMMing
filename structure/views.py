@@ -806,23 +806,23 @@ def viewstatus(request):
         except:
             solv_param = None
         try:
-            md_param = mdParams.objects.filter(struct=workingStruct,selected='y')[0]
+            md_param = mdParams.objects.filter(structure=workingStruct,selected='y')[0]
         except:
             md_param = None
         try:
-            ld_param = ldParams.objects.filter(struct=workingStruct,selected='y')[0]
+            ld_param = ldParams.objects.filter(structure=workingStruct,selected='y')[0]
         except:
             ld_param = None
         try:
-            sgld_param = sgldParams.objects.filter(struct=workingStruct,selected='y')[0]
+            sgld_param = sgldParams.objects.filter(structure=workingStruct,selected='y')[0]
         except:
             sgld_param = None
         try:
-            nma_param = nmodeParams.objects.filter(struct=workingStruct,selected='y')[0]
+            nma_param = nmodeParams.objects.filter(structure=workingStruct,selected='y')[0]
         except:
             nma_param = None
         try:
-            redox_param = redoxParams.objects.filter(struct=workingStruct,selected='y')[0]
+            redox_param = redoxParams.objects.filter(structure=workingStruct,selected='y')[0]
         except:
             redox_param = None
 
@@ -833,7 +833,7 @@ def viewstatus(request):
                 nma_param.make_nma_req = False
                 nma_param.save()
         workingStruct.updateActionStatus()
-        if md_param and md_param.make_md_movie: 
+        if md_param and md_param.make_movie: 
             combinePDBsForMovie(file,'md')
             #If the movie status has been updated then reset the req
             #and movie stuff

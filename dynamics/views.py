@@ -365,7 +365,7 @@ def applymd_tpl(request,workstruct,pstructID,scriptlist):
     template_dict['topology_list'] = workstruct.getTopologyList()
     template_dict['parameter_list'] = workstruct.getParameterList()
 
-    template_dict['outname'] = workstruct.identifier
+    template_dict['output_name'] = "md-" + workstruct.identifier
     pstruct = WorkingFile.objects.filter(id=pstructID)[0]
     template_dict['input_file'] = pstruct.basename
     template_dict['solvate_implicitly'] = solvate_implicitly
