@@ -164,7 +164,7 @@ def mddisplay(request):
             isBuilt = True
             pstructID = int(request.POST['pstruct'])
 
-        applymd_tpl(request,ws,pstructID,scriptlist)
+        return applymd_tpl(request,ws,pstructID,scriptlist)
 
     else:
         # decide whether or not this run is restartable (check for non-empty restart file)
@@ -463,7 +463,7 @@ def applymd_tpl(request,workstruct,pstructID,scriptlist):
     # write out the file and let it go...
     md_filename = "moldyn-" + workstruct.identifier + ".inp"
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
-    inp_out = open(file.location + md_filename,'w')
+    inp_out = open(workstruct.structure.location + '/' + md_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()  
 
@@ -472,12 +472,13 @@ def applymd_tpl(request,workstruct,pstructID,scriptlist):
     #    lessonaux.doLessonAct(file,"onMDSubmit",postdata,min_pdb)
 
     scriptlist.append(md_filename)
+    make_movie = postdata.has_key('make_movie')
     if make_movie:
        return makeJmolMovie(workstruct,postdata,scriptlist,'md')
     else:
         si = schedInterface()
-        newJobID = si.submitJob(user_id,file.location,scriptlist,exedict,nprocdict)
-        file.md_jobID = newJobID
+        newJobID = si.submitJob(user_id,workstruct.structure.location,scriptlist)
+        workstruct.md_jobID = newJobID
         sstring = si.checkStatus(newJobID)
 
         mdp.statusHTML = statsDisplay(sstring,newJobID)
