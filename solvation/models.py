@@ -18,8 +18,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from scheduler.schedInterface import schedInterface
-import structure.models
 from structure.models import WorkingFile
+import structure.models
+import math
 
 class solvationParams(models.Model):
     structure = models.ForeignKey(structure.models.WorkingStructure)
@@ -38,6 +39,33 @@ class solvationParams(models.Model):
     salt = models.CharField(max_length=5,null=True)
     concentration = models.DecimalField(max_digits=8,decimal_places=6,default=0)
     ntrials = models.PositiveIntegerField(default=0)
+
+    def calcEwaldDim(self):
+        """
+        Find the nearest integer that is greater than two times the longest
+        crystal box length that is a multiple of ONLY 2, 3, and 5.
+        """
+
+        def facts(n):
+            r = []
+
+            mn = int(math.sqrt(n))+1
+            for i in range(2,mn):
+                if n % i == 0: r.append(i)
+            return r
+
+        trgt = int(2 * max(self.xtl_x,self.xtl_y,self.xtl_z))
+
+        while True:
+           trgt += 1
+           good = True
+           for f in facts(trgt):
+               if not f in [2,3,5]:
+                   good = False
+                   break
+           if good:
+               return trgt
+           
 
     def check_valid(self):
         if self.solvation_structure == 'cubic' or self.solvation_structure == 'rhdo':

@@ -43,12 +43,12 @@ class mdParams(models.Model):
     nstep = models.PositiveIntegerField(default=1000)
 
     #temp will represent the temperature Kelvin if "type" is heat
-    temp = models.DecimalField(default=410.15,null=True,max_digits=8,decimal_places=3,null=True)
+    temp = models.DecimalField(default=410.15,max_digits=8,decimal_places=3,null=True)
     firstt = models.DecimalField(default=310.15,max_digits=8,decimal_places=3,null=True)
-    finalt = models.DecimalField(default=410.15,null=True,max_digits=8,decimal_places=3,null=True)
-    teminc = models.DecimalField(default=10.0,null=True,max_digits=8,decimal_places=3,null=True)
-    ihtfrq = models.DecimalField(default=100.0,null=True,max_digits=8,decimal_places=3,null=True)
-    tbath = models.DecimalField(default=410.15,null=True,max_digits=8,decimal_places=3,null=True)
+    finalt = models.DecimalField(default=410.15,max_digits=8,decimal_places=3,null=True)
+    teminc = models.DecimalField(default=10.0,max_digits=8,decimal_places=3,null=True)
+    ihtfrq = models.DecimalField(default=100.0,max_digits=8,decimal_places=3,null=True)
+    tbath = models.DecimalField(default=410.15,max_digits=8,decimal_places=3,null=True)
     scpism = models.BooleanField(default=False)
     make_movie = models.BooleanField(default=False)
     movie_status = models.CharField(max_length=250,null=True)

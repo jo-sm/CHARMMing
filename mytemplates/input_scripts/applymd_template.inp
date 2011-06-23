@@ -7,10 +7,7 @@
 
    ! read crystal dimensional data from the crystal structure made in solvation
    {% if usepbc %} blankme
-      crystal defi {{ xtl_ucell }} {{ xtl_x }} {{ xtl_y }} {{ xtl_z }} {{ xtl_angles }}  
-      crystal build noper 0
-
-      {% include 'input_scripts/zero_charge.inp' %}
+      {% include 'input_scripts/setup_pbc.inp' %}
    {% endif %} blankme
 
    {% ifequal strtword "restart" %}
@@ -18,6 +15,33 @@
    {% endifequal %}
    open unit 41 write card name {{outname}}-md.res !restart file that will be written
    open unit 31 write file name {{outname}}-md.dcd !trajectory file name
+
+   ! we may need masses for the temperature and pressure pistons
+   scalar mass stat
+   calc tmass = ?stot 
+
+   dyna leap {{ cpt }} verlet {{ strtword }} nstep {{ nstep }} timestep 0.001 - ! run {{ nstep }} steps with a 1 fs time step
+   CHARMM-scripts nprint 100 nsavc 100 iuncrd 31 iunwri 41 {% ifequal strtword "restart" %}iunrea 40{% endifequal %} - ! print every 100 steps; save trajectory and restart files
+{% ifequal mdtype 'useheat' %}
+   CHARMM-scripts firstt {{ firstt }} finalt {{ finalt }} tbath {{ tbath }} tstruct {{ firstt }} ihtfrq {{ ihtfrq }} teminc {{ teminc }} - ! heat every {{ ihtfrq }} steps in {{ teminc }} K increments
+{% endifequal %}
+{% ifequal mdtype 'usenve' %}
+   CHARMM-scripts firstt {{ nvetemp }} finalt {{ nvetemp }} tstruct {{ nvetemp }} ieqfrq {{ ieqfrq }} - ! NVE run with initial temperature {{ nvetemp }}
+{% endifequal %}
+{% ifequal mdtype 'usenvt' %}
+   CHARMM-scripts hoover reft {{ hoovertemp }} tmass @tmass firstt {{ hoovertemp }} tstruct {{ hoovertemp }} - ! Use Nose-Hoover thermostat at a temperature of {{ hoovertemp }} K.
+{% endifequal %}
+{% ifequal mdtype 'usenpt' %}
+   CHARMM-scripts hoover reft {{ hoovertemp }} tmass @tmass firstt {{ hoovertemp }} tstruct {{ hoovertemp }} - ! Use Nose-Hoover thermostat at a temperature of {{ hoovertemp }} K.
+{% endifequal %}
+{% if dopbc %}
+   {% ifequal mdtype 'usenpt' %}
+     CHARMM-scripts pcons pref 1.0 pmass @pmass pgamma {{ pgamma }} - ! Use constant pressure: PMASS = mass of pressure piston, PGAMMA = pressure piston collision frequency
+   {% else %}
+     CHARMM-scripts pcons pref 1.0 pmass 0.0 pgamma 0.0 - ! report pressure statistics, however since PMASS is 0 constant pressure is not used
+   {% endifequal %}
+{% endif %}
+   CHARMM-scripts echeck 500. iasors 1 iasvel 1 iscvel 0 ! 500 kcal/mol max energy variance, reassign (NOT scale) velocities from a gaussian distribution during heating/equil
 
    {% include 'input_scripts/write_out_struct.inp'%}
 
@@ -28,100 +52,4 @@
       CHARMM-scripts * Average coordinates from MD
       CHARMM-scripts *
    {% endif %}
-{% endblock %}
-
-   {% ifequal md 'useheat' %} blankme
-      dyna leap verlet {{ strtword }} -
-      {% if dopbc %} blankme
-         pcons - !use constant pressure
-         pint - !use internal virial for calc pressure
-         pref 1.0 - !reference pressure in atm
-         pmass @pmass - !piston mass
-         pgamma 0.0 - !Langevin piston collision frequency
-      {% endif %} blankme
-      timestep 0.001 - !timestep in picoseconds
-      nstep {{nstep}} - !number of steps and energy evaluations
-      nprint 100 - !step frequency for writing in kunit and printing energy on unit 6
-      iunwri 41 - !unit to write restart file
-      iuncrd 31 - !unit to write coordinates (unformatted)
-      {% ifequal strtword "restart" %} blankme
-        iunrea 40 -
-      {% else %} blankme
-        iunrea -1 - !unit to read in restart file
-      {% endifequal %} blankme
-      kunit -1 - !unit to write temperature and total energy
-      firstt {{firstt}} - !initial temperature of the system
-      finalt {{finalt}} - !final temperature of the system
-      ihtfrq {{ihtfrq}} - !frequency to increase temperature by TEMINC
-      teminc {{teminc}} - !value to increase temperature by
-      tbath {{tbath}} - !temperature of heath bath
-      iprfrq {{ihtfrq}} - !frequency for avg and rms energy
-      ieqfrq {{ihtfrq}} - !frquency to assign or scale velocities to match FINALT temperature
-      ntrfrq {{ihtfrq}} - !frequency for stopping the rotation and translation of the system during dynamics
-      nsavc {{ndcd}} - !frequency for writing coordinates
-      nsavv 0 - !frequency for writing velocities
-      ihbfrq 0 - !frequency to regenerate hydrogen bond list
-      ilbfrq 0 - !frequency to check for atoms in Langevin region
-      iseed 11033 - !seed for the random number generator in assigning velocities
-      echeck 500. - !max variation of energy step-to-step
-      iasors 1 - !assign (NOT scale) velocities during heating/equil
-      iasvel 1 - !use gaussian distribution of velocities
-      iscvel 0 - !single scale factor
-      ichecw 1 - !checks to make sure avg temperature lies within a window
-      twindh 5.0 - !Highest deviation allowed of FINALT on the high side
-      twindl 5.0 !Highest deviation allowed of FINALT on the low side
-   {% else %} blankme
-      {% if dopbc %} blankme
-         dyna cpt {{ strtword }} -
-      {% else %} blankme
-         dyna leap verlet {{ strtword }} -
-      {% endif %} blankme
-      CHARMM-scripts  timestep 0.001 - !timestep in picoseconds
-      CHARMM-scripts  nstep {{nstep}} - !number of steps and energy evaluations
-      CHARMM-scripts  echeck 100. - !max variation of energy step-to-step
-      {% if dopbc %} blankme
-         CHARMM-scripts  pcons - !use constant pressure
-         CHARMM-scripts  pint - !use internal virial for calc pressure
-         CHARMM-scripts  pref 1.0 - !reference pressure in atm
-         CHARMM-scripts  pmass @pmass - !piston mass
-         CHARMM-scripts  pgamma 0.0 - !Langevin piston collision frequency
-         CHARMM-scripts  hoover - !Hoover temperature control
-         CHARMM-scripts  reft {{temp}} - !Hoover reference temperature
-         CHARMM-scripts  tmass @tmass - !mass of thermal piston
-      {% endif %} blankme 
-      CHARMM-scripts  iprfrq 10 - !frequency for avg and rms energy
-      CHARMM-scripts  ieqfrq 0  - !frquency to assign or scale velocities to match FINALT temperature
-      CHARMM-scripts  ntrfrq 10 - !frequency for stopping the rotation and translation of the system during dynamics
-      {% ifequal strtword "restart" %} blankme
-         CHARMM-scripts  iunrea 40 -
-      {% else %} blankme
-         CHARMM-scripts  iunrea -1 - !unit to read in restart file
-      {% endifequal %} blankme
-      CHARMM-scripts  iunwri 41 - !unit to write restart file
-      CHARMM-scripts  iuncrd 31 - !unit to write coordinated (unformatted)
-      CHARMM-scripts  nprint 100 - !step frequency for writing in kunit and printing energy on unit 6
-      CHARMM-scripts  nsavc {{ndcd}} - !frequency for writing coordinates to the trajectory
-      CHARMM-scripts  nsavv 0 - !frequency for writing velocities
-      CHARMM-scripts  iasors 1 - !assign (NOT scale) velocities during heating/equil
-      CHARMM-scripts  iasvel 1 - !use gaussian distribution of velocities
-      CHARMM-scripts  iscvel 0 - !single scale factor
-      CHARMM-scripts  ichecw 0 - !checks to make sure avg temperature lies within a window
-      CHARMM-scripts  twindh 0.0 - !Highest deviation allowed of FINALT on the high side
-      CHARMM-scripts  twindl 0.0 !Highest deviation allowed of FINALT on the low side 
-   {% endifequal %} blankme
-
-   {% include 'input_scripts/write_out_struct.inp'%}
-
-   {% if genavg_struct %}
-      CHARMM-scripts open unit 31 read file name new_{{filebase}}-md.dcd
-      CHARMM-scripts coor dyna firstu 31 nunit 1 sele .not. segid bwat end orient sele .not. segid bwat end
-      CHARMM-scripts write coor card name new_{{ filebase }}-mdavg.crd
-      CHARMM-scripts * Average coordinates from MD
-      CHARMM-scripts *
-      CHARMM-scripts
-      CHARMM-scripts write coor pdb name new_{{ filebase }}-mdavg.pdb
-      CHARMM-scripts * Average coordinates from MD
-      CHARMM-scripts *
-   {% endif %}
 {% endblock %} blankme
-

@@ -338,7 +338,7 @@ def applyld_tpl(request,file,seg_list,min_pdb,scriptlist):
     return "Done."
 
 #Generates MD script and runs it
-def applymd_tpl(request,workstruct,pstructID,,scriptlist):
+def applymd_tpl(request,workstruct,pstructID,scriptlist):
     postdata = request.POST
 
     #deals with changing the selected minimize_params
@@ -353,8 +353,8 @@ def applymd_tpl(request,workstruct,pstructID,,scriptlist):
 
     mdp = mdParams(selected='y',structure=workstruct)
     mdp.sequence = seqno
-    mdp.make_movie = request.POST.has_key('make_movie'):
-    mdp.scpism = request.POST.has_key('solvate_implicitly')
+    mdp.make_movie = postdata.has_key('make_movie')
+    mdp.scpism = postdata.has_key('solvate_implicitly')
     if mdp.scpism:
        solvate_implicitly = 1
     else:
@@ -414,20 +414,45 @@ def applymd_tpl(request,workstruct,pstructID,,scriptlist):
         template_dict['xtl_z'] = sp.xtl_z
         template_dict['xtl_angles'] = "%10.6f %10.6f %10.6f" % (sp.angles[0],sp.angles[1],sp.angles[2])
         template_dict['xtl_ucell'] = sp.solvation_structure
+        template_dict['ewalddim'] = sp.calcEwaldDim()
 
     template_dict['dopbc'] = dopbc 
 
     # The MD type can have three values: useheat, usenve, or
     # usenvt (todo add NPT)
     template_dict['mdtype'] = postdata['mdtype']
-    template_dict['genavg_structure'] = request.POST.has_key('gen_avgstruct'):
+    template_dict['genavg_structure'] = postdata.has_key('gen_avgstruct')
 
     if template_dict['mdtype'] == 'useheat':
         mdp.type = 'heat'
+        mdp.firstt = postdata['firstt']
+        mdp.finalt = postdata['finalt']
+        template_dict['nstep'] = postdata['nstepht']
+        template_dict['firstt'] = postdata['firstt']
+        template_dict['finalt'] = postdata['finalt']
+        template_dict['tbath'] = postdata['tbath']
+        template_dict['teminc'] = postdata['teminc']
+        template_dict['ihtfrq'] = postdata['ihtfrq']
     elif template_dict['mdtype'] == 'usenve':
         mdp.type = 'nve'
+        template_dict['nstep'] = postdata['nstepnve']
+        template_dict['ieqfrq'] = postdata['ieqfrq']
     elif template_dict['mdtype'] == 'usenvt':
         mdp.type = 'nvt'
+        mdp.temp = postdata['hoovertemp']
+        template_dict['nstep'] = postdata['nstepnvt']
+        template_dict['hoovertemp'] = postdata['hoovertemp']
+    elif template_dict['mdtype'] == 'usenpt':
+        mdp.type = 'npt'
+        mdp.temp = postdata['hoovertemp']
+        template_dict['nstep'] = postdata['nstepnpt']
+        template_dict['hoovertemp'] = postdata['hoovertemp']
+        template_dict['pgamma'] = postdata['pgamma']
+
+    if dopbc or mdp.type == 'nvt' or mdp.type == 'npt':
+        template_dict['cpt'] = 'cpt'
+    else:
+        template_dict['cpt'] = ''
 
     mdp.save()
 

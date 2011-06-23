@@ -32,9 +32,10 @@
 
       <div id="menu" style="width: 100%; padding-left: 20%;">
         <table width="600px">
-          <tr><td width="490px">Heating (adds kinetic energy to the system)</td><td width="20px"><input type="radio" id="runtype" value="useheat" name="mdtype" onclick="checkUncheck('heat','equi','block');"></td></tr>
-          <tr><td width="490px">NVE dynamics (holds energy constant; no temperature control)</td><td width="20px"><input type="radio" id="usenve" value="usenve" name="mdtype" onclick="checkUncheck('nve','heat','block');"></td></tr>
-          <tr><td width="490px">NVT dynamics (holds temperature constant)</td><td width="20px"><input type="radio" id="usenve" value="usenve" name="mdtype" onclick="checkUncheck('nve','heat','block');"></td></tr>
+          <tr><td width="490px">Heating (adds kinetic energy to the system)</td><td width="20px"><input type="radio" id="useheat" value="useheat" name="mdtype" onclick="checkUncheck('heat','npt','nve','nvt','block');"></td></tr>
+          <tr><td width="490px">NVE dynamics (holds energy constant; no temperature control)</td><td width="20px"><input type="radio" id="usenve" value="usenve" name="mdtype" onclick="checkUncheck('nve','npt','heat','nvt','block');"></td></tr>
+          <tr><td width="490px">NVT dynamics (holds temperature and volume constant)</td><td width="20px"><input type="radio" id="usenvt" value="usenvt" name="mdtype" onclick="checkUncheck('nvt','npt','heat','nve','block');"></td></tr>
+          <tr><td width="490px">NPT dynamics (holds temperature and pressure constant)</td><td width="20px"><input type="radio" id="usenpt" value="usenpt" name="mdtype" onclick="checkUncheck('npt','nvt','heat','nve','block');"></td></tr>
           {% if canrestart %}
             <tr><td>Restart from previous run</td><td><input type="checkbox" id="dorestart" value="dorestart" name="dorestart" />
           {% endif %}
@@ -73,8 +74,25 @@
       <div id="nve" style="display: none; width: 100%; padding-left: 20%;">
         <hr width="60%" align="left">
         <table>
-          <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepeq" id="nstepeq" value="1000" onChange="getTimeEstimate(makeUniqueDiv('run_time_mdestimate'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'md');"></td></tr>
-          <tr><td>Temperature (Kelvin)</td><td><input type="text" name="temp" value="310.15"></td></tr>
+          <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepnve" id="nstepnve" value="1000" onChange="getTimeEstimate(makeUniqueDiv('run_time_mdestimate'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'md');"></td></tr>
+          <tr><td>Equilibration (IEQFRQ)</td><td><input type="text" name="ieqfrq" value="-1"></td></tr>
+        </table>
+      </div>
+
+      <div id="nvt" style="display: none; width: 100%; padding-left: 20%;">
+        <hr width="60%" align="left">
+        <table>
+          <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepnvt" id="nstepnvt" value="1000" onChange="getTimeEstimate(makeUniqueDiv('run_time_mdestimate'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'md');"></td></tr>
+          <tr><td>Nose-hoover thermostat temperature</td><td><input type="text" name="hoovertemp" value="300"></td></tr>
+        </table>
+      </div>
+
+      <div id="npt" style="display: none; width: 100%; padding-left: 20%;">
+        <hr width="60%" align="left">
+        <table>
+          <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepnvt" id="nstepnpt" value="1000" onChange="getTimeEstimate(makeUniqueDiv('run_time_mdestimate'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'md');"></td></tr>
+          <tr><td>Nose-hoover thermostat temperature</td><td><input type="text" name="hoovertemp" value="300"></td></tr>
+          <tr><td>Pressure piston collision frequency (collisions per picosecond)</td><td><input type="text" name="pgamma" value="0.0"></td></tr>
         </table>
       </div>
 

@@ -1,2 +1,0 @@
-nbond inbfrq -1 atom vatom cdie eps 1.0 -
-  CHARMM-scripts elec shift vdw vshift cutnb 16.0 ctofnb 12. ctonnb 10. wmin 1.0
