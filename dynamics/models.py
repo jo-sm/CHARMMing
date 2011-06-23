@@ -43,12 +43,12 @@ class mdParams(models.Model):
     nstep = models.PositiveIntegerField(default=1000)
 
     #temp will represent the temperature Kelvin if "type" is heat
-    temp = models.DecimalField(default=410.15,max_digits=8,decimal_places=3,null=True)
-    firstt = models.DecimalField(default=310.15,max_digits=8,decimal_places=3,null=True)
-    finalt = models.DecimalField(default=410.15,max_digits=8,decimal_places=3,null=True)
-    teminc = models.DecimalField(default=10.0,max_digits=8,decimal_places=3,null=True)
-    ihtfrq = models.DecimalField(default=100.0,max_digits=8,decimal_places=3,null=True)
-    tbath = models.DecimalField(default=410.15,max_digits=8,decimal_places=3,null=True)
+    temp = models.FloatField(null=True)
+    firstt = models.FloatField(null=True)
+    finalt = models.FloatField(null=True)
+    teminc = models.FloatField(null=True)
+    ihtfrq = models.FloatField(null=True)
+    tbath = models.FloatField(null=True)
     scpism = models.BooleanField(default=False)
     make_movie = models.BooleanField(default=False)
     movie_status = models.CharField(max_length=250,null=True)
@@ -65,7 +65,7 @@ class ldParams(models.Model):
     selected = models.CharField(max_length=1)
 
     nstep = models.PositiveIntegerField(default=1000)
-    fbeta = models.DecimalField(default=60.0,null=True,max_digits=8,decimal_places=3)
+    fbeta = models.FloatField(default=60.0,null=True)
     scpism = models.BooleanField(default=False)
     sgld = models.BooleanField(default=False)
     make_ld_movie = models.BooleanField(default=False)
@@ -76,8 +76,8 @@ class ldParams(models.Model):
 
 class sgldParams(ldParams):
 
-    tsgavg = models.DecimalField(default=0.5,null=True,max_digits=8,decimal_places=6)
-    tempsg = models.DecimalField(default=1.0,null=True,max_digits=8,decimal_places=6)
+    tsgavg = models.FloatField(default=0.5,null=True)
+    tempsg = models.FloatField(default=1.0,null=True)
     make_sgld_movie = models.BooleanField(default=False)
     sgld_movie_status = models.CharField(max_length=250,null=True)
     sgld_movie_req = models.CharField(max_length=250,null=True)
