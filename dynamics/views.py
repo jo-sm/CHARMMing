@@ -461,9 +461,9 @@ def applymd_tpl(request,workstruct,pstructID,scriptlist):
     t = get_template('%s/mytemplates/input_scripts/applymd_template.inp' % charmming_config.charmming_root)
 
     # write out the file and let it go...
-    md_filename = "moldyn-" + workstruct.identifier + ".inp"
+    md_filename = workstruct.structure.location + "/moldyn-" + workstruct.identifier + ".inp"
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
-    inp_out = open(workstruct.structure.location + '/' + md_filename,'w')
+    inp_out = open(md_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()  
 

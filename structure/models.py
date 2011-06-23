@@ -885,17 +885,13 @@ class WorkingStructure(models.Model):
                 fname = self.structure.location + '/md-' + self.identifier + '.crd'
                 mod = True
 
-                if mdparam_obj.md_movie_req:
-	            mdparam_obj.make_md_movie = True
-                    mdparam_obj.save()
-
                 wf = WorkingFile()
                 wf.structure = self
                 wf.path = fname
                 wf.canonPath = wf.path
                 wf.type = 'crd'
                 wf.description = 'structure after MD'
-                wf.parent = solvparam_obj.inpStruct
+                wf.parent = mdparam_obj.inpStruct
                 wf.parentAction = 'md'
                 wf.pdbkey = 'md_' + self.identifier
                 wf.save()
