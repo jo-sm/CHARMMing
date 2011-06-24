@@ -406,7 +406,7 @@ def applymd_tpl(request,workstruct,pstructID,scriptlist):
 
         dopbc = True
         try:
-            sp = solvationParams.objects.filter(structure=workingstructure,selected='y')[0]
+            sp = solvationParams.objects.filter(structure=workstruct,selected='y')[0]
         except:
             return HttpResponse("Err ... couldn't find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x

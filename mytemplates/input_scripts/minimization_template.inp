@@ -1,6 +1,6 @@
 {% extends "input_scripts/generic_charmm_script.inp" %} blankme
 
-{% block title %}Minimize PDB {% endblock %}
+{% block title %}Minimize structure{% endblock %}
 
 {% block body %} blankme
   {% if restraints %} blankme
@@ -16,17 +16,10 @@
   {% if restraints %} blankme
     {{restraints}}
   {% endif %} blankme
-  {% if usepbc and not dopbc %} blankme
-    !! NOTICE: you requested minimization with PBC, but that is not valid on spherically solvated systems!
-  {% endif %} blankme
-  {% if dopbc %} blankme
-    {% include 'input_scripts/premade_crystal_img.inp' %}
-    {% include 'input_scripts/zero_charge.inp' %}
-    {% include 'input_scripts/standard_nonbond.inp' %}
-  {% else %}
-    {% include 'input_scripts/nopbc_nonbond.inp' %}
-  {% endif %} blankme
 
+  {% if dopbc %} blankme
+    {% include 'input_scripts/setup_pbc.inp' %}
+  {% endif %} blankme
 
   coor copy comp
 

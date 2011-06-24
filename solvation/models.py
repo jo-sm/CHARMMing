@@ -46,24 +46,37 @@ class solvationParams(models.Model):
         crystal box length that is a multiple of ONLY 2, 3, and 5.
         """
 
-        def facts(n):
-            r = []
+        logfp = open('/tmp/foo', 'w')
 
-            mn = int(math.sqrt(n))+1
-            for i in range(2,mn):
-                if n % i == 0: r.append(i)
-            return r
+        def prime_factorize(x,li=[]):
+            until = int(math.sqrt(x))+1
+            for i in xrange(2,until):
+                if not x%i:
+                    li.append(i)
+                    break
+            else:                      #This else belongs to for
+                    li.append(x)
+                    return li
+            prime_factorize(x/i,li)
+            return li
 
         trgt = int(2 * max(self.xtl_x,self.xtl_y,self.xtl_z))
 
         while True:
            trgt += 1
+           if trgt % 2 != 0: continue # ewald factors must be even
+
            good = True
-           for f in facts(trgt):
+           flst = prime_factorize(trgt,li=[])
+           if not flst: continue
+           logfp.write('trgt %d facts %s\n' % (trgt,flst))
+           for f in flst:
                if not f in [2,3,5]:
                    good = False
                    break
            if good:
+               logfp.write('returning %d\n' % trgt)
+               logfp.close()
                return trgt
            
 

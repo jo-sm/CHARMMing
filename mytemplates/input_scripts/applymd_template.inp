@@ -5,8 +5,8 @@
 {% block body %} blankme
    {% include 'input_scripts/solvate_implicity.inp' %}
 
-   ! read crystal dimensional data from the crystal structure made in solvation
-   {% if usepbc %} blankme
+   {% if dopbc %} blankme
+      ! read crystal dimensional data from the crystal structure made in solvation
       {% include 'input_scripts/setup_pbc.inp' %}
    {% endif %} blankme
 
@@ -18,7 +18,8 @@
 
    ! we may need masses for the temperature and pressure pistons
    scalar mass stat
-   calc tmass = ?stot 
+   calc tmass = ?stot * 0.20
+   calc pmass = ?stot * 0.02
 
    dyna leap {{ cpt }} verlet {{ strtword }} nstep {{ nstep }} timestep 0.001 - ! run {{ nstep }} steps with a 1 fs time step
    CHARMM-scripts nprint 100 nsavc 100 iuncrd 31 iunwri 41 {% ifequal strtword "restart" %}iunrea 40{% endifequal %} - ! print every 100 steps; save trajectory and restart files
@@ -41,7 +42,7 @@
      CHARMM-scripts pcons pref 1.0 pmass 0.0 pgamma 0.0 - ! report pressure statistics, however since PMASS is 0 constant pressure is not used
    {% endifequal %} blankme
 {% endif %} blankme
-   CHARMM-scripts echeck 500. iasors 1 iasvel 1 iscvel 0 ! 500 kcal/mol max energy variance, reassign (NOT scale) velocities from a gaussian distribution during heating/equil
+   CHARMM-scripts echeck 500. iasors 1 iasvel 1 iscvel 0 {% if dopbc %}ntrfrq 100{% endif %} ! 500 kcal/mol max energy variance, reassign (NOT scale) velocities from a gaussian distribution during heating/equil
 
    {% include 'input_scripts/write_out_struct.inp'%}
 

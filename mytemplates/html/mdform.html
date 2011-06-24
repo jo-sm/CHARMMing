@@ -90,7 +90,7 @@
       <div id="npt" style="display: none; width: 100%; padding-left: 20%;">
         <hr width="60%" align="left">
         <table>
-          <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepnvt" id="nstepnpt" value="1000" onChange="getTimeEstimate(makeUniqueDiv('run_time_mdestimate'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'md');"></td></tr>
+          <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepnpt" id="nstepnpt" value="1000" onChange="getTimeEstimate(makeUniqueDiv('run_time_mdestimate'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'md');"></td></tr>
           <tr><td>Nose-hoover thermostat temperature</td><td><input type="text" name="hoovertemp" value="300"></td></tr>
           <tr><td>Pressure piston collision frequency (collisions per picosecond)</td><td><input type="text" name="pgamma" value="0.0"></td></tr>
         </table>

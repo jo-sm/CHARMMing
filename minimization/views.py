@@ -29,6 +29,7 @@ from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from minimization.models import minimizeParams
+from solvation.models import solvationParams
 import charmming_config, input, output, lessonaux
 import re, copy
 import os, shutil
@@ -92,14 +93,7 @@ def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
         # FixMe: alert user to errors
         return "Error"        
 
-    try:
-        if postdata['usepbc']:
-            mp.usepbc = 'y'
-        else:
-            mp.usepbc = 'n'        
-    except:
-        mp.usepbc = 'n'
-
+    mp.usepbc = postdata.has_key('usepbc')
     if postdata.has_key('useqmmm'):
         mp.useqmmm = 'y'
         file.checkForMaliciousCode(postdata['qmsele'],postdata)
@@ -127,14 +121,6 @@ def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
     mp.inpStruct = pstruct
     mp.save()
 
-    # ack, this is totally wrong, ToDo, FIXME
-    template_dict['restraints'] = '' 
-    try:
-        postdata['apply_restraints']
-        template_dict['restraints'] = workstruct.handleRestraints(request)
-    except:
-        pass
-    
     solvate_implicitly = 0
     try:
         if(postdata['solvate_implicitly']):
@@ -167,26 +153,42 @@ def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
         pass
 
     # check to see if PBC needs to be used -- if so we have to set up Ewald
-    try:
-        solvstruct = solvation.models.solvationParams.objects.filter(structure=workstruct)[0]
-    except:
-        solvstruct = None
+    dopbc = False
+    if request.POST.has_key('usepbc'):
+        if solvate_implicitly:
+            return HttpResponse('Invalid options')
 
-    # check and see if we're using periodic boundary conditions with solvation
-    if solvstruct:
-        template_dict['solvated'] = True
-        template_dict['solvation_structure'] = solvstruct
-
-        if postdata.has_key('usepbc'):
-            if solvstruct.solvation_structure != 'sphere':
-                template_dict['dopbc'] = 1
+        # decide if the structure we're dealing with has
+        # been solvated.
+        solvated = False
+        wfc = pstruct
+        while True:
+            if wfc.parentAction == 'solv':
+                solvated = True
+                break
+            if wfc.parent:
+                wfc = wfc.parent
             else:
-                dopbc = 0
-        else:
-            dopbc = 0
-    else:
-        template_dict['solvated'] = False
+                break
+        if not solvated:
+            return HttpResponse('Requested PBC on unsolvated structure')
 
+        dopbc = True
+        try:
+            sp = solvationParams.objects.filter(structure=workstruct,selected='y')[0]
+        except:
+            return HttpResponse("Err ... couldn't find solvation parameters")
+        template_dict['xtl_x'] = sp.xtl_x
+        template_dict['xtl_y'] = sp.xtl_y
+        template_dict['xtl_z'] = sp.xtl_z
+        template_dict['xtl_angles'] = "%10.6f %10.6f %10.6f" % (sp.angles[0],sp.angles[1],sp.angles[2])
+        template_dict['xtl_ucell'] = sp.solvation_structure
+        template_dict['ewalddim'] = sp.calcEwaldDim()
+
+        if template_dict['xtl_ucell'] == 'sphere':
+            return HttpResponse('Cannot do PBC on a sphere')
+
+    template_dict['dopbc'] = dopbc
     template_dict['useqmmm'] = postdata.has_key("useqmmm")
     template_dict['sdsteps'] = sdsteps
     template_dict['abnr'] = abnr
@@ -228,7 +230,6 @@ def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
         headstr = writeQMheader("", "SELE " + qmsel + " END")
         template_dict['headqmatom'] = headstr.strip() 
     mp.statusHTML = "<font color=yellow>Processing</font>"
-    mp.pdb = file
     mp.save()
     t = get_template('%s/mytemplates/input_scripts/minimization_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))

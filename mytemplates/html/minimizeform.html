@@ -6,15 +6,15 @@
   <h1 align="center">Minimize</h1>
   <hr noshade width="80%" size=3%>
   <form id="min_form" method="post"  action="." onsubmit="return send_form(this,'/charmming/minimize/',makeUniqueDiv('change_min'),'status_min',[{%for item in filename_list%}'{{item}}',{% endfor%}]);">
-    <center>
-
-      <h2>Working structure: {{ ws_identifier }}</h2>
-
-      {% include "html/workfiles.html" %}
-    </center>
-    <br />
-
     <div id='change_min' style="text-align:center;">
+      <center>
+  
+        <h2>Working structure: {{ ws_identifier }}</h2>
+
+        {% include "html/workfiles.html" %}
+      </center>
+      <br />
+
       <div id="script_dothis" style="display:none;">
          makeUniqueDiv('min_form');
          makeUniqueDiv('solvate_implicitly');
