@@ -53,34 +53,10 @@ class Structure(models.Model):
     domains = models.CharField(max_length=250,default='')
     fes4list = models.CharField(max_length=250,default='')
     
-    # get a list of disulfide bonds in the PDB (we parse these out in getHeader, this
-    # function just returns a nice list for the template to use.
+    # GUTS-ified disulfide list builder
     # Note: this returns a list of tuples
-    def getPDBDisulfides(self):
-	if not self.pdb_disul:
-            return None
-        try:
-            dfp = open(self.pdb_disul, 'r')
-        except:
-            return None
-        if not dfp:
-            return None
-
-        rarr = []
-        for line in dfp:
-           line = line.strip()
-           pres = line.split('-')
-           if len(pres) != 2:
-               # todo, give an error
-               continue
-           firstr = pres[0].split(':')
-           secondr = pres[1].split(':')
-           if len(firstr) != 2 or len(secondr) != 2:
-               # todo, give an error
-               continue
-           rarr.append((firstr[0],firstr[1],secondr[0],secondr[1]))
-        dfp.close()
-        return rarr
+    def getDisulfideList(self):
+        return None
 
     #Returns a list of files not specifically associated with the structure
     def getNonStructureFiles(self):
@@ -143,6 +119,8 @@ class Structure(models.Model):
                 self.journal = self.journal[0:248]
 	else:
 	    self.journal = "No information found"
+
+        self.save()
  
     #pre:requires a request object
     #checks if there was a topology or parameter file
@@ -410,6 +388,47 @@ class Segment(models.Model):
             self.default_patch_last = 'NONE'
         self.save()
 
+    def getProtonizableResidues(self,model=None):
+        pfp = open(self.structure.pickle, 'r')
+        pdb = cPickle.load(pfp)
+
+        if not model: 
+            mol = pdb.iter_models().next() # grab first model
+        else:
+            mol = pdb[model]
+
+        # ToDo: if there is more than one model, the protonizable
+        # residues could change. We don't handle this right at
+        # the moment, but it may not matter too much since the
+        # residue sequence tends not to change between models, just
+        # the atom positions.
+
+        found = False
+        for s in mol.iter_seg():
+            if s.segid == self.name:
+                found = True
+                break
+
+        if not found:
+            raise AssertionError('Could not find right segment')
+
+        rarr = []
+
+        # todo, make the actual one the default
+        for m in s.iter_res():
+            nm = m.resName.strip()
+            if nm in ['hsd','hse','hsp','his']:
+                rarr.append((self.name,m.resid,['hsd','hse','hsp']))
+            if nm in ['asp','aspp']:
+                rarr.append((self.name,m.resid,['asp','aspp']))
+            if nm in ['glu','glup']:
+                rarr.append((self.name,m.resid,['asp','aspp']))
+            if nm in ['lys','lsn']:
+                rarr.append((self.name,m.resid,['lys','lsn']))
+
+        pfp.close()
+        return rarr
+
     @property
     def possible_firstpatches(self):
         if self.type == 'pro':
@@ -637,11 +656,6 @@ class WorkingSegment(Segment):
 	    write_prm_handle.close()
 
         os.chdir(cwd)
-
-class Patch(models.Model):
-    structure   = models.ForeignKey(Structure)
-    patch_name  = models.CharField(max_length=10)
-    patch_atoms = models.CharField(max_length=100)
 
 
 # The idea is that the WorkingStructure class will hold structures that
@@ -980,6 +994,18 @@ class WorkingStructure(models.Model):
 	    restraints = restraints + "cons harm bestfit mass force 100.0 select " +\
 	                  con_sele + ' end\n'
 	return restraints
+
+class Patch(models.Model):
+    structure   = models.ForeignKey(WorkingStructure)
+
+    # patches can cross multiple segments, if this field is set, it means
+    # that the patch only applies to a particular segment (i.e. it is a
+    # protonation patch that should be handled at segment build time rather
+    # than append time.
+    patch_segid  = models.ForeignKey(Segment,null=True)
+
+    patch_name   = models.CharField(max_length=10)
+    patch_segres = models.CharField(max_length=100)
 
 class WorkingFile(models.Model,file):
     structure   = models.ForeignKey(WorkingStructure)

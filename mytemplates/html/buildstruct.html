@@ -66,9 +66,36 @@
           {% endfor %}
         </table>
 
-        <h3>Choose Protonation State</h3>
-        <h3>Choose Disulfide Patching</h3>
+        {% if proto_list %}
+          <h3>Choose Protonation State</h3>
+          <table align="center" cellspacing="2" cellpadding="2">
+          <tr><td>SEGID</td><td>Residue Number</td><td>Protonation State</td></tr>
+          {% for pproto in proto_list %}
+            <tr><td>{{ pproto.segid }}</td><td>{{ pproto.resid }}</td>
+               <td>
+                 <select name="protostate_{{ pproto.segid }}_{{ pproto.resid }}">
+                   {% for alt in pproto.alternative %}
+                     <option value="alt">alt</option>
+                   {% endfor %}
+                 </select>
+               </td>
+            </tr>
+          {% endfor %}
+          </table>
+        {% endif %}
+
+        {% if disulfide_list %}
+          <h3>Choose Disulfide Patching</h3>
+          <table align="center" cellspacing="2" cellpadding="2">
+            <tr><td>SEGID 1</td><td>RESID 1</td><td>SEGID 2</td><td>RESID 2</td><td>Selected</td></tr>
+            {% for disul in disulfide_list %}
+              <tr><td>{{ disul.segid1 }}</td><td>{{ disul.resid1 }}</td><td>{{ disul.segid2 }}</td><td>{{ disul.resid2 }}</td><td><input type="checkbox" name="disul_{{ disul.segid1 }}_{{ disul.resid1 }}_{{ disul.segid2 }}_{{ disul.resid2 }}" /></td></tr>
+            {% endfor %}
+          </table>
+        {% endif %}
+
         <h3>Apply Restraints</h3>
+        <p>Enter number of restraints: <input type="text" name="nrestraints" /></p>
 
         <input type="submit" value="Submit" />
      </form>     

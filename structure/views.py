@@ -668,29 +668,6 @@ def viewProcessFiles(request):
 
     return render_to_response('html/viewprocessfiles.html', {'minsolv_list': minsolv_list,'dyn_list': dyn_list,'seg_list': seg_list,'nmodes_list': nmodes_list,'username': request.user.username, 'redox_list': redox_list})
 
-def getProtoPDB(file):
-    pre = re.compile("view-([a-z])-(\d+)-([a-z]+).pdb")
-    plist = []
-
-    pdbdir = file.location + "proto_" + file.stripDotPDB(file.filename)
-    pdblist = glob.glob(pdbdir + "/view-*.pdb")
-    for pdb in pdblist:
-        m = pre.search(pdb)
-        if not m:
-            continue
-        spdb = pdb.replace(file.location, "")
-        if m.group(3) in ["hsd","hse","hsp"]:
-            restp = "Histadine"
-        elif m.group(3) == "lys":
-            restp = "Lysine"
-        elif m.group(3) == "asp":
-            restp = "Aspartic acid"
-        elif m.group(3) == "glu":
-            restp = "Glutamic acid"
-        plist.append( (spdb,m.group(1),m.group(2),restp) )
-
-    return plist
-
 #Lets user view PDB through jmol/Chemaxon
 def visualize(request,filename):
     if not request.user.is_authenticated():
@@ -760,16 +737,6 @@ def jmolHL(request,filename,segid,resid):
     try:
         username = request.user.username
         return render_to_response('html/jmol.html', {'filename': filename,'username':username, 'segid': segid, 'resid': resid })
-    except:
-        return HttpResponse("No PDB Uploaded")
-
-#Let's user view PDB through chemaxon
-def chemaxon(request,filename):
-    if not request.user.is_authenticated():
-        return render_to_response('html/loggedout.html')
-    try:
-        username = request.user.username
-        return render_to_response('html/chemaxon.html', {'filename': filename,'username':username })
     except:
         return HttpResponse("No PDB Uploaded")
 
@@ -885,233 +852,6 @@ def reportError(request):
             return HttpResponse("You must type something into the form...\n")
     except:
         return HttpResponse("Bug failed to be sent properly. Please check all fields or E-mail btamiller@gmail.com.")
-
-
-
-# edit the protonation state of the currently selected protein
-# Tim Miller, 04-02-2008
-def editProtonation(request):
-    if not request.user.is_authenticated():
-        return render_to_response('html/loggedout.html')
-    file = Structure.objects.filter(owner=request.user,selected='y')[0]
-    input.checkRequestData(request)
-    plines = {}
-    hist_list = {}
-
-    # step 1, make list of residues to change...  histadine changes must be done right in the
-    # PDB file -- all others have a patch added to a stream file.
-
-    patchre = re.compile("patch_([A-Z]+)_([0-9]+)")
-    for kname in request.POST.keys():
-        m = patchre.match(kname)
-        if m:
-            newres = request.POST[kname]
-            segid  = m.group(1)
-            resid  = int(m.group(2))
-            if newres in ['HSD','HSE','HSP']:
-                try:
-                    hist_list[segid].append((resid,newres))   
-                except:
-                    hist_list[segid] = []
-                    hist_list[segid].append((resid,newres))
-            elif newres in ['ASPP','GLUP','LSN']:
-                try:
-                    plines[segid].append("PATCH %s %s %d\n" % (newres,segid,resid))
-                except:
-                    plines[segid] = []
-                    plines[segid].append("PATCH %s %s %d\n" % (newres,segid,resid))
-    for seg in plines.keys():
-        patchfp = open(file.location + "pproto_" + file.stripDotPDB(file.filename) + "-" + seg.lower() + ".str", "w+")
-        patchfp.write("* Patch user-specified residues to protonate in seg %s.\n" % seg)
-        patchfp.write("* Note: histadine changes are done by editing the sequence directly.\n")
-        patchfp.write("*\n\n")
-        for pl in plines[seg]:
-            patchfp.write(pl)
-        patchfp.write("return\n")
-        patchfp.close()
-
-    # step 2: any Histadine patches must be done in the correct PDB file.
-    for seg in hist_list.keys():
-        ifname = file.location + "new_" + file.stripDotPDB(file.filename) + "-" + seg.lower() + ".pdb"
-        bfname = file.location + "bak-new_" + file.stripDotPDB(file.filename) + "-" + seg.lower() + ".pdb"
-        ofname = file.location + "prot_" + file.stripDotPDB(file.filename) + "-" + seg.lower() + ".pdb"
-
-        ifp = open(ifname, 'r')
-        ofp = open(ofname, 'w+')
-
-        resids = [z[0] for z in hist_list[seg]]
-        newval = [z[1] for z in hist_list[seg]]
-        for line in ifp:
-            line = line.strip()
-
-            if not line.startswith('ATOM'):
-                ofp.write("%s\n" % line)
-                continue
-
-            larr = string.splitfields(line)
-            try:
-                cresid = int(larr[5])
-                curres = larr[3]
-                ridx = resids.index(cresid)
-            except:
-                ofp.write("%s\n" % line)
-                continue
-            # If we've made it this far, we know that we have a histadine, check if the
-            # user wants to change it.
-            if curres != newval[ridx]:
-                # they most certainly do
-                line = line.replace(curres,newval[ridx])
-            ofp.write("%s\n" % line)         
-
-
-        ifp.close()
-        ofp.close()
-        os.system("mv %s %s" % (ifname,bfname))
-        os.system("mv %s %s" % (ofname,ifname))
-    return HttpResponse("Sequence edit and patches prepared according to the selections given.")
-
-# respond for request...
-def viewprotores(request,segid,resid):
-    if not request.user.is_authenticated():
-        return render_to_response('html/loggedout.html')
-    return HttpResponse("To do...")
-
-# This subroutine kicks of jobs to visualize the protonizable residues
-def subProtoVis(plist,epdb,request):
-    if epdb:
-        file = structure.models.Structure.objects.filter(owner=request.user,name=epdb)[0]
-    else:
-        file = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
-    try:
-        os.stat(file.location + "proto_" + file.stripDotPDB(file.filename))
-    except:
-        try:
-            os.mkdir(file.location + "proto_" + file.stripDotPDB(file.filename))
-            os.system("chmod g+w " + file.location + "proto_" + file.stripDotPDB(file.filename))
-        except:
-            # we won't be able to create views, but that's not worth wrecking the train for
-            # so just return
-            return
-    else:
-        # OK directory already exists ... assume everything is there and just return
-        return
-
-    # OK, for each stinking protonizable residue, we need to create an input script that
-    # cuts a 5 A radius around it and writes out the resultant PDB
-
-    charmm_inp = file.makeCHARMMInputHeader("Make PDB for visualizing titratable group",{})
-    # delete all BUT the surrounding 8 A
-    for item in plist:
-        segid = item[1]
-        resid = item[2]
-        charmm_inp += "\n\nopen read card unit 20 name " + file.location + "new_" + file.stripDotPDB(file.filename) + "-" + segid.lower() + ".pdb\n"
-        charmm_inp += "read sequ pdb unit 20\n"
-        charmm_inp += "rewind unit 20\n"
-        charmm_inp += "generate pseg setu\n"
-        charmm_inp += "read coor pdb unit 20\n"
-        charmm_inp += "close unit 20\n\n"
-        charmm_inp += "! get rid of hydrogens so they don't clutter up the view...\n"
-        charmm_inp += "dele atom sort sele hydrogen end\n\n"
-        charmm_inp += "ic para\n"
-        charmm_inp += "ic fill preserve\n"
-        charmm_inp += "ic build\n\n"
-        charmm_inp += "! cut a sphere of radius 3 around the central point in the residue to be protonated\n"
-        charmm_inp += "coor stat sele resid " + str(resid) + " end\n"
-        charmm_inp += "! write out PDB\n"
-        charmm_inp += "open write card unit 20 name " + file.location + "proto_" + file.stripDotPDB(file.filename) + "/view-" + segid.lower() + "-" + str(resid) + "-" + item[0] + ".pdb\n"
-        charmm_inp += "write coor pdb unit 20 sele .byres. (point ?xave ?yave ?zave cut 8.0) end\n"
-        charmm_inp += "close unit 20\n"
-        charmm_inp += "dele atom sort sele all end\n\n"
-
-    charmm_inp += "stop\n"
-
-    fname = file.location + "proto_" + file.stripDotPDB(file.filename) + "/charmm-makepdb.inp"
-    outfp = open(fname, "w")
-    outfp.write(charmm_inp)
-    outfp.close()
-    si = schedInterface()
-    si.submitJob(file.owner.id,file.location + "proto_" + file.stripDotPDB(file.filename),[fname])
-
-#Used in editing PDB information, receives a GET request and
-#changes the PDB information based on what was changed
-def editPDB(request,edit_pdb):
-    if not request.user.is_authenticated():
-        return render_to_response('html/loggedout.html')
-    input.checkForMaliciousCode(edit_pdb,request)
-    if(edit_pdb):
-        file = structure.models.Structure.objects.filter(owner=request.user,name=edit_pdb)[0]
-        try:
-            oldfile = Structure.objects.filter(owner=request.user,selected='y')[0]
-            oldfile.selected = ''
-            oldfile.save()
-            file.selected='y'
-            file.save()
-        except:
-            pass
-    else:
-        file = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
-    try:
-       if request.GET:
-           temp_handle = request.GET['fieldname']
-           if(temp_handle == 'title'):
-               file.title = request.GET['content']
-               file.save()
-               return HttpResponse(file.title)
-           elif(temp_handle == 'author'):
-               file.author = request.GET['content']
-               file.save()
-               return HttpResponse(file.author)
-           elif(temp_handle == 'journal'):
-               file.journal = request.GET['content']
-               file.save()
-               return HttpResponse(file.journal)
-    except:
-       pass
-
-    # Protonation will be handled better. In fact; this whole edit business is going
-    # to go away and be replaced with the structure building page.
-    do_editprot = 0
-    proto_list = []
-
-    return render_to_response('html/editpdbinfo.html', {'pdb': file, 'proto': do_editprot, 'proto_list': proto_list})
-
-# code for editing multi-model PDBs, should be very similar to editPDB above, except we have a list of
-# files that can be edit
-def editMultiModel(request,modlist,makeGo,makeBLN):
-    if not request.user.is_authenticated():
-        return render_to_response('html/loggedout.html')
-    # deselect the current PDB and arbitrarily select the first PDB in the list...
-    oldfile = Structure.objects.filter(owner=request.user,selected='y')[0]
-    oldfile.selected = ''
-    oldfile.save()
-    file = modlist[0]
-    file.selected = 'y'
-    file.save()
-    # the dictionary 'file_type' in lesson_config.py takes lesson number as its key and the corresponding value is the file type of the files the lesson uploads
-    # here we create lesson_obj only if the lesson uploads CRD/PSF files
-    try: 
-        if file_type[file.lesson_type[6:]].find("CRD") != -1 or file_type[file.lesson_type[6:]].find("PSF") != -1:
-            try:
-                lesson_obj = eval(file.lesson_type+'.models.'+file.lesson_type.capitalize()+'.objects.filter(user = file.owner,id=file.lesson_id)[0].onFileUpload(request.POST)')
-            except:
-                pass
-    except:
-        pass   
-
-    # take care of generating protonation states. NB this could wind up being
-    # a bit intense if there are many models so we may want to rethink this
-    # strategy...
-    for file in modlist:
-       #each model must get a filename for its topology/param files
-       file.getRtfPrm(request,makeGo,makeBLN)
-       proto_list = get_proto_res(file)
-       if len(proto_list) > 0:
-           # We don't actually let the user modify protonation on the multimodel
-           # page (just yet), but we do need toput in the request to generate the
-           # visualization PDBs in case they decide to edit later.
-           subProtoVis(proto_list,file.filename,request)
-    npdbs = len(modlist)
-    return render_to_response('html/editmultimodel.html', {'pdbs': modlist, 'npdbs': npdbs})
 
 
 
@@ -1469,7 +1209,6 @@ def getSegs(Molecule,Struct,auto_append=False):
         newSeg.save()
 
 def newupload(request, template="html/fileupload.html"):
-    doc =\
     """
     Handle a new file being uploaded.
     """
@@ -1660,33 +1399,17 @@ def newupload(request, template="html/fileupload.html"):
         
         else:
             pdb = pychm.io.pdb.PDBFile(fullpath)
-            if len(pdb.keys()) > 1:
-                mnum = 1
-                for model in pdb.iter_models():
-                    mdname = dname + "-mod-%d" % mnum
-                    os.mkdir(location + '/' + mdname, 0775)
-                    os.chmod(location + '/' + mdname, 0775)
+            mnum = 1
+            struct = structure.models.Structure()
+            struct.location = location + dname
+            struct.name = dname
+            struct.owner = request.user
+            struct.getHeader(pdb.header)
 
-                    struct = structure.models.Structure()
-                    struct.location = location + mdname
-                    struct.name = mdname
-                    struct.getHeader(pdb.header)
-                    struct.owner = request.user
-
-                    model.parse()
-                    getSegs(model,struct)
-                   
-                    mnum += 1
-            else:
-                struct = structure.models.Structure()
-                struct.location = location + dname
-                struct.name = dname
-                struct.getHeader(pdb.header)
-                struct.owner = request.user
-
-                thisMol = pdb.iter_models().next()
+            for thisMol in pdb.iter_models():
                 thisMol.parse()
-                getSegs(thisMol,struct)
+                if mnum == 1: getSegs(thisMol,struct)
+                mnum += 1
 
         # store the pickle file containing the structure
         pfname = location + dname + '/' + 'pdbpickle.dat'
@@ -1713,27 +1436,6 @@ def newupload(request, template="html/fileupload.html"):
 
     form = structure.models.PDBFileForm()
     return render_to_response('html/fileupload.html', {'form': form} )
-
-
-def get_proto_res(file,mdlname):
-    protonizable = []
-
-    # all residues that we know how to protonize...
-    possible_p = ['HIS','HSD','HSE','HSP','ASP','GLU','LYS']
-
-    fp = open(file.pickle, 'r')
-    pdb = cPickle.load(fp)
-    mol = pdb[mdlname]
-    fp.close()    
-    for seg in mol.iter_seg():
-        if not seg.segType == 'pro':
-            continue
-        for res in seg.iter_res():
-            if res.resName.upper() in possible_p:
-                protonizable.append((res.resName.upper(),seg.segid,res.resIndex)) 
-
-    return protonizable
-
 
 
 # This function populates the form for building a structure
@@ -1769,6 +1471,10 @@ def buildstruct(request):
     sl = []
     sl.extend(structure.models.Segment.objects.filter(structure=str,is_working='n'))
     tdict['seg_list'] = sl
+    tdict['disulfide_list'] = str.getDisulfideList()
+    tdict['proto_list'] = []
+    for seg in sl:
+        tdict['proto_list'].extend(seg.getProtonizableResidues())
 
     return render_to_response('html/buildstruct.html', tdict)
 
@@ -1818,8 +1524,22 @@ def modstruct(request):
             segobj.save()
 
     # Figure out protonation patching
+    for pkey in request.POST.keys():
+        if pkey.startswith('protostate_'):
+            (junk,segid,resid) = pkey.split('_')
+
+            if not segid in seglist: continue # not in the segments selected
+            if request.POST[pkey] in ['hsd','lys','glu','asp']: continue # these are defaults, no need for a patch
+            p = structure.models.Patch()
+            p.structure = new_ws
+            p.patch_segid = structure.models.segment.Objects.filter(structure=struct,is_working='n',name=segid)[0]
+            p.patch_name = request.POST[pkey]
+            p.patch_segres = "%s %s" % (segid,resid)
+            p.save()
 
     # Figure out disulfide patching
+
+    # Figure out restraints
 
     # switch to using the new work structure
     try:
