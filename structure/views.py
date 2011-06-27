@@ -1532,7 +1532,7 @@ def modstruct(request):
             if request.POST[pkey] in ['hsd','lys','glu','asp']: continue # these are defaults, no need for a patch
             p = structure.models.Patch()
             p.structure = new_ws
-            p.patch_segid = structure.models.segment.Objects.filter(structure=struct,is_working='n',name=segid)[0]
+            p.patch_segid = structure.models.Segment.objects.get(structure=struct,is_working='n',name=segid)
             p.patch_name = request.POST[pkey]
             p.patch_segres = "%s %s" % (segid,resid)
             p.save()
