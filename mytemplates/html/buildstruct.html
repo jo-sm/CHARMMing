@@ -71,11 +71,11 @@
           <table align="center" cellspacing="2" cellpadding="2">
           <tr><td>SEGID</td><td>Residue Number</td><td>Protonation State</td></tr>
           {% for pproto in proto_list %}
-            <tr><td>{{ pproto.segid }}</td><td>{{ pproto.resid }}</td>
+            <tr><td>{{ pproto.0 }}</td><td>{{ pproto.1 }}</td>
                <td>
-                 <select name="protostate_{{ pproto.segid }}_{{ pproto.resid }}">
-                   {% for alt in pproto.alternative %}
-                     <option value="alt">alt</option>
+                 <select name="protostate_{{ pproto.0 }}_{{ pproto.1 }}" width="5">
+                   {% for alt in pproto.2 %}
+                     <option value="{{ alt.0 }}">{{ alt.0 }} ({{ alt.1 }})</option>
                    {% endfor %}
                  </select>
                </td>

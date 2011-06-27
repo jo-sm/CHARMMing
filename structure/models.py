@@ -418,13 +418,16 @@ class Segment(models.Model):
         for m in s.iter_res():
             nm = m.resName.strip()
             if nm in ['hsd','hse','hsp','his']:
-                rarr.append((self.name,m.resid,['hsd','hse','hsp']))
+                rarr.append((self.name,m.resid, \
+                            [('hsd','Neutral histadine with proton on the delta carbon'), \
+                             ('hse','Neutral histadine with proton on the epsilon carbon'),
+                             ('hsp','Positive histadine with protons on both the delta and epsilon carbons')]))
             if nm in ['asp','aspp']:
-                rarr.append((self.name,m.resid,['asp','aspp']))
+                rarr.append((self.name,m.resid,[('asp','-1 charged aspartic acid'),('aspp','Neutral aspartic acid')]))
             if nm in ['glu','glup']:
-                rarr.append((self.name,m.resid,['asp','aspp']))
+                rarr.append((self.name,m.resid,[('glu','-1 charged glutamic acid'),('glup','Neutral glutamic acid')]))
             if nm in ['lys','lsn']:
-                rarr.append((self.name,m.resid,['lys','lsn']))
+                rarr.append((self.name,m.resid,[('lys','+1 charged Lysine'),('lsn','Neutral Lysine')]))
 
         pfp.close()
         return rarr
