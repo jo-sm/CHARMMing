@@ -62,19 +62,23 @@ class Structure(models.Model):
         logfp = open('/tmp/getDisul.log', 'w')
 
         dsl = self.pdb_disul.split()
+        logfp.write('dsl = %s\n' % dsl)
+        logfp.flush()
         n = 0
         rarr = []
         logfp.write('len dsl = %d\n' % len(dsl))
-        while n <= len(dsl):
+        logfp.flush()
+        while n < len(dsl):
             idx = dsl[n]
             resn1 = dsl[n+1]
-            segn1 = dsl[n+2] 
+            segn1 = dsl[n+2] + '-pro' # protein segments have disulfides
             resi1 = dsl[n+3]
             resn2 = dsl[n+4]
-            segn2 = dsl[n+5]
+            segn2 = dsl[n+5] + '-pro'
             resi2 = dsl[n+6]
             n += 7
             logfp.write('got %s: %s %s %s disul to %s %s %s\n' % (idx,segn1,resn1,resi1,segn2,resn2,resi2))
+            logfp.flush()
             rarr.append((segn1,resn1,resi1,segn2,resn2,resi2))
 
         logfp.close()
@@ -92,6 +96,8 @@ class Structure(models.Model):
     #takes the information from the Remark statement of
     #a PDB and determines the title, jrnl, and author
     def getHeader(self,pdbHeader):
+        logfp = open('/tmp/getheader.log', 'w')
+
         for line in pdbHeader:
             if line.startswith('title'):
                 line = line.replace('title','')
@@ -105,9 +111,17 @@ class Structure(models.Model):
                 line = line.replace('refn','')
                 self.journal += line.strip()
             elif line.startswith('ssbond'):
+                logfp.write('got line: %s\n' % line)
+
                 # process disulfide bridges
                 line = line.replace('ssbond','')
+                logfp.write('now line: %s\n' % line)
+                line = ' '.join(line.split()[:7]) # grab the first seven elements of the line
+
                 self.pdb_disul += ' %s' % line.strip()
+                logfp.write('pdb_disul = %s\n' % self.pdb_disul)
+
+        logfp.close()
 
 	if self.title:
             if len(self.title) > 249:

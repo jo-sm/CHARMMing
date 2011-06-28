@@ -89,13 +89,15 @@
           <table align="center" cellspacing="2" cellpadding="2">
             <tr><td>SEGID 1</td><td>RESID 1</td><td>SEGID 2</td><td>RESID 2</td><td>Selected</td></tr>
             {% for disul in disulfide_list %}
-              <tr><td>{{ disul.0 }}</td><td>{{ disul.2 }}</td><td>{{ disul.3 }}</td><td>{{ disul.5 }}</td><td><input type="checkbox" name="disul_{{ disul.0 }}_{{ disul.2 }}_{{ disul.3 }}_{{ disul.5 }}" /></td></tr>
+              <tr><td>{{ disul.0 }}</td><td>{{ disul.2 }}</td><td>{{ disul.3 }}</td><td>{{ disul.5 }}</td><td><input type="checkbox" name="disul_{{ disul.0 }}_{{ disul.2 }}_{{ disul.3 }}_{{ disul.5 }}" checked /></td></tr>
             {% endfor %}
           </table>
         {% endif %}
 
+<!--
         <h3>Apply Restraints</h3>
         <p>Enter number of restraints: <input type="text" name="nrestraints" /></p>
+-->
 
         <input type="submit" value="Submit" />
      </form>     
