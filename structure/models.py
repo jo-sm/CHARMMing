@@ -467,7 +467,7 @@ class WorkingSegment(Segment):
 
     # This method will handle the building of the segment, including
     # any terminal patching
-    def build(self,mdlname,scriptlist):
+    def build(self,mdlname,workstruct,scriptlist):
         # template dictionary passes the needed variables to the template
         template_dict = {}
         template_dict['topology_list'] = self.rtf_list.split(' ')
@@ -498,8 +498,20 @@ class WorkingSegment(Segment):
             template_dict['sequ_line'] = sequ_line
             template_dict['number_of_sequences'] = `number_of_sequences`  
 
-        # ToDo: right around here is where we would want to handle any
-        # protonation patching for this sequence.
+        # Right around here is where we would want to handle any
+        # protonation patching for this segment.
+        patch_lines = ''
+        patches = Patch.objects.filter(structure=workstruct)
+        for patch in patches:
+            pseg = patch.patch_segid
+            if pseg.name == self.name:
+                # this is a patch that we want to apply
+                if patch.patch_name.startswith('hs'):
+                   patch_lines += 'rename resn %s sele resid %s end\n' % (patch.patch_name,patch.patch_segres.split()[1])
+                else:
+                   patch_lines += 'patch %s %s\n' % (patch.patch_name,patch.patch_segres)
+
+        if patch_lines: template_dict['patch_lines'] = patch_lines
 
         # now write out the PDB file in case it doesn't exist
         fp = open(self.structure.pickle, 'r')
@@ -748,7 +760,7 @@ class WorkingStructure(models.Model):
         tdict['blncharge'] = False # we're not handling BLN models for now
         for segobj in self.segments.all():
             if segobj.isBuilt != 't':
-                segobj.build(self.modelName,scriptlist)
+                segobj.build(self.modelName,self,scriptlist)
             tdict['seg_list'].append(segobj)
 
         tdict['topology_list'] = self.getTopologyList()

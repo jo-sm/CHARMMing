@@ -18,7 +18,6 @@
   ic build
 
   coor orie
-  hbuild
 
 {% else %}
   read sequence pdb name {{ pdb_in }}
@@ -30,8 +29,14 @@
     ic fill preserve
     ic build
   {% endif %}
-  hbuild
 {% endifequal %}
+
+{% if patch_lines %}
+  ! set up protonation patching on this segment
+  {{ patch_lines }}
+{% endif %}
+
+hbuild
 
 ! write out the protein structure file (psf) and
 ! the coordinate file in pdb and crd format.
