@@ -44,7 +44,7 @@ class Structure(models.Model):
     name   = models.CharField(max_length=100)
     pickle = models.CharField(max_length=100)
 
-    pdb_disul = models.CharField(max_length=100)
+    pdb_disul = models.CharField(max_length=250)
     location = models.CharField(max_length=200) 
     title = models.CharField(max_length=250) 
     author = models.CharField(max_length=250) 
@@ -56,7 +56,29 @@ class Structure(models.Model):
     # GUTS-ified disulfide list builder
     # Note: this returns a list of tuples
     def getDisulfideList(self):
-        return None
+        if not self.pdb_disul:
+            return None
+
+        logfp = open('/tmp/getDisul.log', 'w')
+
+        dsl = self.pdb_disul.split()
+        n = 0
+        rarr = []
+        logfp.write('len dsl = %d\n' % len(dsl))
+        while n <= len(dsl):
+            idx = dsl[n]
+            resn1 = dsl[n+1]
+            segn1 = dsl[n+2] 
+            resi1 = dsl[n+3]
+            resn2 = dsl[n+4]
+            segn2 = dsl[n+5]
+            resi2 = dsl[n+6]
+            n += 7
+            logfp.write('got %s: %s %s %s disul to %s %s %s\n' % (idx,segn1,resn1,resi1,segn2,resn2,resi2))
+            rarr.append((segn1,resn1,resi1,segn2,resn2,resi2))
+
+        logfp.close()
+        return rarr
 
     #Returns a list of files not specifically associated with the structure
     def getNonStructureFiles(self):
@@ -70,55 +92,42 @@ class Structure(models.Model):
     #takes the information from the Remark statement of
     #a PDB and determines the title, jrnl, and author
     def getHeader(self,pdbHeader):
-        remark = re.compile('REMARK')
-        title = re.compile('TITLE')
-        jrnl = re.compile('JRNL')
-        author = re.compile('AUTHOR') 
-        ref = re.compile('REF') 
-        refn = re.compile('REFN')
         for line in pdbHeader:
-	    #ignore remark statements
-            if(remark.match(line)):            
-                break
-            if(title.match(line)):
-                self.title = self.title + line.strip()
-            elif(author.match(line)):
-                self.author = self.author + line.strip()
-            elif(jrnl.match(line) and (ref.search(line) or refn.search(line))):
-                self.journal = self.journal + line.strip()
-            elif line.startswith("SSBOND"):
+            if line.startswith('title'):
+                line = line.replace('title','')
+                self.title += line.strip()
+            elif line.startswith('author'):
+                line = line.replace('author','')
+                self.author += line.strip()
+            elif line.startswith('jrnl') or line.startswith('ref') or line.startswith('refn'):
+                line = line.replace('jrnl','')
+                line = line.replace('ref','')
+                line = line.replace('refn','')
+                self.journal += line.strip()
+            elif line.startswith('ssbond'):
                 # process disulfide bridges
-                dspatch = structure.Patch()
-                dspatch.structure = self
-                dspatch.patch_name = 'disul'
-                try:
-                    dspatch.patch_atoms = '%s:%s-%s:%s\n' % (tlist[3].lower(), tlist[4], tlist[6].lower(), tlist[7])
-                    dspatch.save()
-                except:
-                    # ToDo, we should raise some sort of parse error here, but for now just pass
-                    pass
+                line = line.replace('ssbond','')
+                self.pdb_disul += ' %s' % line.strip()
 
 	if self.title:
-            self.title = (title.sub('',self.title))
             if len(self.title) > 249:
                 self.title = self.title[0:248]
 	else:
 	    self.title = "No information found"
-	if(self.author):
-            self.author = (author.sub('',self.author))
+	if self.author:
             if len(self.author) > 249:
                 self.author = self.author[0:248]
 	else:
 	    self.author = "No information found"
 	self.journal = self.journal.strip()
-	if(self.journal):
-            self.journal = (jrnl.sub('',self.journal))
-            self.journal = (ref.sub('',self.journal))
-            self.journal = (refn.sub('',self.journal))
+	if self.journal:
             if len(self.journal) > 249:
                 self.journal = self.journal[0:248]
 	else:
 	    self.journal = "No information found"
+        if self.pdb_disul:
+            if len(self.pdb_disul) > 249:
+                raise AssertionError('Too many disulfides in PDB')
 
         self.save()
  

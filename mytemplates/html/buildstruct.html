@@ -89,7 +89,7 @@
           <table align="center" cellspacing="2" cellpadding="2">
             <tr><td>SEGID 1</td><td>RESID 1</td><td>SEGID 2</td><td>RESID 2</td><td>Selected</td></tr>
             {% for disul in disulfide_list %}
-              <tr><td>{{ disul.segid1 }}</td><td>{{ disul.resid1 }}</td><td>{{ disul.segid2 }}</td><td>{{ disul.resid2 }}</td><td><input type="checkbox" name="disul_{{ disul.segid1 }}_{{ disul.resid1 }}_{{ disul.segid2 }}_{{ disul.resid2 }}" /></td></tr>
+              <tr><td>{{ disul.0 }}</td><td>{{ disul.2 }}</td><td>{{ disul.3 }}</td><td>{{ disul.5 }}</td><td><input type="checkbox" name="disul_{{ disul.0 }}_{{ disul.2 }}_{{ disul.3 }}_{{ disul.5 }}" /></td></tr>
             {% endfor %}
           </table>
         {% endif %}
