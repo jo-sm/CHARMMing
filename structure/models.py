@@ -527,7 +527,7 @@ class WorkingSegment(Segment):
         patches = Patch.objects.filter(structure=workstruct)
         for patch in patches:
             pseg = patch.patch_segid
-            if pseg.name == self.name:
+            if pseg and pseg.name == self.name:
                 # this is a patch that we want to apply
                 if patch.patch_name.startswith('hs'):
                    patch_lines += 'rename resn %s sele resid %s end\n' % (patch.patch_name,patch.patch_segres.split()[1])
@@ -769,6 +769,21 @@ class WorkingStructure(models.Model):
                 rlist.add(prm)
         return rlist
 
+    def getAppendPatches(self):
+        """
+        Get a list of all the patches that need to be applied at append
+        time. For now, this means disulfide patches, but it can be used
+        for other types of patching such as for FeS4 clusters in the
+        future.
+        """
+        plist = Patch.objects.filter(structure=self)
+        plines = ''
+        for patch in plist.all():
+            if patch.patch_segid: continue # not a structure-wide patch
+            plines += 'patch %s %s' % (patch.patch_name,patch.patch_segres)
+
+        return plines
+
     def build(self,scriptlist):
         """
         This method replaces minimization.append_tpl() -- it is the explicit
@@ -788,6 +803,7 @@ class WorkingStructure(models.Model):
 
         tdict['topology_list'] = self.getTopologyList()
         tdict['parameter_list'] = self.getParameterList()
+        tdict['patch_lines'] = self.getAppendPatches()
         t = get_template('%s/mytemplates/input_scripts/append.inp' % charmming_config.charmming_root)
         charmm_inp = output.tidyInp(t.render(Context(tdict)))
 

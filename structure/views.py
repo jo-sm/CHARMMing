@@ -1523,7 +1523,7 @@ def modstruct(request):
             segobj.patch_last = request.POST[lpvar]
             segobj.save()
 
-    # Figure out protonation patching
+    # Figure out protonation and disulfide patching
     for pkey in request.POST.keys():
         if pkey.startswith('protostate_'):
             (junk,segid,resid) = pkey.split('_')
@@ -1537,9 +1537,16 @@ def modstruct(request):
             p.patch_segres = "%s %s" % (segid,resid)
             p.save()
 
-    # Figure out disulfide patching
+        if pkey.startswith('disul_'):
+            (junk,segid1,resid1,segid2,resid2) = pkey.split('_')
+            if not (segid1 in seglist and segid2 in seglist): continue # patch not valid for segments selected
+            p = structure.models.Patch()
+            p.structure = new_ws
+            p.patch_name = 'disul'
+            p.patch_segres = "%s %s %s %s" % (segid1,resid1,segid2,resid2)
+            p.save()
 
-    # Figure out restraints
+    # ToDo: Figure out restraints
 
     # switch to using the new work structure
     try:

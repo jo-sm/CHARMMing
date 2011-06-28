@@ -27,6 +27,7 @@
 
   ! This is where we need to do disulfide and other multi-segment
   ! patching if it exists
+  {{ patch_lines }}
 
   {% if blncharge %} blankme
     stream charges.str
