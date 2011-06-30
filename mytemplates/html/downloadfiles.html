@@ -1,13 +1,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-    <title>View/Edit PDBs</title>
-
+    <title>Download files</title>
     <script type="text/javascript">
         var GB_ROOT_DIR = "/greybox/greybox/";
-function send_select_form(form) {
-   new Ajax.Request("/select/"+form.id, {method:'post', asynchronous:true});
-}
-
     </script>
 
   <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
@@ -22,129 +17,29 @@ function send_select_form(form) {
 </head>
 <body>
 
-<center>
-<h1>Download Files</h1>
-</center>
-<div class='status'>
-<body>
-<center>
-<a href="/charmming/downloadfiles/downloadtar/">Download a Tar file of all the files associated with this Structure</a>
-<p> </p>
-<form method="post" action=".">
-{% if syst_files %}
-Non-Protein Files
-<table class="sortable resizeable" border=2 width=700>
-<tr><th>Filename</th><th>Title</th></tr>
- {% for file in syst_files %}
-   {% ifequal file "/solvation/water.crd" %}
-       <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">water.crd</a></td><td>  water.crd  </td></tr>
-   {% else %}
-       {% ifequal file "/scripts/savegv.py" %}
-           <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">savegv.py</a></td><td>  savegv.py  </td></tr>
-       {% else %}
-           {% ifequal file "/scripts/savechrg.py" %}
-               <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">savechrg.py</a></td><td>  savechrg.py  </td></tr>
-           {% else %}
-                {% ifequal file "/scripts/calcewald.pl" %}
-                    <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">calcewald.pl</a></td><td>  calcewald.pl  </td></tr>
-                {% endifequal %}
-           {% endifequal %} 
-       {% endifequal %}
-   {% endifequal %}
- {% endfor %}
-</table>
-<br>
-{% endif %}
-Segment Files
-<table class="sortable resizable" border=2 width=700>
-<tr><th>Filename</th><th>Title</th></tr>
-{% for file in filename_list %}
-   <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">{{ file }}</a></td><td> {{ file }} </td></tr>
-{% endfor %}
-</table>
-<br>
-{% if append_files %}
-Appended Files (Production Run files)
-<table class="sortable resizeable" border=2 width=700>
-<tr><th>Filename</th><th>Title</th></tr>
- {% for file in append_files %}
-   <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">{{ file }}</a></td><td> {{ file }} </td></tr>
- {% endfor %}
-</table>
-<br>
-{% endif %}
-{% if minimization_files %}
-Minimization Files
-<table class="sortable resizeable" border=2 width=700>
-<tr><th>Filename</th><th>Title</th></tr>
- {% for file in minimization_files %}
-   <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">{{ file }}</a></td><td> {{ file }} </td></tr>
- {% endfor %}
-</table>
-<br>
-{% endif %}
-{% if solvation_files %}
-Solvation Files
-<table class="sortable resizeable" border=2 width=700> 
-<tr><th>Filename</th><th>Title</th></tr>
- {% for file in solvation_files %}
-   <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">{{ file }}</a></td><td> {{ file }} </td></tr>
- {% endfor %}
-</table>
-<br>
-{% endif %}
-{% if neutralized_files %}
-Neutralization Files
-<table class="sortable resizeable" border=2 width=700> 
-<tr><th>Filename</th><th>Title</th></tr>
- {% for file in neutralized_files %}
-   <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">{{ file }}</a></td><td> {{ file }} </td></tr>
- {% endfor %}
-</table>
-<br>
-{% endif %}
-{% if nmodes_files %}
-Normal Mode Analysis Files
-<table class="sortable resizeable" border=2 width=700>
-<tr><th>Filename</th><th>Title</th></tr>
- {% for file in nmodes_files %}
-   <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">{{ file }}</a></td><td> {{ file }} </td></tr>
- {% endfor %}
-</table>
-<br>
-{% endif %}
-{% if md_files %}
-Molecular Dynamics Files
-<table class="sortable resizeable" border=2 width=700>
-<tr><th>Filename</th><th>Title</th></tr>
- {% for file in md_files %}
-   <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">{{ file }}</a></td><td> {{ file }} </td></tr>
- {% endfor %}
-</table>
-<br>
-{% endif %}
-{% if ld_files %}
-Langevin Dynamics Files
-<table class="sortable resizeable" border=2 width=700>
-<tr><th>Filename</th><th>Title</th></tr>
- {% for file in ld_files %}
-   <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">{{ file }}</a></td><td> {{ file }} </td></tr>
- {% endfor %}
-</table>
-<br>
-{% endif %}
-{% if sgld_files %}
-Self-Guided Langevin Dynamics Files
-<table class="sortable resizeable" border=2 width=700>
-<tr><th>Filename</th><th>Title</th></tr>
- {% for file in sgld_files %}
-   <tr><td> <a href="/charmming/viewprocessfiles/download/{{file}}">{{ file }}</a></td><td> {{ file }} </td></tr>
- {% endfor %}
-</table>
-<br>
-{% endif %}
-</table>
-</form>
-</div>
-</center>
+  <h1 align="center">Download Files</h1>
+  <h2 align="center">Working structure: {{ wsname }}</h2>
+
+  <div class='status'>
+  <center>
+    <a href="/charmming/downloadfiles/downloadtar/">Download a Tar file of all the files associated with this working structure</a>
+    <br />
+    <br />
+
+    <form method="post" action=".">
+       {% for key in headers %}
+          <h3>{{ key }} files</h3>
+
+          <table cellspacing="3" cellpadding="2">
+          {% for file in filelst %}
+             {% ifequal file.0 key %}
+               <tr><td><a href="/charmming/viewprocessfiles/download/{{ file.1 }}">{{ file.1 }}</a></td><td>{{ file.2 }}</td></tr>
+             {% endifequal %}
+          {% endfor %}
+         
+        </table>
+      {% endfor %}
+   </form>
+  </center>
 </body>
+</html>

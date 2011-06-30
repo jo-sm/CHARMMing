@@ -170,307 +170,56 @@ def downloadFilesPage(request,mimetype=None):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     try:
-        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return render_to_response('html/nopdbuploaded.html')
-    os.chdir(file.location)
-    filename_list = file.getDownloadSegmentList()
-    appendfiles = []
     try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-final.pdb')
-        appendfiles.append('new_' + file.stripDotPDB(file.filename) + '-final.pdb')
+        ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-final.psf')
-        appendfiles.append('new_' + file.stripDotPDB(file.filename) + '-final.psf')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-final.crd')
-        appendfiles.append('new_' + file.stripDotPDB(file.filename) + '-final.crd')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-append.inp')
-        appendfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-append.inp')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-append.out')
-        appendfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-append.out')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-rmsd.inp')
-        appendfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-rmsd.inp')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-rmsd.out')
-        appendfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-rmsd.out')
-    except:
-        pass
+        return HttpResponse("Please perform some operations on your structure")
 
-    minimizationfiles = []
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-min.pdb')
-        minimizationfiles.append('new_' + file.stripDotPDB(file.filename) + '-min.pdb')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-min.psf')
-        minimizationfiles.append('new_' + file.stripDotPDB(file.filename) + '-min.psf')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-min.crd')
-        minimizationfiles.append('new_' + file.stripDotPDB(file.filename) + '-min.crd')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-min.inp')
-        minimizationfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-min.inp')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-min.out')
-        minimizationfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-min.out')
-    except:
-        pass
-    solvationfiles = []
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-solv.pdb')
-        solvationfiles.append('new_' + file.stripDotPDB(file.filename) + '-solv.pdb')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-solv.psf')
-        solvationfiles.append('new_' + file.stripDotPDB(file.filename) + '-solv.psf')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-solv.crd')
-        solvationfiles.append('new_' + file.stripDotPDB(file.filename) + '-solv.crd')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-solv.inp')
-        solvationfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-solv.inp')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-solv.out')
-        solvationfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-solv.out')
-    except:
-        pass
-    try:
-        os.stat('crystl_' + file.stripDotPDB(file.filename) + '.str')
-        solvationfiles.append('crystl_' + file.stripDotPDB(file.filename) + '.str')
-    except:
-        pass
+    wsname = ws.identifier
+    filelst = []
+    headers = []
 
-    neutralizedfiles = []
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-neutralized.pdb')
-        neutralizedfiles.append('new_' + file.stripDotPDB(file.filename) + '-neutralized.pdb')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-neutralized.psf')
-        neutralizedfiles.append('new_' + file.stripDotPDB(file.filename) + '-neutralized.psf')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-neutralized.crd')
-        neutralizedfiles.append('new_' + file.stripDotPDB(file.filename) + '-neutralized.crd')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-neutralized.inp')
-        neutralizedfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-neutralized.inp')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-neutralized.out')
-        neutralizedfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-neutralized.out')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-addions.str')
-        neutralizedfiles.append('new_' + file.stripDotPDB(file.filename) + '-addions.str')
-    except:
-        pass
+    # files from segment construction
+    headers.append('Segment setup')
+    for wseg in ws.segments.all():
+        filelst.append(('Segment setup', wseg.builtPSF, 'PSF of segment %s' % wseg.name))
+        filelst.append(('Segment setup', wseg.builtCRD, 'CRD of segment %s' % wseg.name))
 
-    nmodesfiles = []
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-nmodes.txt')
-        nmodesfiles.append('new_' + file.stripDotPDB(file.filename) + '-nmodes.txt')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-nmodes.inp')
-        nmodesfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-nmodes.inp')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-nmodes.out')
-        nmodesfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-nmodes.out')
-    except:
-        pass
-    try:
-        nmtrjnum = getNormalModeMovieNum(file)
-        for trj in range(nmtrjnum):
-            trj += 1
-            nmodesfiles.append('new_' + file.stripDotPDB(file.filename) + '-mtraj_' + str(trj) + '.trj')
-        for trj in range(nmtrjnum):
-            trj += 1
-            nmodesfiles.append('new_' + file.stripDotPDB(file.filename) + '-nma-mainmovie-' + str(trj) + '.pdb')
-    except:
-        pass
-    mdfiles = []
-    try:
-        os.stat(file.stripDotPDB(file.filename) + '-mdproperties.dat')
-        mdfiles.append(file.stripDotPDB(file.filename) + '-mdproperties.dat')
-    except: 
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-md.pdb')
-        mdfiles.append('new_' + file.stripDotPDB(file.filename) + '-md.pdb')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-mdavg.pdb')
-        mdfiles.append('new_' + file.stripDotPDB(file.filename) + '-mdavg.pdb')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-md.psf')
-        mdfiles.append('new_' + file.stripDotPDB(file.filename) + '-md.psf')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-md.crd')
-        mdfiles.append('new_' + file.stripDotPDB(file.filename) + '-md.crd')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-md-mainmovie.pdb')
-        mdfiles.append('new_' + file.stripDotPDB(file.filename) + '-md-mainmovie.pdb')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-md.inp')
-        mdfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-md.inp')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-md.out')
-        mdfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-md.out')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-md.dcd')
-        mdfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-md.dcd')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-md.res')
-        mdfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-md.res')
-    except:
-        pass
-    ldfiles = []
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-ld.pdb')
-        ldfiles.append('new_' + file.stripDotPDB(file.filename) + '-ld.pdb')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-ld.psf')
-        ldfiles.append('new_' + file.stripDotPDB(file.filename) + '-ld.psf')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-ld.crd')
-        ldfiles.append('new_' + file.stripDotPDB(file.filename) + '-ld.crd')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-ld-mainmovie.pdb')
-        ldfiles.append('new_' + file.stripDotPDB(file.filename) + '-ld-mainmovie.pdb')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-ld.inp')
-        ldfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-ld.inp')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-ld.out')
-        ldfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-ld.out')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-ld.dcd')
-        ldfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-ld.dcd')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-ld.res')
-        ldfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-ld.res')
-    except:
-        pass
-    sgldfiles = []
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-sgld.pdb')
-        sgldfiles.append('new_' + file.stripDotPDB(file.filename) + '-sgld.pdb')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-sgld.psf')
-        sgldfiles.append('new_' + file.stripDotPDB(file.filename) + '-sgld.psf')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-sgld.crd')
-        sgldfiles.append('new_' + file.stripDotPDB(file.filename) + '-sgld.crd')
-    except:
-        pass
-    try:
-        os.stat('new_' + file.stripDotPDB(file.filename) + '-sgld-mainmovie.pdb')
-        sgldfiles.append('new_' + file.stripDotPDB(file.filename) + '-sgld-mainmovie.pdb')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-sgld.inp')
-        sgldfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-sgld.inp')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-sgld.out')
-        sgldfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-sgld.out')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-sgld.dcd')
-        sgldfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-sgld.dcd')
-    except:
-        pass
-    try:
-        os.stat('charmm-' + file.stripDotPDB(file.filename) + '-sgld.res')
-        sgldfiles.append('charmm-' + file.stripDotPDB(file.filename) + '-sgld.res')
-    except:
-        pass
-    systfiles = []
-    done = re.compile('Done')
-    fail = re.compile('Failed')
-    try:
-        solvation_params = solvationParams.objects.filter(pdb=file,selected='y')[0].statusHTML
-    except:
-        solvation_params = ''
-    if fail.search(solvation_params) or done.search(solvation_params):
-        systfiles = file.getNonProteinFiles()
-    return render_to_response('html/downloadfiles.html',{'filename_list':filename_list,'append_files':appendfiles, 'minimization_files':minimizationfiles,'solvation_files':solvationfiles,'neutralized_files':neutralizedfiles,'md_files':mdfiles,'ld_files':ldfiles,'sgld_files':sgldfiles,'syst_files':systfiles,'nmodes_files': nmodesfiles})
+        # there would be an input and output too
+        filelst.append(('Segment setup', 'build-%s.inp' % wseg.name, 'Input file to build segment %s' % wseg.name))
+        filelst.append(('Segment setup', 'build-%s.out' % wseg.name, 'Output file from building segment %s' % wseg.name))
+
+
+    # now get all workingfiles associated with the structure
+    # hack alert: we only store CRDs now but we can extrapolate the PSFs, INPs, and OUTs
+    # ToDo: store this info in the workingfile
+    wfiles = structure.models.WorkingFile.objects.filter(structure=ws)
+    for wf in wfiles:
+        basename = wf.canonPath.split('/')[-1]
+        if basename == "%s.crd" % ws.identifier:
+            headers.append('Structure setup')
+            filelst.append(('Structure setup', 'build-%s.inp' % ws.identifier, 'Input file used to build the structure'))
+            filelst.append(('Structure setup', 'build-%s.out' % ws.identifier, 'Output from building the structure'))
+            filelst.append(('Structure setup', basename.replace('.crd','.psf'), 'PSF of the built structure'))
+            filelst.append(('Structure setup', basename, 'CRD file of the built structure'))
+
+        elif basename == 'mini-%s.crd' % ws.identifier:
+            headers.append('Minimization')
+            filelst.append(('Minimization', 'minimize-%s.inp' % ws.identifier, 'Input file for minimization'))
+            filelst.append(('Minimization', 'minimize-%s.out' % ws.identifier, 'Output file from minimization'))
+            filelst.append(('Minimization', basename.replace('.crd','.psf'), 'PSF of the built structure'))
+            filelst.append(('Minimization', basename, 'CRD file of the built structure'))
+
+    logfp = open('/tmp/dl.txt', 'w')
+    logfp.write('%s\n' % filelst)
+    logfp.close()
+
+    return render_to_response('html/downloadfiles.html', {'filelst': filelst, \
+                                                          'headers': headers, \
+                                                          'wsname': wsname})
 
 #Wraps all files associated with the PDB into a tar and deletes it
 def downloadTarFile(request,mimetype=None):
@@ -600,13 +349,19 @@ def downloadProcessFiles(request,filename, mimetype = None):
         return downloadGenericFiles(request,filename)
     if mimetype is None:
         mimetype,encoding = mimetypes.guess_type("%s/%s/%s" % (charmming_config.user_home,username,filename))
+
     try:
-        os.stat("%s/%s/%s" % (charmming_config.user_home,username,filename))
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return HttpResponse('No structure uploaded')
+    try:
+        sval = os.stat("%s/%s" % (struct.location,filename))
     except:
         return HttpResponse('Oops ... that file no longer exists.')
     response = HttpResponse(mimetype=mimetype)
-    response['Content-Disposition'] = 'attachment; filename=%s' %filename
-    response.write(file(charmming_config.user_home + "/" + username + "/" + filename, "rb").read())
+    response['Content-Disposition'] = 'attachment; filename=%s' % filename
+    response['Content-length'] = sval.st_size
+    response.write(file("%s/%s" % (struct.location,filename), "rb").read())
     return response
 
 #Loads template that contains all the inp/out files for download
