@@ -1,10 +1,10 @@
 <head>
-<script type="text/javascript" src="/charmming/jmol/Jmol.js"></script>
-<script type="text/javascript" src="/charmming/js/custom.js"></script>
-<script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
+  <script type="text/javascript" src="/charmming/jmol/Jmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/custom.js"></script>
+  <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
 </head>
 <body>
-<script>
+  <script>
     function makeMspace()
     {
        var dimarray = parent.getFrameDim();
@@ -14,33 +14,12 @@
     jmolInitialize("/charmming/jmol/"); // REQUIRED
     jmolSetAppletColor("black");
     {% ifequal segid "NA" %}
-       jmolApplet(parent.getFrameDim(), "load /charmming/pdbuploads/{{username}}/{{filename}};anim mode palindrome 2 2;anim on");
+       jmolApplet(parent.getFrameDim(), "load /charmming/pdbuploads/{{filepath}};anim mode palindrome 2 2;anim on");
     {% else %}
-       //alert("{{username}} {{filename}} load /charmming/pdbuploads/{{username}}/{{filename}}");
-       //alert("segid {{segid}} resid {{resid}}");
-       jmolApplet(parent.getFrameDim(), "load /charmming/pdbuploads/{{username}}/{{filename}};anim mode palindrome 2 2; anim on; select {{resid}}; cpk 30%; wireframe 55; select {{resid}} and ( _O or _N ); label %a, %n");
+       jmolApplet(parent.getFrameDim(), "load /charmming/pdbuploads/{{filepath}};anim mode palindrome 2 2; anim on; select {{resid}}; cpk 30%; wireframe 55; select {{resid}} and ( _O or _N ); label %a, %n");
     {% endifequal %}
-    /*jmolApplet(parent.getFrameDim(), "load /charmming/pdbuploads/{{username}}/{{filename}};anim mode palindrome 2 2;anim on; select 29:PSEG; cpk 25%;
- * wireframe 50; label %e, %n"); */
 </script>
-<!--<body onload="makeMspace();" -->
+
 <div id="app">
 </div>
-<!--
-<div class="jmolfooter" style="background-color: #000000;">
-  <center>
-    <button value="Minimize Window" onclick="minWin('jmolVisual');">Minimize Window</button>&nbsp;
-    <button value="Close Window" onclick="closeWin('jmolVisual');">Close Window</button>&nbsp;
-  </center>
-</div>
--->
 </body>
-<!--
-    <applet codebase="/charmming/marvin/"
-        code="chemaxon/marvin/space/gui/MSpaceApplet" name="MSpaceApplet" width=400 height=400
-        archive="mspace.jar,jmarvin.jar,jogl.jar,gluegen-rt.jar">
-    <param name="progressbar" value="true">
-    <param name="selectionpanel" value="false">
-    <param name="molecule" value="/pdbuploads/{{username}}/{{filename}}">
-    </applet>
--->

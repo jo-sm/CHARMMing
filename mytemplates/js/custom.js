@@ -378,18 +378,11 @@ function setSolvSize()
 //allows user to choose jmol or chemaxon
 function chooseViewProgram(filename,segid,resid)
 {
- if(document.getElementById('chemaxon').checked)
- {
-  openWin('spread', filename, 200, 300, 800, 600, '/charmming/chemaxonview/' + filename,'jmolVisual')
- }
- else
- {
   if(arguments.length == 3) {
-    openWin('spread', filename, 200, 300, 800, 600, '/charmming/jmolviewhl/' + filename + '/' + segid + '/' + resid + '/', 'jmolVisual')
+    openWin('spread', filename, 200, 300, 800, 600, '/charmming/jmolviewhl/' + filename + '/' + segid + '/' + resid + '/', 'jmolVisual');
   } else {
-    openWin('spread', filename, 200, 300, 800, 600, '/charmming/jmolview/' + filename,'jmolVisual')
+    openWin('spread', filename, 200, 300, 800, 600, '/charmming/jmolview/' + filename,'jmolVisual');
   }
- }
 }
 
 //creates a unique TabID for the tabbing system

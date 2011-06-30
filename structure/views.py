@@ -186,6 +186,7 @@ def downloadFilesPage(request,mimetype=None):
     headers.append('Segment setup')
     for wseg in ws.segments.all():
         filelst.append(('Segment setup', wseg.builtPSF, 'PSF of segment %s' % wseg.name))
+        filelst.append(('Segment setup', wseg.builtPSF.replace('.psf','.pdb'), 'PDB of segment %s' % wseg.name))
         filelst.append(('Segment setup', wseg.builtCRD, 'CRD of segment %s' % wseg.name))
 
         # there would be an input and output too
@@ -204,6 +205,7 @@ def downloadFilesPage(request,mimetype=None):
             filelst.append(('Structure setup', 'build-%s.inp' % ws.identifier, 'Input file used to build the structure'))
             filelst.append(('Structure setup', 'build-%s.out' % ws.identifier, 'Output from building the structure'))
             filelst.append(('Structure setup', basename.replace('.crd','.psf'), 'PSF of the built structure'))
+            filelst.append(('Structure setup', basename.replace('.crd','.pdb'), 'PDB of the built structure'))
             filelst.append(('Structure setup', basename, 'CRD file of the built structure'))
 
         elif basename == 'mini-%s.crd' % ws.identifier:
@@ -211,7 +213,24 @@ def downloadFilesPage(request,mimetype=None):
             filelst.append(('Minimization', 'minimize-%s.inp' % ws.identifier, 'Input file for minimization'))
             filelst.append(('Minimization', 'minimize-%s.out' % ws.identifier, 'Output file from minimization'))
             filelst.append(('Minimization', basename.replace('.crd','.psf'), 'PSF of the built structure'))
+            filelst.append(('Minimization', basename.replace('.crd','.pdb'), 'PDB of the built structure'))
             filelst.append(('Minimization', basename, 'CRD file of the built structure'))
+
+        elif basename == 'solv-%s.crd' % ws.identifier:
+            headers.append('Solvation')
+            filelst.append(('Solvation', 'solvate-%s.inp' % ws.identifier, 'Input file for solvation'))
+            filelst.append(('Solvation', 'solvate-%s.out' % ws.identifier, 'Output file from solvation'))
+            filelst.append(('Solvation', basename.replace('.crd','.psf'), 'PSF of the solvated structure'))
+            filelst.append(('Solvation', basename.replace('.crd','.pdb'), 'PDB of the solvated structure'))
+            filelst.append(('Solvation', basename, 'CRD file of the solvated structure'))
+
+        elif basename == 'neut-%s.crd' % ws.identifier:
+            headers.append('Neutralization')
+            filelst.append(('Neutralization', 'neutralize-%s.inp' % ws.identifier, 'Input file for neutralization'))
+            filelst.append(('Neutralization', 'neutralize-%s.out' % ws.identifier, 'Output file from neutralization'))
+            filelst.append(('Neutralization', basename.replace('.crd','.psf'), 'PSF of the neutralized structure'))
+            filelst.append(('Neutralization', basename.replace('.crd','.pdb'), 'PDB of the neutralized structure'))
+            filelst.append(('Neutralization', basename, 'CRD file of the neutralized structure'))
 
     logfp = open('/tmp/dl.txt', 'w')
     logfp.write('%s\n' % filelst)
@@ -342,6 +361,7 @@ def downloadProcessFiles(request,filename, mimetype = None):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     username = request.user.username
+
     #if the filename contains a slash, it is probably not located in the pdb_uploads/ folder
     #an example would be filename == /solvation/water.crd which is located in /usr/local/charmming
     slash = re.compile("/")
@@ -423,77 +443,76 @@ def viewProcessFiles(request):
 
     return render_to_response('html/viewprocessfiles.html', {'minsolv_list': minsolv_list,'dyn_list': dyn_list,'seg_list': seg_list,'nmodes_list': nmodes_list,'username': request.user.username, 'redox_list': redox_list})
 
-#Lets user view PDB through jmol/Chemaxon
 def visualize(request,filename):
+    """
+    Allows the user to visualize their structure via Jmol
+    """
+
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
+    username = request.user.username
+
     try:
-        username = request.user.username
-        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
-        file_list = file.getFileList()
-        het_list = file.getNonGoodHetPDBList()
-        tip_list = file.getGoodHetPDBList()
-        dashf_list = file.getDashFPDBList()
-        protein_list = file.getProteinSegPDBList()
+        struct =  structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("No PDB Uploaded")
+        return HttpResponse('No structure uploaded')
+    try:
+        ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        return HttpResponse('No structure uploaded')
 
-    # sometimes, the same file name can occur in both the protein list and
-    # the dashf list ... this needs to get cleaned up. We *should* use a set
-    # union for this, but to maintain Python 2.3 compatibility we use this
-    # hackish method instead.
-    for fname in dashf_list:
-        if fname in protein_list:
-            protein_list.remove(fname)
-        elif fname in tip_list:
-            tip_list.remove(fname)
-        elif fname in het_list:
-            het_list.remove(fname)
+    filelst = []
 
-    append_pdb = "new_" + file.stripDotPDB(file.filename) + "-final.pdb" 
-    solv_pdb = "new_" + file.stripDotPDB(file.filename) + "-solv.pdb" 
-    neu_pdb = "new_" + file.stripDotPDB(file.filename) + "-neutralized.pdb" 
-    min_pdb = "new_" + file.stripDotPDB(file.filename) + "-min.pdb" 
-    md_pdb = "new_" + file.stripDotPDB(file.filename) + "-md.pdb" 
-    md_movie_pdb = "new_" + file.stripDotPDB(file.filename) + "-md-mainmovie.pdb" 
-    ld_pdb = "new_" + file.stripDotPDB(file.filename) + "-ld.pdb" 
-    ld_movie_pdb = "new_" + file.stripDotPDB(file.filename) + "-ld-mainmovie.pdb" 
-    sgld_pdb = "new_" + file.stripDotPDB(file.filename) + "-sgld.pdb" 
-    sgld_movie_pdb = "new_" + file.stripDotPDB(file.filename) + "-sgld-mainmovie.pdb" 
-    nmtrjnum = getNormalModeMovieNum(file)
-    nmodes_list = []
-    for trj in range(nmtrjnum):
-        trj += 1
-        nmodes_list.append('new_' + file.stripDotPDB(file.filename) + '-nma-mainmovie-' + str(trj) + '.pdb')
+    # files from segment construction
+    for wseg in ws.segments.all():
+        filelst.append((wseg.builtCRD.replace('.crd','.pdb'), 'Segment %s' % wseg.name))
 
-    proto_list = getProtoPDB(file)
-    return render_to_response('html/visualize.html', {'filename': filename,'username':username,'file_list':file_list,\
-                             'het_list':het_list,'tip_list':tip_list,'protein_list':protein_list, 'min_pdb':min_pdb,\
-                             'solv_pdb':solv_pdb,'neu_pdb':neu_pdb,'md_pdb':md_pdb,'ld_pdb':ld_pdb,'sgld_pdb':sgld_pdb,\
-                             'append_pdb':append_pdb, 'dashf_list':dashf_list,'md_movie_pdb':md_movie_pdb,\
-                             'ld_movie_pdb':ld_movie_pdb,'sgld_movie_pdb':sgld_movie_pdb,'proto_list': proto_list,'nmodes_list':nmodes_list})
+
+    # now get all workingfiles associated with the structure
+    wfiles = structure.models.WorkingFile.objects.filter(structure=ws)
+    for wf in wfiles:
+        if wf.canonPath.endswith('.crd'):
+            s = wf.canonPath.split('/')[-1]
+            if s.startswith('mini-'):
+                op = 'minimization'
+            elif s.startswith(ws.identifier):
+                op = 'appending'
+            elif s.startswith('solv-'):
+                op = 'solvation'
+            elif s.startswith('md-'):
+                op = 'molecular dynamics'
+            else:
+                op = 'unknown operation'
+
+            filelst.append((s.replace('.crd','.pdb'), 'Structure after %s' % op))
+
+    return render_to_response('html/visualize.html', {'filelst': filelst})
 
 #Let's user view PDB through jmol
 def jmol(request,filename):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
+
     try:
-        username = request.user.username
-        return render_to_response('html/jmol.html', {'filename': filename,'username':username,'segid':'NA','resid':'NA' })
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("No PDB Uploaded")
+        return HttpResponse('No structure')
+    filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
+
+    return render_to_response('html/jmol.html', {'filepath': filename, 'segid':'NA', 'resid':'NA'})
+
 
 def jmolHL(request,filename,segid,resid):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    fp = open("/tmp/foo", "a+")
-    fp.write("Got %s %s %s\n" % (filename,segid,resid))
-    fp.close()
+
     try:
-        username = request.user.username
-        return render_to_response('html/jmol.html', {'filename': filename,'username':username, 'segid': segid, 'resid': resid })
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("No PDB Uploaded")
+        return HttpResponse('No structure')
+    filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
+
+    return render_to_response('html/jmol.html', {'filepath': filename, 'segid': segid, 'resid': resid })
 
 #Allows the user to see what processes their PDBs are undergoing
 def viewstatus(request):

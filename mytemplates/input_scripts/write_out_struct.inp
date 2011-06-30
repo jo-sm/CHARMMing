@@ -8,3 +8,6 @@ write coor card name {{ output_name }}.crd
 * {{output_name}}.crd
 *
 
+write coor pdb name {{ output_name }}.pdb
+* {{output_name}}.pdb
+*
