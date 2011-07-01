@@ -36,106 +36,35 @@ import lessonaux, input, output, charmming_config
 def lddisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    Structure.checkRequestData(request)
+
+    input.checkRequestData(request)
+
     #chooses the file based on if it is selected or not
     try:
-        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
+         struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please submit a structure first.")
-    os.chdir(file.location)
+         return HttpResponse("Please submit a structure first.")
+    try:
+         ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
-
-    #creates a list of filenames associated with the PDB
-    #The "md" option takes away all -md,-ld, and -sgld names
-    #filename_list = file.getLimitedFileList("md")
-    filename_list = file.getLimitedFileList('blank')
-    solv_pdb = "new_" + file.stripDotPDB(file.filename) + "-solv.pdb"
-    neu_pdb = "new_" + file.stripDotPDB(file.filename) + "-neutralized.pdb"
-    min_pdb = "new_" + file.stripDotPDB(file.filename) + "-min.pdb"
-    md_pdb = "new_" + file.stripDotPDB(file.filename) + "-md.pdb"
-    ld_pdb = "new_" + file.stripDotPDB(file.filename) + "-ld.pdb"
-    sgld_pdb = "new_" + file.stripDotPDB(file.filename) + "-sgld.pdb"
-    het_list = file.getNonGoodHetPDBList()
-    tip_list = file.getGoodHetPDBList()
-    seg2_list = file.getProteinSegPDBList()
-    protein_list = [x for x in seg2_list if x.endswith("-pro.pdb") or x.endswith("-pro-final.pdb")]
-    go_list = [x for x in seg2_list if x.endswith("-go.pdb") or x.endswith("-go-final.pdb")]
-    bln_list = [x for x in seg2_list if x.endswith("-bln.pdb") or x.endswith("-bln-final.pdb")]
-    nucleic_list = [x for x in seg2_list if x.endswith("-rna.pdb") or x.endswith("-dna.pdb") or x.endswith("-rna-final.pdb") or x.endswith("-dna-final.pdb")]
-    userup_list = [x for x in seg2_list if not ( x.endswith("-pro.pdb") or x.endswith("-pro-final.pdb") or x.endswith("-dna.pdb") or x.endswith("-dna-final.pdb") \
-                     or x.endswith("-rna.pdb") or x.endswith("-rna-final.pdb") or x.endswith("het.pdb") or x.endswith("het-final.pdb") or x.endswith("-go.pdb") \
-                     or x.endswith("-go-final.pdb") or x.endswith("-bln.pdb") or x.endswith("-bln-final.pdb") ) ]
-    seg_list = file.segids.split(' ')
-    disulfide_list = file.getPDBDisulfides()
-
-    # Tim Miller: 03-09-2009 we need to pass a segpatch_list (containing
-    # both the list of segments and their default NTER patches) to the
-    # template.
-    propatch_list = []
-    nucpatch_list = []
-    for seg in seg_list:
-        if seg.endswith("-pro"):
-            defpatch = checkNterPatch(file,seg)
-            propatch_list.append((seg,defpatch))
-        elif seg.endswith("-dna") or seg.endswith("-rna"):
-            nucpatch_list.append((seg,"5TER","3TER"))
-
-    #Each checkbox or radio button on the ldform.html page has a name equal
-    #to the filename it's associated with. This for loop tries to get the post
-    #data using the name as a key
-    tempid = None
-    for i in range(len(filename_list)):
-        try:
-            tempid = request.POST[filename_list[i]]
-            break
-        except:
-            try:
-                tempid = request.POST['solv_or_min']
-                break
-            except:
-                tempid = None
-
-    if(tempid):
-        # if the name is solv/min pdb, it does not need to be appended/patched
-        # otherwise reappend them
+    if request.POST.has_key('nstep'):
         scriptlist = []
-        if tempid != min_pdb and tempid != solv_pdb and tempid != md_pdb and tempid != ld_pdb and tempid != sgld_pdb and tempid != neu_pdb:
-            seg_list = append_tpl(request.POST,filename_list,file,scriptlist)
-            ld_this_file = 'new_' + file.stripDotPDB(file.filename) + "-final.pdb"
-            html = applyld_tpl(request,file,seg_list,ld_this_file,scriptlist)
-            return HttpResponse(html)
-	else:
-            html = applyld_tpl(request,file,seg_list,tempid,scriptlist)
-            return HttpResponse(html)
+        if ws.isBuilt != 't':
+            isBuilt = False
+            pstruct = ws.build(scriptlist)
+            pstructID = pstruct.id
+        else:
+            isBuilt = True
+            pstructID = int(request.POST['pstruct'])
 
-    doCustomShake = 1
-    if file.ifExistsRtfPrm() < 0:
-        doCustomShake = 0
-
-    if file.natom > 30000:
-        solv_time_est = "at least 4 hours"
-        unsolv_time_est = "at least half an hour"
-    elif file.natom > 15000:
-        solv_time_est = "between 2 to 4 hours"
-        unsolv_time_est = "between 15 and 30 minutes"
-    elif file.natom > 10000:
-        solv_time_est = "from 1 to 2 hours"
-        unsolv_time_est = "between 5 and 15 minutes"
-    elif file.natom > 5000:
-        solv_time_est = "from 30 minutes to an hour"
-        unsolv_time_est = "from 1 to 5 minutes"    
-    elif file.natom > 1000:
-        solv_time_est = "from 15 to 30 minutes"
-        unsolv_time_est = "less than a minute" 
+        return applyld_tpl(request,ws,pstructID,scriptlist)
+  
     else:
-        solv_time_est = "less than 15 minutes"
-        unsolv_time_est = "less than a minute" 
-    trusted = isUserTrustworthy(request.user)
-    return render_to_response('html/ldform.html', {'filename_list': filename_list,'min_pdb':min_pdb,'solv_pdb':solv_pdb, 'neu_pdb': neu_pdb, 'md_pdb': md_pdb,'ld_pdb': ld_pdb, \
-                                                   'sgld_pdb': sgld_pdb,'seg_list':seg_list,'protein_list':protein_list,'tip_list':tip_list,'het_list':het_list, 'file': file, \
-                                                   'docustshake': doCustomShake, 'solv_time_est': solv_time_est, 'unsolv_time_est': unsolv_time_est,'trusted':trusted, \
-                                                   'disulfide_list': disulfide_list, 'propatch_list': propatch_list, 'nucpatch_list': nucpatch_list, 'nucleic_list': nucleic_list, \
-                                                   'userup_list': userup_list, 'go_list': go_list, 'bln_list': bln_list})
+        # get all workingFiles associated with this struct
+        wfs = WorkingFile.objects.filter(structure=ws,type='crd')
+        return render_to_response('html/ldform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
 
 #processes form data for md simulations
 def mddisplay(request):
@@ -178,34 +107,9 @@ def mddisplay(request):
         wfs = WorkingFile.objects.filter(structure=ws,type='crd')
         return render_to_response('html/mdform.html', {'ws_identifier': ws.identifier,'workfiles': wfs,'canrestart': canrestart})
 
-def applyld_tpl(request,file,seg_list,min_pdb,scriptlist):
+def applyld_tpl(request,workstruct,pstructID,scriptlist):
     postdata = request.POST
-    rtf_prm_dict = file.getRtfPrmPath()
-    fbeta = postdata['fbeta']   
-    nstep = postdata['nstep']
-    if postdata.has_key('usesgld'):
-        usesgld = postdata['usesgld']
-	ld_suffix = '-sgld'
-        try:
-            oldparam = sgldParams.objects.filter(pdb=file, selected='y')[0]
-            oldparam.selected = 'n'
-            oldparam.save()
-        except:
-            pass
-	ldp = sgldParams(selected='y',pdb=file)
-    else:
-        usesgld = None
-	ld_suffix = '-ld'
-        try:
-            oldparam = ldParams.objects.filter(pdb = file, selected = 'y')[0]
-            oldparam.selected = 'n'
-            oldparam.save()
-        except:
-            pass
-	ldp = ldParams(selected='y',pdb=file)
-    ldp.fbeta = str(fbeta)
-    ldp.nstep = str(nstep)
-    
+
     try:
         make_movie = postdata['make_movie']
         if usesgld:
@@ -224,18 +128,35 @@ def applyld_tpl(request,file,seg_list,min_pdb,scriptlist):
     template_dict = {}
     template_dict['topology_list'] = file.getTopologyList()
     template_dict['parameter_list'] = file.getParameterList()
+    template_dict['fbeta'] = postdata['fbeta']
+    template_dict['nstep'] = postdata['nstep']
+    template_dict['usesgld'] = postdata.has_key('usesgld')
+
+    if template_dict['usesgld']:
+        try:
+            oldparam = sgldParams.objects.filter(pdb=file, selected='y')[0]
+            oldparam.selected = 'n'
+            oldparam.save()
+        except:
+            pass
+        ldp = sgldParams(selected='y',pdb=file)
+
+    else:
+        try:
+            oldparam = ldParams.objects.filter(pdb = file, selected = 'y')[0]
+            oldparam.selected = 'n'
+            oldparam.save()
+        except:
+            pass
+        ldp = ldParams(selected='y',pdb=file)
+
+    ldp.fbeta = template_dict['fbeta']
+    ldp.nstep = template_dict['nstep']
+
     template_dict['filebase'] = file.stripDotPDB(file.filename)
     template_dict['input_file'] = file.stripDotPDB(min_pdb)
     template_dict['useqmmm'] = ''
     template_dict['qmmmsel'] = ''
-    template_dict['headqmatom'] = 'blankme'
-    template_dict['restraints'] = ''
-    template_dict['seg_list'] = seg_list
-    try:
-        postdata['apply_restraints']
-        template_dict['restraints'] = file.handleRestraints(request)
-    except:
-        pass
 
     #If the user wants to solvate implicitly the scpism line is needed
     #84 will be the scpism number in this program
@@ -247,20 +168,6 @@ def applyld_tpl(request,file,seg_list,min_pdb,scriptlist):
     except:
         pass
 
-    template_dict['fbeta'] = fbeta
-    template_dict['ld_suffix'] = ld_suffix
-    template_dict['shake'] = request.POST.has_key('apply_shake')
-    if request.POST.has_key('apply_shake'):
-        template_dict['which_shake'] = postdata['which_shake']
-        if postdata['which_shake'] == 'define_shake':
-            template_dict['shake_line'] = postdata['shake_line']
-            if postdata['shake_line'] != '':
-                file.checkForMaliciousCode(postdata['shake_line'],postdata)
-    template_dict['rtfprm'] = False
-    if file.ifExistsRtfPrm() < 0:
-        template_dict['rtfprm'] = True
-    template_dict['nstep'] = nstep
-    template_dict['usesgld'] = usesgld
     if(usesgld):
         tsgavg = '0.0'
         tempsg = '0.0'
@@ -294,15 +201,16 @@ def applyld_tpl(request,file,seg_list,min_pdb,scriptlist):
     si = schedInterface()
     scriptlist.append(file.location + ld_filename)
 
-    if file.lesson_type:
-        if usesgld:
-            lessonaux.doLessonAct(file,"onSGLDSubmit",postdata,None)
-        else:
-            lessonaux.doLessonAct(file,"onLDSubmit",postdata,None)
+
+    # lessons are borked at the moment
+    #if file.lesson_type:
+    #    if usesgld:
+    #        lessonaux.doLessonAct(file,"onSGLDSubmit",postdata,None)
+    #    else:
+    #        lessonaux.doLessonAct(file,"onLDSubmit",postdata,None)
 
     if make_movie:
         if usesgld:
-            print "Make sgld dyna movie"
             return makeJmolMovie(file,postdata,min_pdb,scriptlist,'sgld')
         else:
             return makeJmolMovie(file,postdata,min_pdb,scriptlist,'ld')
