@@ -684,8 +684,7 @@ def energyform(request):
     energy_lines = []
     try:
         energyfp = open('energy-%s.txt' % ws.identifier,'r')
-        for line in energyfp:
-            energy_lines += line
+        energy_lines = energyfp.readlines()
         energyfp.close()
     except:
         pass
@@ -712,21 +711,23 @@ def calcEnergy_tpl(request,workstruct,pstructID,scriptlist):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
+    pstruct = structure.models.WorkingFile.objects.filter(id=pstructID)[0]
+
     postdata = request.POST
     # template dictionary passes the needed variables to the template
     template_dict = {}
     template_dict['topology_list'] = workstruct.getTopologyList()
     template_dict['parameter_list'] = workstruct.getParameterList()
-    template_dict['file_location'] = workstruct.structure.location
     template_dict['output_name'] = 'ener-' + workstruct.identifier
+    template_dict['input_file'] = pstruct.basename
 
     try:
-        oldeo = energyParams.objects.filter(struct='workstruct', selected='y')[0]
+        oldeo = structure.models.energyParams.objects.filter(struct='workstruct', selected='y')[0]
         oldeo.selected = 'n'
         oldeo.save()
     except:
         pass
-    eobj = energyParams()
+    eobj = structure.models.energyParams()
     eobj.pdb = file
     eobj.selected = 'y'
     eobj.finale = 0.0
@@ -789,7 +790,7 @@ def calcEnergy_tpl(request,workstruct,pstructID,scriptlist):
 
     user_id = workstruct.structure.owner.id
     os.chdir(workstruct.structure.location)
-    energy_input = "energy-" + workstruct.identifier + ".inp"
+    energy_input = workstruct.structure.location + "/energy-" + workstruct.identifier + ".inp"
     scriptlist.append(energy_input)
     energy_output = "energy-" + workstruct.identifier + ".out"
     inp_out = open(energy_input,'w')
@@ -798,15 +799,17 @@ def calcEnergy_tpl(request,workstruct,pstructID,scriptlist):
 
     # go ahead and submit
     si = schedInterface()
-    enerjobID = si.submitJob(user_id,wrokstruct.structure.location,scriptlist)
+    enerjobID = si.submitJob(user_id,workstruct.structure.location,scriptlist)
     sstring = si.checkStatus(enerjobID)
 
     # loop until the energy calculation is finished
     while True:
         sstring = si.checkStatus(enerjobID)
-        ss2 = statsDisplay(sstring,enerJobID)
-        if "Done" in ss2 or "Failed" in ss2:
+        ss2 = statsDisplay(sstring,enerjobID)
+        if "Done" in ss2:
             break
+        if "Failed" in ss2:
+            return HttpResponse('Energy calculation failed. Please check output from appending the structure.')
 
     workstruct.save()
 
@@ -818,7 +821,7 @@ def calcEnergy_tpl(request,workstruct,pstructID,scriptlist):
 def parseEnergy(workstruct,output_filename,enerobj=None):
     time.sleep(2)
 
-    outfp = open(file.location + output_filename,'r')
+    outfp = open(workstruct.structure.location + '/' + output_filename,'r')
     ener = re.compile('ENER ENR')
     dash = re.compile('----------')
     charmm = re.compile('CHARMM>')
@@ -831,29 +834,25 @@ def parseEnergy(workstruct,output_filename,enerobj=None):
         line = line.lstrip()
         if line.startswith('ENER>'):
             enerobj.finale = float(string.splitfields(line)[2])
-            try:
-                enerobj.save()
-            except:
-                # usually means the FP was rounded; should be harmless
-                pass
+            enerobj.save()
         if(dash_occurance == 2 or (initiate > 0 and line.strip().startswith('CHARMM>'))):
             if(line.startswith('CHARMM>')):
                 break
             energy_lines += line
             break
         if(ener.search(line) or initiate > 0):
-            if(initiate == 0):
-                initiate = 1
+            if(initiate == 0): initiate = 1
             energy_lines += line
         if(dash.search(line) and initiate > 0):
             dash_occurance += 1
     outfp.close()
-    writefp = open(file.location + 'energy-' + file.stripDotPDB(file.filename) + '.txt','w')
+    writefp = open(workstruct.structure.location + '/energy-' + workstruct.identifier + '.txt','w')
     writefp.write(energy_lines)
     writefp.close()
 
-    if file.lesson_type:
-        lessonaux.doLessonAct(file=file,function="onEnergyDone",finale=enerobj.finale)
+    # lessons are still borked
+    #if file.lesson_type:
+    #    lessonaux.doLessonAct(file=file,function="onEnergyDone",finale=enerobj.finale)
 
     return render_to_response('html/displayenergy.html',{'linelist':energy_lines})
 

@@ -14,7 +14,7 @@
          <h3> Previously Calculated Energy </h3>
          <pre>
            {% autoescape off %}
-           {{energy_lines}}
+             {% for l in energy_lines %}{{ l }}{% endfor %}
            {% endautoescape %}
          </pre>
        </div> 

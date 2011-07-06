@@ -6,11 +6,6 @@
   {% if restraints %} blankme
     {{restraints}}
   {% endif %} blankme
-  {% if patch_list %} blankme
-    {% for line in patch_list %} blankme
-       {{line}}
-    {% endfor %} blankme
-  {% endif %} blankme
   {% include 'input_scripts/solvate_implicity.inp' %}
   {% include 'input_scripts/use_shake.inp' %}
   {% if restraints %} blankme
