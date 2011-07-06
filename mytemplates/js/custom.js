@@ -588,23 +588,9 @@ function send_form_rms(form,divupdate,filenames)
 
 function send_form_energy(form,divupdate,filenames)
 {
-  var ifsegchecked = 0;
-    for(i=0;i<filenames.length;i++)
-    {
-     if(document.getElementById('id_' + filenames[i]).checked)
-     {
-      ifsegchecked = 1;
-     }
-    }
-    if(ifsegchecked == 0)
-    {
-     Dialog.alert("<center>Please select a PDB segment to continue.</center>", {width:300, height:100, okLabel: "close"});
-     return false;
-    }
     divid = document.getElementById(divupdate);
     divid.innerHTML = 'Calculating Energy...';
     new Ajax.Updater(divupdate,'/charmming/energy/', {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-
 }
 
 function send_form_oxired(form,link,divchange,divupdate,filenames)

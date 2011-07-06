@@ -671,82 +671,57 @@ def energyform(request):
     input.checkRequestData(request)
     #chooses the file based on if it is selected or not
     try:
-        file =  structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
-    os.chdir(file.location)
-
-    #creates a list of filenames associated with the PDB
-    filename_list = file.getMoleculeFiles()
-    disulfide_list = file.getPDBDisulfides()
-    # FIXME, we need to do something about terminal patching
-    # here...
-
-    energy_lines = ''
     try:
-        energyfp = open('energy.txt','r')
+         ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before attempting an energy calculation")
+
+    os.chdir(struct.location)
+
+    energy_lines = []
+    try:
+        energyfp = open('energy-%s.txt' % ws.identifier,'r')
         for line in energyfp:
             energy_lines += line
         energyfp.close()
     except:
         pass
 
-    enefile = None
-    need_append = True
-    append_list = []
-    for i in range(len(filename_list)):
-        if request.POST.has_key('unappended_seg_%s' % filename_list[i][0]):
-            try:
-                thestr = structure.models.Segment.objects.filter(structure=file, name=filename_list[i][0])[0]
-                append_list.append(thestr)
-            except:
-                return HttpResponse('Bad segment')
-            enefile = filename_list[i][0]
-
-    if enefile is None and request.POST.has_key('appended_struct'):
-        enefile = request.POST['appended_struct']
-        need_append = False
-        if request.POST['usepatch']:
-            file.handlePatching(request.POST)
-        else:
-            #If there is no patch, make sure patch_name is zero 
-            file.patch_name = ""
-            file.save()
-
-    if enefile:
+    if request.POST.has_key('form_submit'):
         scriptlist = []
-        if need_append:
-            energy_this_file = file.name + '-final.crd'
-            return calcEnergy_tpl(request,file,seg_list,energy_this_file,scriptlist)
+        if ws.isBuilt != 't':
+            isBuilt = False
+            pstruct = ws.build(scriptlist)
+            pstructID = pstruct.id
         else:
-            return calcEnergy_tpl(request,file,seg_list,enefile,scriptlist)
+            isBuilt = True
+            pstructID = int(request.POST['pstruct'])
+
+        return calcEnergy_tpl(request,ws,pstructID,scriptlist)
+
     else:
-        doCustomShake = 1
-        trusted = isUserTrustworthy(request.user)
-        return render_to_response('html/energyform.html', {'filename_list': filename_list,\
-          'energy_lines':energy_lines,'trusted':trusted,'disulfide_list': disulfide_list})
+        # get all workingFiles associated with this struct
+        wfs = structure.models.WorkingFile.objects.filter(structure=ws,type='crd')
+        return render_to_response('html/energyform.html', {'ws_identifier': ws.identifier,'workfiles': wfs, 'energy_lines': energy_lines})
 
 
-def calcEnergy_tpl(request,file,seg_list,min_pdb,scriptlist): 
+def calcEnergy_tpl(request,workstruct,pstructID,scriptlist): 
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
+
     postdata = request.POST
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'] = file.getTopologyList()
-    template_dict['parameter_list'] = file.getParameterList()
-    template_dict['filebase'] = file.stripDotPDB(file.filename)
-    template_dict['input_file'] = file.stripDotPDB(min_pdb)
-    template_dict['file_location'] = file.location
+    template_dict['topology_list'] = workstruct.getTopologyList()
+    template_dict['parameter_list'] = workstruct.getParameterList()
+    template_dict['file_location'] = workstruct.structure.location
+    template_dict['output_name'] = 'ener-' + workstruct.identifier
 
     try:
-       solvate_implicitly = postdata['solvate_implicitly']
-    except:
-       solvate_implicitly = 0
-
-
-    try:
-        oldeo = energyParams.objects.filter(pdb = file, selected = 'y')[0]
+        oldeo = energyParams.objects.filter(struct='workstruct', selected='y')[0]
         oldeo.selected = 'n'
         oldeo.save()
     except:
@@ -754,7 +729,7 @@ def calcEnergy_tpl(request,file,seg_list,min_pdb,scriptlist):
     eobj = energyParams()
     eobj.pdb = file
     eobj.selected = 'y'
-    eobj.finale = '0.0' # needed to shut up an error from Django
+    eobj.finale = 0.0
 
     #If the user wants to solvate implicitly the scpism line is needed
     #84 will be the scpism number in this program
@@ -765,162 +740,82 @@ def calcEnergy_tpl(request,file,seg_list,min_pdb,scriptlist):
     except:
         pass
     template_dict['solvate_implicitly'] = solvate_implicitly
-    template_dict['fixnonh'] = 0
-
-    try:
-        postdata['fixnonh']
-        template_dict['fixnonh'] = 1
-
-    except:
-        #If there is a topology or paramter file then don't constrain anything
-        if file.ifExistsRtfPrm() < 0:
-            template_dict['fixnonh'] = 2
-    #handles shake
-    template_dict['shake'] = request.POST.has_key('apply_shake')
-    if request.POST.has_key('apply_shake'):
-        template_dict['which_shake'] = postdata['which_shake']
-        template_dict['qmmmsel'] = postdata['qmsele']
-
-        if postdata['which_shake'] == 'define_shake':
-            template_dict['shake_line'] = postdata['shake_line']
-
-            if postdata['shake_line'] != '':
-                file.checkForMaliciousCode(postdata['shake_line'],postdata)
-
-    template_dict['restraints'] = ''
-    try:
-        postdata['apply_restraints']
-        template_dict['restraints'] = file.handleRestraints(request)
-    except:
-        pass
 
     # check to see if PBC needs to be used -- if so we have to set up Ewald
-    template_dict['usepbc'] = ''
-    template_dict['dopbc'] = 0
-    try:
-        if postdata['usepbc']:
-            template_dict['usepbc'] =  postdata['usepbc']
-            eobj.usepbc = 'y'
-            if file.solvation_structure != 'sphere':
-                dopbc = 1
-                template_dict['dopbc'] = 1
+    dopbc = False
+    if request.POST.has_key('usepbc'):
+        if solvate_implicitly:
+            return HttpResponse('Invalid options')
+
+        # decide if the structure we're dealing with has
+        # been solvated.
+        solvated = False
+        wfc = pstruct
+        while True:
+            if wfc.parentAction == 'solv':
+                solvated = True
+                break
+            if wfc.parent:
+                wfc = wfc.parent
             else:
-                dopbc = 0
-        else:
-            eobj.usepbc = 'n'
-            dopbc = 0
-    except:
-        eobj.usepbc = 'n'
-        dopbc = 0
+                break
+        if not solvated:
+            return HttpResponse('Requested PBC on unsolvated structure')
 
-    template_dict['solvation_structure'] = file.solvation_structure
-    template_dict['relative_boundary'] = 0
-    if dopbc:
-        relative_boundary = 0
-        if file.solvation_structure != '' and file.crystal_x < 0:
-            relative_boundary = 1
-
-        template_dict['relative_boundary'] = relative_boundary
-        template_dict['dim_x'] = str(file.crystal_x)
-        template_dict['dim_z'] = str(file.crystal_z)
-        #template_dict['greaterval'] = str(greaterval)
-
-        # set up images
-        if file.solvation_structure == '' or solvate_implicitly:
-             pass
-        else:
-            # we should have a solvation file to read from
-            try:
-                os.stat(file.location + "new_" + file.stripDotPDB(file.filename) + ".xtl")
-            except:
-                # need to throw some sort of error ... for now just toss cookies
-                return HttpResponse("Oops ... transfer file not found.")
-
-    template_dict['useqmmm'] = postdata.has_key("useqmmm")
-    if postdata.has_key("useqmmm"):
-        eobj.useqmmm = 'y'
-
-        # validate input
-
-        if postdata['qmmm_exchange'] in ['HF','B','B3']:
-            exch = postdata['qmmm_exchange']
-        else:
-            exch = 'HF'
-        if postdata['qmmm_correlation'] in ['None','LYP']:
-            corr = postdata['qmmm_correlation']
-        else:
-            corr = 'None'
-        if postdata['qmmm_basisset'] in ['STO-3G','3-21G*','6-31G*']:
-            bs = postdata['qmmm_basisset']
-        else:
-            bs = 'sto3g'
-        file.checkForMaliciousCode(postdata['qmsele'],postdata)
-        qmsel = postdata['qmsele']
-        if qmsel == '':
-            qmsel = 'resid 1'
-        if postdata['qmmm_charge'] in ['-5','-4','-3','-2','-1','0','1','2','3','4','5']:
-            charge = postdata['qmmm_charge']
-        else:
-            charge = '0'
-        if postdata['qmmm_multiplicity'] in ['0','1','2','3','4','5','6','7','8','9','10']:
-            multi = postdata['qmmm_multiplicity']
-        else:
-            multi = '0'
+        dopbc = True
         try:
-            if int(postdata['num_linkatoms']) > 0:
-                linkatoms = handleLinkAtoms(file,postdata)
-            else:
-                linkatoms = None
+            sp = solvationParams.objects.filter(structure=workstruct,selected='y')[0]
         except:
-            linkatoms = None
-        eobj.qmmmsel = qmsel
+            return HttpResponse("Err ... couldn't find solvation parameters")
+        template_dict['xtl_x'] = sp.xtl_x
+        template_dict['xtl_y'] = sp.xtl_y
+        template_dict['xtl_z'] = sp.xtl_z
+        template_dict['xtl_angles'] = "%10.6f %10.6f %10.6f" % (sp.angles[0],sp.angles[1],sp.angles[2])
+        template_dict['xtl_ucell'] = sp.solvation_structure
+        template_dict['ewalddim'] = sp.calcEwaldDim()
 
-        template_dict = makeQChem_tpl(template_dict, file, exch, corr, bs, qmsel, "SP", charge, multi, file.stripDotPDB(min_pdb) + ".crd", linkatoms)
+        if template_dict['xtl_ucell'] == 'sphere':
+            return HttpResponse('Cannot do PBC on a sphere')
 
-    else:
-        eobj.useqmmm = 'n'
-
+    template_dict['dopbc'] = dopbc
     eobj.save()
-    if file.lesson_type:
-        lessonaux.doLessonAct(file,"onEnergySubmit",request.POST)
 
-    template_dict['headqmatom'] = 'blankme'
-    if eobj.useqmmm == 'y':
-        headstr = writeQMheader("", "SELE " + qmsel + " END")
-        template_dict['headqmatom'] = headstr.strip()
+    # lessons are still borked
+    #if file.lesson_type:
+    #    lessonaux.doLessonAct(file,"onEnergySubmit",request.POST)
 
-    template_dict['output_name'] = "new_" + file.stripDotPDB(file.filename) + "-energy"
     t = get_template('%s/mytemplates/input_scripts/calcEnergy_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
-    if postdata.has_key("useqmmm"):
-        if "achtung, bad QM" in charmm_inp:
-            return HttpResponse("<b>Bad QM parameter specified!</b>\n")
-        elif "you changed the QM region" in charmm_inp:
-            return HttpResponse("<b>You changed the QM region from the previous structure. That's not allowed!</b>\n")
 
-    user_id = file.owner.id
-    os.chdir(file.location)
-    energy_input = "charmm-" + file.stripDotPDB(file.filename) + "-energy.inp"
+    user_id = workstruct.structure.owner.id
+    os.chdir(workstruct.structure.location)
+    energy_input = "energy-" + workstruct.identifier + ".inp"
     scriptlist.append(energy_input)
-    energy_output = "charmm-" + file.stripDotPDB(file.filename) + "-energy.out"
-    inp_out = open(file.location + energy_input,'w')
+    energy_output = "energy-" + workstruct.identifier + ".out"
+    inp_out = open(energy_input,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
-    if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
-        return HttpResponse(generateHTMLScriptEdit(charmm_inp,scriptlist,'energy'))
-    else:
-        si = schedInterface()
-        enerjobID = si.submitJob(user_id,file.location,scriptlist)
-        #Append/energy needs to be doen before energy can be parsed
-        done = re.compile('Done')
-        failed = re.compile('Failed')
-        sstring = si.checkStatus(enerjobID)
-        while(not done.search(statsDisplay(sstring,enerjobID)) and not failed.search(statsDisplay(sstring,enerjobID))):
-            sstring = si.checkStatus(enerjobID)
-        file.save()
-        return parseEnergy(file,energy_output,eobj)
 
-def parseEnergy(file,output_filename,enerobj=None):
+    # go ahead and submit
+    si = schedInterface()
+    enerjobID = si.submitJob(user_id,wrokstruct.structure.location,scriptlist)
+    sstring = si.checkStatus(enerjobID)
+
+    # loop until the energy calculation is finished
+    while True:
+        sstring = si.checkStatus(enerjobID)
+        ss2 = statsDisplay(sstring,enerJobID)
+        if "Done" in ss2 or "Failed" in ss2:
+            break
+
+    workstruct.save()
+
+    # for now, I am not going to create a workstructure for the energy since it's effectively a
+    # no-op; talk to Lee about whether this should be done. It probably should be, at one point
+
+    return parseEnergy(workstruct,energy_output,eobj)
+
+def parseEnergy(workstruct,output_filename,enerobj=None):
     time.sleep(2)
 
     outfp = open(file.location + output_filename,'r')

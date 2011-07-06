@@ -1129,8 +1129,10 @@ class ParseException(Exception):
         self.reason = reason
 
 class energyParams(models.Model):
-    pdb = models.ForeignKey(Structure,null=True)
-    finale = models.DecimalField(max_digits=12,decimal_places=5,null=True)
+    struct = models.ForeignKey(WorkingStructure,null=True)
+    inpStruct = models.ForeignKey(WorkingFile,null=True)
+
+    finale = models.FloatField(null=True)
     selected = models.CharField(max_length=1)
     usepbc = models.CharField(max_length=1)
     useqmmm = models.CharField(max_length=1)
