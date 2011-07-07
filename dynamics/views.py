@@ -109,28 +109,16 @@ def mddisplay(request):
 
 def applyld_tpl(request,workstruct,pstructID,scriptlist):
     postdata = request.POST
+    pstruct = WorkingFile.objects.filter(id=pstructID)[0]
 
-    try:
-        make_movie = postdata['make_movie']
-        if usesgld:
-           file.sgld_movie_req = True
-           ldp.sgld_movie_req = True
-        else:        
-           file.ld_movie_req = True
-           ldp.ld_movie_req = True
-    except:
-        make_movie = None
-        if usesgld:
-           file.sgld_movie_req = False
-        else:
-           file.ld_movie_req = False
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'] = file.getTopologyList()
-    template_dict['parameter_list'] = file.getParameterList()
+    template_dict['topology_list'] = workstruct.getTopologyList()
+    template_dict['parameter_list'] = workstruct.getParameterList()
     template_dict['fbeta'] = postdata['fbeta']
     template_dict['nstep'] = postdata['nstep']
     template_dict['usesgld'] = postdata.has_key('usesgld')
+    template_dict['identifier'] = workstruct.identifier
 
     if template_dict['usesgld']:
         try:
@@ -139,7 +127,8 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
             oldparam.save()
         except:
             pass
-        ldp = sgldParams(selected='y',pdb=file)
+        ld_prefix = 'sgld'
+        ldp = sgldParams(selected='y',structure=workstruct)
 
     else:
         try:
@@ -148,15 +137,23 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
             oldparam.save()
         except:
             pass
-        ldp = ldParams(selected='y',pdb=file)
+        ld_prefix = 'ld'
+        ldp = ldParams(selected='y',structure=workstruct)
 
     ldp.fbeta = template_dict['fbeta']
     ldp.nstep = template_dict['nstep']
 
-    template_dict['filebase'] = file.stripDotPDB(file.filename)
-    template_dict['input_file'] = file.stripDotPDB(min_pdb)
+    template_dict['input_file'] = pstruct.basename
     template_dict['useqmmm'] = ''
     template_dict['qmmmsel'] = ''
+
+    # deal with whether or not we want to go to Hollywood (i.e. make a movie)
+    # NB: this is not working at present; flesh this code in!!!
+    try:
+        make_movie = postdata['make_movie']
+    except:
+        make_movie = None
+
 
     #If the user wants to solvate implicitly the scpism line is needed
     #84 will be the scpism number in this program
@@ -168,7 +165,7 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
     except:
         pass
 
-    if(usesgld):
+    if template_dict['usesgld']:
         tsgavg = '0.0'
         tempsg = '0.0'
 
@@ -179,27 +176,62 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
 
         template_dict['tsgavg'] = tsgavg
         template_dict['tempsg'] = tempsg
-    template_dict['output_name'] = "new_" + file.stripDotPDB(file.filename) + ld_suffix
-    user_id = file.owner.id
-    os.chdir(file.location)
-    ld_filename = "charmm-" + file.stripNew(file.stripDotPDB(file.filename)) +\
-                  ld_suffix + ".inp"
+
+    # determine whether periodic boundary conditions should be applied, and if
+    # so pass the necessary crystal and image parameters
+    dopbc = False
+    if request.POST.has_key('usepbc'):
+        if request.POST.has_key('solvate_inplicitly'):
+            return HttpResponse('Invalid options')
+
+        # decide if the structure we're dealing with has
+        # been solvated.
+        solvated = False
+        wfc = pstruct
+        while True:  
+            if wfc.parentAction == 'solv':
+                solvated = True
+                break
+            if wfc.parent:
+                wfc = wfc.parent
+            else:
+                break
+        if not solvated:
+            return HttpResponse('Requested PBC on unsolvated structure')
+
+        dopbc = True
+        try:
+            sp = solvationParams.objects.filter(structure=workstruct,selected='y')[0]
+        except:
+            return HttpResponse("Err ... couldn't find solvation parameters")
+        template_dict['xtl_x'] = sp.xtl_x
+        template_dict['xtl_y'] = sp.xtl_y
+        template_dict['xtl_z'] = sp.xtl_z
+        template_dict['xtl_angles'] = "%10.6f %10.6f %10.6f" % (sp.angles[0],sp.angles[1],sp.angles[2])
+        template_dict['xtl_ucell'] = sp.solvation_structure
+        template_dict['ewalddim'] = sp.calcEwaldDim()
+
+    template_dict['dopbc'] = dopbc
+
+    template_dict['output_name'] = ld_prefix + '-' + workstruct.identifier
+    user_id = workstruct.structure.owner.id
+    ld_filename = ld_prefix + '-' + workstruct.identifier + ".inp"
     t = get_template('%s/mytemplates/input_scripts/applyld_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
-    inp_out = open(file.location + ld_filename,'w')
+    inp_out = open(workstruct.structure.location + '/' + ld_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()  
-    #change the status of the file regarding minimization
-    if usesgld:
-        #file.sgld_status = "<font color=yellow>Processing</font>"
+
+    # change the status of the file regarding LD
+    if template_dict['usesgld']:
         ldp.statusHTML = "<font color=yellow>Processing</font>"
     else:
-        #file.ld_status = "<font color=yellow>Processing</font>"
         ldp.statusHTML = "<font color=yellow>Processing</font>"
     ldp.save()
+
     si = schedInterface()
-    scriptlist.append(file.location + ld_filename)
+    scriptlist.append(workstruct.structure.location + '/' + ld_filename)
 
 
     # lessons are borked at the moment
@@ -216,34 +248,21 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
             return makeJmolMovie(file,postdata,min_pdb,scriptlist,'ld')
     else:
         si = schedInterface()
-        if usesgld:
-	    #For user editable scripts
-            if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
-                return generateHTMLScriptEdit(charmm_inp,scriptlist,'sgld')
-	    else:
-                newJobID = si.submitJob(user_id,file.location,scriptlist,{},{})
-                file.sgld_jobID = newJobID
-                sstring = si.checkStatus(newJobID)
-                file.sgld_movie_status = None
-                
-                ldp.statusHTML = statsDisplay(sstring,newJobID)
-                ldp.sgld_movie_status = None
-                ldp.save()
+        newJobID = si.submitJob(user_id,workstruct.structure.location,scriptlist,{},{})
+        if template_dict['usesgld']:
+            workstruct.sgld_jobID = newJobID
+            sstring = si.checkStatus(newJobID)
+            ldp.sgld_movie_status = None
         else:
-	    #for user editable scripts
-            if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
-                return generateHTMLScriptEdit(charmm_inp,scriptlist,'ld')
-	    else:
-                newJobID = si.submitJob(user_id,file.location,scriptlist,{},{})
-                file.ld_jobID = newJobID
-                sstring = si.checkStatus(newJobID)
-                file.ld_movie_status = None
+            workstruct.ld_jobID = newJobID
+            sstring = si.checkStatus(newJobID)
+            ldp.ld_movie_status = None
 
-                ldp.statusHTML = statsDisplay(sstring,newJobID)
-                ldp.ld_movie_status = None
-                ldp.save()
-    file.save() 
-    return "Done."
+    ldp.statusHTML = statsDisplay(sstring,newJobID)
+    ldp.save()
+
+    workstruct.save() 
+    return HttpResponse("Done.")
 
 #Generates MD script and runs it
 def applymd_tpl(request,workstruct,pstructID,scriptlist):
