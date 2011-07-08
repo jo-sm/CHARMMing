@@ -142,6 +142,7 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
 
     ldp.fbeta = template_dict['fbeta']
     ldp.nstep = template_dict['nstep']
+    ldp.inpStruct = pstruct
 
     template_dict['input_file'] = pstruct.basename
     template_dict['useqmmm'] = ''
@@ -296,6 +297,7 @@ def applymd_tpl(request,workstruct,pstructID,scriptlist):
     pstruct = WorkingFile.objects.filter(id=pstructID)[0]
     template_dict['input_file'] = pstruct.basename
     template_dict['solvate_implicitly'] = solvate_implicitly
+    mdp.inpStruct = pstruct
 
     orig_rst = workstruct.structure.location + "/" + pstruct.basename + "-md.res"
     new_rst  = workstruct.structure.location + "/" + pstruct.basename + "-md-old.res"

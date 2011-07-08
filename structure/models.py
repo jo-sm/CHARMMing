@@ -836,6 +836,7 @@ class WorkingStructure(models.Model):
 
         pickleFile = open(self.structure.pickle, 'r+')
         pdb = cPickle.load(pickleFile)
+        pickleFile.close()
         mod = False
 
         if self.isBuilt != 't':
@@ -949,8 +950,11 @@ class WorkingStructure(models.Model):
 	    mdparam_obj.save()
 
             if 'Done' in mdparam_obj.statusHTML:
-                # Create a new Mol object for this
                 fname = self.structure.location + '/md-' + self.identifier + '.crd'
+
+                # Create a new Mol object for this
+                molobj = pychm.io.pdb.get_molFromCRD(fname)
+                pdb['md_' + self.identifier] = molobj
                 mod = True
 
                 wf = WorkingFile()
@@ -972,30 +976,64 @@ class WorkingStructure(models.Model):
 
         if self.ld_jobID != 0:
             sstring = si.checkStatus(self.ld_jobID)
-	    ldparam_obj = dynamics.models.ldParams.objects.filter(struct=self,selected='y')[0]
+	    ldparam_obj = dynamics.models.ldParams.objects.filter(structure=self,selected='y')[0]
             ldparam_obj.statusHTML = statsDisplay(sstring,self.ld_jobID)
 	    ldparam_obj.save()
+
             if 'Done' in ldparam_obj.statusHTML:
-               if ldparam_obj.ld_movie_req:
-	           ldparam_obj.make_ld_movie = True
-                   ldparam_obj.save()
+                # Create a new Mol object for this
+                fname = self.structure.location + '/ld-' + self.identifier + '.crd'
+                molobj = pychm.io.pdb.get_molFromCRD(fname)
+                pdb['md_' + self.identifier] = molobj
+                mod = True
+
+                wf = WorkingFile()
+                wf.structure = self
+                wf.path = fname
+                wf.canonPath = wf.path
+                wf.type = 'crd'
+                wf.description = 'structure after LD'
+                wf.parent = ldparam_obj.inpStruct
+                wf.parentAction = 'ld'
+                wf.pdbkey = 'ld_' + self.identifier
+                wf.save()
+
+            if 'Done' in ldparam_obj.statusHTML or 'Fail' in ldparam_obj.statusHTML:
                self.ld_jobID = 0
+               self.save()
                if self.lesson:
                   self.lesson.onLDDone(self)
 
         if self.sgld_jobID != 0:
             sstring = si.checkStatus(self.sgld_jobID)
-	    sgldparam_obj = dynamics.models.sgldParams.objects.filter(struct=self,selected='y')[0]
-            sgldparam_obj.statusHTML = statsDisplay(sstring,self.sgld_jobID)
-	    sgldparam_obj.save()
-            self.sgld_status = statsDisplay(sstring,self.sgld_jobID)
-            if 'Done' in sgldparam_obj.statusHTML:
-               if sgldparam_obj.sgld_movie_req:
-	           sgldparam_obj.make_sgld_movie = True
-                   sgldparam_obj.save()
-               if self.lesson:
-                  self.lesson.onSGLDDone()
+            sgldparam_obj = dynamics.models.sgldParams.objects.filter(structure=self,selected='y')[0]
+            sgldparam_obj.statusHTML = statsDisplay(sstring,self.ld_jobID)
+            sgldparam_obj.save() 
+
+            if 'Done' in ldparam_obj.statusHTML:
+                # Create a new Mol object for this    
+                fname = self.structure.location + '/sgld-' + self.identifier + '.crd'
+                molobj = pychm.io.pdb.get_molFromCRD(fname)
+                pdb['md_' + self.identifier] = molobj
+                mod = True
+
+                wf = WorkingFile()
+                wf.structure = self
+                wf.path = fname
+                wf.canonPath = wf.path
+                wf.type = 'crd'
+                wf.description = 'structure after SGLD'
+                wf.parent = ldparam_obj.inpStruct
+                wf.parentAction = 'sgld'
+                wf.pdbkey = 'sgld_' + self.identifier
+                wf.save()
+
+            if 'Done' in sgldparam_obj.statusHTML or 'Fail' in sgldparam_obj.statusHTML:
                self.sgld_jobID = 0
+               self.save()    
+               if self.lesson: 
+                  self.lesson.onSGLDDone(self)
+
         if self.redox_jobID != 0:
             sstring = si.checkStatus(self.redox_jobID)
             redox_obj = apbs.models.redoxParams.objects.filter(struct=self,selected='y')[0]
@@ -1004,50 +1042,15 @@ class WorkingStructure(models.Model):
             # ToDo, add lesson hooks
     
         if mod:
+            # blow away the old pickle file and re-create it
+            # since otherwise this does not work
+            os.unlink(self.structure.pickle)
+
+            pickleFile = open(self.structure.pickle, 'w')
             cPickle.dump(pdb,pickleFile)
+            pickleFile.close()
 
-        pickleFile.close()
         self.save()
-
-    # The methods below this point have been moved from the original Structure
-    # class. They need to be GUTS-ified.
-
-    def setStructurePatches(self,file,postdata):
-	#This deals with the disulfide bond patching
-        patch_line = ""
-	try:
-	    num_patches = int(postdata['num_patches'])
-            for i in range(num_patches):
-	        disustartsegid.append(postdata['disustartsegid' + str(i)])
-	        disustart.append(postdata['disustart' + str(i)])
-	        disuend.append(postdata['disuend' + str(i)])
-	        disuendsegid.append(postdata['disuendsegid' + str(i)])
-	        patch_line = patch_line + "patch disu " + \
-                             disustartsegid[i] + " " + disustart[i] + " " +\
-                             disuendsegid[i] + " " + disuend[i] + \
-                             " setup\n"
-        except:
-   	    pass
-        if patch_line:
-            self.patch_name = 'new_' + self.stripDotPDB(self.filename) + '-patch.txt'
-            self.save()
-            patch_file = open(self.location + self.patch_name,'w')
-            patch_file.write(patch_line)
-            patch_file.close()
-    
-    #gets the restraints and returns them as a string
-    def handleRestraints(self,request):
-        try:
-            num_of_restraints = int(request.POST['num_restraints'])
-	except:
-	    return ""
-	restraints = ""
-	for i in range(num_of_restraints):
-	    #con_sele = postdata['cons_selection' + `i`]
-	    con_sele = self.checkForMaliciousCode(request.POST['cons_selection'+`i`],request)
-	    restraints = restraints + "cons harm bestfit mass force 100.0 select " +\
-	                  con_sele + ' end\n'
-	return restraints
 
 class Patch(models.Model):
     structure   = models.ForeignKey(WorkingStructure)

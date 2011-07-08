@@ -1,8 +1,8 @@
 {% extends "input_scripts/generic_charmm_script.inp" %} blankme
 
-{% block title %}Molecular Dynamics {% endblock %}
-{% block read_struct %}  {% endblock %} blankme
-{% block body %} blankme
+{% block title %}Normal mode analysis{% endblock %}
+
+{% block read_struct %}  
    {% ifequal nma 'useenm' %}
       ! Read special ENM atom types (masses are set to 0 here but will be assigned by
       ! hand in the coarsegrain stream file).
@@ -16,25 +16,13 @@
       End
    {% endifequal %}
    {% include 'input_scripts/read_structure.inp' %}
+{% endblock %}
+
+{% block body %} blankme
    {% ifequal nma 'useenm' %}
       ! Waters do not work with ENM, delete them
       delete atom select resname TIP3 end
-   {% else %}
-      {% if rtf_prm %}
-         {% include 'input_scripts/fix_other_atoms.inp' %}
 
-         ! we can't use cons fix in case we're doing ewald, but we can do a harmonic 
-         ! constraint with an absurdly high force constant
-         cons harm bestfit force 10000. sele .not. notfix end
-
-         !print initial energy
-         energy
-      {% endif %}
-      {% if restraints %} blankme
-         {{restraints}}
-      {% endif %} blankme      
-   {% endifequal %}
-   {% ifequal nma 'useenm' %}
       ! Define CGREG to be all atoms. The stream file
       ! will delete all of these (in this case, setting the
       ! entire model to be coarse grained).
@@ -73,27 +61,27 @@
 
       SKIP ALL EXCL RESD
 
-   {% endifequal %}
-   {% ifequal nma 'usevibran' %}
-      !	NMA use	vibran useqmmm {{ useqmmm }}
+   {% else %}
+      ! NMA use vibran useqmmm {{ useqmmm }}
       {% if useqmmm %} blankme
          {% include "input_scripts/make_qchem.inp" %}
       {% endif %} blankme
-
    {% endifequal %}
+
    vibran nmode {{numnormalmodes}}
    diagonalize
    print norm
-   open write unit 10 card name new_{{filebase}}-nmodes.txt
+   open write unit 10 card name {{identifier}}-nmodes.txt
    write norm card unit 10
    * Normal mode vectors
    *
+
    {% if gen_trj and num_trjs %}
       ! write trajectories for the lowest {{ntrjs}} normal modes at 300K
       set n = 1
       label wrloop
       if n .gt. {{ntrjs}} then goto loopend
-      open write unit 10 unform name new_{{filebase}}-mtraj_@n.trj
+      open write unit 10 unform name {{identifier}}-mtraj_@n.trj
       write trajectory unit 10 mode @n temp 300.
       * Trajectory for normal mode @n
       *
@@ -101,17 +89,7 @@
       calc n = @n + 1
       goto wrloop
       label loopend
-
-      ! save out
-
-      end
-
-      ! write out the psf
-      open write unit 1 card name new_{{filebase}}-nmodes.psf
-      write psf card unit 1
-      * PSF from normal modes
-      {{headstr}}*
-   {% else %}
-      end
    {% endif %}
+
+   end
 {% endblock %}
