@@ -54,6 +54,7 @@ def minimizeformdisplay(request):
         scriptlist = []
         if ws.isBuilt != 't':
             isBuilt = False
+            pstruct = ws.build(scriptlist)
             pstructID = pstruct.id
         else:
             isBuilt = True
