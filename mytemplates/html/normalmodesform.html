@@ -8,8 +8,6 @@
   <div id="change_nma" style="text-align: center;">
     <h1 align="center">Normal Mode Analysis</h1>
     <br />
-    <br />
-    <br />
 
     {%if nmode_lines %}
        <h3>First 10 non-zero modes From Previous Run:</h3>
@@ -19,13 +17,12 @@
     {% endif %}
     <hr noshade width="80%" size="3%" />
 
+    <center>
     <form id='nma_form' name="nma" method="post" action="." onsubmit="return send_form_nma(this,'/charmming/normalmodes/','change_nma','status_nma',[{% for item in filename_list%}'{{item}}',{%endfor%}]);">
 
-      <center>
         <h2>Working structure: {{ ws_identifier }}</h2>
 
         {% include "html/workfiles.html" %}
-      </center>
       <hr noshade width="80%" size="3%" />
 
       <p class="fontmed">Choose one of the following types of Normal Mode Analysis to run.</p>
@@ -46,7 +43,10 @@
         <tr><td><p class="fonrmed">Use QM/MM calculations</td><td><input id="useqmmm" type="checkbox" name="useqmmm" onclick="checkPatch(makeUniqueDiv('useqmmm'),makeUniqueDiv('qmmm_parameters'));"></td></tr>
       </table>
 
+      <input type="submit" value="Start Normal Mode Analysis" />   
+
     </form>
+    </center>
 
   </div>
 </div>

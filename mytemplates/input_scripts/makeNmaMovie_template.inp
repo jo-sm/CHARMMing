@@ -8,7 +8,7 @@
 open read unit 2 card name new_{{filebase}}-nmodes.psf
 read psf card unit 2
 close unit 2
-{% ifequal typeoption 'enm' %}
+{% ifequal typeoption 'useenm' %}
    ! Define CGREG to be all atoms. The stream file
    ! will delete all of these (in this case, setting the
    ! entire model to be coarse grained).

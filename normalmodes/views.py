@@ -34,6 +34,7 @@ from structure.models import Structure, WorkingStructure, WorkingFile
 import input, output
 import re, copy, os, shutil
 import lessonaux, charmming_config
+import cPickle
 
 def normalmodesformdisplay(request):
     """
@@ -74,11 +75,11 @@ def normalmodesformdisplay(request):
             isBuilt = True
             pstructID = int(request.POST['pstruct'])
 
-        return minimize_tpl(request,ws,isBuilt,pstructID,scriptlist)
+        return applynma_tpl(request,ws,pstructID,scriptlist)
     else:
         # get all workingFiles associated with this struct
         wfs = WorkingFile.objects.filter(structure=ws,type='crd')
-        return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
+        return render_to_response('html/normalmodesform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
 
 
 def applynma_tpl(request,workstruct,pstructID,scriptlist):
@@ -89,7 +90,7 @@ def applynma_tpl(request,workstruct,pstructID,scriptlist):
     # try to decide how many atoms this structure has
     pfp = open(workstruct.structure.pickle, 'r')
     pdb = cPickle.load(pfp)
-    if pdb.has_key('append_' + workstruct.identifier):
+    if 'append_' + workstruct.identifier in pdb.keys():
         if len(pdb['append_' + workstruct.identifier]) > 1500:
             return HttpResponse('You may only do NMA on structures with less than 1500 atoms')
     else:
@@ -99,7 +100,7 @@ def applynma_tpl(request,workstruct,pstructID,scriptlist):
         pass
         
     pfp.close()
-    pstruct = structure.models.WorkingFile.objects.get(id=pstructID)
+    pstruct = WorkingFile.objects.get(id=pstructID)
 
     try:
         oldparam = nmodeParams.objects.filter(structure=workstruct, selected='y')[0]
@@ -110,51 +111,52 @@ def applynma_tpl(request,workstruct,pstructID,scriptlist):
 
     nmm = nmodeParams()
     nmm.statusHTML = "<font color=yellow>Processing</font>"
+    pstruct = WorkingFile.objects.get(id=pstructID)
+    nmm.inpStruct = pstruct
 
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'] = file.getTopologyList()
-    template_dict['parameter_list'] = file.getParameterList()
-    template_dict['filebase'] = file.stripDotPDB(file.filename)
-    template_dict['input_file'] = file.stripDotPDB(min_pdb)
+    template_dict['input_file'] = pstruct.basename
+    template_dict['topology_list'] = workstruct.getTopologyList()
+    template_dict['parameter_list'] = workstruct.getParameterList()
     template_dict['nma'] = request.POST['nma']
     # save model
     nmm.inpStruct = pstruct
     if template_dict['nma'] == 'useenm':
         nmm.type = 2
-        nmm.rcut = float(postdata['rcut'])
-        nmm.kshort = float(postdata['kshort'])
-        nmm.klong = float(postdata['klong'])
+        nmm.rcut = float(request.POST['rcut'])
+        nmm.kshort = float(request.POST['kshort'])
+        nmm.klong = float(request.POST['klong'])
         template_dict['rcut'] = nmm.rcut
         template_dict['kshort'] = nmm.kshort
         template_dict['klong'] = nmm.klong
     else:
         nmm.type = 1
-    nmm.nmodes = int(postdata['num_normalmodes'])
+    nmm.nmodes = int(request.POST['num_normalmodes'])
     nmm.selected = 'y'
 
     template_dict['identifier'] = workstruct.identifier
     template_dict['numnormalmodes'] = nmm.nmodes
-    template_dict['useqmmm'] = postdata.has_key("useqmmm")
-    if nma == 'usevibran' and postdata.has_key("useqmmm"):
+    template_dict['useqmmm'] = request.POST.has_key("useqmmm")
+    if template_dict['nma'] == 'usevibran' and request.POST.has_key("useqmmm"):
         # we will deal with the QM/MM stuff later
         pass
 
     # If need be, print out trajectories for the modes the user requested.
-    template_dict['gen_trj'] = postdata.has_key("gen_trj") 
-    template_dict['num_trjs'] = postdata.has_key("num_trjs") 
-    if postdata.has_key("gen_trj") and postdata.has_key("num_trjs"):
+    template_dict['gen_trj'] = request.POST.has_key("gen_trj") 
+    template_dict['num_trjs'] = request.POST.has_key("num_trjs") 
+    if request.POST.has_key("gen_trj") and request.POST.has_key("num_trjs"):
         # movies are liable to be broken for the time being
         nmm.nma_movie_req = True
         try:
-            ntrjs = int(postdata['num_trjs'])
+            ntrjs = int(request.POST['num_trjs'])
         except:
             ntrjs = 5
         if ntrjs > 20:
             ntrjs = 20
-        if ntrjs > int(numnormalmodes):
-            ntrjs = int(numnormalmodes)
-        if postdata.has_key("useqmmm"):
+        if ntrjs > nmm.nmodes:
+            ntrjs = nmm.nmodes
+        if request.POST.has_key("useqmmm"):
             headstr = writeQMheader("", "SELE " + qmsel + " END")
         else:
             headstr = "* Not using QM/MM\n"
@@ -170,23 +172,23 @@ def applynma_tpl(request,workstruct,pstructID,scriptlist):
     user_id = workstruct.structure.owner.id
     os.chdir(workstruct.structure.location)
     nma_filename = "nmodes-" + workstruct.identifier + ".inp"
-    inp_out = open(file.location + nma_filename,'w')
+    inp_out = open(workstruct.structure.location + '/' + nma_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
 
     #change the status of the file regarding minimization 
-    scriptlist.append(file.location + nma_filename)
-    if postdata.has_key("gen_trj") and postdata.has_key("num_trjs"):
-        return makeNmaMovie_tpl(file,postdata,min_pdb,scriptlist,int(postdata['num_trjs']),typeoption)
+    scriptlist.append(workstruct.structure.location + nma_filename)
+    if request.POST.has_key("gen_trj") and request.POST.has_key("num_trjs"):
+        return makeNmaMovie_tpl(workstruct,request.POST,pstructID,scriptlist,int(request.POST['num_trjs']),template_dict['nma'],nmm)
     else:
         si = schedInterface()
-        newJobID = si.submitJob(user_id,file.location,scriptlist)
+        newJobID = si.submitJob(user_id,workstruct.structure.location,scriptlist)
 
         # lessons are, sadly, still broken
         #if file.lesson_type:
         #    lessonaux.doLessonAct(file,postdata,"onNMASubmit")
 
-        file.nma_jobID = newJobID
+        workstruct.nma_jobID = newJobID
         sstring = si.checkStatus(newJobID)
         nmm.statusHTML = statsDisplay(sstring,newJobID)
         
@@ -195,8 +197,7 @@ def applynma_tpl(request,workstruct,pstructID,scriptlist):
 
 
 #makes NMA Movie
-def makeNmaMovie_tpl(file,postdata,filename,scriptlist,num_trjs,typeoption):
-    nmm = nmodeParams.objects.filter(pdb = file, selected = 'y')[0]
+def makeNmaMovie_tpl(workstruct,postdata,pstructID,scriptlist,num_trjs,typeoption,nmm):
     # template dictionary passes the needed variables to the template
     template_dict = {}
     template_dict['topology_list'] = file.getTopologyList()
