@@ -113,18 +113,19 @@
          <a href="http://www.nhlbi.nih.gov" id="nhlbi"><i>NHLBI</i></a>
       </div>
    </div>
+
    <div id="maincontent">
-   <div id="sidebar">
-      <!----!>
-      <div id="my_menu" class="sdmenu">
-         <div>
+      <div id="sidebar">
+        <!----!>
+        <div id="my_menu" class="sdmenu">
+          <div>
             <span>Basic functions</span>
             <a title="Opens a new tab." href="javascript:openNewTab();timeoutWikipage('General');">Open A New Tab</a>
             <a title="Closes all open tabs." href="javascript:closeAllTabs()">Close All Tabs</a>
             <a title="Read the CHARMM tutorial." href="javascript:openWin('spread', 'Tutorial Doc', 200, 100, 1100, 600,'http://www.charmmtutorial.org','null');timeoutWikipage('Tutorial');">View the tutorial</a>
             <a title="CHARMMing usage information and credits." href="javascript:openNewURL('/charmming/about/','About CHARMMing');timeoutWikipage('General');">About CHARMMing</a>
-         </div>
-         <div>
+          </div>
+          <div>
             <span>Structures</span>
             <a title="Submit a structure to manipulate." href="javascript:openNewURL('/charmming/fileupload/','Submit Structure');timeoutWikipage('Submit Structure');">Submit Structure</a>
             <a title="Work with a different structure or edit the structure information." href="javascript:openNewURL('/charmming/viewpdbscontainer/','Select PDB');timeoutWikipage('Select PDB');">Change/Delete Structures</a>
@@ -132,8 +133,8 @@
             <a title="Download all files associated with this structure." href="javascript:openNewURL('/charmming/downloadfilescontainer/','Download Files');timeoutWikipage('Download Files');">Download Files</a>
             <a title="View the 3D structure of your molecule." href="javascript:openNewURL('/charmming/visualize/','View PDBs');timeoutWikipage('View PDBs');">View PDBs</a>
             <a title="View all the input/output scripts this site has generated for you." href="javascript:openNewURL('/charmming/viewprocessfiles/','Process Files');timeoutWikipage('View Process Files');">View Process Files</a>
-         </div>
-         <div>
+          </div>
+          <div>
             <span>Calculations</span>
             <a title="Runs a simple energy calculation. This can be used to generate a PSF/CRD file quickly while also informing you of the energy of your system." href=javascript:openNewURL("/charmming/energy/",'Energy');timeoutWikipage('Energy')>Energy</a>
             <a title="Minimizes the system's energy, trying to simulate absolute zero. This should be done before dynamics runs." href=javascript:openNewURL("/charmming/minimize/",'Minimization');timeoutWikipage('Minimization')>Minimize</a>
@@ -141,44 +142,43 @@
             <a title="Run Normal Mode Analysis. It is strongly recommended that you minimize first." href="javascript:openNewURL('/charmming/normalmodes/','Normal Mode Analysis');timeoutWikipage('Normal Mode Analysis');">Normal Modes</a>
             <a title="Simulate the protein in a user-specified environment. It is best if you minimize first." href="javascript:openNewURL('/charmming/dynamics/md/','Molecular Dynamics');timeoutWikipage('Molecular Dynamics');">Molecular Dynamics</a>
             <a title="Langevin Dynamics is used to quickly induce protein conformation change. Useful in studying protein folding." href="javascript:openNewURL('/charmming/dynamics/ld/','Langevin Dynamics');timeoutWikipage('Langevin Dynamics');">Langevin Dynamics</a>
-         </div>
-         <div>
+          </div>
+          <div>
             <span>Analyses</span>
             <a title="Get properties from an MD run." href="javascript:openNewURL('/charmming/analysis/mdprop/','RMSD calculator');timeoutWikipage('MDANAL');">MD Properties</a>
             <a title="Analyze the root mean square deviation of various conformations of your structure." href="javascript:openNewURL('/charmming/analysis/rmsd/','RMSD calculator');timeoutWikipage('RMSD');">RMSD calculator</a>
             <a title="Perform an Oxidation/Reduction calculation using APBS." href="javascript:openNewURL('/charmming/analysis/redox/','REDOX calculator');timeoutWikipage('Redox');">Redox</a>
             <!-- <a title="Perform a graphical analysis of trajectory distances using RMSDYN." href="javascript:openNewURL('/charmming/analysis/trajanal/','Trajectory analyzer');timeoutWikipage('RMSD');">RMSDYN analysis</a> -->
-         </div>
-         {% ifequal lessonuser 1 %}
-	 <div>
-	 <span> Lessons </span>
+          </div>
+          {% ifequal lessonuser 1 %}
+	  <div>
+	  <span> Lessons </span>
             <a title="Lesson One will familiarize the user with basic CHARMM commands and basic methods used in computational chemistry." href="javascript:openNewURL('/charmming/lessons/lesson1/','Lesson 1');timeoutWikipage('Lesson One');">Lesson One</a>
             <a title="Lesson Two will use a protein to demonstrate how a user can conduct computational chemistry." href="javascript:openNewURL('/charmming/lessons/lesson2/','Lesson 2');timeoutWikipage('Lesson Two');">Lesson Two</a>
             <a title="Lesson Three will make the user create their amino acid, replicated 1YJP then running dynamics on it." href="javascript:openNewURL('/charmming/lessons/lesson3/','Lesson 3');timeoutWikipage('Lesson Three');">Lesson Three</a>
             <a title="Put lesson description here." href="javascript:openNewURL('/charmming/lessons/lesson4/','Lesson 4');timeoutWikipage('Lesson Four');">Lesson Four</a>
-	 </div>
-         {% endifequal %}
-         <div>
+	  </div>
+          {% endifequal %}
+          <div>
             <span>Account</span>
             <a title="Change Password" href="javascript:openNewURL('/charmming/accounts/changepassword/','Change Password');timeoutWikipage('Change Password');">Change Password</a>
             <a title="Logout" href="/charmming/accounts/logout/">Logout</a>
-         </div>
+          </div>
+        </div>
+
+
+        <div id="statuscontainer">
+          <div id="statusreport" class="status"></div>
+        </div>
+
+        <div id="lessoncontainer">
+          &nbsp;
+          <div id="lessonreport" class="status"></div>
+        </div>
+
       </div>
 
-
-      <div id="statuscontainer">
-        <div id="statusreport" class="status"></div>
-      </div>
-
-      <div id="lessoncontainer">
-        &nbsp;
-        <div id="lessonreport" class="status"></div>
-      </div>
-
-      <!----!>
-   </div>
-
-   <div id="maincolumn" style="position: absolute; left: 155px; width: 1074px; height: 1200px; text-align: center;">
+      <div id="maincolumn" style="position: absolute; left: 155px; width: 1074px; height: 1200px; text-align: center;">
          {% block content %}
          <div class="tabContainer">
             <div class="tabs">
@@ -188,7 +188,9 @@
          </div>
          {% endblock %}
       </div>
+
    </div> <!-- maincontent --!> 
+
    <div id="footer">
     <div class="content">
       CHARMMing (CHARMM INterface and Graphics)  
