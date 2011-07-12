@@ -40,7 +40,7 @@ background-color: #FFFFFE;
 }
 
 #maincontent {
-width:  1224px;
+width:  1064px;
 margin: 0px;
 border-left: #000000 0px solid;
 border-right: #000000 0px solid;
@@ -114,7 +114,7 @@ padding-bottom: 15px;
 }
 
 #maincolumn {
-width: 1074px;
+width: 1064px;
 margin: 0px;
 float: left;
 padding-left:5px;
@@ -223,7 +223,7 @@ line-height: 14pt
     
 .tabs {
       float:left;
-      width:863px;
+      width:1064px;
       font-size:93%;
       /*background:#000000 url("/charmming/images/leebg.gif") repeat;*/
       margin:0;
@@ -332,18 +332,10 @@ line-height: 14pt
 
 
 
-/*.tabContainer {
-  text-align: left;
-  position:relative;
-  left: 0px;
-  width: 70%;
-  height: 80%;
-}*/
-
 .tabContainer {
    text-align: left;
    position:relative;
-   width: 860px;
+   width: 1064px;
    background-color: #ffffff;
 }
 

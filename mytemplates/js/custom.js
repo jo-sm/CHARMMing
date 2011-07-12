@@ -277,52 +277,6 @@ function isPageAltered(form_id)
  }
 }
 
- function deleteTopic(topictitle,boardname)
- {
-  new  Ajax.Request('/charmming/wiki/deletetopic/',{method: 'POST', asynchronous: 'false',parameters: {'topictitle':topictitle,'boardname':boardname}});
-   wikiframe = document.getElementById('wikiframe');
-   wikiframe.src = '/charmming/wiki/board/' + boardname + '/';
-}
-
-
-//Changes the wikiiframe
-function timeoutWikipage(boardname)
-{
-  setTimeout("changeWikiFrame('" + boardname + "')",500);
-}
-
-function changeWikiFrame(boardname)
-{
- wikiframe = document.getElementById('wikiframe');
- wikiframe.src = '/charmming/wiki/board/' + boardname + '/';
- if(wikiframe.height = document.getElementById('maincolumn').offsetHeight < 1000)
-    wikiframe.height = 1000;
- else
-    wikiframe.height = document.getElementById('maincolumn').offsetHeight;
-}
-
-//refreshes the bottom dock iframe
-function refreshBottomdock()
-{
- bottomdock = document.getElementById('bottomdockframe');
- bottomdock.src = bottomdock.src;
-}
-
-//changes solvation structure values
-function changeRadiusValue()
-{
- radius = 5;
- solv_struc = document.getElementById('solv_struc');
- no_pref_radius = document.getElementById('no_pref_radius');
- if(solv_struc.value == 'rhdo')
-   radius = no_pref_radius.value*2;
- no_pref_radius.value = radius;
- if(document.getElementById('set_pref').checked)
- {
-  changeDisplayOptions();
- }
-}
-
 //changes display options for solvation based on chosen structure
 function changeDisplayOptions()
 {
@@ -990,12 +944,6 @@ function changeStatus(divchange,divupdate,caller)
  }
  document.getElementById(divupdate).innerHTML = wordsOfWisdom;
 }
- function send_form_createtopic(form)
- {
-  alert('bob');
-  new Ajax.Request('/charmming/wiki/createtopic/', {method:'post', asynchronous:false, parameters:Form.serialize(form)});
-  alert('bob');
- }
 
 function checkId(div_id)
 {
