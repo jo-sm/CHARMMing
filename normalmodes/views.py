@@ -56,15 +56,31 @@ def normalmodesformdisplay(request):
        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     # check to see if we have prior normal modes to display to the user
-    nmode_lines = ''
+    nmode_lines = []
+    nmode_fname = ws.structure.location + '/nmodes-' + ws.identifier + '.out'
     try:
-        nmodefp = open(workstruct.structure.location + '/' + workstruct.identifier + '-nmodes.txt','r')
-        for line in nmodefp:
-            nmode_lines += line
-        nmodefp.close()
+        os.stat(nmode_fname)
     except:
         pass
+    else:
+        nmodefp = open(nmode_fname, 'r')
+        getnxt = False
+        ntoget = 10
+        for line in nmodefp:
+            line = line.strip()
+            if line.startswith('VIBRATION MODE'):
+                freq = float(line.split()[4])
+                if freq > 0.00001:
+                    nmode_lines.append(line)
+                    getnxt = True
+            elif getnxt:
+                nmode_lines.append(line)
+                getnxt = False
+                ntoget -= 1
 
+            if ntoget == 0:
+                break
+        nmodefp.close()
 
     if request.POST.has_key('num_normalmodes'):
         scriptlist = []
@@ -79,7 +95,7 @@ def normalmodesformdisplay(request):
     else:
         # get all workingFiles associated with this struct
         wfs = WorkingFile.objects.filter(structure=ws,type='crd')
-        return render_to_response('html/normalmodesform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
+        return render_to_response('html/normalmodesform.html', {'ws_identifier': ws.identifier,'workfiles': wfs, 'nmode_lines': nmode_lines})
 
 
 def applynma_tpl(request,workstruct,pstructID,scriptlist):

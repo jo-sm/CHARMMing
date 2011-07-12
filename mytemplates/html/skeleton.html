@@ -72,7 +72,8 @@
 
        enableTooltips("sidebar");
 
-       new Ajax.PeriodicalUpdater('statusreport', '/charmming/status/', {method: 'post', frequency: 5})
+       new Ajax.PeriodicalUpdater('statusreport', '/charmming/status/', {method: 'post', frequency: 10})
+       <!-- comment out lessons for now
        {% if lessontype %}
           currperiodicalupdater = new Ajax.PeriodicalUpdater('lessonreport', '/charmming/lessons/lessonstatus/', {method: 'post', frequency: 5});
           currperiodicalupdater.start();
@@ -81,6 +82,7 @@
           //currperiodicalupdater.stop();
           currperiodicalupdater.start();
        {% endif %}
+       -->
     }
 
     function showLesson(lesson)

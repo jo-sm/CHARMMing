@@ -12,7 +12,9 @@
     {%if nmode_lines %}
        <h3>First 10 non-zero modes From Previous Run:</h3>
        <pre text-align="left">
-         {{nmode_lines}}
+         {% for line in nmode_lines %}
+           {{line}}
+         {% endfor %}
        </pre>
     {% endif %}
     <hr noshade width="80%" size="3%" />
