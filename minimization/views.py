@@ -111,10 +111,6 @@ def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
     template_dict['parameter_list'] = workstruct.getParameterList()
     template_dict['output_name'] = 'mini-' + workstruct.identifier
 
-    logfp = open('/tmp/pstruct', 'w')
-    logfp.write("pstructID = %d\n" % pstructID)
-    logfp.close()
-
     pstruct = WorkingFile.objects.filter(id=pstructID)[0]
     template_dict['input_file'] = pstruct.basename
 
@@ -255,10 +251,15 @@ def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
            mp.save()
         else:
            workstruct.minimization_jobID = newJobID
+           workstruct.save()
            sstring = si.checkStatus(newJobID)
            mp.statusHTML = statsDisplay(sstring,newJobID)
            mp.save()
 
+
+        logfp = open('/tmp/ms.txt', 'w')
+        logfp.write('minimization_jobID = %s\n' % workstruct.minimization_jobID)
+        logfp.close()
 
         workstruct.save()
 	return HttpResponse("Done.")

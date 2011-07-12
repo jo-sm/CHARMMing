@@ -635,136 +635,15 @@ function send_form_nma(form,link,divchange,divupdate,filenames)
 {
 
   var ifsegchecked = 0;
-    for(i=0;i<filenames.length;i++)
-    {
-     if(document.getElementById('id_' + filenames[i]).checked)
-     {
-      ifsegchecked = 1;
-     }
-    }
-    if(ifsegchecked == 0)
-    {
-     Dialog.alert("<center>Please select a PDB segment to continue.</center>", {width:300, height:100, okLabel: "close"});
-     return false;
-    }
-    if(document.getElementById('usevibran').checked || document.getElementById('useenm').checked)
-    {
-      reqstep = parseInt(document.getElementById(makeUniqueDiv('atomnumbernma')).innerHTML)
-      if(reqstep > 2500 && !document.getElementById('useenm').checked)
-      {
-         Dialog.alert("<center>You have exceeded the maximum atom number limit for this particular calculation.</center>", {width:300, height:100, okLabel: "close"});
-         return false;
-      }
-      if(document.getElementById('edit_script')) {
-        if(!document.getElementById('edit_script').checked)
-        {
-          new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-          changeStatus(divchange,divupdate,"nma");
-          return false;
-        } else {
-          new Ajax.Updater(divchange,link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-          return false;
-        }
-      } else {
-          new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-          changeStatus(divchange,divupdate,"nma");
-          return false
-      }
-    }
-    else
-    {
+
+    if(document.getElementById('usevibran').checked || document.getElementById('useenm').checked) {
+      new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
+      changeStatus(divchange,divupdate,"nma");
+      return false
+    } else {
       Dialog.alert("<center>Please Select an Option</center>", {width:300, height:100, okLabel: "close"});
       return false;
     } 
-}
-
-function send_form_md(form,link,divchange,divupdate,filenames)
-{
-
-  var ifsegchecked = 0;
-    for(i=0;i<filenames.length;i++)
-    {
-     if(document.getElementById('id_' + filenames[i])) {
-       if(document.getElementById('id_' + filenames[i]).checked) {
-         ifsegchecked = 1;
-       }
-     }
-    }
-    if(ifsegchecked == 0)
-    {
-     Dialog.alert("<center>Please select a PDB segment to continue.</center>", {width:300, height:100, okLabel: "close"});
-     return false;
-    }
-    if(document.getElementById('useheat').checked || document.getElementById('useequi').checked)
-    {
-      if(document.getElementById('useheat').checked) {
-         reqstep = parseInt(document.getElementById('nstepht').value)
-      } else {
-         reqstep = parseInt(document.getElementById('nstepeq').value)
-      }
-      if(reqstep > 1000)
-      {
-         Dialog.alert("<center>You have exceeded the maximum number of allowed steps (1000) for dynamics.</center>", {width:300, height:100, okLabel: "close"});
-         return false;
-      }
-      if(document.getElementById('edit_script')) {
-         if(!document.getElementById('edit_script').checked)
-         {
-           new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-           changeStatus(divchange,divupdate,"md");
-           return false;
-         } else {
-           new Ajax.Updater(divchange,link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-           return false;
-         }
-      } else {
-           new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-           changeStatus(divchange,divupdate,"md");
-           return false;
-      }
-    }
-    else
-    {
-      Dialog.alert("<center>Please Select an Option</center>", {width:300, height:100, okLabel: "close"});
-      return false;
-    } 
-}
-
-function send_form_ld(form,link,divchange,divupdate,filenames)
-{
-  var ifsegchecked = 0;
-    for(i=0;i<filenames.length;i++)
-    {
-     if(document.getElementById('id_' + filenames[i])) {
-       if(document.getElementById('id_' + filenames[i]).checked) {
-        ifsegchecked = 1;
-       }
-     }
-    }
-    if(ifsegchecked == 0)
-    {
-     Dialog.alert("<center>Please select a PDB segment to continue.</center>", {width:300, height:100, okLabel: "close"});
-     return false;
-    }
-    reqstep = parseInt(document.getElementById('nstep').value)
-    if(reqstep > 1000) {      
-      Dialog.alert("<center>You have exceeded the maximum number of allowed steps (1000) for dynamics.</center>", {width:300, height:100, okLabel: "close"});
-      return false;
-    }
-    if(document.getElementById('edit_script')) {
-      if(!document.getElementById('edit_script').checked) {
-        new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-        changeStatus(divchange,divupdate,"ld");
-        return false;
-      } else {
-        new Ajax.Updater(divchange,link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-        return false;
-      }
-   } else {
-        new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
-        changeStatus(divchange,divupdate,"ld");
-        return false;
-   }
 }
 
 //like writeDisuLines but for restraints

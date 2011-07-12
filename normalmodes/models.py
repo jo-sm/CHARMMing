@@ -24,7 +24,7 @@ import structure
 import django.forms
 
 class nmodeParams(models.Model):
-    structure = models.ForeignKey(structure.models.Structure,null=True)
+    structure = models.ForeignKey(structure.models.WorkingStructure,null=True)
     inpStruct = models.ForeignKey(WorkingFile,null=True)
 
     statusHTML = models.CharField(max_length=250)

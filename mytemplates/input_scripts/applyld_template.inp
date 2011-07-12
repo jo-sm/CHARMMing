@@ -21,14 +21,14 @@
      open write unit 31 unfo name ld-{{identifier}}.dcd
    {% endif %}
 
-   dyna lang leap strt-
+   dyna lang leap strt -
    CHARMM-scripts  nstep {{nstep}} timestep 0.001 nprint 100 iprfrq 100 - ! run {{nstep}} steps with a 1 fs timestep
    CHARMM-scripts  iunwri 41 iuncrd 31 nsavc 100 - ! write restart and coordinate trajectory files
    CHARMM-scripts  tbath 300 firstt 300 tstruct 300 - ! run in a 300K heat bath
    {% if usesgld %} blankme
       CHARMM-scripts  sgld tsgavf {{tsgavg}} tempsg {{tempsg}} - ! turn on sgld; tsgavg sets local averaging time (ps) and tempsg sets guiding temp (K)
    {% endif %} blankme
-   CHARMM-scripts iasors 1 iasvel 1 iscvel 0 echeck 500. ! handle initial velocity assignment and bail out if energy changes by > 500 kcal/mol step to step
+   CHARMM-scripts  iasors 1 iasvel 1 iscvel 0 echeck 500. ! handle initial velocity assignment and bail out if energy changes by > 500 kcal/mol step to step
 
    {% include 'input_scripts/write_out_struct.inp' %}
 {% endblock %} blankme

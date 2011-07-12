@@ -110,6 +110,7 @@ def applynma_tpl(request,workstruct,pstructID,scriptlist):
         pass
 
     nmm = nmodeParams()
+    nmm.structure = workstruct
     nmm.statusHTML = "<font color=yellow>Processing</font>"
     pstruct = WorkingFile.objects.get(id=pstructID)
     nmm.inpStruct = pstruct
@@ -177,7 +178,7 @@ def applynma_tpl(request,workstruct,pstructID,scriptlist):
     inp_out.close()
 
     #change the status of the file regarding minimization 
-    scriptlist.append(workstruct.structure.location + nma_filename)
+    scriptlist.append(workstruct.structure.location + '/' + nma_filename)
     if request.POST.has_key("gen_trj") and request.POST.has_key("num_trjs"):
         return makeNmaMovie_tpl(workstruct,request.POST,pstructID,scriptlist,int(request.POST['num_trjs']),template_dict['nma'],nmm)
     else:

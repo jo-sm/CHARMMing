@@ -96,8 +96,6 @@ class Structure(models.Model):
     #takes the information from the Remark statement of
     #a PDB and determines the title, jrnl, and author
     def getHeader(self,pdbHeader):
-        logfp = open('/tmp/getheader.log', 'w')
-
         for line in pdbHeader:
             if line.startswith('title'):
                 line = line.replace('title','')
@@ -111,17 +109,11 @@ class Structure(models.Model):
                 line = line.replace('refn','')
                 self.journal += line.strip()
             elif line.startswith('ssbond'):
-                logfp.write('got line: %s\n' % line)
-
                 # process disulfide bridges
                 line = line.replace('ssbond','')
-                logfp.write('now line: %s\n' % line)
                 line = ' '.join(line.split()[:7]) # grab the first seven elements of the line
 
                 self.pdb_disul += ' %s' % line.strip()
-                logfp.write('pdb_disul = %s\n' % self.pdb_disul)
-
-        logfp.close()
 
 	if self.title:
             if len(self.title) > 249:
@@ -832,6 +824,7 @@ class WorkingStructure(models.Model):
 
     # Updates the status of in progress operations
     def updateActionStatus(self):
+
         si = schedInterface()        
 
         pickleFile = open(self.structure.pickle, 'r+')
@@ -855,6 +848,7 @@ class WorkingStructure(models.Model):
               
 
         if self.minimization_jobID != 0:
+
             sstring = si.checkStatus(self.minimization_jobID)
 	    miniparam_obj = minimization.models.minimizeParams.objects.filter(struct=self,selected='y')[0]
             miniparam_obj.statusHTML = statsDisplay(sstring,self.minimization_jobID)
@@ -932,16 +926,34 @@ class WorkingStructure(models.Model):
 
         if self.nma_jobID != 0:
             sstring = si.checkStatus(self.nma_jobID)
-	    nmaparam_obj = normalmodes.models.nmodeParams.objects.filter(struct=self,selected='y')[0]
+	    nmaparam_obj = normalmodes.models.nmodeParams.objects.filter(structure=self,selected='y')[0]
             nmaparam_obj.statusHTML = statsDisplay(sstring,self.nma_jobID)
 	    nmaparam_obj.save()
+
             nma_status = statsDisplay(sstring,self.nma_jobID)
-            if 'Done' in nma_status:
+
+            if 'Done' in nmaparam_obj.statusHTML:
+                # Create a new Mol object for this
+                fname = self.structure.location + '/nmodes-' + self.identifier + '.inp'
+                mod = True
+
+
+                wf = WorkingFile()
+                wf.structure = self
+                wf.path = fname
+                wf.canonPath = wf.path
+                wf.type = 'inp'
+                wf.description = 'normal modes'
+                wf.parent = nmaparam_obj.inpStruct
+                wf.parentAction = 'nma'
+                wf.pdbkey = wf.parent.pdbkey
+                wf.save()
+
+            if 'Done' in nmaparam_obj.statusHTML or 'Fail' in nmaparam_obj.statusHTML:
                self.nma_jobID = 0
-	       parseNormalModes(self)
-               if nmaparam_obj.nma_movie_req:
-	           nmaparam_obj.make_nma_movie = True
-                   nmaparam_obj.save()
+               if self.lesson:
+                   self.lesson.onNMADone(self)
+
 
         if self.md_jobID != 0:
             sstring = si.checkStatus(self.md_jobID)
