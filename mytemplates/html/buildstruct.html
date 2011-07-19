@@ -42,8 +42,8 @@
         <hr />
         <h4>Choose Segments and Patching</h4>
  
-        <table align="center" cellspacing="2" cellpadding="2">
-          <tr><td>Selected</td><td>Segment Name</td><td>Segment type</td><td>First patch</td><td>Last patch</td></tr>
+        <table border align="center" cellspacing="2" cellpadding="2" width="70%">
+          <tr><td>Selected</td><td>Segment Name</td><td>Segment type</td><td>First patch</td><td>Last patch</td><td>Topology File and Parameter File</td></tr>
           {% for seg in seg_list %}
              <tr>
                <td><input type="checkbox" name="select_{{ seg.name }}" value="y" /></td>
@@ -62,9 +62,27 @@
                  {% endfor %}
                  </select>
                </td>
+               <td>
+                 {% ifequal seg.type "bad" %}
+                   Choose:
+                   <select name="toppar_{{ seg.name }}">
+                     <option value="upload">Upload my own topology/parameters</option>
+                     <option value="cgenff">Use CGenFF to determine</option>
+                     <option value="genrtf">Use GENRTF to determine</option>
+                     <option value="antechamber">Use Antechamber to determine</option>
+                   </select>
+                   <br />
+                   topology file: <input type="file" name="topology_{{ seg.name }}" /><br />
+                   parameter file: <input type="file" name="parameter_{{ seg.name }}" /><br />
+                 {% else %}
+                   Standard CHARMM27 topology/parameters will be used
+                   <input type="hidden" name="toppar_{{ seg.name }}" value="standard" />
+                 {% endifequal %}
+               </td>
              </tr>
           {% endfor %}
         </table>
+        <hr />
 
         {% if proto_list %}
           <h3>Choose Protonation State</h3>

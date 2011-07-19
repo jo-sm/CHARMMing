@@ -53,6 +53,18 @@ class Structure(models.Model):
     domains = models.CharField(max_length=250,default='')
     fes4list = models.CharField(max_length=250,default='')
     
+    #Returns a list of files not specifically associated with the structure
+    def getNonStructureFiles(self):
+        file_list = []
+	file_list.append("/solvation/water.crd")
+        file_list.append("/scripts/savegv.py")
+        file_list.append("/scripts/savechrg.py")
+        file_list.append("/scripts/calcewald.pl")
+        return file_list
+
+    ### CHARMMing GUTS-ified methods go here. Eventually, all of the methods above this point ###
+    ### should be brought below it and cleaned up, or eliminated.                             ###
+
     # GUTS-ified disulfide list builder
     # Note: this returns a list of tuples
     def getDisulfideList(self):
@@ -84,14 +96,6 @@ class Structure(models.Model):
         logfp.close()
         return rarr
 
-    #Returns a list of files not specifically associated with the structure
-    def getNonStructureFiles(self):
-        file_list = []
-	file_list.append("/solvation/water.crd")
-        file_list.append("/scripts/savegv.py")
-        file_list.append("/scripts/savechrg.py")
-        file_list.append("/scripts/calcewald.pl")
-        return file_list
 
     #takes the information from the Remark statement of
     #a PDB and determines the title, jrnl, and author
@@ -137,219 +141,6 @@ class Structure(models.Model):
 
         self.save()
  
-    #pre:requires a request object
-    #checks if there was a topology or parameter file
-    #and if there was it will store the information
-    def getRtfPrm(self,request,makeGoModel,makeBLNModel):
-
-        if makeGoModel:
-            gmp = goModel()
-            gmp.pdb = self
-
-            startdir = os.getcwd()
-            os.chdir(self.location)
-            nGoSegs = 0
-
-            # check POSTDATA
-            domainData = None
-            try:
-                uploadType = request.POST['gm_dm_uploadtype']
-            except:
-                uploadType = None
-            if uploadType == 'auto':
-                gmp.domainData = ''
-            elif uploadType == 'box':
-                try:
-                    gmp.domainData = request.POST['gm_dm_string']
-                except:
-                    gmp.domainData = ''
-
-            try:
-                gmp.contactType = request.POST['gm_contact_type']
-            except:
-                gmp.contact_type = 'bt'
-
-            try:
-                gmp.nScale = request.POST['gm_nScale']
-            except:
-                gmp.nScale = '0.05'
-            try:
-                gmp.domainScale = request.POST['gm_domainScale']
-            except:
-                gmp.domainScale = '1.0'
-            try:
-                gmp.kBond = request.POST['gm_kBond']
-            except:
-                gmp.kBond = '50.0'
-            try:
-                gmp.kAngle = request.POST['gm_kAngle']
-            except:
-                gmp.kAngle = '30.0'
-
-            # for now, there's only one Go-model object with a given PDB, so this
-            # is safe ... in time we'll need to refine this scheme
-            gmp.selected = 'y'
-            gmp.save()
-
-            # now run the command...
-            seg_list = self.segids.split(' ')
-            go_list = []
-            for segment in seg_list:
-                inpFilename = "new_%s-%s.pdb" % (self.stripDotPDB(self.filename),segment)
-
-                # we only build Go models for protein segments
-                if not segment.endswith('-pro'):
-                    # hang on to non-protein segs in case the user wants to create a mixed model
-                    #seg_list.remove(segment)
-                    #os.unlink(inpFilename)
-                    continue
-
-                # For each individual segment, we don't use any domain data that we might have available since
-                # not all domains will be in this segment. Instead, if there's domain data we create a new
-                # topology/parameter file below with the global information.
-                mycmd = "PYTHONPATH=%s %s/cg_models/alpha_carbon/alpha_carbon.py --pdb_only --input=%s --data=%s/etc/cg --output=%s --stride_path=/usr/local/bin --contacts=%s --nScale=%s" \
-                        % (charmming_config.charmming_root,charmming_config.charmming_root,inpFilename,charmming_config.charmming_root,self.location,gmp.contactType,gmp.nScale)
-                status, output = commands.getstatusoutput(mycmd)
-                if status != 0:
-                    raise "go model creation failed!"
-
-                # re-name the go-ified PDB files
-                cgInpFilename = "cg_%s" % inpFilename
-                cgOutFilename = "new_%s-%s.pdb" % (self.stripDotPDB(self.filename),segment.replace('-pro','-go'))
-                os.rename(cgInpFilename, cgOutFilename)
-                go_list.append(segment.replace('-pro','-go'))
-                nGoSegs += 1
-
-            # re-save segids in case we deleted any of them, also get rid of the good het and nongood het segments
-            # since we can't use them with the CG model
-            seg_list += go_list
-            self.segids = ' '.join(seg_list)
-
-            self.save()
-            os.chdir(startdir)
-            return
-
-        if makeBLNModel:
-            blnp = blnModel()
-            startdir = os.getcwd()
-            os.chdir(self.location)
-            nBLNSegs = 0
-
-            domainData = None
-            try:
-                uploadType = request.POST['bln_dm_uploadtype']
-            except:
-                uploadType = None
-            if uploadType == 'auto':
-                blnp.domainData = ''
-            elif uploadType == 'box':
-                try:
-                    blnp.domainData = request.POST['bln_dm_string']
-                except:
-                    blnp.domainData = ''
-
-            try:
-                blnp.nScale = request.POST['bln_nScale']
-            except:
-                blnp.nScale = '1.0'
-            try:
-                blnp.domainScale = request.POST['bln_domainScale']
-            except:
-                blnp.domainScale = '1.0'
-
-
-            try:
-                blnp.kBondHelix = request.POST['bln_kBondHelix']
-            except:
-                blnp.kBondHelix = '3.5'
-            try:
-                blnp.kBondSheet = request.POST['bln_kBondSheet']
-            except:
-                blnp.kBondSheet = '3.5'
-            try:
-                blnp.kBondCoil = request.POST['bln_kBondCoil']
-            except:
-                blnp.kBondCoil = '2.5'
-
-            try:
-                blnp.kAngleHelix = request.POST['bln_kAngleHelix']
-            except:
-                blnp.kAngleHelix = '8.37'
-            try:
-                blnp.kAngleSheet = request.POST['bln_kAngleSheet']
-            except:
-                blnp.kAngleSheet = '8.37'
-            try:
-                blnp.kAngleCoil = request.POST['bln_kAngleCoil']
-            except:
-                blnp.kAngleCoil = '5.98'
-
-            blnp.save()
-
-            # now run the command
-            seg_list = self.segids.split(' ')
-            bln_list = []
-            for segment in seg_list:
-                inpFilename = "new_%s-%s.pdb" % (self.stripDotPDB(self.filename),segment)
-
-                # we only build Go models for protein segments
-                if not segment.endswith('-pro'):
-                    continue
-
-                # For each individual segment, we don't use any domain data that we might have available since
-                # not all domains will be in this segment. Instead, if there's domain data we create a new
-                # topology/parameter file below with the global information.
-                mycmd = "PYTHONPATH=%s %s/cg_models/bln/bln.py --input=%s --data=%s/etc/cg --output=%s --stride_path=/usr/local/bin --nScale=%s --domainScale=%s --kBondHelix=%s --kBondSheet=%s --kBondCoil=%s --kAngleHelix=%s --kAngleSheet=%s --kAngleCoil=%s" \
-                        % (charmming_config.charmming_root,charmming_config.charmming_root,inpFilename,charmming_config.charmming_root,self.location,blnp.nScale,blnp.domainScale,blnp.kBondHelix,blnp.kBondSheet,blnp.kBondCoil, \
-                           blnp.kAngleHelix,blnp.kAngleSheet,blnp.kAngleCoil)
-                status, output = commands.getstatusoutput(mycmd)
-                if status != 0:
-                    raise "go model creation failed!"
-
-                # re-name the bln-ified PDB files
-                cgInpFilename = "bln_%s" % inpFilename
-                cgOutFilename = "new_%s-%s.pdb" % (self.stripDotPDB(self.filename),segment.replace('-pro','-bln'))
-                os.rename(cgInpFilename, cgOutFilename)
-                bln_list.append(segment.replace('-pro','-bln'))
-                nBLNSegs += 1
-
-            seg_list += bln_list
-            self.segids = ' '.join(seg_list)
-            self.save()
-
-            os.chdir(startdir)
-            return
-
-        postfiles = request.FILES
-        if postfiles.has_key('rtf_file'):
-            self.rtf = "rtf-" + self.stripDotPDB(self.filename) + ".rtf"
-            #Check to see if the user uploaded an rtf and/or prm and if they did
-            #See if they wanted it appended or replaced
-            self.rtf_append_replace = request.POST['rtf_append_or_replace']
-	    self.save()
-            temp = open(self.location + self.rtf,'w') 
-	    for fchunk in postfiles['rtf_file'].chunks():
-                temp.write(fchunk)
-	    temp.close()
-	else:
-	    self.rtf = ""
-
-        if postfiles.has_key('prm_file'):
-            self.prm = "prm-" + self.stripDotPDB(self.filename) + ".prm"
-            #Check to see if the user uploaded an rtf and/or prm and if they did
-            #See if they wanted it appended or replaced
-            self.prm_append_replace = request.POST['prm_append_or_replace']
-            temp = open(self.location + self.prm,'w') 
-            for fchunk in postfiles['prm_file'].chunks():
-                temp.write(fchunk)
-	    temp.close()
-	    self.save()
-	else:
-	    self.prm = ""
-
-
-    ### CHARMMing > 0.9 methods go here. Eventually, all of the methods above this point ###
-    ### should be brought below it and cleaned up, or eliminated.                        ###
 
     def getMoleculeFiles(self):
         """Get all molecule files associated with this structure. Note that "inherent"
@@ -472,6 +263,7 @@ class WorkingSegment(Segment):
     patch_last  = models.CharField(max_length=100)
     builtPSF    = models.CharField(max_length=100)
     builtCRD    = models.CharField(max_length=100)
+    tpMethod    = models.CharField(max_length=20,default="standard")
 
     def set_terminal_patches(self,postdata):
         if postdata.has_key('first_patch' + self.name):
@@ -483,8 +275,28 @@ class WorkingSegment(Segment):
     # This method will handle the building of the segment, including
     # any terminal patching
     def build(self,mdlname,workstruct,scriptlist):
-        # template dictionary passes the needed variables to the template
         template_dict = {}
+
+        # write out the PDB file in case it doesn't exist
+        fp = open(self.structure.pickle, 'r')
+        mol = (cPickle.load(fp))[mdlname]
+        for s in mol.iter_seg():
+            if s.segid == self.name:
+                fname = self.structure.location + "/" + "segment-" + self.name + ".pdb"
+                s.write(fname, outformat="charmm")
+                template_dict['pdb_in'] = fname
+                break
+        fp.close()
+
+        # see if we need to build any topology or param files
+        if self.tpMethod == 'genrtf':
+            self.makeGenRTF()
+        elif self.tpMethod == 'antechamber':
+            self.makeAntechamber()
+        elif self.tpMethod == 'cgenff':
+            self.makeCGenFF()
+
+        # template dictionary passes the needed variables to the template
         template_dict['topology_list'] = self.rtf_list.split(' ')
         template_dict['parameter_list'] = self.prm_list.split(' ')
         template_dict['patch_first'] = self.patch_first
@@ -528,17 +340,6 @@ class WorkingSegment(Segment):
 
         if patch_lines: template_dict['patch_lines'] = patch_lines
 
-        # now write out the PDB file in case it doesn't exist
-        fp = open(self.structure.pickle, 'r')
-        mol = (cPickle.load(fp))[mdlname]
-        for s in mol.iter_seg():
-            if s.segid == self.name:
-                fname = self.structure.location + "/" + "segment-" + self.name + ".pdb"
-                s.write(fname, outformat="charmm")
-                template_dict['pdb_in'] = fname
-                break
-        fp.close()
-
         # write out the job script
         t = get_template('%s/mytemplates/input_scripts/buildSeg.inp' % charmming_config.charmming_root)
         charmm_inp = output.tidyInp(t.render(Context(template_dict)))
@@ -559,141 +360,129 @@ class WorkingSegment(Segment):
         self.isBuilt = 'y'
         self.save()
 
+    def makeCGenFF(self):
+        """
+        Connects to dogmans.umaryland.edu to build topology and
+        parameter files using CGenFF
+        """
+        pass
+
     # Tim Miller, make hetid RTF/PRM using antechamber
-    def makeAntechamber(self,hetids,doHyd):
-        os.putenv("ACHOME", "/usr/local/charmming/antechamber")
-        cwd = os.getcwd()
-        os.chdir(self.location)
-        for het in hetids:
-            fname = "new_" + self.stripDotPDB(self.filename) + "-" + het + ".pdb"
-            acbase = "antechamber-" + self.stripDotPDB(self.filename) + "-" + het 
-            rgbase = "new_" + self.stripDotPDB(self.filename) + "-" + het 
-            acname = acbase + ".ac"
+    def makeAntechamber(self):
+        os.putenv("AMBERHOME", charmming_config.data_home + "/amber11")
+        os.chdir(self.structure.location)
 
-            if doHyd:
-                os.system("/usr/local/bin/babel -ipdb " + fname + " -opdb " + fname + " -h")
+        fname = "segment-" + self.name
+        acbase = "antechamber-" + fname 
+        acname = acbase + ".ac"
 
-            cmd = "/usr/local/charmming/antechamber/exe/antechamber -fi pdb -i " + \
-                  fname + " -fo ac -o " + acname 
-            status = os.system(cmd)
-            if status != 0:
-                # debug purposes only
-                raise("Antechamber screwed up!")
+        cmd = charmming_config.data_home + "/amber11/bin/antechamber -j 5 -fi pdb -i " + \
+              fname + ".pdb -fo ac -o " + acbase + ".ac"
+        status = os.system(cmd)
+        if status != 0:
+            # debug purposes only
+            raise("Antechamber screwed up!")
 
-            try:
-                # see if output file exists
-                os.stat(acname)
-            except:
-                # nope, run antechamber w/ -j 5
-                cmd = "/usr/local/charmming/antechamber/exe/antechamber -j 5 -fi pdb -i " + \
-                      fname + " -fo ac -o " + acname
-                status = os.system(cmd)
-                if status != 0:
-                    # debug purposes only
-                   raise("Antechamber screwed up!")
+        try:
+            # see if output file exists
+            os.stat(acbase + '.ac')
+        except:
+            raise("Antechamber screwed up!")
 
-            cmd = "/usr/local/charmming/antechamber/exe/charmmgen -f ac -i " + \
-                  acname + " -o " + acbase + " -s " + het
-            status = os.system(cmd)
-            if status != 0:
-                # also for debug purposes only
-                raise("Charmmgen screwed up!")
-            # run through CHARMM since Antechamber changes the residue IDs
-            cmd = "/usr/local/charmming/gfortran-xxlg-qc.one < " + acbase + ".inp > " + \
-                  acbase + ".out"
-            os.system(cmd)
-            os.rename(acbase + ".psf", rgbase + "-final.psf")
-            os.rename(acbase + ".pdb", rgbase + "-final.pdb")
-            os.rename(acbase + ".crd", rgbase + "-final.crd")
-            os.system("rm -f ANTECHAMBER* ATOMTYPE.INF")
+        cmd = "/usr/local/charmming/antechamber/exe/charmmgen -f ac -i " + \
+              acbase + ".ac -o " + acbase + " -s " + self.name
+        status = os.system(cmd)
+        if status != 0:
+            # also for debug purposes only
+            raise("Charmmgen screwed up!")
+        # run through CHARMM since Antechamber changes the residue IDs
+        cmd = charmming_config.charmm_exe + " < " + acbase + ".inp > " + \
+              acbase + ".out"
+        os.system(cmd)
 
-            # set the newly generated RTF/PRM to be used.
-            self.rtf = acbase + ".rtf"
-            self.prm = acbase + ".prm"
-
-        os.chdir(cwd)    
+        # set the newly generated RTF/PRM to be used.
+        self.rtf_list = acbase + ".rtf"
+        self.prm_list = acbase + ".prm"
+        self.save()
 
     #pre:requires a list of het segids
     #This will run genRTF through the non-compliant hetatms
     #and make topology files for them
-    def makeGenRTF(self,hetids,doHyd):
-        cwd = os.getcwd()
-	os.chdir(self.location)
+    def makeGenRTF(self):
+        os.chdir(self.structure.location)
 
-        for het in hetids:
-            filebase = "new_"+ self.stripDotPDB(self.filename) + "-" + het 
-            filename = filebase + '.pdb'
+        filebase = 'segment-' + self.name
+        filename = filebase + '.pdb'
 
-            if doHyd:
-                os.system('/usr/local/bin/babel -ipdb ' + filename + ' -oxyz ' + filebase + '.xyz -h')
-                os.system('/usr/local/charmming/genrtf-v3.3 -s ' + het + ' -x ' + filebase + '.xyz')
+        # BABEL gets called to put Hydrogen positions in for the bonds
+        os.system('/usr/bin/babel -ipdb ' + filename + ' -oxyz ' + filebase + '.xyz -h')
+        os.system(charmming_config.data_home + '/genrtf-v3.3 -s ' + self.name + ' -x ' + filebase + '.xyz')
 
-                # Run the GENRTF generated inp script through CHARMMing b/c the residue names/ids have changed.
-                # so we can't trust the original PDB any more.
-                os.system('/usr/local/charmming/gfortran-xxlg-qc.one < ' + filebase + '.inp > ' + filebase + '.out')
-            else:
-	        os.system('/usr/local/charmming/genrtf-v3.3 ' +filename)
+        # Run the GENRTF generated inp script through CHARMMing b/c the residue names/ids have changed.
+        # so we can't trust the original PDB any more.
+        os.system(charmming_config.charmm_exe + ' < ' + filebase + '.inp > ' + filebase + '.out')
 
-	    continue_to_write = ""
+        #The new rtf filename will look like genrtf-filename.rtf
+        self.rtf_list = "genrtf-" + self.name + "-" + str(self.id) + ".rtf"
+        self.save()
+        genrtf_handle = open(filebase + ".inp",'r')
+        rtf_handle = open(self.structure.location + '/' + self.rtf_list, 'w')
 
-	    #The new rtf filename will look like genrtf-filename.rtf
-	    self.rtf = "genrtf-" + self.stripNew(self.stripDotPDB(filename)) + ".rtf"
-	    self.save()
-	    genrtf_handle = open(self.location + self.stripDotPDB(filename) + ".inp",'r')
-	    write_rtf_handle = open(self.location + "genrtf-" +\
-	                       self.stripNew(self.stripDotPDB(filename)) + ".rtf",'w')
+        #Now the input file will be parsed for the rtf lines
+        #The RTF files start with read rtf card append and end with End
+	rtf_handle.write('* Genrtf \n*\n')
+        rtf_handle.write('   28\n\n') # need the CHARMM version under which this was generated, c28 is OK.
+        mass_start = False
+        logfp = open('/tmp/genrtf.txt', 'w')
 
-	    #Now the input file will be parsed for the rtf lines
-	    #The RTF files start with read rtf card append and end with End
-	    write_rtf_handle.write('* Genrtf \n*\n')
-            write_rtf_handle.write('   28\n\n') # need the CHARMM version under which this was generated, c28 is OK.
-	    mass = re.compile("MASS")
-	    end = re.compile("End")
-	    for line in genrtf_handle:
-	        if(mass.search(line)):
-		    write_rtf_handle.write(line)
-		    continue_to_write = 1
-		elif(end.search(line)):
-		    write_rtf_handle.write(line)
-		    continue_to_write = 0
-		    break
-	        elif(continue_to_write):
-		    write_rtf_handle.write(line)
-	    write_rtf_handle.close()
+        for line in genrtf_handle:
+            logfp.write(line)
+            if "MASS" in line:
+                logfp.write('got mass!\n')
+                mass_start = True
+                rtf_handle.write(line)
+            elif "End" in line or "END" in line:
+                logfp.write('got end!\n')
+		rtf_handle.write(line)
+		break
+	    elif mass_start:
+                rtf_handle.write(line)
+        rtf_handle.close()
 
-	    #now for the Paramter files
-	    continue_to_write = ""
-	    #The new prm filename will look like genrtf-filename.prm
-	    self.prm = "genrtf-" + self.stripNew(self.stripDotPDB(filename)) + ".prm"
-	    self.save()
-	    write_prm_handle = open(self.location + self.prm,'w')
-	    #Now the input file will be parsed for the prm lines
-	    #The PRM files start with read prm card append and end with End
-	    write_prm_handle.write('* Genrtf \n*\n\n')
-	    bonds_dont_believe = re.compile("bonds ! Don't believe these ones")
-	    for line in genrtf_handle:
-	        if(bonds_dont_believe.search(line)):
-		    write_prm_handle.write(line)
-		    continue_to_write = 1
-		elif(end.search(line)):
-                    write_prm_handle.write(line)
-		    continue_to_write = 0
-		    break
-		elif(continue_to_write):
-                    write_prm_handle.write(line)
+        #now for the Paramter files
+        #The new prm filename will look like genrtf-filename.prm
+        self.prm_list = "genrtf-" + self.name + '-' + str(self.id) + ".prm"
+        self.save()
+        prm_handle = open(self.structure.location + '/' + self.prm_list, 'w')
+
+        #Now the input file will be parsed for the prm lines
+        #The PRM files start with read prm card append and end with End
+        prm_handle.write('* Genrtf \n*\n\n')
+        continue_to_write = False
+       
+        for line in genrtf_handle:
+            logfp.write(line)
+
+            if line.upper().startswith("BOND"):
+                logfp.write('Got BOND Line!\n')
+                prm_handle.write(line)
+                continue_to_write = True
+            elif line.upper().startswith("END"):
+                logfp.write('Got END Line!\n')
+                prm_handle.write(line)
+                continue_to_write = False
+                break
+            elif continue_to_write:
+                prm_handle.write(line)
 	    
-            genrtf_handle.close()
-	    write_prm_handle.close()
-
-        os.chdir(cwd)
+        prm_handle.close()
+        genrtf_handle.close()
 
 
 # The idea is that the WorkingStructure class will hold structures that
 # are ready to be run through minimization, dynamics, etc.
 class WorkingStructure(models.Model):
     structure = models.ForeignKey(Structure)
-    #solvParams = models.ForeignKey(solvation.models.solvationParams)
-
     identifier = models.CharField(max_length=20,default='')
 
     selected = models.CharField(max_length=1,default='n')
@@ -702,6 +491,11 @@ class WorkingStructure(models.Model):
     segments = models.ManyToManyField(WorkingSegment)
 
     modelName = models.CharField(max_length=100,default='model0')
+
+    # final topologies and parameters (built using Frank's TOP/PAR
+    # stuff).
+    finalTopology = models.CharField(max_length=50,null=True)
+    finalParameter = models.CharField(max_length=50,null=True)
 
     # job IDs
     minimization_jobID = models.PositiveIntegerField(default=0)
@@ -716,7 +510,7 @@ class WorkingStructure(models.Model):
     lesson = models.ForeignKey(lessons.models.Lesson,null=True)
     
 
-    def associate(self,structref,segids):
+    def associate(self,structref,segids,tpdict):
         for sid in segids:
             self.structure = structref
             self.save()
@@ -732,8 +526,19 @@ class WorkingStructure(models.Model):
             wseg.type = segobj.type
             wseg.default_patch_first = segobj.default_patch_first
             wseg.default_patch_last = segobj.default_patch_last
-            wseg.rtf_list = segobj.rtf_list
-            wseg.prm_list = segobj.prm_list
+            wseg.tpMethod = tpdict[sid]
+
+            if wseg.tpMethod == 'standard':
+                wseg.rtf_list = segobj.rtf_list
+                wseg.prm_list = segobj.prm_list
+            elif wseg.tpMethod == 'upload':
+                wseg.rtf_list = self.structure.location + '/' + self.identifier + '-' + wseg.name + '.rtf'
+                wseg.prm_list = self.structure.location + '/' + self.identifier + '-' + wseg.name + '.prm'
+            else:
+                # custom built topology/parameter files will be handled at build time
+                wseg.rtf_list = '' 
+                wseg.prm_list = ''
+
             wseg.save()
 
             self.segments.add(wseg)

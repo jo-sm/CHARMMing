@@ -1170,10 +1170,29 @@ def modstruct(request):
         return HttpResponse("You must give this working structure an identifier")
     if not request.POST['wsidentifier']:
         return HttpResponse("You must give this working structure an identifier")
+    
+    tpdict = {}
+    for seg in seglist:
+        if request.POST.has_key('toppar_' + seg):
+            tpdict[seg] = request.POST['toppar_' + seg]
+            if tpdict[seg] not in ['standard','upload','cgenff','genrtf','antechamber']:
+                tpdict[seg] = standard
+
+            if tpdict[seg] == 'upload':
+                try:
+                    uptop = request.FILES['topology_' + seg].name
+                    uppar = request.FILES['parameter_' + seg].name
+                except:
+                    return HttpResponse("Topology/parameter files not uploaded")
+
+                os.copy(uptop,struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.rtf')
+                os.copy(upprm,struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.prm')
+        else:
+            tpdict[seg] = 'standard'
 
     new_ws = structure.models.WorkingStructure()
     new_ws.modelName = request.POST['basemodel']
-    new_ws.associate(struct,seglist)
+    new_ws.associate(struct,seglist,tpdict)
 
     # to do, make this not contain spaces
     new_ws.identifier = request.POST['wsidentifier']
