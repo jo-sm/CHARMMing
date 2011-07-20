@@ -92,7 +92,6 @@ def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
         # FixMe: alert user to errors
         return "Error"        
 
-    mp.usepbc = postdata.has_key('usepbc')
     if postdata.has_key('useqmmm'):
         mp.useqmmm = 'y'
         file.checkForMaliciousCode(postdata['qmsele'],postdata)
@@ -188,6 +187,10 @@ def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
     template_dict['sdsteps'] = sdsteps
     template_dict['abnr'] = abnr
     template_dict['tolg'] = tolg
+    if dopbc:
+        mp.usepbc = 't'
+    else:
+        mp.usepbc = 'f'
     
     if postdata.has_key("useqmmm"):
         # validate input
