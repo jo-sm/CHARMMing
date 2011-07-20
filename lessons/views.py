@@ -21,7 +21,6 @@ from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
 from structure.models import Structure
 from structure.qmmm import makeQChem, handleLinkAtoms
-from structure.editscripts import generateHTMLScriptEdit
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface

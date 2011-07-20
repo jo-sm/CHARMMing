@@ -37,7 +37,6 @@ from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from account.views import isUserTrustworthy
-from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch
 import output, lesson1, lesson2, lesson3, lesson4, lessonaux
 import structure.models, input

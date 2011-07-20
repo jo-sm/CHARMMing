@@ -24,7 +24,6 @@ from structure.qmmm import makeQChem, makeQChem_tpl, writeQMheader
 from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeParams
 from account.views import isUserTrustworthy
-from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch
 from django.contrib.auth.models import User
 from django.template import *
@@ -240,20 +239,18 @@ def makeNmaMovie_tpl(workstruct,postdata,pstructID,scriptlist,num_trjs,typeoptio
     movie_handle.close()
     user_id = file.owner.id
     scriptlist.append(file.location + movie_filename)
-    if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
-        return generateHTMLScriptEdit(charmm_inp,scriptlist,'nma')
-    else:
-        si = schedInterface()
-        newJobID = si.submitJob(user_id,file.location,scriptlist)
-        if file.lesson_type:
-            lessonaux.doLessonAct(file,"onNMASubmit",postdata,None)
-        file.nma_jobID = newJobID
-        sstring = si.checkStatus(newJobID)
-        nmm.statusHTML = statsDisplay(sstring,newJobID)
-        #nmm.nma_movie_status = "<font color=33CC00>Done</font>"
-        nmm.save()
-        file.save()
-        return "Done."
+
+    si = schedInterface()
+    newJobID = si.submitJob(user_id,file.location,scriptlist)
+    if file.lesson_type:
+        lessonaux.doLessonAct(file,"onNMASubmit",postdata,None)
+    file.nma_jobID = newJobID
+    sstring = si.checkStatus(newJobID)
+    nmm.statusHTML = statsDisplay(sstring,newJobID)
+    #nmm.nma_movie_status = "<font color=33CC00>Done</font>"
+    nmm.save()
+    file.save()
+    return "Done."
 
 #pre: Requires a PDBFile object
 #Combines all the smaller PDBs make in the above method into one large PDB that

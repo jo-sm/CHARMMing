@@ -20,7 +20,6 @@ from django.shortcuts import render_to_response
 from django.template.loader import get_template
 from structure.models import Structure, WorkingStructure, WorkingFile
 from account.views import isUserTrustworthy
-from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch
 from dynamics.models import mdParams,ldParams,sgldParams
 from django.contrib.auth.models import User
@@ -466,7 +465,6 @@ stop"""
     if(type == 'md'):
         if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
             file.save()
-            return generateHTMLScriptEdit(charmm_inp,scriptlist,'md')
 	else:
             newJobID = si.submitJob(user_id,file.location,scriptlist,{},{})
             file.md_jobID = newJobID
@@ -479,7 +477,6 @@ stop"""
     elif(type == 'ld'):
         if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
             file.save()
-            return generateHTMLScriptEdit(charmm_inp,scriptlist,'ld')
 	else:
             newJobID = si.submitJob(user_id,file.location,scriptlist,{},{})
             file.ld_jobID = newJobID
@@ -493,7 +490,6 @@ stop"""
     elif(type == 'sgld'):
         if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
             file.save()
-            return generateHTMLScriptEdit(charmm_inp,scriptlist,'sgld')
 	else:
             newJobID = si.submitJob(user_id,file.location,scriptlist,{},{})
             file.sgld_jobID = newJobID

@@ -22,7 +22,6 @@ from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
 from structure.models import Structure, WorkingStructure, WorkingFile, Segment, goModel 
 from structure.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
-from structure.editscripts import generateHTMLScriptEdit
 from structure.aux import checkNterPatch
 from django.contrib.auth.models import User
 from django.template import *
@@ -236,32 +235,25 @@ def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
     inp_out.write(charmm_inp)
     inp_out.close()	
     scriptlist.append(minimize_filename)
-    if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
-        return generateHTMLScriptEdit(charmm_inp,scriptlist,'minimization')
+    si = schedInterface()
+    newJobID = si.submitJob(user_id,workstruct.structure.location,scriptlist)
+
+    # lessons are borked under the new order, ToDo: come back and fix this
+    #if file.lesson_type:
+    #    lessonaux.doLessonAct(file,"onMinimizeSubmit",postdata,final_pdb_name)
+
+    if newJobID < 0:
+       mp.statusHTML = "<font color=red>Failed</font>"
+       mp.save()
     else:
-        si = schedInterface()
-        newJobID = si.submitJob(user_id,workstruct.structure.location,scriptlist)
-
-        # lessons are borked under the new order, ToDo: come back and fix this
-        #if file.lesson_type:
-        #    lessonaux.doLessonAct(file,"onMinimizeSubmit",postdata,final_pdb_name)
-
-        if newJobID < 0:
-           mp.statusHTML = "<font color=red>Failed</font>"
-           mp.save()
-        else:
-           workstruct.minimization_jobID = newJobID
-           workstruct.save()
-           sstring = si.checkStatus(newJobID)
-           mp.statusHTML = statsDisplay(sstring,newJobID)
-           mp.save()
+       workstruct.minimization_jobID = newJobID
+       workstruct.save()
+       sstring = si.checkStatus(newJobID)
+       mp.statusHTML = statsDisplay(sstring,newJobID)
+       mp.save()
 
 
-        logfp = open('/tmp/ms.txt', 'w')
-        logfp.write('minimization_jobID = %s\n' % workstruct.minimization_jobID)
-        logfp.close()
-
-        workstruct.save()
-	return HttpResponse("Done.")
+    workstruct.save()
+    return HttpResponse("Done.")
 
 

@@ -23,7 +23,6 @@ from structure.models import Structure, WorkingStructure, WorkingFile
 from solvation.ionization import neutralize_tpl
 from solvation.models import solvationParams
 from account.views import isUserTrustworthy
-from structure.editscripts import generateHTMLScriptEdit
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
