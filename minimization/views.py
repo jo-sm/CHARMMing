@@ -50,30 +50,33 @@ def minimizeformdisplay(request):
        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     if request.POST.has_key('sdsteps') or request.POST.has_key('abnrsteps'):
-        scriptlist = []
+        #deals with changing the selected minimize_params
+        try:
+            oldtsk = minimizeTask.objects.filter(workstruct=workstruct, selected='y')[0]
+	    oldtsk.selected = 'n'
+	    oldtsk.save()
+        except:
+            pass
+
+        mp = minimizeTask(selected='y')
+        mp.struct = ws
+
         if ws.isBuilt != 't':
             isBuilt = False
-            pstruct = ws.build(scriptlist)
+            pstruct = ws.build(mp)
             pstructID = pstruct.id
         else:
             isBuilt = True
             pstructID = int(request.POST['pstruct'])
                 
-        return minimize_tpl(request,ws,isBuilt,pstructID,scriptlist)
+        return minimize_tpl(request,mp,pstructID)
     else:
         # get all workingFiles associated with this struct
         wfs = WorkingFile.objects.filter(structure=ws,type='crd')
         return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
 
-def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
+def minimize_tpl(request,mp,pstructID):
     postdata = request.POST
-    #deals with changing the selected minimize_params
-    try:
-        oldparam = minimizeParams.objects.filter(pdb = file, selected = 'y')[0]
-	oldparam.selected = 'n'
-	oldparam.save()
-    except:
-        pass
 
     #change the status of the file regarding minimization 
     sdsteps = postdata['sdsteps']
@@ -82,8 +85,6 @@ def minimize_tpl(request,workstruct,isBuilt,pstructID,scriptlist):
     os.chdir(workstruct.structure.location)
     
     # create a model for the minimization
-    mp = minimizeParams(selected='y')
-    mp.struct = workstruct
     try:
         mp.sdsteps = int(sdsteps)
         mp.abnrsteps = int(abnr)

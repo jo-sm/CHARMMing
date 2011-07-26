@@ -497,15 +497,6 @@ class WorkingStructure(models.Model):
     finalTopology = models.CharField(max_length=50,null=True)
     finalParameter = models.CharField(max_length=50,null=True)
 
-    # job IDs
-    minimization_jobID = models.PositiveIntegerField(default=0)
-    solvation_jobID = models.PositiveIntegerField(default=0)
-    nma_jobID = models.PositiveIntegerField(default=0)
-    md_jobID = models.PositiveIntegerField(default=0)
-    ld_jobID = models.PositiveIntegerField(default=0)
-    redox_jobID = models.PositiveIntegerField(default=0)
-    sgld_jobID = models.PositiveIntegerField(default=0)
-
     # lesson
     lesson = models.ForeignKey(lessons.models.Lesson,null=True)
     
@@ -627,16 +618,31 @@ class WorkingStructure(models.Model):
 
         return wf
 
-    # Updates the status of in progress operations
-    def updateActionStatus(self):
-
-        si = schedInterface()        
-
+    def addCRDToPickle(self,fname,fkey):
         pickleFile = open(self.structure.pickle, 'r+')
         pdb = cPickle.load(pickleFile)
         pickleFile.close()
-        mod = False
 
+        # Create a new Mol object for this
+        molobj = pychm.io.pdb.get_molFromCRD(fname)
+        pdb[fkey] = molobj
+
+        # kill off the old pickle and re-create
+        os.unlink(self.structure.pickle)
+
+        pickleFile = open(self.structure.pickle, 'w')
+        cPickle.dump(pdb,pickleFile)
+        pickleFile.close()
+ 
+        self.save() 
+
+    # Updates the status of in progress operations
+    def updateActionStatus(self):
+        si = schedInterface()        
+
+        # appending is a special case, since it doesn't exist as a task unto
+        # itself. So if the structure is not built, we should check and see
+        # whether or not that happened.
         if self.isBuilt != 't':
             # check if the PSF and CRD files for this structure exist
             try:
@@ -646,227 +652,12 @@ class WorkingStructure(models.Model):
                 pass
             else:
                 self.isBuilt = 't'
-                mod = True
-                molobj = pychm.io.pdb.get_molFromCRD(self.structure.location + '/' + self.identifier + '.crd')
-                pdb['append_' + self.identifier] = molobj
-                self.save()
+                self.addCRDToPickle(self.structure.location + '/' + self.identifier + '.crd', 'append_' + self.identifier)
               
 
-        if self.minimization_jobID != 0:
-
-            sstring = si.checkStatus(self.minimization_jobID)
-	    miniparam_obj = minimization.models.minimizeParams.objects.filter(struct=self,selected='y')[0]
-            miniparam_obj.statusHTML = statsDisplay(sstring,self.minimization_jobID)
-	    miniparam_obj.save()
-
-            if 'Done' in miniparam_obj.statusHTML:
-                # Create a new Mol object for this
-                fname = self.structure.location + '/mini-' + self.identifier + '.crd'
-                mod = True
-
-                molobj = pychm.io.pdb.get_molFromCRD(fname)
-                pdb['mini_' + self.identifier] = molobj 
-
-                wf = WorkingFile()
-                wf.structure = self
-                wf.path = fname
-                wf.canonPath = wf.path
-                wf.type = 'crd'
-                wf.description = 'minimized structure'
-                wf.parent = miniparam_obj.inpStruct
-                wf.parentAction = 'mini'
-                wf.pdbkey = 'mini_' + self.identifier
-                wf.save() 
-
-            if 'Done' in miniparam_obj.statusHTML or 'Fail' in miniparam_obj.statusHTML:
-               self.minimization_jobID = 0
-               if self.lesson:
-                   self.lesson.onMinimizeDone(self)
-
-        if self.solvation_jobID != 0:
-            sstring = si.checkStatus(self.solvation_jobID)
-	    solvparam_obj = solvation.models.solvationParams.objects.filter(structure=self,selected='y')[0]
-            solvparam_obj.statusHTML = statsDisplay(sstring,self.solvation_jobID)
-	    solvparam_obj.save()
-
-            if 'Done' in solvparam_obj.statusHTML:
-                # Create a new Mol object for this
-                fname = self.structure.location + '/solv-' + self.identifier + '.crd'
-                mod = True
-
-                molobj = pychm.io.pdb.get_molFromCRD(fname)
-                pdb['solv_' + self.identifier] = molobj
-
-                wf = WorkingFile()
-                wf.structure = self
-                wf.path = fname
-                wf.canonPath = wf.path
-                wf.type = 'crd'
-                wf.description = 'solvated structure'
-                wf.parent = solvparam_obj.inpStruct
-                wf.parentAction = 'solv'
-                wf.pdbkey = 'solv_' + self.identifier
-                wf.save()
-
-                if solvparam_obj.salt:
-                    # create working file for neutralized struct
-                    wfn = WorkingFile()
-                    wfn.structure = self
-                    wfn.path = fname.replace('/solv-','/neut-')
-                    wfn.canonPath = wfn.path
-                    wfn.type = 'crd'
-                    wfn.description = 'solvated and neutralized structure'
-                    wfn.parent = wf
-                    wfn.parentAction = 'neut'
-                    wfn.pdbkey = 'neut_' + self.identifier
-                    wfn.save()
-
-                    molobj = pychm.io.pdb.get_molFromCRD(wfn.path)
-                    pdb[wfn.pdbkey] = molobj
-
-            if 'Done' in solvparam_obj.statusHTML or 'Fail' in solvparam_obj.statusHTML:
-               self.solvation_jobID = 0
-               if self.lesson:
-                   self.lesson.onSolvationDone(self)
-
-        if self.nma_jobID != 0:
-            sstring = si.checkStatus(self.nma_jobID)
-	    nmaparam_obj = normalmodes.models.nmodeParams.objects.filter(structure=self,selected='y')[0]
-            nmaparam_obj.statusHTML = statsDisplay(sstring,self.nma_jobID)
-	    nmaparam_obj.save()
-
-            nma_status = statsDisplay(sstring,self.nma_jobID)
-
-            if 'Done' in nmaparam_obj.statusHTML:
-                # Create a new Mol object for this
-                fname = self.structure.location + '/nmodes-' + self.identifier + '.inp'
-                mod = True
-
-
-                wf = WorkingFile()
-                wf.structure = self
-                wf.path = fname
-                wf.canonPath = wf.path
-                wf.type = 'inp'
-                wf.description = 'normal modes'
-                wf.parent = nmaparam_obj.inpStruct
-                wf.parentAction = 'nma'
-                wf.pdbkey = wf.parent.pdbkey
-                wf.save()
-
-            if 'Done' in nmaparam_obj.statusHTML or 'Fail' in nmaparam_obj.statusHTML:
-               self.nma_jobID = 0
-               if self.lesson:
-                   self.lesson.onNMADone(self)
-
-
-        if self.md_jobID != 0:
-            sstring = si.checkStatus(self.md_jobID)
-	    mdparam_obj = dynamics.models.mdParams.objects.filter(structure=self,selected='y')[0]
-            mdparam_obj.statusHTML = statsDisplay(sstring,self.md_jobID)
-	    mdparam_obj.save()
-
-            if 'Done' in mdparam_obj.statusHTML:
-                fname = self.structure.location + '/md-' + self.identifier + '.crd'
-
-                # Create a new Mol object for this
-                molobj = pychm.io.pdb.get_molFromCRD(fname)
-                pdb['md_' + self.identifier] = molobj
-                mod = True
-
-                wf = WorkingFile()
-                wf.structure = self
-                wf.path = fname
-                wf.canonPath = wf.path
-                wf.type = 'crd'
-                wf.description = 'structure after MD'
-                wf.parent = mdparam_obj.inpStruct
-                wf.parentAction = 'md'
-                wf.pdbkey = 'md_' + self.identifier
-                wf.save()
-
-            if 'Done' in mdparam_obj.statusHTML or 'Fail' in mdparam_obj.statusHTML:
-               self.md_jobID = 0
-	       self.save()
-               if self.lesson:
-                  self.lesson.onMDDone(self)
-
-        if self.ld_jobID != 0:
-            sstring = si.checkStatus(self.ld_jobID)
-	    ldparam_obj = dynamics.models.ldParams.objects.filter(structure=self,selected='y')[0]
-            ldparam_obj.statusHTML = statsDisplay(sstring,self.ld_jobID)
-	    ldparam_obj.save()
-
-            if 'Done' in ldparam_obj.statusHTML:
-                # Create a new Mol object for this
-                fname = self.structure.location + '/ld-' + self.identifier + '.crd'
-                molobj = pychm.io.pdb.get_molFromCRD(fname)
-                pdb['md_' + self.identifier] = molobj
-                mod = True
-
-                wf = WorkingFile()
-                wf.structure = self
-                wf.path = fname
-                wf.canonPath = wf.path
-                wf.type = 'crd'
-                wf.description = 'structure after LD'
-                wf.parent = ldparam_obj.inpStruct
-                wf.parentAction = 'ld'
-                wf.pdbkey = 'ld_' + self.identifier
-                wf.save()
-
-            if 'Done' in ldparam_obj.statusHTML or 'Fail' in ldparam_obj.statusHTML:
-               self.ld_jobID = 0
-               self.save()
-               if self.lesson:
-                  self.lesson.onLDDone(self)
-
-        if self.sgld_jobID != 0:
-            sstring = si.checkStatus(self.sgld_jobID)
-            sgldparam_obj = dynamics.models.sgldParams.objects.filter(structure=self,selected='y')[0]
-            sgldparam_obj.statusHTML = statsDisplay(sstring,self.ld_jobID)
-            sgldparam_obj.save() 
-
-            if 'Done' in ldparam_obj.statusHTML:
-                # Create a new Mol object for this    
-                fname = self.structure.location + '/sgld-' + self.identifier + '.crd'
-                molobj = pychm.io.pdb.get_molFromCRD(fname)
-                pdb['md_' + self.identifier] = molobj
-                mod = True
-
-                wf = WorkingFile()
-                wf.structure = self
-                wf.path = fname
-                wf.canonPath = wf.path
-                wf.type = 'crd'
-                wf.description = 'structure after SGLD'
-                wf.parent = ldparam_obj.inpStruct
-                wf.parentAction = 'sgld'
-                wf.pdbkey = 'sgld_' + self.identifier
-                wf.save()
-
-            if 'Done' in sgldparam_obj.statusHTML or 'Fail' in sgldparam_obj.statusHTML:
-               self.sgld_jobID = 0
-               self.save()    
-               if self.lesson: 
-                  self.lesson.onSGLDDone(self)
-
-        if self.redox_jobID != 0:
-            sstring = si.checkStatus(self.redox_jobID)
-            redox_obj = apbs.models.redoxParams.objects.filter(struct=self,selected='y')[0]
-            redox_obj.statusHTML = statsDisplay(sstring,self.redox_jobID)
-            redox_obj.save()
-            # ToDo, add lesson hooks
+        tasks = Tasks.objects.filter(workstruct=self)
+        for t in tasks: t.query()
     
-        if mod:
-            # blow away the old pickle file and re-create it
-            # since otherwise this does not work
-            os.unlink(self.structure.pickle)
-
-            pickleFile = open(self.structure.pickle, 'w')
-            cPickle.dump(pdb,pickleFile)
-            pickleFile.close()
-
         self.save()
 
 class Patch(models.Model):
@@ -881,20 +672,85 @@ class Patch(models.Model):
     patch_name   = models.CharField(max_length=10)
     patch_segres = models.CharField(max_length=100)
 
+class Task(models.Model):
+    STATUS_CHOICES = (
+       ('I', 'Inactive'),
+       ('Q', 'Queued'),
+       ('R', 'Running'),
+       ('C', 'Completed'),
+       ('F', 'Failed'),
+       ('K', 'Killed'),
+    )
+
+    workstruct  = models.ForeignKey(WorkingStructure)
+    action      = models.CharField(max_length=100,null=True) # what this task is doing
+    parent      = models.ForeignKey('self',null=True)
+    status      = models.CharField(max_length=1, choices=STATUS_CHOICES)
+    jobID       = models.PositiveIntegerField()
+    scripts     = models.CharField(max_length=250,null=True)
+
+    @property
+    def scriptList(self):
+        return self.scripts.split(',')
+
+    def start(self):
+        st = self.workstruct.structure
+
+        si = schedInterface()
+        self.jobID = si.submitJob(st.owner.id,st.location,self.scriptList)
+        if self.jobID > 0:
+            self.save()
+        else:
+            raise AssertionError('Job submission fails')
+
+    def kill(self): 
+        si = schedInterface()
+
+        if self.jobID > 0:
+            si.doJobKill(self.workstruct.structure.owner.id,self.jobID)
+            self.status = 'K'
+
+    def query(self):
+        si = schedInterface()
+
+        if self.jobID > 0:
+            sstring = si.checkStatus(self.jobID).split()[4]
+
+            if sstring == 'submitted' or sstring == 'queued':
+                self.status = 'Q'
+            elif sstring == 'running':
+                self.status = 'R'
+            elif sstring == 'complete' or sstring == 'failed':
+                self.finish(sstring)
+            else:
+                raise AssertionError('Unknown status ' + sstring)
+
+            self.save()
+            return sstring
+        else:
+            return 'unknown'
+
+    def finish(self,status):
+        """
+        This is a pure virtual function. I expect it to be overridden in
+        the subclasses of Task. In particular, it needs to decide whether
+        the action succeeded or failed.
+        """
+        pass
+
+    def __init__(self,ws):
+        self.status = 'I'
+        self.jobID = 0
+        self.workstruct = ws
+
 class WorkingFile(models.Model,file):
-    structure   = models.ForeignKey(WorkingStructure)
-    pdbkey      = models.CharField(max_length=100,null=True) # if this is a structure file, want to know where to find it
-    path        = models.CharField(max_length=100)
-    canonPath   = models.CharField(max_length=100) # added so we can do file versioning
+    path        = models.CharField(max_length=160)
+    canonPath   = models.CharField(max_length=160) # added so we can do file versioning
     version     = models.PositiveIntegerField(default=1)
     type        = models.CharField(max_length=20)
     description = models.CharField(max_length=500,null=True)
-    parent      = models.ForeignKey('self',null=True)
-
-    # We should probably figure out a better way to do this; the problem
-    # is that I can't have a foreign key that points to multiple types, so
-    # I've implemented the "action" hack.
-    parentAction = models.CharField(max_length=6)
+    task        = models.ForeignKey(Task,null=True)
+    pdbkey      = models.CharField(max_length=100,null=True) # if this is a structure file, want to know where to find it
 
     @property
     def basename(self):

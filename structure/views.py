@@ -535,78 +535,14 @@ def viewstatus(request):
         haveWorkingStruct = False
         workingStruct = None
 
-
+    statuses = []
     if workingStruct:
-        try:
-            mini_param = minimizeParams.objects.filter(struct=workingStruct,selected='y')[0]
-        except:
-            mini_param = None
-        try:
-            solv_param = solvationParams.objects.filter(structure=workingStruct,selected='y')[0]
-        except:
-            solv_param = None
-        try:
-            md_param = mdParams.objects.filter(structure=workingStruct,selected='y')[0]
-        except:
-            md_param = None
-        try:
-            ld_param = ldParams.objects.filter(structure=workingStruct,selected='y')[0]
-        except:
-            ld_param = None
-        try:
-            sgld_param = sgldParams.objects.filter(structure=workingStruct,selected='y')[0]
-        except:
-            sgld_param = None
-        try:
-            nma_param = nmodeParams.objects.filter(structure=workingStruct,selected='y')[0]
-        except:
-            nma_param = None
-        try:
-            redox_param = redoxParams.objects.filter(structure=workingStruct,selected='y')[0]
-        except:
-            redox_param = None
-
-        if(nma_param and nma_param.make_nma_movie):
-            combineNmaPDBsForMovie(file)
-            if (nma_param.nma_movie_status):
-                nma_param.make_nma_movie = False
-                nma_param.make_nma_req = False
-                nma_param.save()
         workingStruct.updateActionStatus()
-        if md_param and md_param.make_movie: 
-            combinePDBsForMovie(file,'md')
-            #If the movie status has been updated then reset the req
-            #and movie stuff
-            if md_param.md_movie_status:
-                md_param.make_md_movie = False
-                md_param.make_md_req = False
-                md_param.save()
-            #If there is a ld_param and if the main job is finished and the movie has not been created yet
-        if ld_param and ld_param.make_ld_movie:
-            combinePDBsForMovie(file,'ld')
-            if ld_param.ld_movie_status:
-                ld_param.make_ld_movie = False
-                ld_param.make_ld_req = False
-                ld_param.save()
-        if sgld_param and sgld_param.make_sgld_movie:
-            combinePDBsForMovie(file,'sgld')
-            if sgld_param.sgld_movie_status:
-                sgld_param.make_sgld_movie = False
-                sgld_param.make_sgld_req = False
-                sgld_param.save()
-    else:
-        mini_param = None
-        solv_param = None
-        md_param = None
-        ld_param = None
-        sgld_param = None
-        nma_param = None
-        redox_param = None
+        t = structure.models.Task.objects.filter(workstruct=workingStruct)
+        for task in t:
+            statuses.append((task.action,task.get_status_display()))
 
-
-    return render_to_response('html/statusreport.html', {'structure': file, 'mini_param':mini_param, 'solv_param':solv_param, 'md_param':md_param, \
-                                                         'nma_param':nma_param,'ld_param':ld_param,'sgld_param':sgld_param, 'redox_param': redox_param, \
-                                                         'haveWorkingStruct': haveWorkingStruct})
+    return render_to_response('html/statusreport.html', {'statuses': statuses})
 
 #Used to report an error. Used in calling problem.html
 def reportError(request):
