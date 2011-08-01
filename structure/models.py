@@ -603,20 +603,16 @@ class WorkingStructure(models.Model):
         charmm_inp_file.close()
         scriptlist.append(charmm_inp_filename)
 
-        # create workingFile object for the appended structure; this has no parent
-        wf = WorkingFile()
-        wf.structure = self
-        wf.path = self.structure.location + '/' + self.identifier + '.crd'
-        wf.canonPath = wf.path
-        wf.type = 'crd'
-        wf.description = 'appended structure'
-        wf.parentAction = 'build'
-        wf.pdbkey = 'append_' + self.identifier
-        wf.save()
+        # create a Task object for appending; this has no parent
+        task = Task(self)
+        task.parent = None
+        task.action = 'build'
+        task.active = 'y'
+        task.save()
 
         self.save()
 
-        return wf
+        return task
 
     def addCRDToPickle(self,fname,fkey):
         pickleFile = open(self.structure.pickle, 'r+')
@@ -688,6 +684,7 @@ class Task(models.Model):
     status      = models.CharField(max_length=1, choices=STATUS_CHOICES)
     jobID       = models.PositiveIntegerField()
     scripts     = models.CharField(max_length=250,null=True)
+    active      = models.CharField(max_length=1)
 
     @property
     def scriptList(self):

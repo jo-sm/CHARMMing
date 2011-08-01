@@ -1,0 +1,8 @@
+{% if workfiles %}
+  <table>
+  {% for task in tasks %}
+    <tr><td><input type="radio" name="ptask" value="{{ task.id }}" /></td><td>Coordinates from {{ task.action }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}
+

@@ -53,29 +53,30 @@ def minimizeformdisplay(request):
         #deals with changing the selected minimize_params
         try:
             oldtsk = minimizeTask.objects.filter(workstruct=workstruct, selected='y')[0]
-	    oldtsk.selected = 'n'
+	    oldtsk.active = 'n'
 	    oldtsk.save()
         except:
             pass
 
-        mp = minimizeTask(selected='y')
-        mp.struct = ws
+        mp = minimizeTask(self)
+        mp.active = 'y'
+        mp.workstruct = ws
 
         if ws.isBuilt != 't':
             isBuilt = False
-            pstruct = ws.build(mp)
-            pstructID = pstruct.id
+            pTask = ws.build(mp)
+            pTaskID = pTask.id
         else:
             isBuilt = True
-            pstructID = int(request.POST['pstruct'])
+            pTaskID = int(request.POST['ptask'])
                 
-        return minimize_tpl(request,mp,pstructID)
+        return minimize_tpl(request,mp,pTaskID)
     else:
         # get all workingFiles associated with this struct
-        wfs = WorkingFile.objects.filter(structure=ws,type='crd')
-        return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
+        tasks = structure.model.Task.objects.filter(workstruct=ws,status='C',active='y')
+        return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'tasks': tasks})
 
-def minimize_tpl(request,mp,pstructID):
+def minimize_tpl(request,mp,pTaskID):
     postdata = request.POST
 
     #change the status of the file regarding minimization 
@@ -110,10 +111,10 @@ def minimize_tpl(request,mp,pstructID):
     template_dict['parameter_list'] = workstruct.getParameterList()
     template_dict['output_name'] = 'mini-' + workstruct.identifier
 
-    pstruct = WorkingFile.objects.filter(id=pstructID)[0]
-    template_dict['input_file'] = pstruct.basename
+    pTask = structure.model.Task.objects.get(id=pTaskID)
+    template_dict['input_file'] = pTask.action
 
-    mp.inpStruct = pstruct
+    mp.parent = pTask
     mp.save()
 
     solvate_implicitly = 0
@@ -156,9 +157,9 @@ def minimize_tpl(request,mp,pstructID):
         # decide if the structure we're dealing with has
         # been solvated.
         solvated = False
-        wfc = pstruct
+        wfc = pTask
         while True:
-            if wfc.parentAction == 'solv':
+            if wfc.action == 'solvation':
                 solvated = True
                 break
             if wfc.parent:
