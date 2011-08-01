@@ -1,7 +1,7 @@
 from django.contrib import admin
-from minimization.models import minimizeParams
+from minimization.models import minimizeTask
 
-class minimizeParamsAdmin(admin.ModelAdmin):
+class minimizeTaskAdmin(admin.ModelAdmin):
     pass
 
-admin.site.register(minimizeParams, minimizeParamsAdmin)
+admin.site.register(minimizeTask, minimizeTaskAdmin)

@@ -5,7 +5,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from lessons.models import LessonProblem
 from solvation.models import solvationParams
-from minimization.models import minimizeParams
+from minimization.models import minimizeTask
 from dynamics.models import mdParams
 import os, re
 import structure, lessonaux, charmming_config
@@ -70,7 +70,7 @@ class Lesson2(models.Model):
         except:
             pass
         file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-        mp = minimizeParams.objects.filter(pdb=file,selected='y')[0]
+        mp = minimizeTask.objects.filter(pdb=file,selected='y')[0]
         if filename not in ['new_' + file.stripDotPDB(file.filename) + '-neutralized']:
             lessonprob = LessonProblem(lesson_type='lesson2',lesson_id=self.id,errorstep=3,severity=2,description='Please minimize the neutralized PDB.')
             lessonprob.save()
@@ -104,7 +104,7 @@ class Lesson2(models.Model):
             lessonprob = LessonProblem.objects.filter(lesson_type='lesson2',lesson_id=self.id)[0]
         except:
             lessonprob = None
-        mp = minimizeParams.objects.filter(pdb=file,selected='y')[0]
+        mp = minimizeTask.objects.filter(pdb=file,selected='y')[0]
         fail = re.compile('Failed')
         if lessonprob:
             return False

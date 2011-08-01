@@ -21,7 +21,7 @@ from django import forms
 from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
-from minimization.models import minimizeParams
+from minimization.models import minimizeTask
 from dynamics.models import mdParams, ldParams, sgldParams
 from solvation.models import solvationParams
 from account.models import *
@@ -94,7 +94,7 @@ def deleteFile(request):
 
         # clean up other models that are left behind.
         objstodel = []
-        for typ in minimizeParams, solvationParams, mdParams, ldParams, sgldParams, nmodeParams, \
+        for typ in minimizeTask, solvationParams, mdParams, ldParams, sgldParams, nmodeParams, \
                    structure.models.energyParams:
             try:
                 objstodel.append(typ.objects.filter(pdb=s))

@@ -649,10 +649,59 @@ class WorkingStructure(models.Model):
             else:
                 self.isBuilt = 't'
                 self.addCRDToPickle(self.structure.location + '/' + self.identifier + '.crd', 'append_' + self.identifier)
-              
+                loc = self.structure.location
+                bnm = self.identifier
 
-        tasks = Tasks.objects.filter(workstruct=self)
-        for t in tasks: t.query()
+                # add the working files to the quasi appending Task
+                buildtask = Task.objects.get(workstruct=self,finished='n',action='build')
+
+                wfinp = WorkingFile()
+                wfinp.task = buildtask
+                wfinp.path = loc + '/' + bnm + '-build.inp'
+                wfinp.canonPath = wfinp.path
+                wfinp.type = 'inp'
+                wfinp.save()
+
+                wfout = copy.deepcopy(wfinp)
+                wfout.path = loc + '/' + bnm + '-build.out'
+                wfout.canonPath = wfout.path
+                wfout.type = 'out'
+                wfout.save()
+
+                wfpsf = copy.deepcopy(wfinp)
+                wfpsf.path = loc + '/' + bnm + '.psf'
+                wfpsf.canonPath = wfpsf.path
+                wfpsf.type = 'psf'
+                wfpsf.save()
+
+                wfpdb = copy.deepcopy(wfinp)
+                wfpdb.path = loc + '/' + bnm + '.pdb'
+                wfpdb.canonPath = wfpdb.path
+                wfpdb.type = 'pdb'
+                wfpdb.save()
+
+                wfcrd = copy.deepcopy(wfinp)
+                wfcrd.path = loc + '/' + bnm + '.crd'
+                wfcrd.canonPath = wfcrd.path
+                wfcrd.type = 'crd'
+                wfcrd.pdbkey = 'append_' + self.identifier
+                wfcrd.save()
+
+              
+        tasks = Task.objects.filter(workstruct=self,finished='n')
+        for t in tasks: 
+            t.query()
+
+            if t.status == 'C' or t.status == 'F':
+                # finish the task
+                if t.action == 'minimization':
+                    t2 = minimization.models.minimizeTask.objects.get(id=t.id)
+                elif t.action == 'solvation':
+                    t2 = solvation.models.solvationTask.objects.get(id=t.id)
+                else:
+                    t2 = t
+
+                t2.finish()
     
         self.save()
 
@@ -685,6 +734,7 @@ class Task(models.Model):
     jobID       = models.PositiveIntegerField()
     scripts     = models.CharField(max_length=250,null=True)
     active      = models.CharField(max_length=1)
+    finished    = models.CharField(max_length=1)
 
     @property
     def scriptList(self):
@@ -739,6 +789,7 @@ class Task(models.Model):
         self.status = 'I'
         self.jobID = 0
         self.workstruct = ws
+        self.finished = 'n'
 
 class WorkingFile(models.Model,file):
     path        = models.CharField(max_length=160)

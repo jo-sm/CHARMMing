@@ -16,10 +16,10 @@
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
 from django.db import models
-import structure.Task, structure.WorkingFile
+from structure.models import Task, WorkingFile
 import os, copy
 
-class minimizeTask(structure.Task):
+class minimizeTask(Task):
     selected = models.CharField(max_length=1)
 
     sdsteps = models.PositiveIntegerField(default=0)
@@ -33,19 +33,19 @@ class minimizeTask(structure.Task):
         """test if the job suceeded, create entries for output"""
 
         loc = self.workstruct.structure.location
-        bnm = 'mini-' + self.workstruct.identifier
+        bnm = self.workstruct.identifier
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
         try:
-            os.stat(loc + '/mini-' + bnm + '.out')
+            os.stat(loc + '/' + bnm + '-minimize' + '.out')
         except:
             self.status = 'F'
             return
 
-        wfout = structure.WorkingFile()
+        wfout = WorkingFile()
         wfout.task = self
-        wfout.path = loc + '/mini-' + bnm + '.out'
+        wfout.path = loc + '/' + bnm + '-minimize' + '.out'
         wfout.canonPath = wf.path
         wfout.type = 'out'
         wfout.description = 'minimization script output'
@@ -58,16 +58,16 @@ class minimizeTask(structure.Task):
         # check and make sure that the output PSF/CRD were 
         # created
         try:
-            os.stat(loc + '/mini-' + bnm + '.crd')
+            os.stat(loc + '/' + bnm + '-minimization.crd')
         except:
             self.status = 'F'
             return
 
 
         # create Working files for PDB, CRD, and PSF.
-        wf = structure.WorkingFile()
+        wf = WorkingFile()
         wf.task = self
-        wf.path = loc + '/mini-' + bnm + '.crd'
+        wf.path = loc + '/' + bnm + '-minimization.crd'
         wf.canonPath = wf.path
         wf.type = 'crd'
         wf.description = 'minimized structure'
@@ -76,13 +76,13 @@ class minimizeTask(structure.Task):
         self.workstruct.addCRDToPickle(wf.path,'mini_' + self.workstruct.identifier)
 
         wfpsf = copy.deepcopy(wf)
-        wfpsf.path = loc + '/mini-' + bnm + '.psf'
+        wfpsf.path = loc + '/' + bnm + '-minimization.psf'
         wfpsf.canonPath = wf.path
         wfpsf.type = 'psf'
         wfpsf.save()
 
         wfpdb = copy.deepcopy(wf)
-        wfpdb.path = loc + '/mini-' + bnm + '.pdb'
+        wfpdb.path = loc + '/' + bnm + '-minimization.pdb'
         wfpdb.canonPath = wf.path
         wfpdb.type = 'pdb'
         wfpdb.save()

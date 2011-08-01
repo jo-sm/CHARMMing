@@ -27,7 +27,7 @@ from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
-from minimization.models import minimizeParams
+from minimization.models import minimizeTask
 from solvation.models import solvationParams
 import charmming_config, input, output, lessonaux
 import re, copy
@@ -61,6 +61,7 @@ def minimizeformdisplay(request):
         mp = minimizeTask(self)
         mp.active = 'y'
         mp.workstruct = ws
+        mp.action = 'minimization'
 
         if ws.isBuilt != 't':
             isBuilt = False
@@ -109,10 +110,10 @@ def minimize_tpl(request,mp,pTaskID):
     template_dict = {}
     template_dict['topology_list'] = workstruct.getTopologyList()
     template_dict['parameter_list'] = workstruct.getParameterList()
-    template_dict['output_name'] = 'mini-' + workstruct.identifier
+    template_dict['output_name'] = workstruct.identifier + '-minimization'
 
     pTask = structure.model.Task.objects.get(id=pTaskID)
-    template_dict['input_file'] = pTask.action
+    template_dict['input_file'] = workstruct.identifier + '-' + pTask.action
 
     mp.parent = pTask
     mp.save()
@@ -229,13 +230,12 @@ def minimize_tpl(request,mp,pTaskID):
     if mp.useqmmm == 'y':
         headstr = writeQMheader("", "SELE " + qmsel + " END")
         template_dict['headqmatom'] = headstr.strip() 
-    mp.statusHTML = "<font color=yellow>Processing</font>"
     mp.save()
     t = get_template('%s/mytemplates/input_scripts/minimization_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     
     user_id = workstruct.structure.owner.id
-    minimize_filename = workstruct.structure.location + "/minimize-" + workstruct.identifier + ".inp"
+    minimize_filename = workstruct.structure.location + "/" + workstruct.identifier + "-minimize.inp"
     inp_out = open(minimize_filename ,'w')
     inp_out.write(charmm_inp)
     inp_out.close()	
@@ -248,13 +248,11 @@ def minimize_tpl(request,mp,pTaskID):
     #    lessonaux.doLessonAct(file,"onMinimizeSubmit",postdata,final_pdb_name)
 
     if newJobID < 0:
-       mp.statusHTML = "<font color=red>Failed</font>"
+       mp.status = 'F'
        mp.save()
     else:
-       workstruct.minimization_jobID = newJobID
-       workstruct.save()
-       sstring = si.checkStatus(newJobID)
-       mp.statusHTML = statsDisplay(sstring,newJobID)
+       mp.jobID = newJobID
+       mp.query()
        mp.save()
 
 

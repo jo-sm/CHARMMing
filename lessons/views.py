@@ -25,7 +25,7 @@ from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
-from minimization.models import minimizeParams
+from minimization.models import minimizeTask
 import re
 import copy
 import os
