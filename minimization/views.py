@@ -20,7 +20,7 @@ from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
-from structure.models import Structure, WorkingStructure, WorkingFile, Segment, goModel 
+from structure.models import Structure, WorkingStructure, WorkingFile, Segment, goModel, Task
 from structure.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
 from structure.aux import checkNterPatch
 from django.contrib.auth.models import User
@@ -58,9 +58,9 @@ def minimizeformdisplay(request):
         except:
             pass
 
-        mp = minimizeTask(self)
+        mp = minimizeTask()
+        mp.setup(ws)
         mp.active = 'y'
-        mp.workstruct = ws
         mp.action = 'minimization'
 
         if ws.isBuilt != 't':
@@ -74,7 +74,7 @@ def minimizeformdisplay(request):
         return minimize_tpl(request,mp,pTaskID)
     else:
         # get all workingFiles associated with this struct
-        tasks = structure.model.Task.objects.filter(workstruct=ws,status='C',active='y')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
         return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'tasks': tasks})
 
 def minimize_tpl(request,mp,pTaskID):
@@ -84,9 +84,9 @@ def minimize_tpl(request,mp,pTaskID):
     sdsteps = postdata['sdsteps']
     abnr = postdata['abnrsteps']
     tolg = postdata['tolg']
-    os.chdir(workstruct.structure.location)
+    os.chdir(mp.workstruct.structure.location)
     
-    # create a model for the minimization
+    # fill in the model for the minimization
     try:
         mp.sdsteps = int(sdsteps)
         mp.abnrsteps = int(abnr)
@@ -108,12 +108,16 @@ def minimize_tpl(request,mp,pTaskID):
 
     # template dictionary passes the needed variables to the template 
     template_dict = {}
-    template_dict['topology_list'] = workstruct.getTopologyList()
-    template_dict['parameter_list'] = workstruct.getParameterList()
-    template_dict['output_name'] = workstruct.identifier + '-minimization'
+    template_dict['topology_list'] = mp.workstruct.getTopologyList()
+    template_dict['parameter_list'] = mp.workstruct.getParameterList()
+    template_dict['output_name'] = mp.workstruct.identifier + '-minimization'
 
-    pTask = structure.model.Task.objects.get(id=pTaskID)
-    template_dict['input_file'] = workstruct.identifier + '-' + pTask.action
+    logfp = open('/tmp/ptask', 'w')
+    logfp.write('pTaskID = %d\n' % pTaskID) 
+    logfp.close()
+
+    pTask = Task.objects.filter(id=pTaskID)[0]
+    template_dict['input_file'] = mp.workstruct.identifier + '-' + pTask.action
 
     mp.parent = pTask
     mp.save()
@@ -172,7 +176,7 @@ def minimize_tpl(request,mp,pTaskID):
 
         dopbc = True
         try:
-            sp = solvationParams.objects.filter(structure=workstruct,selected='y')[0]
+            sp = solvationParams.objects.filter(structure=mp.workstruct,selected='y')[0]
         except:
             return HttpResponse("Err ... couldn't find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x
@@ -234,27 +238,17 @@ def minimize_tpl(request,mp,pTaskID):
     t = get_template('%s/mytemplates/input_scripts/minimization_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     
-    user_id = workstruct.structure.owner.id
-    minimize_filename = workstruct.structure.location + "/" + workstruct.identifier + "-minimize.inp"
+    user_id = mp.workstruct.structure.owner.id
+    minimize_filename = mp.workstruct.structure.location + "/" + mp.workstruct.identifier + "-minimize.inp"
     inp_out = open(minimize_filename ,'w')
     inp_out.write(charmm_inp)
     inp_out.close()	
-    scriptlist.append(minimize_filename)
-    si = schedInterface()
-    newJobID = si.submitJob(user_id,workstruct.structure.location,scriptlist)
+    mp.scripts += ',%s' % minimize_filename
+    mp.start()
 
     # lessons are borked under the new order, ToDo: come back and fix this
     #if file.lesson_type:
     #    lessonaux.doLessonAct(file,"onMinimizeSubmit",postdata,final_pdb_name)
-
-    if newJobID < 0:
-       mp.status = 'F'
-       mp.save()
-    else:
-       mp.jobID = newJobID
-       mp.query()
-       mp.save()
-
 
     workstruct.save()
     return HttpResponse("Done.")

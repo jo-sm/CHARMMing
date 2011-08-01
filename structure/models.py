@@ -353,7 +353,7 @@ class WorkingSegment(Segment):
 
         # send to job queue
         si = schedInterface()
-        scriptlist.append(charmm_inp_filename)
+        scriptlist += ',%s' % charmm_inp_filename
 
         self.builtPSF = template_dict['outname'] + '.psf'
         self.builtCRD = template_dict['outname'] + '.crd'
@@ -572,7 +572,7 @@ class WorkingStructure(models.Model):
 
         return plines
 
-    def build(self,scriptlist):
+    def build(self,inTask):
         """
         This method replaces minimization.append_tpl() -- it is the explicit
         step that builds a new structure and appends it to the PDB object
@@ -586,7 +586,7 @@ class WorkingStructure(models.Model):
         tdict['blncharge'] = False # we're not handling BLN models for now
         for segobj in self.segments.all():
             if segobj.isBuilt != 't':
-                segobj.build(self.modelName,self,scriptlist)
+                segobj.build(self.modelName,self,inTask.scripts)
             tdict['seg_list'].append(segobj)
 
         tdict['topology_list'] = self.getTopologyList()
@@ -601,10 +601,11 @@ class WorkingStructure(models.Model):
         charmm_inp_file = open(charmm_inp_filename, 'w')
         charmm_inp_file.write(charmm_inp)
         charmm_inp_file.close()
-        scriptlist.append(charmm_inp_filename)
+        inTask.scripts += ',%s' % charmm_inp_filename
 
         # create a Task object for appending; this has no parent
-        task = Task(self)
+        task = Task()
+        task.setup(self)
         task.parent = None
         task.action = 'build'
         task.active = 'y'
@@ -747,6 +748,7 @@ class Task(models.Model):
         self.jobID = si.submitJob(st.owner.id,st.location,self.scriptList)
         if self.jobID > 0:
             self.save()
+            self.query()
         else:
             raise AssertionError('Job submission fails')
 
@@ -785,11 +787,14 @@ class Task(models.Model):
         """
         pass
 
-    def __init__(self,ws):
+    def setup(self,ws):
+        models.Model.__init__(self) # call base class init
+
         self.status = 'I'
         self.jobID = 0
-        self.workstruct = ws
         self.finished = 'n'
+        self.scripts = ''
+        self.workstruct = ws
 
 class WorkingFile(models.Model,file):
     path        = models.CharField(max_length=160)
