@@ -542,7 +542,7 @@ def viewstatus(request):
         for task in t:
             statuses.append((task.action,task.get_status_display()))
 
-    return render_to_response('html/statusreport.html', {'statuses': statuses})
+    return render_to_response('html/statusreport.html', {'structure': file, 'haveWorkingStruct': True, 'statuses': statuses})
 
 #Used to report an error. Used in calling problem.html
 def reportError(request):
