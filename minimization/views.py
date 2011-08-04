@@ -59,9 +59,13 @@ def minimizeformdisplay(request):
             pass
 
         mp = minimizeTask()
+        mp.sdsteps = 0
+        mp.abnrsteps = 0
+        mp.tolg = 0.01
         mp.setup(ws)
         mp.active = 'y'
         mp.action = 'minimization'
+        mp.save()
 
         if ws.isBuilt != 't':
             isBuilt = False
@@ -93,7 +97,7 @@ def minimize_tpl(request,mp,pTaskID):
         mp.tolg = tolg
     except:
         # FixMe: alert user to errors
-        return "Error"        
+        raise AssertionError('Form not filled out')        
 
     if postdata.has_key('useqmmm'):
         mp.useqmmm = 'y'
@@ -244,13 +248,18 @@ def minimize_tpl(request,mp,pTaskID):
     inp_out.write(charmm_inp)
     inp_out.close()	
     mp.scripts += ',%s' % minimize_filename
+    logfp = open('/tmp/scripts.txt', 'w')
+    logfp.write(mp.scripts + '\n')
+    logfp.close()
     mp.start()
+    mp.save()
+
 
     # lessons are borked under the new order, ToDo: come back and fix this
     #if file.lesson_type:
     #    lessonaux.doLessonAct(file,"onMinimizeSubmit",postdata,final_pdb_name)
 
-    workstruct.save()
+    mp.workstruct.save()
     return HttpResponse("Done.")
 
 

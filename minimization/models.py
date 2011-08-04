@@ -24,10 +24,10 @@ class minimizeTask(Task):
 
     sdsteps = models.PositiveIntegerField(default=0)
     abnrsteps = models.PositiveIntegerField(default=0)
-    tolg = models.DecimalField(max_digits=8,decimal_places=5)
-    usepbc = models.CharField(max_length=1)
-    useqmmm = models.CharField(max_length=1)
-    qmmmsel = models.CharField(max_length=250)
+    tolg = models.FloatField(null=True)
+    usepbc = models.CharField(max_length=1,null=True)
+    useqmmm = models.CharField(max_length=1,null=True)
+    qmmmsel = models.CharField(max_length=250,null=True)
 
     def finish(self,sstring):
         """test if the job suceeded, create entries for output"""

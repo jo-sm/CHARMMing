@@ -92,27 +92,15 @@ def deleteFile(request):
         os.chdir(charmming_config.user_home + '/' + request.user.username)
         os.system("rm -rf " + s.name)
 
-        # clean up other models that are left behind.
-        objstodel = []
-        for typ in minimizeTask, solvationParams, mdParams, ldParams, sgldParams, nmodeParams, \
-                   structure.models.energyParams:
-            try:
-                objstodel.append(typ.objects.filter(pdb=s))
-            except:
-                pass
-
         logfp.write("point c\n")
         logfp.flush()
-        objstodel.extend(structure.models.WorkingStructure.objects.filter(structure=s))
-        objstodel.extend(structure.models.WorkingSegment.objects.filter(structure=s))
-        objstodel.extend(structure.models.Segment.objects.filter(structure=s))
         logfp.write("point d\n")
         logfp.flush()
 
-        for obj in objstodel:
-            obj.delete()
-
         if s.selected == 'y' and deleteAll == 0:
+            logfp.write("point e1\n")
+            logfp.flush()
+
             s.selected = ''
             allFileList = structure.models.Structure.objects.filter(owner=request.user)
             if len(allFileList) >= 2:
@@ -124,8 +112,17 @@ def deleteFile(request):
                          candidateSwitch.save()
                          break
 
-        s.delete()
-    logfp.write("point e\n")
+            logfp.write("point e2\n")
+            logfp.flush()
+
+        try:
+            s.delete()
+        except:
+            logfp.write('Exception deleting s!!!!\n')
+            logfp.flush()
+            traceback.print_exc(file=logfp)
+
+    logfp.write("point e3\n")
     logfp.close()
     return HttpResponse('Done')
 

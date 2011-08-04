@@ -274,7 +274,7 @@ class WorkingSegment(Segment):
 
     # This method will handle the building of the segment, including
     # any terminal patching
-    def build(self,mdlname,workstruct,scriptlist):
+    def build(self,mdlname,workstruct):
         template_dict = {}
 
         # write out the PDB file in case it doesn't exist
@@ -351,14 +351,12 @@ class WorkingSegment(Segment):
         user_id = self.structure.owner.id
         os.chdir(self.structure.location)
 
-        # send to job queue
-        si = schedInterface()
-        scriptlist += ',%s' % charmm_inp_filename
-
         self.builtPSF = template_dict['outname'] + '.psf'
         self.builtCRD = template_dict['outname'] + '.crd'
         self.isBuilt = 'y'
         self.save()
+
+        return charmm_inp_filename
 
     def makeCGenFF(self):
         """
@@ -579,15 +577,25 @@ class WorkingStructure(models.Model):
         in charmminglib.
         """
 
+        logfp = open('/tmp/bscript.txt', 'w')
+
         tdict = {}
         # step 1: check if all segments are built
         tdict['seg_list'] = []
-        tdict['output_name'] = self.identifier
+        tdict['output_name'] = self.identifier + '-build'
         tdict['blncharge'] = False # we're not handling BLN models for now
         for segobj in self.segments.all():
             if segobj.isBuilt != 't':
-                segobj.build(self.modelName,self,inTask.scripts)
+                logfp.write('prebuild inTask.scripts = %s\n' % inTask.scripts)
+                newScript = segobj.build(self.modelName,self)
+                if inTask.scripts:
+                    inTask.scripts += ',' + newScript
+                else:
+                    inTask.scripts = newScript
+                logfp.write('posrbuild inTask.scripts = %s\n' % inTask.scripts)
             tdict['seg_list'].append(segobj)
+
+        logfp.close()
 
         tdict['topology_list'] = self.getTopologyList()
         tdict['parameter_list'] = self.getParameterList()
@@ -597,11 +605,12 @@ class WorkingStructure(models.Model):
 
         user_id = self.structure.owner.id
         os.chdir(self.structure.location)
-        charmm_inp_filename = self.structure.location + "/build-"  + self.identifier + ".inp"
+        charmm_inp_filename = self.structure.location + "/"  + self.identifier + "-build.inp"
         charmm_inp_file = open(charmm_inp_filename, 'w')
         charmm_inp_file.write(charmm_inp)
         charmm_inp_file.close()
         inTask.scripts += ',%s' % charmm_inp_filename
+        inTask.save()
 
         # create a Task object for appending; this has no parent
         task = Task()
