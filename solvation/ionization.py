@@ -18,7 +18,7 @@
 import os
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
-from solvation.models import solvationParams
+from solvation.models import solvationTask
 from django.template.loader import get_template
 from django.template import *
 from shutil import copy

@@ -28,7 +28,7 @@ from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from minimization.models import minimizeTask
-from solvation.models import solvationParams
+from solvation.models import solvationTask
 import charmming_config, input, output, lessonaux
 import re, copy
 import os, shutil
@@ -180,7 +180,7 @@ def minimize_tpl(request,mp,pTaskID):
 
         dopbc = True
         try:
-            sp = solvationParams.objects.filter(structure=mp.workstruct,active='y')[0]
+            sp = solvationTask.objects.filter(structure=mp.workstruct,active='y')[0]
         except:
             return HttpResponse("Err ... couldn't find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x

@@ -19,9 +19,9 @@ from django.template.loader import get_template
 from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
-from structure.models import Structure, WorkingStructure, WorkingFile
+from structure.models import Structure, WorkingStructure, WorkingFile, Task
 from solvation.ionization import neutralize_tpl
-from solvation.models import solvationParams
+from solvation.models import solvationTask
 from account.views import isUserTrustworthy
 from django.contrib.auth.models import User
 from django.template import *
@@ -46,27 +46,40 @@ def solvationformdisplay(request):
        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     if request.POST.has_key('solvation_structure'):
-        scriptlist = []
+        # if there is a previous solvation structure, deactivate it
+        try:
+            oldtsk = solvationTask.objects.filter(workstruct=workstruct,active='y')[0]
+            oldtsk.active = 'n'
+            oldtsk.save()
+        except:
+            pass
+
+        st = solvationTask()
+        st.setup(ws)
+        st.active = 'y'
+        st.action = 'solvation'
+        st.save()
+
         if ws.isBuilt != 't':
             isBuilt = False
-            pstruct = ws.build(scriptlist)
-            pstructID = pstruct.id
+            pTask = ws.build(st)
+            pTaskID = pTask.id
         else:
             isBuilt = True
-            pstructID = int(request.POST['pstruct'])
+            pTaskID = int(request.POST['ptask'])
 
-        return solvate_tpl(request,ws,pstructID,scriptlist)
+        return solvate_tpl(request,st,pTaskID)
     else:
-        # get all workingFiles associated with this struct
-        wfs = WorkingFile.objects.filter(structure=ws,type='crd')
-        return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
+        # get all completed tasks associated with this struct
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+        return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'tasks': tasks})
 
 
 def solvate_tpl(request,workingstruct,pstructID,scriptlist):
     postdata = request.POST
     #deals with changing the selected minimize_params
     try:
-        oldparam = solvationParams.objects.filter(struct=ws, selected='y')[0]
+        oldparam = solvationTask.objects.filter(struct=ws, active='y')[0]
         oldparam.selected = 'n'
         oldparam.save()
     except:
@@ -74,7 +87,7 @@ def solvate_tpl(request,workingstruct,pstructID,scriptlist):
 
     os.chdir(workingstruct.structure.location)
 
-    sp = solvationParams()
+    sp = solvationTask()
     sp.selected = 'y'    
     sp.pdb = file
     sp.statusHTML = "<font color=yellow>Processing</font>"

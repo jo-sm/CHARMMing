@@ -23,7 +23,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from minimization.models import minimizeTask
 from dynamics.models import mdParams, ldParams, sgldParams
-from solvation.models import solvationParams
+from solvation.models import solvationTask
 from account.models import *
 from dynamics.views import combinePDBsForMovie
 from normalmodes.views import combineNmaPDBsForMovie
@@ -697,7 +697,7 @@ def calcEnergy_tpl(request,workstruct,pstructID,scriptlist):
 
         dopbc = True
         try:
-            sp = solvationParams.objects.filter(structure=workstruct,selected='y')[0]
+            sp = solvationTask.objects.filter(structure=workstruct,active='y')[0]
         except:
             return HttpResponse("Err ... couldn't find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x

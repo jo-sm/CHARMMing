@@ -3,7 +3,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from lessons.models import LessonProblem
-from solvation.models import solvationParams
+from solvation.models import solvationTask
 from minimization.models import minimizeTask
 from dynamics.models import mdParams, ldParams, sgldParams
 from normalmodes.models import nmodeParams

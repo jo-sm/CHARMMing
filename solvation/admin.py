@@ -1,4 +1,4 @@
 from django.contrib import admin
-from solvation.models import solvationParams
+from solvation.models import solvationTask
 
-admin.site.register(solvationParams)
+admin.site.register(solvationTask)

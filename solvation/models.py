@@ -18,27 +18,140 @@
 from django.db import models
 from django.contrib.auth.models import User
 from scheduler.schedInterface import schedInterface
-from structure.models import WorkingFile
-import structure.models
+from structure.models import WorkingFile, Task
 import math
 
-class solvationParams(models.Model):
-    structure = models.ForeignKey(structure.models.WorkingStructure)
-    inpStruct = models.ForeignKey(WorkingFile,null=True)
-
+class solvationTask(Task):
     # these contain the shape of the unit cell and its dimensions
-    solvation_structure = models.CharField(max_length=50)
-    xtl_x = models.DecimalField(max_digits=8,decimal_places=4,default=0)
-    xtl_y = models.DecimalField(max_digits=8,decimal_places=4,default=0)
-    xtl_z = models.DecimalField(max_digits=8,decimal_places=4,default=0)
-    spradius = models.DecimalField(max_digits=8,decimal_places=4,default=0)
-    selected = models.CharField(max_length=1)
-    statusHTML = models.CharField(max_length=250)
+    solvation_structure = models.CharField(max_length=50,null=True) # null=True to allow early save()ing of the model
+    xtl_x = models.FloatField(default=0.0)
+    xtl_y = models.FloatField(default=0.0)
+    xtl_z = models.FloatField(default=0.0)
+    spradius = models.FloatField(default=0.0)
 
-    #The below are used for neutralization
+    # The below are used for neutralization
     salt = models.CharField(max_length=5,null=True)
-    concentration = models.DecimalField(max_digits=8,decimal_places=6,default=0)
+    concentration = models.FloatField(default=0.0)
     ntrials = models.PositiveIntegerField(default=0)
+
+    def finish(self):
+        """test if the job suceeded, create entries for output"""
+
+        loc = self.workstruct.structure.location
+        bnm = self.workstruct.identifier
+
+        # There's always an input file, so create a WorkingFile
+        # for it.
+        wfinp = WorkingFile()
+        wfinp.task = self
+        wfinp.path = loc + '/' + bnm + '-solvate.inp'
+        wfinp.canonPath = wfinp.path
+        wfinp.type = 'inp'
+        wfinp.description = 'solvation input script'
+        wfinp.save()
+
+        if self.concentration > 0.0001:
+            wfninp = WorkingFile()
+            wfninp.task = self
+            wfninp.path = loc + '/' + bnm + '-neutralize.inp'
+            wfninp.canonPath = wfninp.path
+            wfninp.type = 'inp'
+            wfninp.description = 'neutralization input script'
+            wfninp.save()
+
+        # Check if an output file was created and if so create
+        # a WorkingFile for it.
+        try:
+            os.stat(loc + '/' + bnm + '-solvate.out')
+        except:
+            self.status = 'F'
+            return
+
+        wfout = WorkingFile()
+        wfout.task = self
+        wfout.path = loc + '/' + bnm + '-solvate.out'
+        wfout.canonPath = wfout.path
+        wfout.type = 'out'
+        wfout.description = 'solvation script output'
+        wfout.save()
+
+        if self.concentration > 0.0001:
+            wfnout = WorkingFile()
+            wfnout.task = self
+            wfnout.path = loc + '/' + bnm + '-neutralize.out'
+            wfnout.canonPath = wfnout.path
+            wfnout.type = 'out'
+            wfnout.description = 'neutralization script output'
+            wfnout.save()
+
+        # now check if all the expected psf/crd/pdb files exist
+        try:
+            os.stat(loc + '/' + bnm + '-solvated.crd')
+        except:
+            self.status = 'F'
+            self.save()
+            return
+
+        wf = WorkingFile()
+        wf.task = self
+        wf.path = loc + '/' + bnm + '-solvated.crd'
+        wf.canonPath = wf.path
+        wf.type = 'crd'
+        wf.description = 'solvated structure'
+        wf.pdbkey = 'solv_' + self.workstruct.identifier
+        wf.save()
+        self.workstruct.addCRDToPickle(wf.path,'solv_' + self.workstruct.identifier)
+
+        wfpsf = WorkingFile()
+        wfpsf.task = self
+        wfpsf.path = loc + '/' + bnm + '-solvated.psf'
+        wfpsf.canonPath = wfpsf.path
+        wfpsf.type = 'psf'
+        wfpsf.description = 'solvated structure'
+        wfpsf.save()
+
+        wfpdb = WorkingFile()
+        wfpdb.task = self
+        wfpdb.path = loc + '/' + bnm + '-solvated.pdb'
+        wfpdb.canonPath = wfpdb.path
+        wfpdb.type = 'pdb'
+        wfpdb.description = 'solvated structure'
+        wfpdb.save()
+
+        if self.concentration > 0.0001:
+            try:
+                os.stat(loc + '/' + bnm + '-neutralized.crd')
+            except:
+                self.status = 'F'
+                self.save()
+                return
+
+            wfn = WorkingFile()
+            wfn.task = self
+            wfn.path = loc + '/' + bnm + '-neutralized.crd'
+            wfn.canonPath = wfn.path
+            wfn.type = 'crd'
+            wfn.description = 'neutralized structure'
+            wfn.pdbkey = 'neut_' + self.workstruct.identifier
+            wfn.save()
+            self.workstruct.addCRDToPickle(wf.path,'neut_' + self.workstruct.identifier)
+
+            wfnpsf = WorkingFile()
+            wfnpsf.task = self
+            wfnpsf.path = loc + '/' + bnm + '-neutralized.psf'
+            wfnpsf.canonPath = wfnpsf.path  
+            wfnpsf.type = 'psf'
+            wfnpsf.description = 'neutralized structure'
+            wfnpsf.save()
+
+            wfnpdb = WorkingFile()
+            wfnpdb.task = self
+            wfnpdb.path = loc + '/' + bnm + '-neutralized.pdb'
+            wfnpdb.canonPath = wfnpdb.path  
+            wfnpdb.type = 'pdb'
+            wfnpdb.description = 'neutralized structure'
+            wfnpdb.save()
+
 
     def calcEwaldDim(self):
         """

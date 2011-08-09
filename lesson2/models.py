@@ -4,7 +4,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from lessons.models import LessonProblem
-from solvation.models import solvationParams
+from solvation.models import solvationTask
 from minimization.models import minimizeTask
 from dynamics.models import mdParams
 import os, re
@@ -123,7 +123,7 @@ class Lesson2(models.Model):
         except:
             pass
         file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-        sp = solvationParams.objects.filter(pdb=file,selected='y')[0]
+        sp = solvationTask.objects.filter(pdb=file,active='y')[0]
 
         #This ensures the user selected the right PDBs
         pdb_list = lessonaux.getPDBListFromPostdata(file,postdata)
@@ -165,7 +165,7 @@ class Lesson2(models.Model):
             lessonprob = LessonProblem.objects.filter(lesson_type='lesson2',lesson_id=self.id)[0]
         except:
             lessonprob = None
-        sp = solvationParams.objects.filter(pdb=file,selected='y')[0]
+        sp = solvationTask.objects.filter(pdb=file,active='y')[0]
         fail = re.compile('Failed')
         if lessonprob:
             return False

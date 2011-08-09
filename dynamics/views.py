@@ -26,7 +26,7 @@ from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
-from solvation.models import solvationParams
+from solvation.models import solvationTask
 import django.forms
 import copy, shutil, os, re
 import lessonaux, input, output, charmming_config
@@ -201,7 +201,7 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
 
         dopbc = True
         try:
-            sp = solvationParams.objects.filter(structure=workstruct,selected='y')[0]
+            sp = solvationTask.objects.filter(structure=workstruct,active='y')[0]
         except:
             return HttpResponse("Err ... couldn't find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x
@@ -334,7 +334,7 @@ def applymd_tpl(request,workstruct,pstructID,scriptlist):
 
         dopbc = True
         try:
-            sp = solvationParams.objects.filter(structure=workstruct,selected='y')[0]
+            sp = solvationTask.objects.filter(structure=workstruct,active='y')[0]
         except:
             return HttpResponse("Err ... couldn't find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x
