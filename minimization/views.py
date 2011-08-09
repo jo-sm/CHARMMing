@@ -52,7 +52,7 @@ def minimizeformdisplay(request):
     if request.POST.has_key('sdsteps') or request.POST.has_key('abnrsteps'):
         #deals with changing the selected minimize_params
         try:
-            oldtsk = minimizeTask.objects.filter(workstruct=workstruct, selected='y')[0]
+            oldtsk = minimizeTask.objects.filter(workstruct=workstruct,active='y')[0]
 	    oldtsk.active = 'n'
 	    oldtsk.save()
         except:
@@ -180,7 +180,7 @@ def minimize_tpl(request,mp,pTaskID):
 
         dopbc = True
         try:
-            sp = solvationParams.objects.filter(structure=mp.workstruct,selected='y')[0]
+            sp = solvationParams.objects.filter(structure=mp.workstruct,active='y')[0]
         except:
             return HttpResponse("Err ... couldn't find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x

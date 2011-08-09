@@ -13,7 +13,9 @@
      {% if haveWorkingStruct %}
        <tr class="status"><td class="status">Operations:</td></tr>
        {% for s in statuses %}
-         <tr class="status"><td class="status"> {{ s.0 }}: {{ s.1 }}</td></tr>
+         {% ifnotequal s.1 "Inactive" %}
+           <tr class="status"><td class="status"> {{ s.0 }}: {{ s.1 }}</td></tr>
+         {% endifnotequal %}
        {% endfor %}
      {% else %}
        <tr class="status"><th class="status"> Structure not built </th></tr>

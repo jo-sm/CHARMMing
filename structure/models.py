@@ -30,7 +30,7 @@ import normalmodes, dynamics, minimization
 import solvation, lessons.models, apbs
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
-import cPickle
+import cPickle, copy
 import pychm.io, pychm.lib
 
 class Structure(models.Model):
@@ -577,8 +577,6 @@ class WorkingStructure(models.Model):
         in charmminglib.
         """
 
-        logfp = open('/tmp/bscript.txt', 'w')
-
         tdict = {}
         # step 1: check if all segments are built
         tdict['seg_list'] = []
@@ -586,16 +584,12 @@ class WorkingStructure(models.Model):
         tdict['blncharge'] = False # we're not handling BLN models for now
         for segobj in self.segments.all():
             if segobj.isBuilt != 't':
-                logfp.write('prebuild inTask.scripts = %s\n' % inTask.scripts)
                 newScript = segobj.build(self.modelName,self)
                 if inTask.scripts:
                     inTask.scripts += ',' + newScript
                 else:
                     inTask.scripts = newScript
-                logfp.write('posrbuild inTask.scripts = %s\n' % inTask.scripts)
             tdict['seg_list'].append(segobj)
-
-        logfp.close()
 
         tdict['topology_list'] = self.getTopologyList()
         tdict['parameter_list'] = self.getParameterList()
@@ -644,21 +638,19 @@ class WorkingStructure(models.Model):
 
     # Updates the status of in progress operations
     def updateActionStatus(self):
-        si = schedInterface()        
-
         # appending is a special case, since it doesn't exist as a task unto
         # itself. So if the structure is not built, we should check and see
         # whether or not that happened.
         if self.isBuilt != 't':
             # check if the PSF and CRD files for this structure exist
             try:
-                os.stat(self.structure.location + '/' + self.identifier + '.psf')
-                os.stat(self.structure.location + '/' + self.identifier + '.crd')
+                os.stat(self.structure.location + '/' + self.identifier + '-build.psf')
+                os.stat(self.structure.location + '/' + self.identifier + '-build.crd')
             except:
                 pass
             else:
                 self.isBuilt = 't'
-                self.addCRDToPickle(self.structure.location + '/' + self.identifier + '.crd', 'append_' + self.identifier)
+                self.addCRDToPickle(self.structure.location + '/' + self.identifier + '-build.crd', 'append_' + self.identifier)
                 loc = self.structure.location
                 bnm = self.identifier
 
@@ -672,34 +664,41 @@ class WorkingStructure(models.Model):
                 wfinp.type = 'inp'
                 wfinp.save()
 
-                wfout = copy.deepcopy(wfinp)
+                wfout = WorkingFile()
+                wfout.task = buildtask
                 wfout.path = loc + '/' + bnm + '-build.out'
                 wfout.canonPath = wfout.path
                 wfout.type = 'out'
                 wfout.save()
 
-                wfpsf = copy.deepcopy(wfinp)
-                wfpsf.path = loc + '/' + bnm + '.psf'
+                wfpsf = WorkingFile()
+                wfpsf.task = buildtask
+                wfpsf.path = loc + '/' + bnm + '-build.psf'
                 wfpsf.canonPath = wfpsf.path
                 wfpsf.type = 'psf'
                 wfpsf.save()
 
-                wfpdb = copy.deepcopy(wfinp)
-                wfpdb.path = loc + '/' + bnm + '.pdb'
+                wfpdb = WorkingFile()
+                wfpdb.task = buildtask
+                wfpdb.path = loc + '/' + bnm + '-build.pdb'
                 wfpdb.canonPath = wfpdb.path
                 wfpdb.type = 'pdb'
                 wfpdb.save()
 
-                wfcrd = copy.deepcopy(wfinp)
-                wfcrd.path = loc + '/' + bnm + '.crd'
+                wfcrd = WorkingFile()
+                wfcrd.task = buildtask
+                wfcrd.path = loc + '/' + bnm + '-build.crd'
                 wfcrd.canonPath = wfcrd.path
                 wfcrd.type = 'crd'
                 wfcrd.pdbkey = 'append_' + self.identifier
                 wfcrd.save()
 
+                buildtask.status = 'C'
+                buildtask.save()
+
               
-        tasks = Task.objects.filter(workstruct=self,finished='n')
-        for t in tasks: 
+        tasks = Task.objects.filter(workstruct=self,active='y',finished='n')
+        for t in tasks:
             t.query()
 
             if t.status == 'C' or t.status == 'F':
@@ -708,6 +707,12 @@ class WorkingStructure(models.Model):
                     t2 = minimization.models.minimizeTask.objects.get(id=t.id)
                 elif t.action == 'solvation':
                     t2 = solvation.models.solvationTask.objects.get(id=t.id)
+                elif t.action == 'md':
+                    t2 = dynamics.models.mdTask.objects.get(id=t.id)
+                elif t.action == 'ld':
+                    t2 = dynamics.models.ldTask.objects.get(id=t.id)
+                elif t.action == 'sgld':
+                    t2 = dynamics.models.sgldTask.objects.get(id=t.id)
                 else:
                     t2 = t
 
@@ -732,7 +737,7 @@ class Task(models.Model):
        ('I', 'Inactive'),
        ('Q', 'Queued'),
        ('R', 'Running'),
-       ('C', 'Completed'),
+       ('C', 'Done'),
        ('F', 'Failed'),
        ('K', 'Killed'),
     )
@@ -769,26 +774,35 @@ class Task(models.Model):
             self.status = 'K'
 
     def query(self):
+        logfp = open('/tmp/query.txt', 'a+')
+        logfp.write('In Task::query\n')
+ 
         si = schedInterface()
 
+        logfp.write('jobID = %d\n' % self.jobID)
         if self.jobID > 0:
             sstring = si.checkStatus(self.jobID).split()[4]
+            logfp.write('Got status string = %s\n' % sstring)
 
             if sstring == 'submitted' or sstring == 'queued':
                 self.status = 'Q'
             elif sstring == 'running':
                 self.status = 'R'
-            elif sstring == 'complete' or sstring == 'failed':
-                self.finish(sstring)
+            elif sstring == 'complete':
+                self.status = 'C'
+            elif sstring == 'failed':
+                self.status = 'F'
             else:
                 raise AssertionError('Unknown status ' + sstring)
 
             self.save()
+            logfp.close()
             return sstring
         else:
+            logfp.close()
             return 'unknown'
 
-    def finish(self,status):
+    def finish(self):
         """
         This is a pure virtual function. I expect it to be overridden in
         the subclasses of Task. In particular, it needs to decide whether

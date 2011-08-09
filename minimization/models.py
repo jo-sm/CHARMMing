@@ -20,8 +20,6 @@ from structure.models import Task, WorkingFile
 import os, copy
 
 class minimizeTask(Task):
-    selected = models.CharField(max_length=1)
-
     sdsteps = models.PositiveIntegerField(default=0)
     abnrsteps = models.PositiveIntegerField(default=0)
     tolg = models.FloatField(null=True)
@@ -29,11 +27,22 @@ class minimizeTask(Task):
     useqmmm = models.CharField(max_length=1,null=True)
     qmmmsel = models.CharField(max_length=250,null=True)
 
-    def finish(self,sstring):
+    def finish(self):
         """test if the job suceeded, create entries for output"""
 
         loc = self.workstruct.structure.location
         bnm = self.workstruct.identifier
+
+        # There's always an input file, so create a WorkingFile
+        # for it.
+        wfinp = WorkingFile()
+        wfinp.task = self
+        wfinp.path = loc + '/' + bnm + '-minimize' + '.inp'
+        wfinp.canonPath = wfinp.path
+        wfinp.type = 'inp'
+        wfinp.description = 'minimization script output'
+        wfinp.save()
+
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
@@ -46,13 +55,12 @@ class minimizeTask(Task):
         wfout = WorkingFile()
         wfout.task = self
         wfout.path = loc + '/' + bnm + '-minimize' + '.out'
-        wfout.canonPath = wf.path
+        wfout.canonPath = wfout.path
         wfout.type = 'out'
         wfout.description = 'minimization script output'
         wfout.save()
 
-        if sstring == 'failed':
-            self.status = 'F'
+        if self.status == 'F':
             return
 
         # check and make sure that the output PSF/CRD were 
@@ -61,6 +69,7 @@ class minimizeTask(Task):
             os.stat(loc + '/' + bnm + '-minimization.crd')
         except:
             self.status = 'F'
+            self.save()
             return
 
 
@@ -75,16 +84,20 @@ class minimizeTask(Task):
         wf.save()
         self.workstruct.addCRDToPickle(wf.path,'mini_' + self.workstruct.identifier)
 
-        wfpsf = copy.deepcopy(wf)
+        wfpsf = WorkingFile()
+        wfpsf.task = self
         wfpsf.path = loc + '/' + bnm + '-minimization.psf'
-        wfpsf.canonPath = wf.path
+        wfpsf.canonPath = wfpsf.path
         wfpsf.type = 'psf'
+        wfpsf.description = 'minimized structure'
         wfpsf.save()
 
-        wfpdb = copy.deepcopy(wf)
+        wfpdb = WorkingFile()
+        wfpdb.task = self
         wfpdb.path = loc + '/' + bnm + '-minimization.pdb'
-        wfpdb.canonPath = wf.path
+        wfpdb.canonPath = wfpdb.path
         wfpdb.type = 'pdb'
+        wfpdb.description = 'minimized structure'
         wfpdb.save()
 
         self.status = 'C'
