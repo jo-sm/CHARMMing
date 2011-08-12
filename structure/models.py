@@ -195,6 +195,10 @@ class Segment(models.Model):
         self.save()
 
     def getProtonizableResidues(self,model=None):
+        """
+        Returns tuples of information. ToDo: Document this!!!
+        """
+
         pfp = open(self.structure.pickle, 'r')
         pdb = cPickle.load(pfp)
 
@@ -500,6 +504,11 @@ class WorkingStructure(models.Model):
     
 
     def associate(self,structref,segids,tpdict):
+        """
+        use @transaction.commit_manually
+        and see Django docs
+        """
+
         for sid in segids:
             self.structure = structref
             self.save()
