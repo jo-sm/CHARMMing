@@ -25,7 +25,7 @@ from shutil import copy
 import output, lessonaux, charmming_config
 
 # This function constructs an input script with template
-def neutralize_tpl(workingstruct,sp,postdata,scriptlist):
+def neutralize_tpl(solvTask,postdata):
     cation = "POT"
     if postdata['salt'] == "nacl":
         cation = "SOD"

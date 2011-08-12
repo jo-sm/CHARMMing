@@ -75,59 +75,48 @@ def solvationformdisplay(request):
         return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'tasks': tasks})
 
 
-def solvate_tpl(request,workingstruct,pstructID,scriptlist):
+def solvate_tpl(request,solvTask,pTaskID):
     postdata = request.POST
-    #deals with changing the selected minimize_params
-    try:
-        oldparam = solvationTask.objects.filter(struct=ws, active='y')[0]
-        oldparam.selected = 'n'
-        oldparam.save()
-    except:
-        pass
 
+    workingstruct = solvTask.workstruct
     os.chdir(workingstruct.structure.location)
 
-    sp = solvationTask()
-    sp.selected = 'y'    
-    sp.pdb = file
-    sp.statusHTML = "<font color=yellow>Processing</font>"
-
     #file.solvation_status = "<font color=yellow>Processing</font>"
-    sp.solvation_structure = postdata['solvation_structure']
-    sp.concentration = '0.0' # needs to be set here, will be set to proper value in ionization.py
-    sp.structure = workingstruct
+    solvTask.solvation_structure = postdata['solvation_structure']
+    solvTask.concentration = '0.0' # needs to be set here, will be set to proper value in ionization.py
+    solvTask.structure = workingstruct
 
     # set a, b, c, alpha, beta, gamma for run
-    if sp.solvation_structure == 'sphere':
-        sp.spradius = postdata.sphere_radius
+    if solvTask.solvation_structure == 'sphere':
+        solvTask.spradius = postdata.sphere_radius
     else:
-        sp.xtl_x = postdata['set_x']
-        sp.xtl_y = postdata['set_y']
-        sp.xtl_z = postdata['set_z']
-    sp.save()
+        solvTask.xtl_x = postdata['set_x']
+        solvTask.xtl_y = postdata['set_y']
+        solvTask.xtl_z = postdata['set_z']
+    solvTask.save()
 
-    if not sp.check_valid():
+    if not solvTask.check_valid():
         return HttpResponse("Invalid crystal structure definition")
 
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['angles'] = "%5.2f %5.2f %5.2f" % (sp.angles[0],sp.angles[1],sp.angles[2])
+    template_dict['angles'] = "%5.2f %5.2f %5.2f" % (solvTask.angles[0],solvTask.angles[1],solvTask.angles[2])
     template_dict['topology_list'] = workingstruct.getTopologyList()
     template_dict['parameter_list'] = workingstruct.getParameterList()
-    template_dict['solvation_structure'] = sp.solvation_structure
+    template_dict['solvation_structure'] = solvTask.solvation_structure
 
-    pstruct = WorkingFile.objects.filter(id=pstructID)[0]
-    template_dict['input_file'] = pstruct.basename
-    template_dict['output_name'] = 'solv-' + workingstruct.identifier
-    sp.inpStruct = pstruct
-    sp.save()
+    pTask = Task.objects.get(id=pTaskID)
+    template_dict['input_file'] = solvTask.workstruct.identifier + '-' + pTask.action
+    template_dict['output_name'] = solvTask.workstruct.identifier + '-solvation'
+    solvTask.parent = pTask
+    solvTask.save()
 
-    if sp.solvation_structure == 'sphere':
+    if solvTask.solvation_structure == 'sphere':
         template_dict['spradius'] = postdata['spradius']
     else:
-        template_dict['xtl_x'] = float(sp.xtl_x)
-        template_dict['xtl_y'] = float(sp.xtl_y)
-        template_dict['xtl_z'] = float(sp.xtl_z)
+        template_dict['xtl_x'] = float(solvTask.xtl_x)
+        template_dict['xtl_y'] = float(solvTask.xtl_y)
+        template_dict['xtl_z'] = float(solvTask.xtl_z)
 
         # use spradius as the minimum safe sphere to cut around (replaces the old
         # stuff in calc_delete.inp.
@@ -137,29 +126,25 @@ def solvate_tpl(request,workingstruct,pstructID,scriptlist):
     t = get_template('%s/mytemplates/input_scripts/solvation_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     
-    user_id = workingstruct.structure.owner.id
-    solvate_input_filename = workingstruct.structure.location + "/solvate-" + workingstruct.identifier + ".inp"
+    solvate_input_filename = workingstruct.structure.location + "/" + workingstruct.identifier + "-solvate.inp"
     inp_out = open(solvate_input_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
 
     #change the status of the file regarding solvation
-    scriptlist.append(solvate_input_filename)
-    workingstruct.save()
+    solvTask.scripts += ',%s' % solvate_input_filename
+    solvTask.save()
 
     doneut = postdata.has_key('salt') and postdata['salt'] != 'none'
     if doneut:
-        neutralize_tpl(workingstruct,sp,postdata,scriptlist)
+        neutralize_tpl(solvTask,postdata)
     else:
-        si = schedInterface()
-        newJobID = si.submitJob(user_id,workingstruct.structure.location,scriptlist)
         # Lessons are borked at the moment...
         #if file.lesson_type:
         #    lessonaux.doLessonAct(file,"onSolvationSubmit",postdata)
-        workingstruct.solvation_jobID = newJobID
-        sstring = si.checkStatus(newJobID)
-        sp.statusHTML = statsDisplay(sstring,newJobID)
-        sp.save()
+
+        solvTask.start()
+        solvTask.save()
         workingstruct.save() 
 
     return HttpResponse("Done")
