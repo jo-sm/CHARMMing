@@ -762,6 +762,9 @@ class Task(models.Model):
 
     @property
     def scriptList(self):
+        if self.scripts.startswith(','):
+            self.scripts = self.scripts[1:]
+            self.save()
         return self.scripts.split(',')
 
     def start(self):
