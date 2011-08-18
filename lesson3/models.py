@@ -6,8 +6,7 @@ from django.contrib.auth.models import User
 from lessons.models import LessonProblem
 from solvation.models import solvationTask
 from minimization.models import minimizeTask
-from dynamics.models import mdParams
-from dynamics.models import ldParams, sgldParams
+from dynamics.models import mdTask, ldTask, sgldTask
 import os, re
 import structure, lessonaux, charmming_config
 
@@ -160,7 +159,7 @@ class Lesson3(models.Model):
         except:
             pass
         file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-        sgldp = sgldParams.objects.filter(pdb=file,selected='y')[0]
+        sgldp = sgldTask.objects.filter(pdb=file,selected='y')[0]
 
         #there should only be one filename in the PDBList from postdata and that should be
         #the minimized PDB
@@ -188,7 +187,7 @@ class Lesson3(models.Model):
         except:
             lessonprob = None
         try:
-            sgldp = sgldParams.objects.filter(pdb=file,selected='y')[0]
+            sgldp = sgldTask.objects.filter(pdb=file,selected='y')[0]
         except:
             return False
 

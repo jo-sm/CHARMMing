@@ -19,7 +19,7 @@ from django.db import models
 from django.contrib.auth.models import User
 import django.forms
 import structure
-from structure.models import WorkingStructure, WorkingFile
+from structure.models import WorkingStructure, WorkingFile, Task
 
 #Replica exchange parameters
 class rexParams(models.Model):
@@ -31,16 +31,83 @@ class rexParams(models.Model):
     nbath = models.PositiveIntegerField(default=4)
     temperatures = models.CharField(max_length=250)
 
-class mdParams(models.Model):
 
-    structure = models.ForeignKey(WorkingStructure,null=True)
-    inpStruct = models.ForeignKey(WorkingFile,null=True)
+class dynamicsTask(Task):
 
-    statusHTML = models.CharField(max_length=250)
-    selected = models.CharField(max_length=1)
-    sequence = models.PositiveIntegerField(default=1)
-    type = models.CharField(max_length=50)
     nstep = models.PositiveIntegerField(default=1000)
+    make_movie = models.BooleanField(default=False)
+    movie_status = models.CharField(max_length=250,null=True)
+    replica_exchange = models.ForeignKey(rexParams,null=True)
+    scpism = models.BooleanField(default=False)
+
+    def finish(self):
+        """test if the job suceeded, create entries for output"""
+
+        loc = self.workstruct.structure.location
+        bnm = self.workstruct.identifier
+
+        # There's always an input file, so create a WorkingFile
+        # for it.
+        wfinp = WorkingFile()
+        wfinp.task = self
+        wfinp.path = loc + '/' + bnm + '-' + self.action + '.inp'
+        wfinp.canonPath = wfinp.path
+        wfinp.type = 'inp'
+        wfinp.description = self.action.upper() + ' input script'
+        wfinp.save()
+
+        # Check if an output file was created and if so create
+        # a WorkingFile for it.
+        try:
+            os.stat(loc + '/' + bnm + '-' + self.action + '.out')
+        except:
+            self.status = 'F'
+            return
+
+        wfout = WorkingFile()
+        wfout.task = self
+        wfout.path = loc + '/' + bnm + '-' + self.action + '.out'
+        wfout.canonPath = wfout.path
+        wfout.type = 'out'
+        wfout.description = 'output from ' + self.action.upper()
+        wfout.save()
+
+        # check if the final coordinates were created, if so then
+        # we can also add the PSF, PDB, trajectory, and restart files
+        try:
+            os.stat(loc + '/' + bnm + '-' + self.action + '.crd')
+        except:
+            self.status = 'F'
+            return
+
+        wfcrd = WorkingFile()
+        wfcrd.task = self
+        wfcrd.path = loc + '/' + bnm + '-' + self.action + '.crd'
+        wfcrd.canonPath = wfcrd.path
+        wfcrd.type = 'crd'
+        wfcrd.description = 'coordinates from ' + self.action.upper()
+        wfcrd.save()
+        self.workstruct.addCRDToPickle(wf.path, self.action + '_' + self.workstruct.identifier)
+
+        wfpsf = WorkingFile()
+        wfpsf.task = self
+        wfpsf.path = loc + '/' + bnm + '-' + self.action + '.psf'
+        wfpsf.canonPath = wfpsf.path
+        wfpsf.type = 'psf'
+        wfpsf.description = 'PSF from ' + self.action.upper()
+        wfpsf.save()
+
+        wfpdb = WorkingFile()
+        wfpdb.task = self
+        wfpdb.path = loc + '/' + bnm + '-' + self.action + '.pdb'
+        wfpdb.canonPath = wfpdb.path
+        wfpdb.type = 'pdb'
+        wfpdb.description = 'PDB coordinates from ' + self.action.upper()
+        wfpdb.save()
+
+class mdTask(dynamicsTask):
+
+    ensemble = models.CharField(max_length=50)
 
     #temp will represent the temperature Kelvin if "type" is heat
     temp = models.FloatField(null=True)
@@ -49,32 +116,15 @@ class mdParams(models.Model):
     teminc = models.FloatField(null=True)
     ihtfrq = models.FloatField(null=True)
     tbath = models.FloatField(null=True)
-    scpism = models.BooleanField(default=False)
-    make_movie = models.BooleanField(default=False)
-    movie_status = models.CharField(max_length=250,null=True)
-
-    replica_exchange = models.ForeignKey(rexParams,null=True)
 
 
-class ldParams(models.Model):
+class ldTask(dynamicsTask):
 
-    structure = models.ForeignKey(WorkingStructure,null=True)
-    inpStruct = models.ForeignKey(WorkingFile,null=True)    
-
-    statusHTML = models.CharField(max_length=250)
-    selected = models.CharField(max_length=1)
-
-    nstep = models.PositiveIntegerField(default=1000)
     fbeta = models.FloatField(default=60.0,null=True)
-    scpism = models.BooleanField(default=False)
     sgld = models.BooleanField(default=False)
-    make_ld_movie = models.BooleanField(default=False)
-    ld_movie_status = models.CharField(max_length=250,null=True)
-    ld_movie_req = models.BooleanField(default=False)
-    replica_exchange = models.ForeignKey(rexParams,null=True)
 
 
-class sgldParams(ldParams):
+class sgldTask(ldTask):
 
     tsgavg = models.FloatField(default=0.5,null=True)
     tempsg = models.FloatField(default=1.0,null=True)

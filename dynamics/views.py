@@ -18,10 +18,10 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template.loader import get_template
-from structure.models import Structure, WorkingStructure, WorkingFile
+from structure.models import Structure, WorkingStructure, WorkingFile, Task
 from account.views import isUserTrustworthy
 from structure.aux import checkNterPatch
-from dynamics.models import mdParams,ldParams,sgldParams
+from dynamics.models import mdTask, ldTask, sgldTask
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
@@ -49,21 +49,35 @@ def lddisplay(request):
         return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     if request.POST.has_key('nstep'):
-        scriptlist = []
+        # form has been submitted, check and see if there is an old ldTask, and
+        # if so, deactivate it.
+        try:
+            oldtsk = ldTask.objects.filter(workstruct=workstruct,active='y')[0]
+            oldtsk.active = 'n'
+            oldtsk.save()
+        except:
+            pass
+
+        ldt = ldTask()
+        ldt.setup(ws)
+        ldt.active = 'y'
+        ldt.action = 'ld'
+        ldt.save()
+
         if ws.isBuilt != 't':
             isBuilt = False
-            pstruct = ws.build(scriptlist)
-            pstructID = pstruct.id
+            pTask = ws.build(ldt)
+            pTaskID = pTask.id
         else:
             isBuilt = True
-            pstructID = int(request.POST['pstruct'])
+            pTaskID = int(request.POST['ptask'])
 
-        return applyld_tpl(request,ws,pstructID,scriptlist)
+        return applyld_tpl(request,ldt,pTaskID)
   
     else:
         # get all workingFiles associated with this struct
-        wfs = WorkingFile.objects.filter(structure=ws,type='crd')
-        return render_to_response('html/ldform.html', {'ws_identifier': ws.identifier,'workfiles': wfs})
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+        return render_to_response('html/ldform.html', {'ws_identifier': ws.identifier,'tasks': tasks})
 
 #processes form data for md simulations
 def mddisplay(request):
@@ -83,14 +97,26 @@ def mddisplay(request):
 
 
     if request.POST.has_key('mdtype'):
-        scriptlist = []
+        try:
+            oldtsk = mdTask.objects.filter(workstruct=workstruct,active='y')[0]
+            oldtsk.active = 'n'
+            oldtsk.save()
+        except:
+            pass
+
+        mdt = mdTask()
+        mdt.setup(ws)
+        mdt.active = 'y'
+        mdt.action = 'md'
+        mdt.save()
+
         if ws.isBuilt != 't':
             isBuilt = False
-            pstruct = ws.build(scriptlist)
-            pstructID = pstruct.id
+            pTask = ws.build(scriptlist)
+            pTaskID = pTask.id
         else:
             isBuilt = True
-            pstructID = int(request.POST['pstruct'])
+            pTaskID = int(request.POST['ptask'])
 
         return applymd_tpl(request,ws,pstructID,scriptlist)
 
@@ -103,8 +129,8 @@ def mddisplay(request):
             canrestart = False
 
         # get all workingFiles associated with this struct
-        wfs = WorkingFile.objects.filter(structure=ws,type='crd')
-        return render_to_response('html/mdform.html', {'ws_identifier': ws.identifier,'workfiles': wfs,'canrestart': canrestart})
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+        return render_to_response('html/mdform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'canrestart': canrestart})
 
 def applyld_tpl(request,workstruct,pstructID,scriptlist):
     postdata = request.POST
@@ -121,23 +147,23 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
 
     if template_dict['usesgld']:
         try:
-            oldparam = sgldParams.objects.filter(pdb=file, selected='y')[0]
+            oldparam = sgldTask.objects.filter(pdb=file, selected='y')[0]
             oldparam.selected = 'n'
             oldparam.save()
         except:
             pass
         ld_prefix = 'sgld'
-        ldp = sgldParams(selected='y',structure=workstruct)
+        ldp = sgldTask(selected='y',structure=workstruct)
 
     else:
         try:
-            oldparam = ldParams.objects.filter(pdb = file, selected = 'y')[0]
+            oldparam = ldTask.objects.filter(pdb = file, selected = 'y')[0]
             oldparam.selected = 'n'
             oldparam.save()
         except:
             pass
         ld_prefix = 'ld'
-        ldp = ldParams(selected='y',structure=workstruct)
+        ldp = ldTask(selected='y',structure=workstruct)
 
     ldp.fbeta = template_dict['fbeta']
     ldp.nstep = template_dict['nstep']
@@ -271,14 +297,14 @@ def applymd_tpl(request,workstruct,pstructID,scriptlist):
     #deals with changing the selected minimize_params
     seqno = 1
     try:
-        oldparam = mdParams.objects.filter(structure=workstruct, selected='y')[0]
+        oldparam = mdTask.objects.filter(structure=workstruct, selected='y')[0]
         oldparam.selected = 'n'
         seqno = oldparam.sequence + 1
         oldparam.save()
     except:
         pass
 
-    mdp = mdParams(selected='y',structure=workstruct)
+    mdp = mdTask(selected='y',structure=workstruct)
     mdp.sequence = seqno
     mdp.make_movie = postdata.has_key('make_movie')
     mdp.scpism = postdata.has_key('solvate_implicitly')
@@ -470,7 +496,7 @@ stop"""
             file.md_jobID = newJobID
             sstring = si.checkStatus(newJobID)
 
-            mdp = mdParams.objects.filter(pdb=file,selected='y')[0]
+            mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
             mdp.statusHTML = statsDisplay(sstring,newJobID)
             mdp.md_movie_status = None
             mdp.save()
@@ -483,7 +509,7 @@ stop"""
             sstring = si.checkStatus(newJobID)
             file.ld_movie_status = None
             
-            ldp = ldParams.objects.filter(pdb=file,selected='y')[0]
+            ldp = ldTask.objects.filter(pdb=file,selected='y')[0]
             ldp.statusHTML = statsDisplay(sstring,newJobID)
             ldp.ld_movie_status = None
             ldp.save()
@@ -496,7 +522,7 @@ stop"""
             sstring = si.checkStatus(newJobID)
             file.sgld_movie_status = None
             
-            ldp = sgldParams.objects.filter(pdb=file,selected='y')[0]
+            ldp = sgldTask.objects.filter(pdb=file,selected='y')[0]
             ldp.statusHTML = statsDisplay(sstring,newJobID)
             ldp.save()
     file.save()
@@ -528,15 +554,15 @@ def combinePDBsForMovie(file,type):
 	minimovie_handle.close()
 	#os.remove(file.location +  "new_" + file.stripDotPDB(file.filename) + "-movie" + `i` + ".pdb")
 	if(type == 'md'):
-            mdp = mdParams.objects.filter(pdb=file,selected='y')[0]
+            mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
 	    mdp.md_movie_status = "<font color=33CC00>Done</font>"
             mdp.save()
 	elif(type == 'ld'):
-            ldp = ldParams.objects.filter(pdb=file,selected='y')[0]
+            ldp = ldTask.objects.filter(pdb=file,selected='y')[0]
 	    ldp.ld_movie_status = "<font color=33CC00>Done</font>"
             ldp.save()
 	elif(type == 'sgld'):
-            sgldp = sgldParams.objects.filter(pdb=file,selected='y')[0]
+            sgldp = sgldTask.objects.filter(pdb=file,selected='y')[0]
 	    sgldp.sgld_movie_status = "<font color=33CC00>Done</font>"
             sgldp.save()
 	file.save()

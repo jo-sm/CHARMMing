@@ -26,6 +26,8 @@ import output, lessonaux, charmming_config
 
 # This function constructs an input script with template
 def neutralize_tpl(solvTask,postdata):
+    workingstruct = solvTask.workstruct
+
     cation = "POT"
     if postdata['salt'] == "nacl":
         cation = "SOD"
@@ -35,19 +37,19 @@ def neutralize_tpl(solvTask,postdata):
         cation = "MG"
     elif postdata['salt'] == "cscl":
         cation = "CES" 
-    sp.salt = cation
+    solvTask.salt = cation
 
     try:
         concentration = float(postdata['concentration'])
     except:
         concentration = 0.15
-    sp.concentration = str(concentration)
+    solvTask.concentration = str(concentration)
     try:
         ntrials = int(postdata['ntrials'])
     except:
         ntrials = 3
-    sp.ntrials = ntrials
-    sp.save()
+    solvTask.ntrials = ntrials
+    solvTask.save()
 
     os.chdir(workingstruct.structure.location)
 
@@ -72,7 +74,6 @@ def neutralize_tpl(solvTask,postdata):
  
     if sp.solvation_structure != 'sphere':
         # set up the crystal file
-        #cryst_inp = "* Crystal stream file\n*\n\n"
         t2_dict = {}
         t2_dict['shape'] = sp.solvation_structure
         t2_dict['dim_x'] = sp.xtl_x

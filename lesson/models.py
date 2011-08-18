@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from lessons.models import LessonProblem
 from solvation.models import solvationTask
 from minimization.models import minimizeTask
-from dynamics.models import mdParams, ldParams, sgldParams
+from dynamics.models import mdTask, ldTask, sgldTask
 from normalmodes.models import nmodeParams
 import os
 import structure

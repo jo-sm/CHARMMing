@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from lessons.models import LessonProblem
 from solvation.models import solvationTask
 from minimization.models import minimizeTask
-from dynamics.models import mdParams
+from dynamics.models import mdTask
 import os, re
 import structure, lessonaux, charmming_config
 
@@ -191,7 +191,7 @@ class Lesson2(models.Model):
         except:
             pass
         file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-        mdp = mdParams.objects.filter(pdb=file,selected='y')[0]
+        mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
 
         if float(self.curStep) == 3.0:
             if filename not in ['new_' + file.stripDotPDB(file.filename) + '-min.pdb']:
@@ -260,7 +260,7 @@ class Lesson2(models.Model):
             lessonprob = LessonProblem.objects.filter(lesson_type='lesson2',lesson_id=self.id)[0]
         except:
             lessonprob = None
-        mdp = mdParams.objects.filter(pdb=file,selected='y')[0]
+        mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
         fail = re.compile('Failed')
         if lessonprob:
             return False

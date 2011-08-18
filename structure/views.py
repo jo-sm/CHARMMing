@@ -22,7 +22,7 @@ from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from minimization.models import minimizeTask
-from dynamics.models import mdParams, ldParams, sgldParams
+from dynamics.models import mdTask, ldTask, sgldTask
 from solvation.models import solvationTask
 from account.models import *
 from dynamics.views import combinePDBsForMovie

@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from lessons.models import LessonProblem
 from solvation.models import solvationTask
 from minimization.models import minimizeTask
-from dynamics.models import mdParams
+from dynamics.models import mdTask
 import os
 import structure, lessonaux, charmming_config
 import re
@@ -173,7 +173,7 @@ class Lesson1(models.Model):
         except:
             pass
         file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-        mdp = mdParams.objects.filter(pdb=file,selected='y')[0]
+        mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
         if filename not in ['new_' + file.stripDotPDB(file.filename) + '-min.pdb']:
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=2,description='Please run dynamics on the minimized PDB (-min).')
             lessonprob.save()
@@ -215,7 +215,7 @@ class Lesson1(models.Model):
             lessonprob = LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0]
         except:
             lessonprob = None
-        mdp = mdParams.objects.filter(pdb=file,selected='y')[0]
+        mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
         fail = re.compile('Failed')
         if lessonprob:
             return False

@@ -354,7 +354,7 @@ def getmdprop(request):
         return HttpResponse("Please submit a structure first.")
 
     try:
-        mdp = dynamics.models.mdParams.objects.filter(pdb=file, selected='y')[0]
+        mdp = dynamics.models.mdTask.objects.filter(pdb=file, selected='y')[0]
     except:
         return HttpResponse("Please perform Molecular Dynamics before trying to get properties")
     if not "Done" in mdp.statusHTML:

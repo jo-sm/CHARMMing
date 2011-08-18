@@ -1,7 +1,7 @@
 from django.contrib import admin
-from dynamics.models import rexParams, mdParams, ldParams, sgldParams
+from dynamics.models import rexParams, mdTask, ldTask, sgldTask
 
 admin.site.register(rexParams)
-admin.site.register(mdParams)
-admin.site.register(ldParams)
-admin.site.register(sgldParams)
+admin.site.register(mdTask)
+admin.site.register(ldTask)
+admin.site.register(sgldTask)
