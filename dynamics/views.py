@@ -51,17 +51,33 @@ def lddisplay(request):
     if request.POST.has_key('nstep'):
         # form has been submitted, check and see if there is an old ldTask, and
         # if so, deactivate it.
-        try:
-            oldtsk = ldTask.objects.filter(workstruct=workstruct,active='y')[0]
-            oldtsk.active = 'n'
-            oldtsk.save()
-        except:
-            pass
+        ldt = None
 
-        ldt = ldTask()
-        ldt.setup(ws)
+        if request.POST.has_key('usesgld'):
+            try:
+                oldtsk = sgldTask.objects.filter(workstruct=workstruct,active='y')[0]
+                oldtsk.active = 'n'
+                oldtsk.save()
+            except:
+                pass
+            ldt = sgldTask()
+            ldt.setup(ws)
+            ldt.action = 'sgld'
+            ldt.save()
+        else:
+            try:
+                oldtsk = ldTask.objects.filter(workstruct=workstruct,active='y')[0]
+                oldtsk.active = 'n'
+                oldtsk.save()
+            except:
+                pass
+            ldt = ldTask()
+            ldt.setup(ws)
+            ldt.action = 'ld'
+            ldt.save()
+
+        ldt.nstep = int(request.POST['nstep'])
         ldt.active = 'y'
-        ldt.action = 'ld'
         ldt.save()
 
         if ws.isBuilt != 't':
@@ -102,7 +118,7 @@ def mddisplay(request):
             oldtsk.active = 'n'
             oldtsk.save()
         except:
-            pass
+             pass
 
         mdt = mdTask()
         mdt.setup(ws)
@@ -118,7 +134,7 @@ def mddisplay(request):
             isBuilt = True
             pTaskID = int(request.POST['ptask'])
 
-        return applymd_tpl(request,ws,pstructID,scriptlist)
+        return applymd_tpl(request,mdt,pTaskID)
 
     else:
         # decide whether or not this run is restartable (check for non-empty restart file)
@@ -132,46 +148,27 @@ def mddisplay(request):
         tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
         return render_to_response('html/mdform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'canrestart': canrestart})
 
-def applyld_tpl(request,workstruct,pstructID,scriptlist):
+def applyld_tpl(request,ldt,pTaskID):
     postdata = request.POST
-    pstruct = WorkingFile.objects.filter(id=pstructID)[0]
 
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'] = workstruct.getTopologyList()
-    template_dict['parameter_list'] = workstruct.getParameterList()
+    template_dict['topology_list'] = ldt.workstruct.getTopologyList()
+    template_dict['parameter_list'] = ldt.workstruct.getParameterList()
     template_dict['fbeta'] = postdata['fbeta']
     template_dict['nstep'] = postdata['nstep']
     template_dict['usesgld'] = postdata.has_key('usesgld')
-    template_dict['identifier'] = workstruct.identifier
+    template_dict['identifier'] = ldt.workstruct.identifier
 
-    if template_dict['usesgld']:
-        try:
-            oldparam = sgldTask.objects.filter(pdb=file, selected='y')[0]
-            oldparam.selected = 'n'
-            oldparam.save()
-        except:
-            pass
-        ld_prefix = 'sgld'
-        ldp = sgldTask(selected='y',structure=workstruct)
+    ldt.fbeta = template_dict['fbeta']
+    ldt.nstep = template_dict['nstep']
 
-    else:
-        try:
-            oldparam = ldTask.objects.filter(pdb = file, selected = 'y')[0]
-            oldparam.selected = 'n'
-            oldparam.save()
-        except:
-            pass
-        ld_prefix = 'ld'
-        ldp = ldTask(selected='y',structure=workstruct)
-
-    ldp.fbeta = template_dict['fbeta']
-    ldp.nstep = template_dict['nstep']
-    ldp.inpStruct = pstruct
-
-    template_dict['input_file'] = pstruct.basename
+    pTask = Task.objects.get(id=pTaskID)
+    ldt.parent = pTask
+    template_dict['input_file'] = ldt.workstruct.identifier + '-' + pTask.action
     template_dict['useqmmm'] = ''
     template_dict['qmmmsel'] = ''
+    ldt.save()
 
     # deal with whether or not we want to go to Hollywood (i.e. make a movie)
     # NB: this is not working at present; flesh this code in!!!
@@ -187,18 +184,18 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
     try:
         template_dict['solvate_implicitly'] = postdata['solvate_implicitly']
         if(postdata['solvate_implicitly']):
-	    ldp.scipism = True
+	    ldt.scpism = True
     except:
         pass
 
-    if template_dict['usesgld']:
+    if ldt.action == 'sgld':
         tsgavg = '0.0'
         tempsg = '0.0'
 
         tsgavg = postdata['tsgavg']
-	ldp.tsgavg = str(tsgavg)
+	ldt.tsgavg = str(tsgavg)
 	tempsg = postdata['tempsg']
-	ldp.tempsg = str(tempsg)
+	ldt.tempsg = str(tempsg)
 
         template_dict['tsgavg'] = tsgavg
         template_dict['tempsg'] = tempsg
@@ -213,9 +210,9 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
         # decide if the structure we're dealing with has
         # been solvated.
         solvated = False
-        wfc = pstruct
+        wfc = pTask
         while True:  
-            if wfc.parentAction == 'solv':
+            if wfc.action == 'solvation':
                 solvated = True
                 break
             if wfc.parent:
@@ -239,25 +236,19 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
 
     template_dict['dopbc'] = dopbc
 
-    template_dict['output_name'] = ld_prefix + '-' + workstruct.identifier
-    user_id = workstruct.structure.owner.id
-    ld_filename = ld_prefix + '-' + workstruct.identifier + ".inp"
+    template_dict['output_name'] = ldt.workstruct.identifier + '-' + ldt.action
+    user_id = ldt.workstruct.structure.owner.id
+    ld_filename = ldt.workstruct.structure.location + '/' + ldt.workstruct.identifier + "-" + ldt.action + ".inp"
     t = get_template('%s/mytemplates/input_scripts/applyld_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
-    inp_out = open(workstruct.structure.location + '/' + ld_filename,'w')
+    inp_out = open(ld_filename, 'w')
     inp_out.write(charmm_inp)
     inp_out.close()  
+    ldt.scripts += ',%s' % ld_filename
 
     # change the status of the file regarding LD
-    if template_dict['usesgld']:
-        ldp.statusHTML = "<font color=yellow>Processing</font>"
-    else:
-        ldp.statusHTML = "<font color=yellow>Processing</font>"
-    ldp.save()
-
-    si = schedInterface()
-    scriptlist.append(workstruct.structure.location + '/' + ld_filename)
+    ldt.save()
 
 
     # lessons are borked at the moment
@@ -268,64 +259,39 @@ def applyld_tpl(request,workstruct,pstructID,scriptlist):
     #        lessonaux.doLessonAct(file,"onLDSubmit",postdata,None)
 
     if make_movie:
+        # NB, fix me up...
         if usesgld:
             return makeJmolMovie(file,postdata,min_pdb,scriptlist,'sgld')
         else:
             return makeJmolMovie(file,postdata,min_pdb,scriptlist,'ld')
     else:
-        si = schedInterface()
-        newJobID = si.submitJob(user_id,workstruct.structure.location,scriptlist,{},{})
-        if template_dict['usesgld']:
-            workstruct.sgld_jobID = newJobID
-            sstring = si.checkStatus(newJobID)
-            ldp.sgld_movie_status = None
-        else:
-            workstruct.ld_jobID = newJobID
-            sstring = si.checkStatus(newJobID)
-            ldp.ld_movie_status = None
+        ldt.start()
+        ldt.save()
 
-    ldp.statusHTML = statsDisplay(sstring,newJobID)
-    ldp.save()
-
-    workstruct.save() 
+    ldt.workstruct.save()
     return HttpResponse("Done.")
 
 #Generates MD script and runs it
-def applymd_tpl(request,workstruct,pstructID,scriptlist):
+def applymd_tpl(request,mdt,pTaskID):
     postdata = request.POST
 
-    #deals with changing the selected minimize_params
-    seqno = 1
-    try:
-        oldparam = mdTask.objects.filter(structure=workstruct, selected='y')[0]
-        oldparam.selected = 'n'
-        seqno = oldparam.sequence + 1
-        oldparam.save()
-    except:
-        pass
-
-    mdp = mdTask(selected='y',structure=workstruct)
-    mdp.sequence = seqno
-    mdp.make_movie = postdata.has_key('make_movie')
-    mdp.scpism = postdata.has_key('solvate_implicitly')
-    if mdp.scpism:
-       solvate_implicitly = 1
-    else:
-       solvate_implicitly = 0
+    mdt.make_movie = postdata.has_key('make_movie')
+    mdt.scpism = postdata.has_key('solvate_implicitly')
     
     # template dictionary passes the needed variables to the templat
     template_dict = {}     
-    template_dict['topology_list'] = workstruct.getTopologyList()
-    template_dict['parameter_list'] = workstruct.getParameterList()
+    template_dict['topology_list'] = mdt.workstruct.getTopologyList()
+    template_dict['parameter_list'] = mdt.workstruct.getParameterList()
 
-    template_dict['output_name'] = "md-" + workstruct.identifier
-    pstruct = WorkingFile.objects.filter(id=pstructID)[0]
-    template_dict['input_file'] = pstruct.basename
-    template_dict['solvate_implicitly'] = solvate_implicitly
+    template_dict['output_name'] = mdt.workstruct.identifier + '-md'
+
+    pTask = Task.objects.get(id=pTaskID)
+    template_dict['input_file'] = mdt.workstruct.identifier + '-' + pTask.action
+    template_dict['solvate_implicitly'] = mdt.scpism
     mdp.inpStruct = pstruct
 
-    orig_rst = workstruct.structure.location + "/" + pstruct.basename + "-md.res"
-    new_rst  = workstruct.structure.location + "/" + pstruct.basename + "-md-old.res"
+    orig_rst = mdt.workstruct.structure.location + "/" + pstruct.basename + "-md.res"
+    new_rst  = mdt.workstruct.structure.location + "/" + pstruct.basename + "-md-old.res"
     if postdata.has_key('dorestart'):
         template_dict['restartname'] = new_rst
         template_dict['strtword'] = "restart"
@@ -346,9 +312,9 @@ def applymd_tpl(request,workstruct,pstructID,scriptlist):
         # decide if the structure we're dealing with has
         # been solvated.
         solvated = False
-        wfc = pstruct
+        wfc = pTask
         while True:
-            if wfc.parentAction == 'solv':
+            if wfc.action == 'solvate':
                 solvated = True
                 break
             if wfc.parent:
@@ -378,9 +344,9 @@ def applymd_tpl(request,workstruct,pstructID,scriptlist):
     template_dict['genavg_structure'] = postdata.has_key('gen_avgstruct')
 
     if template_dict['mdtype'] == 'useheat':
-        mdp.type = 'heat'
-        mdp.firstt = postdata['firstt']
-        mdp.finalt = postdata['finalt']
+        mdt.ensemble = 'heat'
+        mdt.firstt = postdata['firstt']
+        mdt.finalt = postdata['finalt']
         template_dict['nstep'] = postdata['nstepht']
         template_dict['firstt'] = postdata['firstt']
         template_dict['finalt'] = postdata['finalt']
@@ -388,58 +354,52 @@ def applymd_tpl(request,workstruct,pstructID,scriptlist):
         template_dict['teminc'] = postdata['teminc']
         template_dict['ihtfrq'] = postdata['ihtfrq']
     elif template_dict['mdtype'] == 'usenve':
-        mdp.type = 'nve'
+        mdt.ensemble = 'nve'
         template_dict['nstep'] = postdata['nstepnve']
         template_dict['ieqfrq'] = postdata['ieqfrq']
     elif template_dict['mdtype'] == 'usenvt':
-        mdp.type = 'nvt'
-        mdp.temp = postdata['hoovertemp']
+        mdt.ensemble = 'nvt'
+        mdt.temp = postdata['hoovertemp']
         template_dict['nstep'] = postdata['nstepnvt']
         template_dict['hoovertemp'] = postdata['hoovertemp']
     elif template_dict['mdtype'] == 'usenpt':
-        mdp.type = 'npt'
+        mdt.ensemble = 'npt'
         mdp.temp = postdata['hoovertemp']
         template_dict['nstep'] = postdata['nstepnpt']
         template_dict['hoovertemp'] = postdata['hoovertemp']
         template_dict['pgamma'] = postdata['pgamma']
 
-    if dopbc or mdp.type == 'nvt' or mdp.type == 'npt':
+    if dopbc or mdt.ensemble == 'nvt' or mdt.ensemble == 'npt':
         template_dict['cpt'] = 'cpt'
     else:
         template_dict['cpt'] = ''
 
-    mdp.save()
-
-    user_id = workstruct.structure.owner.id
-    os.chdir(workstruct.structure.location)
+    user_id = mdt.workstruct.structure.owner.id
+    os.chdir(mdt.workstruct.structure.location)
     t = get_template('%s/mytemplates/input_scripts/applymd_template.inp' % charmming_config.charmming_root)
 
     # write out the file and let it go...
-    md_filename = workstruct.structure.location + "/moldyn-" + workstruct.identifier + ".inp"
+    md_filename = workstruct.structure.location + "/" + workstruct.identifier + "-md.inp"
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     inp_out = open(md_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()  
 
+    mdt.scripts += ',%s' % md_filename
+    mdt.save()
+
     # lessons are still borked
     #if file.lesson_type:
     #    lessonaux.doLessonAct(file,"onMDSubmit",postdata,min_pdb)
 
-    scriptlist.append(md_filename)
     make_movie = postdata.has_key('make_movie')
     if make_movie:
-       return makeJmolMovie(workstruct,postdata,scriptlist,'md')
+        return makeJmolMovie(workstruct,postdata,scriptlist,'md')
     else:
-        si = schedInterface()
-        newJobID = si.submitJob(user_id,workstruct.structure.location,scriptlist)
-        workstruct.md_jobID = newJobID
-        sstring = si.checkStatus(newJobID)
+        mdt.start()
 
-        mdp.statusHTML = statsDisplay(sstring,newJobID)
-        mdp.md_movie_status = None
-
-    mdp.save()
-    workstruct.save()
+    mdt.save()
+    mdt.workstruct.save()
     return HttpResponse("Done.")
 
 #pre: Requires a file object, and the name of the psf/crd file to read in
