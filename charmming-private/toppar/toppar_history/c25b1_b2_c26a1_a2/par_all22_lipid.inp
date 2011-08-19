@@ -1,0 +1,326 @@
+*  \\\\\\\\\\ All-Hydrogen Lipid Parameter File ////////////
+*  \\\\\\\\\\\\\\\\\\ Developmental ///////////////////////
+*             Alexander D. MacKerell Jr.
+*                     July 1997
+* All comments to ADM jr.  email:alex,mmiris.ab.umd.edu
+*              telephone: 410-706-7442
+* These files are a beta release; additional parameter development
+* and testing may lead to alteration of the contents.
+*
+
+BONDS  !    FORCE       EQUI
+CTL3  CL    200.0       1.522   ! methyl acetate
+CTL2  CL    200.0       1.522   ! methyl acetate
+CTL1  CL    200.0       1.522   ! methyl acetate
+OBL   CL    750.0       1.220   ! methyl acetate
+OSL   CL    150.0       1.334   ! methyl acetate
+OHL   CL    230.0       1.40    ! methyl acetate
+HOL   OHL   545.0       0.960   ! acetic acid
+CTL3  HAL   322.00      1.111   ! alkanes, 3/92
+CTL2  HAL   309.00      1.111   ! alkanes, 3/92
+CTL1  HAL   309.00      1.111   ! alkanes, 3/92
+CTL3  OSL   340.0       1.43    ! phosphate
+CTL2  OSL   340.0       1.43    ! phosphate
+CTL1  OSL   340.0       1.43    ! phosphate
+OSL   PL    270.0       1.60    ! phosphate
+O2L   PL    580.0       1.48    ! phosphate
+OHL   PL    237.0       1.59    ! phosphate
+NH3L  HCL   410.0       1.04    ! ethanolamine
+NH3L  CTL2  261.0       1.51    ! ethanolamine
+NTL   CTL2  215.00      1.51    ! tetramethylammonium
+NTL   CTL3  215.00      1.51    ! tetramethylammonium
+CTL3  HL    300.00      1.08    ! tetramethylammonium
+CTL2  HL    300.00      1.08    ! tetramethylammonium
+CTL1  CTL1  222.500     1.500   ! alkanes, 3/92
+CTL1  CTL2  222.500     1.538   ! alkanes, 3/92
+CTL1  CTL3  222.500     1.538   ! alkanes, 3/92
+CTL2  CTL2  222.500     1.530   ! alkanes, 3/92
+CTL2  CTL3  222.500     1.528   ! alkanes, 3/92
+CTL3  CTL3  222.500     1.530   ! alkanes, 3/92
+OHL   CTL1  428.0       1.420   !  glycerol
+OHL   CTL2  428.0       1.420   !  glycerol
+OHL   CTL3  428.0       1.420   !  glycerol
+SL    O2L   540.0       1.448   ! methylsulfate
+SL    OSL   250.0       1.575   ! methylsulfate
+HT    HT      0.0       1.5139  ! from TIPS3P geometry (for SHAKE w/PARAM)
+HT    OT    450.0       0.9572  ! from TIPS3P geometry
+CEL2  CEL2  510.000     1.330   ! ethene yin,adm jr., 12/95
+HAL2  CEL2  365.000     1.100   ! propene; from ethene, yin,adm jr., 12/95
+CEL1  CTL3  383.000     1.504   ! butene, yin,adm jr., 12/95
+CEL1  CEL2  500.000     1.342   ! propene, yin,adm jr., 12/95
+HAL1  CEL1  360.500     1.100   ! propene, yin,adm jr., 12/95
+CEL1  CTL2  365.000     1.502   ! butene; from propene, yin,adm jr., 12/95
+CEL1  CEL1  440.000     1.340   ! butene, yin,adm jr., 12/95
+
+ANGLE  !          FORCE    EQUI  U-B FORCE  EQUI
+OBL  CL   CTL3    70.0     125.0     20.0   2.442  ! methyl acetate
+OBL  CL   CTL2    70.0     125.0     20.0   2.442  ! methyl acetate
+OBL  CL   CTL1    70.0     125.0     20.0   2.442  ! methyl acetate
+OSL  CL   OBL     90.0     125.9    160.0   2.2576 ! acetic acid
+CL   OSL  CTL1    40.0     109.6     30.0   2.2651 ! methyl acetate
+CL   OSL  CTL2    40.0     109.6     30.0   2.2651 ! methyl acetate
+CL   OSL  CTL3    40.0     109.6     30.0   2.2651 ! methyl acetate
+HAL  CTL2 CL      33.00    109.50   30.00   2.163  ! methyl acetate
+HAL  CTL3 CL      33.00    109.50   30.00   2.163  ! methyl acetate
+CTL2 CTL2 CL      52.0     108.00   ! alkane
+CTL3 CTL2 CL      52.0     108.00   ! alkane
+OSL  CL   CTL3    55.0     109.0    20.00   2.3260 ! methyl acetate
+OSL  CL   CTL2    55.0     109.0    20.00   2.3260 ! methyl acetate
+OHL  CL   OBL     50.0     123.0    210.0   2.2620 ! acetic acid
+OHL  CL   CTL3    55.0     110.50   ! acetic acid
+OHL  CL   CTL2    55.0     110.50   ! acetic acid
+HOL  OHL  CL     55.0      115.0    ! acetic acid
+OSL  CTL1 CTL2   75.700    110.10   ! acetic acid
+OSL  CTL1 CTL3   75.700    110.10   ! acetic acid
+OSL  CTL2 CTL1   75.700    110.10   ! acetic acid
+OSL  CTL2 CTL2   75.700    110.10   ! acetic acid
+OSL  CTL2 CTL3   75.700    110.10   ! acetic acid
+HAL  CTL2 HAL    35.500    109.00    5.40   1.80200 ! alkane, 3/92
+HAL  CTL3 HAL    35.500    108.40    5.40   1.80200 ! alkane, 3/92
+HAL  CTL1 OSL    60.0      109.5    ! phosphate
+HAL  CTL2 OSL    60.0      109.5    ! phosphate
+HAL  CTL3 OSL    60.0      109.5    ! phosphate
+CTL2 OSL  PL     20.0      120.0    35.0    2.33   ! phosphate
+CTL3 OSL  PL     20.0      120.0    35.0    2.33   ! phosphate
+HOL  OHL  PL     30.0      115.0    40.0    2.30   ! phosphate
+OSL  PL   OSL    80.0      104.3    ! phosphate
+OSL  PL   O2L    98.9      111.6    ! phosphate
+OSL  PL   OHL    48.1      108.0    ! phosphate
+O2L  PL   O2L   120.0      120.0    ! phosphate
+O2L  PL   OHL    98.9      108.23   ! phosphate
+NTL  CTL2 HL     40.0      109.5    27.     2.13   ! tetramethylammonium
+NTL  CTL3 HL     40.0      109.5    27.     2.13   ! tetramethylammonium
+HL   CTL2 HL     24.0      109.50   28.     1.767  ! tetramethylammonium
+HL   CTL3 HL     24.0      109.50   28.     1.767  ! tetramethylammonium
+CTL3 NTL  CTL2   60.0      109.5    26.     2.466  ! tetramethylammonium
+CTL3 NTL  CTL3   60.0      109.5    26.     2.466  ! tetramethylammonium
+HL   CTL2 CTL2   33.430    110.10   22.53   2.179  ! alkane
+HL   CTL2 CTL3   33.430    110.10   22.53   2.179  ! alkane
+HAL  CTL1 CTL1   34.500    110.10   22.53   2.179  ! alkane, 3/92
+HAL  CTL1 CTL2   34.500    110.10   22.53   2.179  ! alkane, 3/92
+HAL  CTL1 CTL3   34.500    110.10   22.53   2.179  ! alkane, 3/92
+HAL  CTL2 CTL1   26.500    110.10   22.53   2.179  ! alkane, 3/92
+HAL  CTL2 CTL2   26.500    110.10   22.53   2.179  ! alkane, 3/92
+HAL  CTL2 CTL3   34.600    110.10   22.53   2.179  ! alkane, 3/92
+HAL  CTL3 CTL1   33.430    110.10   22.53   2.179  ! alkane, 3/92
+HAL  CTL3 CTL2   34.600    110.10   22.53   2.179  ! alkane, 3/92
+HAL  CTL3 CTL3   37.500    110.10   22.53   2.179  ! alkane, 3/92
+NTL  CTL2 CTL2   67.7      115.00   ! tetramethylammonium
+NTL  CTL2 CTL3   67.7      115.00   ! tetramethylammonium
+HCL  NH3L CTL2   33.0      109.50    4.00   2.056  ! ethanolamine
+HCL  NH3L HCL    41.0      109.50   ! ethanolamine
+NH3L CTL2 CTL2   67.7      110.00   ! ethanolamine
+NH3L CTL2 HAL    45.0      107.50   35.00   2.0836 ! ethanolamine
+CTL1 CTL1 CTL1   53.350    111.00    8.00   2.561  ! alkane, 3/92
+CTL1 CTL1 CTL2   58.350    113.50   11.16   2.561  ! glycerol
+CTL1 CTL1 CTL3   53.350    108.50    8.00   2.561  ! alkane, 3/92
+CTL1 CTL2 CTL1   58.350    113.50   11.16   2.561  ! glycerol
+CTL1 CTL2 CTL2   58.350    113.50   11.16   2.561  ! glycerol
+CTL1 CTL2 CTL3   58.350    113.50   11.16   2.561  ! glycerol
+CTL2 CTL1 CTL2   58.350    113.50   11.16   2.561  ! glycerol
+CTL2 CTL1 CTL3   58.350    113.50   11.16   2.561  ! glycerol
+CTL2 CTL2 CTL2   58.350    113.60   11.16   2.561  ! alkane, 3/92
+CTL2 CTL2 CTL3   58.000    115.00    8.00   2.561  ! alkane, 3/92
+HOL  OHL  CTL1   57.500    106.00   ! glycerol
+HOL  OHL  CTL2   57.500    106.00   ! glycerol
+HOL  OHL  CTL3   57.500    106.00   ! glycerol
+OHL  CTL1 CTL2   75.700    110.10   ! glycerol
+OHL  CTL2 CTL1   75.700    110.10   ! glycerol
+OHL  CTL2 CTL2   75.700    110.10   ! glycerol
+OHL  CTL2 CTL3   75.700    110.10   ! glycerol
+OHL  CTL1 HAL    45.900    108.89   ! glycerol
+OHL  CTL2 HAL    45.900    108.89   ! glycerol
+OHL  CTL3 HAL    45.900    108.89   ! glycerol
+O2L  SL   O2L   130.0      109.47  35.0    2.45 ! methylsulfate
+O2L  SL   OSL    85.0       98.0                ! methylsulfate
+CTL2 OSL  SL     15.0      109.0   27.00   1.90 ! methylsulfate
+CTL3 OSL  SL     15.0      109.0   27.00   1.90 ! methylsulfate
+HT   OT   HT     55.0      104.52   ! FROM TIPS3P GEOMETRY
+CEL1 CEL1 CTL2   48.00     123.50   ! from 2-butene, yin,adm jr., 12/95
+CEL1 CEL1 CTL3   48.00     123.50   ! 2-butene, yin,adm jr., 12/95
+CEL2 CEL1 CTL2   48.00     126.00   ! 1-butene; from propene, yin,adm jr., 12/95
+CEL2 CEL1 CTL3   47.00     125.20   ! propene, yin,adm jr., 12/95
+HAL1 CEL1 CEL1   52.00     119.50   ! 2-butene, yin,adm jr., 12/95
+HAL1 CEL1 CEL2   42.00     118.00   ! propene, yin,adm jr., 12/95
+HAL1 CEL1 CTL2   40.00     116.00   ! 1-butene; from propene, yin,adm jr., 12/95
+HAL1 CEL1 CTL3   22.00     117.00   ! propene, yin,adm jr., 12/95
+HAL2 CEL2 CEL1   45.00     120.50   ! propene, yin,adm jr., 12/95
+HAL2 CEL2 CEL2   55.50     120.50   ! ethene, yin,adm jr., 12/95
+HAL2 CEL2 HAL2   19.00     119.00   ! propene, yin,adm jr., 12/95
+CEL1 CTL2 CTL2   32.00     112.20   ! 1-butene; from propene, yin,adm jr., 12/95
+CEL1 CTL2 CTL3   32.00     112.20   ! 1-butene; from propene, yin,adm jr., 12/95
+HAL  CTL2 CEL1   45.00     111.50   ! 1-butene; from propene, yin,adm jr., 12/95
+HAL  CTL3 CEL1   42.00     111.50   ! 2-butene, yin,adm jr., 12/95
+ 
+DIHEDRAL  !            FORCE  PERIOD PHASE
+X    CTL1 OHL  X        0.14    3     0.00 ! glycerol
+X    CTL2 OHL  X        0.14    3     0.00 ! glycerol
+X    CTL3 OHL  X        0.14    3     0.00 ! glycerol
+OBL  CL   CTL2 HAL      0.00    6   180.00 ! acetic acid
+OBL  CL   CTL3 HAL      0.00    6   180.00 ! acetic acid
+OSL  CL   CTL2 HAL      0.00    6   180.00 ! acetic acid
+OSL  CL   CTL3 HAL      0.00    6   180.00 ! acetic acid
+OBL  CL   OSL  CTL1     0.965   1   180.00 ! methyl acetate
+OBL  CL   OSL  CTL1     3.85    2   180.00 ! methyl acetate
+OBL  CL   OSL  CTL2     0.965   1   180.00 ! methyl acetate
+OBL  CL   OSL  CTL2     3.85    2   180.00 ! methyl acetate
+OBL  CL   OSL  CTL3     0.965   1   180.00 ! methyl acetate
+OBL  CL   OSL  CTL3     3.85    2   180.00 ! methyl acetate
+X    CL   OSL  X        2.05    2   180.00 ! methyl acetate
+X    CTL2 CL   X        0.05    6   180.00 ! methyl acetate
+X    CTL3 CL   X        0.05    6   180.00 ! methyl acetate
+X    CL   OHL  X        2.05    2   180.00 ! acetic acid
+HAL  CTL2 CL   OHL      0.00    6   180.00
+HAL  CTL3 CL   OHL      0.00    6   180.00
+OSL  PL   OSL  CTL2     0.95    2     0.00 ! phosphate
+OSL  PL   OSL  CTL2     0.50    3     0.00 ! phosphate
+O2L  PL   OSL  CTL2     0.10    3     0.00 ! phosphate
+OSL  PL   OSL  CTL3     0.95    2     0.00 ! phosphate
+OSL  PL   OSL  CTL3     0.50    3     0.00 ! phosphate
+O2L  PL   OSL  CTL3     0.10    3     0.00 ! phosphate
+OHL  PL   OSL  CTL2     0.95    2     0.00 ! phosphate
+OHL  PL   OSL  CTL2     0.50    3     0.00 ! phosphate
+OHL  PL   OSL  CTL3     0.95    2     0.00 ! phosphate
+OHL  PL   OSL  CTL3     0.50    3     0.00 ! phosphate
+X    OHL  PL   X        0.30    3     0.00 ! phosphate
+X    CTL1 OSL  X       -0.10    3     0.00 ! phosphate
+X    CTL2 OSL  X       -0.10    3     0.00 ! phosphate
+X    CTL3 OSL  X       -0.10    3     0.00 ! phosphate
+CTL3 CTL2 OSL  CL       0.7     1   180.00 ! ethyl acetate, 12/92
+CTL2 CTL2 OSL  CL       0.7     1   180.00 ! ethyl acetate, 12/92
+CTL3 CTL1 OSL  CL       0.7     1   180.00 ! ethyl acetate, 12/92
+CTL2 CTL1 OSL  CL       0.7     1   180.00 ! ethyl acetate, 12/92
+CTL1 CTL2 CL   OSL     -0.15    1   180.00 ! methyl propionate, 12/92
+CTL1 CTL2 CL   OSL      0.53    2   180.00 ! methyl propionate, 12/92
+CTL2 CTL2 CL   OSL     -0.15    1   180.00 ! methyl propionate, 12/92
+CTL2 CTL2 CL   OSL      0.53    2   180.00 ! methyl propionate, 12/92
+CTL3 CTL2 CL   OSL     -0.15    1   180.00 ! methyl propionate, 12/92
+CTL3 CTL2 CL   OSL      0.53    2   180.00 ! methyl propionate, 12/92
+X    CTL2 NTL  X        0.26    3     0.00 ! tetramethylammonium  
+X    CTL3 NTL  X        0.23    3     0.00 ! tetramethylammonium
+X    CTL2 NH3L X        0.10    3     0.00 ! ethanolamine
+NH3L CTL2 CTL2 OHL      0.7     1   180.00 ! ethanolamine
+NH3L CTL2 CTL2 OSL      0.7     1   180.00 ! ethanolamine
+NTL  CTL2 CTL2 OHL      4.3     1   180.00 ! choline, 12/92
+NTL  CTL2 CTL2 OHL     -0.4     3   180.00 ! choline, 12/92
+NTL  CTL2 CTL2 OSL      3.3     1   180.00 ! choline, 12/92
+NTL  CTL2 CTL2 OSL     -0.4     3   180.00 ! choline, 12/92
+CTL3 CTL2 CTL2 CTL3     0.15    1     0.00 ! alkane, 3/92
+CTL2 CTL2 CTL2 CTL2     0.15    1     0.00 ! alkane, 3/92
+CTL2 CTL2 CTL2 CTL3     0.15    1     0.00 ! alkane, 3/92
+X    CTL1 CTL1 X        0.200   3     0.00 ! alkane, 3/92
+X    CTL1 CTL2 X        0.200   3     0.00 ! alkane, 3/92
+X    CTL1 CTL3 X        0.200   3     0.00 ! alkane, 3/92
+X    CTL2 CTL2 X        0.195   3     0.00 ! alkane, 3/92
+X    CTL2 CTL3 X        0.160   3     0.00 ! alkane, 3/92
+X    CTL3 CTL3 X        0.155   3     0.00 ! alkane, 3/92
+HAL  CTL3 OSL  SL       0.00    3     0.00 ! methylsulfate
+CTL2 OSL  SL   O2L      0.00    3     0.00 ! methylsulfate
+CTL3 OSL  SL   O2L      0.00    3     0.00 ! methylsulfate
+X    CEL1 CEL1 X        5.2000  2   180.00 ! butene, yin,adm jr., 12/95
+X    CEL2 CEL2 X        4.9000  2   180.00 ! ethene, yin,adm jr., 12/95
+CTL2 CEL1 CEL2 HAL2     5.2000  2   180.00 ! propene, yin,adm jr., 12/95
+CTL3 CEL1 CEL2 HAL2     5.2000  2   180.00 ! propene, yin,adm jr., 12/95
+HAL1 CEL1 CEL2 HAL2     5.2000  2   180.00 ! propene, yin,adm jr., 12/95
+CEL1 CEL1 CTL2 HAL      0.0300  3     0.00 ! butene, yin,adm jr., 12/95
+CEL1 CEL1 CTL3 HAL      0.0300  3     0.00 ! butene, yin,adm jr., 12/95
+CEL1 CEL1 CTL2 CTL2     0.5000  3     0.00 ! from butene, yin,adm jr., 12/95
+CEL2 CEL1 CTL2 CTL2     0.5000  3     0.00 ! butene, yin,adm jr., 12/95
+CEL2 CEL1 CTL2 CTL3     0.5000  3     0.00 ! butene, yin,adm jr., 12/95
+CEL2 CEL1 CTL2 HAL      0.1200  3     0.00 ! butene, yin,adm jr., 12/95
+CEL2 CEL1 CTL3 HAL      0.050   3   180.00 ! propene, yin,adm jr., 12/95
+HAL1 CEL1 CTL2 CTL2     0.1200  3     0.00 ! butene, yin,adm jr., 12/95
+HAL1 CEL1 CTL2 CTL3     0.1200  3     0.00 ! butene, yin,adm jr., 12/95
+HAL1 CEL1 CTL2 HAL      0.8700  3     0.00 ! butene, yin,adm jr., 12/95
+HAL1 CEL1 CTL3 HAL      0.3400  3     0.00 ! butene, yin,adm jr., 12/95
+
+IMPROPER
+OBL  X    X    CL         100.00    0     0.00 ! acetic acid
+HAL2 HAL2 CEL2 CEL2         3.00    0     0.00 ! ethene, yin,adm jr., 12/95
+ 
+NONBONDED nbxmod  5 atom cdiel shift vatom vdistance vswitch -
+cutnb 14.0 ctofnb 12.0 ctonnb  10.0 eps 1.0 e14fac 1.0 wmin 1.5
+!                    Emin     Rmin/2
+!                 (kcal/mol)    (A)
+HOL      0.0       -0.046     0.2245
+HAL      0.0       -0.022     1.3200 ! alkane, 3/92
+HCL      0.0       -0.046     0.2245 ! ethanolamine
+HT       0.0       -0.046     0.2245
+HL       0.0       -0.046     0.7    ! polar H on NC4+
+HAL1     0.0       -0.031     1.25  ! alkene, yin,adm jr., 12/95
+HAL2     0.0       -0.026     1.26  ! alkene, yin,adm jr., 12/95
+!hydrogen wildcards
+!H*       0.0       -0.046     0.2245
+!HAL      0.0       -0.022     1.3200
+!HL       0.0       -0.046     0.7   
+!HAL1     0.0       -0.031     1.25
+!HAL2     0.0       -0.026     1.26
+!
+! no carbon wildcards
+CL       0.0       -0.070     2.00   ! methyl acetate update
+CTL1     0.0       -0.0200    2.275 0.0 -0.01 1.9 ! alkane, 3/92
+CTL2     0.0       -0.0550    2.175 0.0 -0.01 1.9 ! alkane, 3/92
+CTL3     0.0       -0.0800    2.06  0.0 -0.01 1.9 ! alkane, 3/92
+CEL1     0.0       -0.068     2.09  ! alkene, yin,adm jr., 12/95
+CEL2     0.0       -0.064     2.08  ! alkene, yin,adm jr., 12/95
+!
+! no oxygen wildcards
+OBL      0.0       -0.12      1.70  0.0 -0.12 1.4
+O2L      0.0       -0.12      1.70
+OHL      0.0       -0.1521    1.77
+OSL      0.0       -0.1521    1.77
+OT       0.0       -0.1521    1.7682
+!
+NH3L     0.0       -0.20      1.85  ! ethanolamine
+NTL      0.0       -0.20      1.85  ! as all other Nitogens in Charmm
+! nitrogen wildcards
+!N*       0.0       -0.20      1.85
+!
+SL       0.0       -0.47      2.1   ! methylsulfate
+PL       0.0       -0.585     2.15  ! ADM Jr.
+!
+SOD      0.0       -0.10      1.532 ! FROM BENOIT ROUX
+MG       0.0       -0.001     1.65  ! from Blaise Prodhom
+CLA      0.0       -0.15      2.4   ! chloride
+K        0.0       -0.360     1.886 ! FROM BENOIT ROUX
+DUM      0.0       -0.00      0.0   ! dummy atom
+
+NBFIX
+!               Emin        Rmin
+!            (kcal/mol)     (A)
+!
+SOD   OT      -0.5831     2.6880 ! FROM BENOIT ROUX
+!SOD   O       -0.1000     2.5570 ! from Benoit Roux (for prot)
+!SOD   OB      -0.1000     2.5570 ! from Benoit Roux (for prot)
+SOD   OBL     -0.1000     2.5570 ! from Benoit Roux (for lipid)
+!SOD   ON1     -0.1000     2.5570 ! from Benoit Roux (for NA)
+!SOD   ON1C    -0.1000     2.5570 ! from Benoit Roux (for NA)
+K      OT     -0.0682     3.6064 ! FROM BENOIT ROUX
+!K      O      -0.360      3.2192 ! from Benoit Roux (for prot)
+!K      OB     -0.360      3.2192 ! from Benoit Roux (for prot)
+K      OBL    -0.360      3.2192 ! from Benoit Roux (for lipid)
+!K      ON1    -0.360      3.2192 ! from Benoit Roux (for NA)
+!K      ON1C   -0.360      3.2192 ! from Benoit Roux (for NA)
+MG    OT      -7.79       2.17   ! From Blaise Prodhom 
+!MG    O      -40.00       1.8    ! From Blaise Prodhom (for prot)
+!MG    OB     -40.00       1.8    ! From Blaise Prodhom (for prot)
+!MG    OC      -5.00       2.10   ! From Blaise Prodhom (for prot)
+!MG    OH1     -7.79       2.17   ! From Blaise Prodhom (for prot)
+!MG    OS      -7.79       2.17   ! From Blaise Prodhom (for prot)
+MG    OBL    -40.00       1.8    ! From Blaise Prodhom (for lipid)
+MG    OSL     -7.79       2.17   ! From Blaise Prodhom (for lipid)
+MG    O2L     -5.00       2.10   ! From Blaise Prodhom (for lipid)
+MG    OHL     -7.79       2.17   ! From Blaise Prodhom (for lipid)
+!MG    ON1    -40.00       1.8    ! From Blaise Prodhom
+!MG    ON1C   -40.00       1.8    ! From Blaise Prodhom
+!MG    ON2     -7.79       2.17   ! From Blaise Prodhom
+!MG    ON3     -5.00       2.10   ! From Blaise Prodhom
+!MG    ON4     -7.79       2.17   ! From Blaise Prodhom
+!MG    ON5     -7.79       2.17   ! From Blaise Prodhom
+!MG    ON6     -7.79       2.17   ! From Blaise Prodhom
+
+HBOND CUTHB 0.5  ! If you want to do hbond analysis (only), then use
+                 ! READ PARAM APPEND CARD
+                 ! to append hbond parameters from the file: par_hbond.inp
+
+END

@@ -1,0 +1,458 @@
+
+Recent advances in the development of empirical force field parameters
+have led to frequent updates of the all-hydrogen (all22) parameter
+sets supplied with charmm.  Currently, the all-hydrogen parameters are
+updated with the release of every version of charmm.  In order to
+allow the user to remain current with the evolution of the parameters
+and to obtain parameters from previously released versions of charmm
+the following procedure in being instituted as of January 1994,
+coinciding with the release of charmm versions c23f3 and c24a1.  This
+system will also allow users in publicatons to specify the version of
+charmm from which the parameters were obtained.  Other users will then
+be able to readily obtain the particular version of the parameters and
+reproduce the published work if so desired.
+
+1) The toppar directory will contain only the parameters released with
+the current version of charmm.  Note that the all22 topology and
+parameter filenames will not change with new versions of charmm as of
+the c22g5_c23f2 release.  Information on dates and parameter
+development associated version numbers will be placed in the
+individual file headers.  Parameter development version numbers will
+be maintained separately from the charmm version number to accomodate
+the lack of change in a particular file between different versions of
+charmm. Topology and parameter files that are coupled will have the
+same version numbers.  In this system the charmm parameters will be
+updated only when a new version of charmm is released.  The interested
+user can get information on intermediate developments in the
+parameters by contacting MacKerell at the address given below.
+
+2) A history of changes to the parameters, see below, will be included
+with the toppar directory in the file toppar_all.history.  This will
+contain general information on changes between consecutive versions of
+the parameters.  The user may "diff" files of interest to obtain the
+exact changes made.  Details of the motivation behind these changes
+may be obtained from MacKerell at the address given below.
+
+3) A toppar_history directory tree will be incorporated into the
+support directory.  Subdirectories will be named based on the
+different versions of charmm.  Some subdirectory names will contain
+more than one charmm version descriptor.  This will occur only when
+those versions have been released simultaneously, such that the
+parameters are identical.  Once a toppar_history subdirectory has
+been created it will never be altered.
+
+4) current subdirectories in toppar_history
+
+ toppar/toppar_history/c22g2_g3_g4_c23a1_a2_f1
+   => from versions c22g2, c22g3, c22g4, c23a1, c23a2 and c23f1
+ toppar/toppar_history/c22g5_c23a2_f2
+   => from versions c22g5 and c23f2
+ toppar/toppar_history/c23f3_f4_f5_c24a1_a2_a3
+   => from versions c23f3, c23f4, c23f5, c24a1, c24a2 and c24a3
+ toppar/toppar_history/c24b1
+   => from version c24b1
+ toppar/toppar_history/c24b2_g1_g2_c25a0_a1_a2_a3
+   => from versions c24b2, c24g1, c24g2, c25a0, c25a1, c25a2 and c25a3
+ toppar/toppar_history/c25b1_b2_c26a1_a2
+   => from versions c25b1, c25b2, c26a1 and c26a2
+
+5) Extended atom parameter sets for proteins and nucleic acids
+(toph19.inp, param19.inp, toprna10r_22.inp and pardna10_22.inp) are
+included in the toppar directory.  These parameters are stable, have
+been used in a wide variety of systems and are of use in both vacuum
+(with r dielectric) and in condensed phase simulations.
+
+6) Parameter set for analysis of hydrogen bonds (par_hbond.inp) added
+in July 1997 and all hbond parameters removed from the all-hydrogen
+parameter files.  Note that the parameters in par_hbond.inp are for
+analysis only.  Using them for energy, minimization and dynamics
+calculations with give INCORRECT results.
+
+Alexander D. MacKerell Jr.
+alex@mmiris.ab.umd.edu
+School of Pharmacy
+University of Maryland at Baltimore
+20 North Pine Street
+Baltimore, MD  21201
+410-706-7442
+
+Summary of c22g2 to c22g3 topology and parameter file changes
+ 
+ No changes
+
+Summary of c22g3 to c22g4 topology and parameter file changes
+
+ No changes
+
+Summary of c22g4/c23a1/c23a2/c23f1 to c22g5/c23f2 topology and
+parameter file changes
+
+CVS information
+
+Revision 1.1: c22g4, c23a1, c23a2 and c23f1 (all identical)
+Revision 1.2: c22g5 and c23f2 (all identical)
+
+Changes annotated with * will have an effect on
+calculated energies and forces of the related compounds
+
+lipids:
+
+   1) addition of sulfate parameters including residues for
+      methylsulfate and dodecylsulfate
+
+*  2) update of ethylacetate and methylpropionate dihedrals
+      
+*  3) update of choline dihedrals
+
+   4) format correction to acetic acid improper
+  
+   5) significant figures on TIP3P HT and OT Rmin changed
+      to be compatible with the protein and nucleic acid
+      parameters
+    
+   6) chloride anion mass corrected from 34.00 to 35.45
+      (kinetic energies will be affected).
+
+nucleic acids:
+
+    1) angle parameter for 2' ester added
+
+    2) significant figures on TIP3P HT and OT Rmin changed
+       to be compatible with the protein and nucleic acid
+       parameters
+   
+*   3) correction of ribose C2' and C3' hydroxyl charges
+
+    4) miscellaneous multiple dihedral specifications in topology
+       removed
+
+    5) patch PLWA removed due to in being incorrect
+
+    
+proteins (also the top_all22_model*.inp file):
+
+*   1) update of proline parameters
+
+    2) methyl/ethylthiolate parameters added
+
+*   3) thiol hydrogen atom type corrected to HS
+
+    4) missing methylamine parameters added
+
+    5) missing parameters for lactams added
+
+*   6) backbone dihedrals parameters updated based on new carbonyl C VDW
+       parameters
+ 
+*   7) alcohol dihedrals updated
+
+*   8) backbone carbonyl C VDW updated
+
+*   9) proline nitrgen VDW 1,4 term added
+
+    10) patches LIG1, LIG2 and LIG3 for cyclic peptides added
+
+
+toph19.inp:
+
+    1) residue CO2P, 2 point carbon monoxide added
+
+    2) patch HS2 to move His proton from ND1 to NE2 added
+
+Summary of c22g5/c23f2 to c23f3/c24a1 topology and
+parameter files changes.
+
+lipids: no changes
+
+nucleic acids:
+
+    1) parameters added for 5-methylcytosine, including patches
+      PRES 5MC1 to create 5-methylcytosine base only and
+      PRES 5MC2 to change CYT to 5-methylcytosine in DNA/RNA
+
+proteins: no changes
+
+Summary of c23f3/c24a1 to c24b1 topology and parameter
+file changes.  See directory toppar_history/c23f3_f4_f5_c24a1_a2_a3
+for topology and parameter files included with the c23f3 to c23f5
+and c24a1 to c24a3 releases.
+
+lipids:
+
+     1) ordering of multiple dihedrals corrected to 
+        comply with changes in the dihedral angle
+        energy routines
+
+     2) OSL  CL   CTL2 CTLX     0.00    6   180.00 ! methyl acetate
+        dihedrals deleted.
+
+     3) previously commented out dihedrals removed
+
+proteins:
+
+   topology file
+  
+     1) RESI dum: dummy atom added
+
+     2) patches added for phosphotyrosine and model
+        compounds.  see topology file for details.
+        PRES TP1 (anionic)
+        PRES TP1A (model compound)
+        PRES TP2 (dianionic)
+        PRES TP2A (model compound)
+
+    model compound topology file
+
+     1) RESI DUM: dummy atom added
+
+     2) RESI OCOH: octanol added
+
+   parameter file
+
+     1) dihedrals for zwitterionic glycine and acetylated gly n-terminus
+        added
+  
+     2) alcohol parameters added for extended chain compounds such
+        as octanol.
+
+     3) nonbond dummy atom parameter added
+
+nucleic acids:
+
+   topology
+
+     1) PRES INO1: patch to convert guanine base to inosine
+
+     2) RESI NIC: oxidized nicotinamide
+
+     3) RESI NICH: reduced nicotinamide
+
+     4) RESI PPI1: Inorganic phosphate
+
+     5) RESI ADP: adenosine diphosphate
+
+     6) RESI ATP: adenosine triphosphate
+
+     7) PRES 5DP: patch to create 5' diphosphate on nucleotides
+
+     8) RESI NAD: oxidized nicotinamide adenine dinucleotide
+
+     9) RESI NADH: reduced nicotinamide adenine dinucleotide
+
+    10) PRES 5MC1/5MC2: atom type CN3B changed to CN3D to
+        avoid conflict with NAD
+
+    11) Correction to NBFIX for SOD and MG: ON1C atom types added
+
+   parameter file
+
+     1) previously commented parameters removed
+
+     2) parameters added for inosine
+
+     3) parameters added for
+          A) NAD+/NADH
+          B) Pyrophosphate
+        these will allow for calculations on NAD+/NADH and triphosphates
+        of all the nucleotides
+
+     4) subset of parameters converted from CN3B atom type to
+        CN3D (avoid 5MC/NAD conflict)
+
+Summary of c24b1 to c24b2 topology and parameter file changes
+
+To all sets:
+
+vdW parameter wildcards are included but commented out.  These can be
+used to minimize memory requirements.  Note that the ordering of the
+wildcards is essential to produce the correct results.  The use of
+wildcards in the combined files has not been tested.
+
+proteins:
+
+   1) top_all22_model_b4c.inp renamed to top_all22_model_b5c.inp to be in
+   sync with the protein files (par_all22_prot_b5c.inp,
+   top_all22_prot_b5c.inp).
+
+   2) alkene parameters added
+
+       Additions to the model topology file
+         > Resi ETHE       0.00 ! ethylene, yin/adm jr.
+         > Resi PRPE       0.00 ! propene, yin/adm jr.
+         > Resi BTE1       0.00 ! 1-Butene, yin/adm jr.
+         > Resi BTE2       0.00 ! 2-Butene, yin/adm jr.
+
+   3) Helium and Neon parameters added
+
+       Additions to the model topology file
+         > RESI HE1       0.00 ! helium
+         > RESI NE1       0.00 ! neon
+
+   4) atom ordering in MASS list altered.
+
+sugars
+
+   1) John Brady's all-hydrogen sugar parameters added.
+       par_all22_sugar_1a.inp
+       top_all22_sugar_1a.inp
+
+nucleic acids
+
+*  1) NAD+/NADH/PPI parameters corrected.
+
+   2) atom ordering in MASS list altered.
+
+lipids
+
+   1) Alkene parameters added (they are identical to those added
+      to the proteins)
+       
+       Additions to the topology
+         > Resi ETHE       0.00 ! ethylene, yin/adm jr.
+         > Resi PRPE       0.00 ! propene, yin/adm jr.
+         > Resi BTE1       0.00 ! 1-Butene, yin/adm jr.
+         > Resi BTE2       0.00 ! 2-Butene, yin/adm jr.
+
+   2) Potassium parameters added 
+        
+   3) Dummy residue added
+         > RESI DUM       0.00 ! DUMMY ATOM
+
+   4) atom ordering in MASS list altered in topology file.
+
+
+Summary of c24b2_g1_g2_c25a0_a1_a2_a3 to c25b1/c26a1 topology and
+parameter file changes. July 1997
+
+Changes annotated with * will have an effect on
+calculated energies and forces of the related compounds.
+
+All the all-hydrogen topology files have been modified for use with
+MMFF.  This includes addition of atomic type to MASS list,
+specification of DOUBLE and TRIPLE bonds where appropriate and
+addition of the TP3M MMFF water model.  No changes required in the
+parameter files.  Note that these changes allow the CHARMM
+all-hydrogen topology/parameter files to be used with the MMFF
+facilities.  Note that the CHARMM all-hydrogen parameters are NOT
+designed to be compatible with the MMFF parameters.  Use CHARMM with
+MMFF parameters at your own risk.
+
+The hbond parameters in all-hydrogen parameter files have been removed
+simplied and a new parameter file, par_hbond.inp, added.  This may be
+used for hbond analysis.  Note that the parameters in par_hbond.inp
+are for analysis only.  Using them for energy, minimization and
+dynamics calculations with give INCORRECT results.
+
+Cutnb has been increased to 14.0 A in the all-hydrogen parameter files
+to produce 2 A buffer region (ctonb is 12.0 A) optimal for heuristic
+list updating.
+
+proteins (also the top_all22_model.inp file):
+
+  1) dihedral parameters for neutral glycine and glycine dipeptide added
+
+nucleic acids: 
+
+  1) PRES 3MET, 3'terminal Methyl patch added
+
+  2) PRES NOBA, patch to delete all base atoms added.
+
+  3) RESI NDPH, residue for reduced NADPH added. No NADP+ yet available.
+
+lipids: 
+
+  1) additional parameters for double bonds added. 
+
+  2) 2-hexene added.
+
+  *3) Additional NBFIXes associated with sodium (SOD), potassium (K) and
+  magnesium (MG) added to make them consistent with nucleic acids (for
+  Mg) and Benoit Roux's thesis (for SOD and K).  Changes also made in
+  the combined protein_lipid files.  Energetics involving these ions
+  will be effected by these additions.
+
+Summary of c25b1/c26a1 to c26b1 topology and parameter file changes.
+September 1998
+
+Changes in the all topology and parameter files involved only bugfixes
+and minor additions or corrections, as outlined below.
+
+Changes annotated with * will have an effect on
+calculated energies and forces of the related compounds.
+
+1) Appropriate references added to initial portions of all files.
+
+2) Detailed description of the form and variables of each of the
+energy terms added in all files.
+
+proteins:
+
+  no changes
+
+nucleic acids:
+
+  1) minor corrections to NAD etc. IC tables
+
+  2) RESI NADP, residue for oxidized NADP+ added.
+
+lipids:
+
+  *1) Correction to alkene parameters.  Includes additional refinement to
+  improve agreement with a.i. for -C=C- surface.  See alkene reference.
+
+  2) Commented parameters associated with ions removed.
+
+par_hbond.inp
+
+  1) Hbond parameters corrected to cover all (hopefully) possibilities.
+
+toph19.inp
+
+  1) Version number changed to 22 to maintain compatibility
+
+Addition of new lipid and nucleic acid topology and parameter (all27)
+files to c27a1.  These parameters will only be included in the
+developmental version of Charmm27 to allow for testing.  
+
+September, 1998
+
+nucleic acids:
+
+  1) The all27 nucleic acid parameters represent a complete overhall
+of the Charmm22 nucleic acid parameters.  This was performed to
+correct problems with the equilibrium between the A and B forms of DNA
+as well as take advantage of an extensive amount of new experimental
+and ab initio data on nucleic acid model compounds.  Manuscript
+preparation is in progress with submission expected by the end of
+1998.
+
+  2) Alternate nucleic acid bases (5-methylcytosine, inosine) and
+other compounds (ATP, NAD etc.) are effected by the changes such that
+published data on these compounds cannot be exactly reproduced using
+the all27 parameter set.  Tests and parameter reoptimization by adm
+jr. have been performed in order to insure consistency with published
+works.
+
+lipids:
+
+  1) New alkane LJ and dihedral parameters.  The LJ parameters have
+been optimized to more accurately reproduce experimental condensed
+phase properties (Yin and MacKerell) and the dihedral parameters have
+been optimized to lower the butane CCCC gauche energy to 0.63
+kcal/mole.  
+
+  2) New phosphate charges and dihedral parameters to better reproduce
+interactions of DMP with water and DMP conformational energetics.
+
+proteins:
+
+  1) No all27 protein parameter set is available as of Sept. 98.
+Based on the changes in the nucleic acid and lipid files it is
+expected that the protein all22 parameters will be compatible with the
+all27 nucleic acid and lipid parameters, however, no explicit tests
+have been performed to date.  The statement that compatibility can be
+expected is based on the maintainence of the all22 parameter
+optimization philosophy during the optimization of the all 27
+parameters.  Please contact adm jr. for more details.
+
+

@@ -1,0 +1,145 @@
+Summary of CHARMM Toppar contents as of September, 1998.  See
+toppar_all.history for summary of previous toppar directories.
+
+Available files:
+
+(A) Topology files
+    (1) top_all22_lipid.inp      all hydrogen RTF for lipids
+    (2) top_all22_prot.inp       all hydrogen RTF for proteins
+    (3) top_all22_na.inp         all hydrogen RTF for nucleic acids
+    (4) top_all22_prot_na.inp    all hydrogen RTF for proteins and nucleic acids
+    (5) top_all22_model.inp      all hydrogen RTF for protein model cmpds
+    (6) top_all22_prot_lipid.inp all hydrogen RTF for proteins and lipids
+    (7) top_all22_sugar.inp      all hydrogen RTF for sugars
+    (8) toph19.inp               extended atom RTF for proteins
+    (9) toprna10r_22.inp         extended atom RTF for nucleic acids
+
+(B) Parameter files
+    (1) par_all22_lipid.inp      all hydrogen parameters for lipids
+    (2) par_all22_prot.inp       all hydrogen parameters for proteins
+    (3) par_all22_na.inp         all hydrogen parameters for nucleic acids
+    (4) par_all22_prot_na.inp    all hydrogen parameters for proteins and nucleic acids
+    (5) par_all22_prot_lipid.inp all hydrogen parameters for proteins and lipid
+    (6) par_all22_sugar.inp      all hydrogen parameters for sugars
+    (7) par_hbond.inp            parameter file for hydrogen bond analysis
+    (8) param19.inp              extended atom parameters for proteins
+    (9) pardna10_22.inp          extended atom parameters for nucleic acids
+
+The CHARMM all-hydrogen topology and parameter sets may be
+considered to be stable, however, minor bug fixes may be performed as
+required.  Additions may also occur leading to an expanding set of
+parameters which are compatible across proteins, nucleic acids,
+lipids, and, ultimately, carbohydrates.  The carbohydrate(sugar)
+parameter work is still in progress by John Brady and coworkers; the
+number of sugar types should expand in the future.  See the file
+toppar_all.history for a listing changes in the files over time.
+top_all22_model.inp includes the majority of model compounds used in
+the protein parameterization and is to be used in conjunction with
+par_all22_prot.inp.  
+
+Top_all22_prot_na.inp and par_all22_prot_na.inp contain both the
+protein and nucleic acid parameters allowing for calculations on
+protein-nucleic acid complexes.  Top_all22_prot_lipid.inp and
+par_all22_prot_lipid.inp contain both the protein and lipid parameters
+allowing for calculations on protein-lipid complexes. 
+
+Added as of July 1997 was the parameter file par_hbond.inp.  This file
+is included for the analysis of hydrogen bonds; it includes
+information to calculate h-bond energies, but these are basically
+meaningless.  The hydrogen bonds should NOT be used for energy,
+minimization and dynamics calculations with the CHARMM all-hydrogen
+topology and parameter sets.
+
+Ions in the all22 files are from two sources.  Mg and Ca are from
+Prodhom and Karplus and were optimized specifically for the all22
+parameters.  The remaining cations are from Benoit Roux (see his
+thesis).  They were optimized to be consistent with Param19, however,
+MD studies in a number of groups have shown them to work well.  Note
+the presence of a variety of NBFIXES for the ions.  These were
+initially optimized based on the proteins and later transferred to the
+lipids and nucleic acids based on analogy (by ADM Jr.).
+
+The extended atom parameters for proteins are the same as those
+included with CHARMM20 which are based on Wally Reiher's thesis.  They
+have been included in the supplement material of a recent publication
+(see suggested citations below).  For the extended atom nucleic acid
+parameters those of Nilsson and Karplus, J. Comp.  Chem.  7:591-616,
+1986 are used which were also included in the CHARMM20 release and are
+the only set to include explicit hydrogen bonding terms.  Some
+alterations of the extended atom nucleic acid topology and parameter
+files have been made in order to maintain compatibility with the
+multiple dihedral scheme in CHARMM22.
+  
+Please send all remarks and suggestions to alex@mmiris.ab.umd.edu.
+
+ADM Jr., September 1998
+http://www.pharmacy.ab.umd.edu/~alex/
+
+References
+
+Param19 protein parameters
+
+Reiher, III., W.E. Theoretical Studies of Hydrogen Bonding, Ph.D.
+Thesis, Department of Chemistry, Harvard University, Cambridge, MA,
+USA, 1985
+
+and
+
+Neria, E., Fischer, S., and Karplus, M.  Simulation of Activation Free
+Energies in Molecular Systems, Journal of Chemical Physics, 1996, 105:
+1902-21. 
+
+Extended atom nucleic acid parameters
+
+Nilsson, L. and Karplus,M. Empirical Energy Functions for Energy
+Minimizations and Dynamics of Nucleic Acids J. Comp.  Chem.
+7:591-616, 1986
+
+Charmm22 protein parameters
+
+MacKerell, J., A.D.; Bashford, D.; Bellott, M.; Dunbrack Jr., R. L.;
+Evanseck, J.; Field, M. J.; Fischer, S.; Gao, J.; Guo, H.; Ha, S.;
+Joseph, D.; Kuchnir, L.; Kuczera, K.; Lau, F. T. K.; Mattos, C.;
+Michnick, S.; Ngo, T.; Nguyen, D. T.; Prodhom, B.; Reiher, I., W. E.;
+Roux, B.; Schlenkrich, M.; Smith, J.; Stote, R.; Straub, J.; Watanabe,
+M.; Wiorkiewicz-Kuczera, J.; Yin, D.; Karplus, M.  All-hydrogen
+Empirical Potential for Molecular Modeling and Dynamics Studies of
+Proteins using the CHARMM22 Force Field.  Journal of Physical
+Chemistry B, 1998, 102, 3586-3616.
+
+for Phosphotyrosine
+
+Feng, M.-H., Philippopoulos, M., MacKerell, Jr., A.D., and Lim, C.
+Structural Characterization of the Phosphotyrosine Binding Region of a
+High-Affinity SH2 Domain-Phosphopeptide Complex by Molecular Dynamics
+Simulation and Chemical Shift Calculations, Journal of the American
+Chemical Society, 1996, 118: 11265-11277
+
+Charmm22 nucleic acid parameters
+
+MacKerell Jr., A.D., Wiorkiewicz-Kuczera, J. and Karplus, M. An
+all-atom empirical energy function for the simulation of nucleic
+acids, Journal of the American Chemical Society, 1995,
+117:11946-11975. 
+
+for NAD+, NADH and PPI
+
+Pavelites, J.J., Bash, P.A., Gao, J. and MacKerell, Jr., A.D. A
+Molecular Mechanics Force Field for NAD+, NADH, and the Pyrophosphate
+Groups of Nucleotides, Journal of Computational Chemistry, 1997, 18:
+221-239.
+
+Charmm22 lipid parameters
+
+Schlenkrich, M., Brickmann, J., MacKerell, Jr., A.D., and Karplus, M.
+Empirical Potential Energy Function for Phospholipids: Criteria for
+Parameter Optimization and Applications, in "Biological Membranes: A
+Molecular Perspective from Computation and Experiment," K.M. Merz and
+B. Roux, Eds. Birkhauser, Boston, 1996, pp 31-81.
+
+for alkenes
+
+Feller, S.E., Yin, D., Pastor, R.W., and MacKerell, Jr., A.D.,
+Molecular Dynamics Simulation of Unsaturated Lipids at Low Hydration:
+Parametrization and Comparison with Diffraction Studies.  Biophysical
+Journal 1997, 73: 2269-2279.

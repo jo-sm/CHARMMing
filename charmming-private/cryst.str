@@ -1,0 +1,21 @@
+* RHDO setup
+*
+
+set greatervalue = 47.2498
+crystal define rhdo @greatervalue @greatervalue @greatervalue 60. 90. 60.
+crystal build noper 0
+!open unit 1 read card name new_1yjp-23783.xtl
+!crystal read card unit 1
+!close unit 1
+
+!activating a perl script from this interface that determines the values for
+!ewald.
+!The number cannot have a prime factor other than 2,3, and 5
+! the number also has to be greater than the max dimensions of the image
+!syst "/usr/local/charmming/calcewald.pl @GREATERVALUE /var/tmp/pdb_uploads/tim/1yjp-23783 "
+
+!stream 1yjp-23783-highnum.str
+
+
+
+return

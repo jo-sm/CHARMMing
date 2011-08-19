@@ -1,0 +1,45 @@
+* Stream file to make part of system coarse grained for ENM multi-scale 
+* modeling
+*
+! by B. Brooks - NIH - October 2006
+! T. Miller November 2006 - make all CG atoms have mass 1
+
+! prior to invoking, define atom selection keynames (via DEFIne command):
+! CGREG - atoms defined to be the cg region (i.e. atoms to be deleted)
+! CGATS - cg centers to remain after delete (usually CA atoms)(may be in CGREG)
+! prior to invoking, set value @cgtype to the integer vdw type for new cg 
+! centers.
+
+! This stream file uses the variables: @i and @ncgats
+! This stream file destroys all atom selection keynames
+
+define cgtot sele cgreg .or. cgats end
+define junk sele cgats end
+set ncgats ?nsel
+
+set i 1
+label loop
+
+define ati sele cgats .subset. @i end
+
+! check to see if each residue has exactly 1 cg center
+define junk sele cgats .and. .byres. ati end
+If ?NSEL .ne. 1 then STOP ! error: more than 2 cg centers in residue unit.
+
+! assign mass to each CG center
+!scalar mass stat sele cgtot .and. .byres. ati end
+!scalar mass set ?stot sele ati end
+scalar mass set 1 sele ati end
+
+incr i by 1
+if i .LE. @ncgats then goto loop
+
+! set cg vdw and electrostatics (turn off)
+scalar type set @cgtype sele cgats end
+scalar charge set 0.0 sele cgats end
+
+delete atom select cgreg .and. .byres. cgats .and. .not. cgats end
+
+return
+
+

@@ -1,0 +1,1827 @@
+* \\\\ CHARMM22 All-Hydrogen Lipid Topology File /////////
+*              Alexander D. MacKerell Jr.
+*                      July 1997
+* All comments to ADM jr.  email: alex,mmiris.ab.umd.edu
+*              telephone: 410-706-7442
+*
+22 1
+
+!
+!As of July 1999 the Charmm22 all-atom lipid force field
+!is obsolete.  The Charmm27 all-atom lipid force field
+!should be used.  This file is only included for back
+!compatibility.
+!
+
+!references
+!
+!LIPIDS
+!
+!Schlenkrich, M., Brickmann, J., MacKerell, Jr., A.D., and Karplus, M.
+!Empirical Potential Energy Function for Phospholipids: Criteria for
+!Parameter Optimization and Applications, in "Biological Membranes: A
+!Molecular Perspective from Computation and Experiment," K.M. Merz and
+!B. Roux, Eds. Birkhauser, Boston, 1996, pp 31-81.
+!
+!ALKENES
+!
+!Feller, S.E., Yin, D., Pastor, R.W., and MacKerell, Jr., A.D.,
+!Molecular Dynamics Simulation of Unsaturated Lipids at Low Hydration:
+!Parameterization and Comparison with Diffraction Studies.  Biophysical
+!Journal, 73:2269-2279, 1997.
+!
+!IONS
+!
+!SODIUM AND POTASSIUM: note that these were originally designed
+!for param19
+!
+!Roux, B. "Theoretical Study of Ion Transport in the Gramicidin 
+!A Channel" Ph.D. Thesis, Department of Chemistry, Harvard 
+!University, Cambridge, MA, USA, 1990
+!
+!MAGNESIUM AND CALCIUM
+!
+!Prodhom, B. and Karplus, M., unpublished work.
+!
+!MAGNESIUM (use both the above and following) and CHLORIDE
+!
+!MacKerell, Jr., A.D. Molecular dynamics simulation analysis of a sodium 
+!dodecyl sulfate micelle in aqueous solution: Decreased fluiditiy of
+!the micelle hydrophobic interior. Journal of Physical Chemistry, 1995, 
+!99:1846-1855
+!
+
+MASS 1    HL    1.008000 H ! polar H (equivalent to protein H)
+MASS 2    HCL   1.008000 H ! charged H for PE (equivalent to protein HC)
+MASS 3    HT    1.008000 H ! TIPS3P WATER HYDROGEN
+MASS 4    HOL   1.008000 H ! Nucleic acid phosphate hydroxyl proton
+MASS 5    HAL   1.008000 H ! Nucleic acid proton (equivalent to protein HA)
+MASS 6    HAL1  1.008000 H ! for alkene; RHC=CR
+MASS 7    HAL2  1.008000 H ! for alkene; H2C=CR
+MASS 20   CL   12.011000 C ! carbonyl C (acetic acid/methyl acetate)
+MASS 21   CTL1 12.011000 C ! sp3 carbon with 1 H  (-CH1-)
+MASS 22   CTL2 12.011000 C ! carbon of methylene group (-CH2-)
+MASS 23   CTL3 12.011000 C ! carbon of methyl group (-CH3)
+MASS 24   CEL1 12.011000 C ! for alkene; RHC=CR
+MASS 25   CEL2 12.011000 C ! for alkene; H2C=CR
+MASS 40   NTL  14.007000 N ! ammonium nitrogen
+MASS 41   NH3L 14.007000 N ! nitrogen phosphatidylethanolamine
+MASS 60   OBL  15.999400 O ! acetic acid carboxyl oxygen (e. to protein OB)
+MASS 61   OT   15.999400 O ! TIPS3P WATER OXYGEN
+MASS 62   OSL  15.999400 O ! Nucleic acid phosphate ester oxygen
+MASS 63   O2L  15.999400 O ! Nucleic acid =O in phosphate or sulfate
+MASS 64   OHL  15.999400 O ! Nucleic acid phosphate hydroxyl oxygen
+MASS 80   PL   30.974000 P ! phosphorus
+MASS 85   SL   32.060000 S ! Sulfate sulfur
+MASS 90   CLA  35.450000 CL ! CHLORIDE Anion
+MASS 91   SOD  22.989770 NA ! Sodium Ion
+MASS 92   MG   24.305000 MG ! Magnesium Ion
+MASS 93   K    39.102000 K ! Potassium Ion
+MASS 99   DUM   0.000000 H ! dummy atom
+ 
+DEFA FIRS none LAST none
+AUTOGENERATE ANGLES DIHEDRALS
+
+RESI MAS          0.00 ! methylacetate
+GROUP                  !
+ATOM C1   CTL3   -0.17 !           H22
+ATOM C    CL      0.63 !           |
+ATOM OM   OSL    -0.34 !       H21-C2-H23
+ATOM C2   CTL3   -0.14 !             \
+ATOM O    OBL    -0.52 !             OM
+ATOM H11  HAL     0.09 !            /
+ATOM H12  HAL     0.09 !         O=C
+ATOM H13  HAL     0.09 !           |
+ATOM H21  HAL     0.09 !       H11-C1-H13
+ATOM H22  HAL     0.09 !           |
+ATOM H23  HAL     0.09 !           H12
+ 
+BOND C1   C       C    OM      OM    C2
+DOUBLE C    O
+BOND C1   H11     C1   H12     C1   H13
+BOND C2   H21     C2   H22     C2   H23
+IMPR O C1 OM C
+! internal coordinates from experiment for heavy atoms
+IC C1   C    OM   C2   1.520     109.0     180.0     114.8     1.437
+IC O    C    OM   C2   1.200     125.9       0.0     114.8     1.437
+IC H11  C1   C    OM   1.1       108.9     180.0     109.0     1.334
+IC H12  C1   C    OM   1.1       109.75     60.4     109.0     1.334
+IC H13  C1   C    OM   1.1       109.75    -60.4     109.0     1.334
+IC H21  C2   OM   C    1.0788    109.94    180.0     114.8     1.334
+IC H22  C2   OM   C    1.0802    110.50     60.5     114.8     1.334
+IC H23  C2   OM   C    1.0802    110.50    -60.5     114.8     1.334
+
+RESI ETAC         0.00 ! Ethylacetate
+                       !            H213
+GROUP                  !             |
+ATOM C1   CTL3   -0.17 !        H211-C21-H212
+ATOM C    CL      0.63 !             /
+ATOM OM   OSL    -0.34 !        H22-C2-H23
+ATOM C2   CTL2   -0.05 !             \
+ATOM O    OBL    -0.52 !             OM
+ATOM H11  HAL     0.09 !            /
+ATOM H12  HAL     0.09 !         O=C
+ATOM H13  HAL     0.09 !            \
+ATOM H22  HAL     0.09 !         H11-C1-H13
+ATOM H23  HAL     0.09 !             |
+GROUP                  !             H12
+ATOM C21  CTL3   -0.27 
+ATOM H211 HAL     0.09
+ATOM H212 HAL     0.09
+ATOM H213 HAL     0.09
+BOND C1   C       C    OM      OM    C2
+DOUBLE C    O
+BOND C1   H11     C1   H12     C1   H13
+BOND C2   C21     C2   H22     C2   H23
+BOND C21  H211    C21  H212    C21  H213
+IMPR O C1 OM C
+! internal coordinates from experiment for heavy atoms
+IC C1   C    OM   C2   1.520     109.0     180.0     114.8     1.437
+IC O    C    OM   C2   1.200     125.9       0.0     114.8     1.437
+IC H11  C1   C    OM   1.1       108.9     180.0     109.0     1.334
+IC H12  C1   C    OM   1.1       109.75     60.4     109.0     1.334
+IC H13  C1   C    OM   1.1       109.75    -60.4     109.0     1.334
+IC C21  C2   OM   C    1.520     109.94    180.0     114.8     1.334
+IC H22  C2   OM   C    1.0802    110.50     60.5     114.8     1.334
+IC H23  C2   OM   C    1.0802    110.50    -60.5     114.8     1.334
+IC H211 C21  C2   OM   1.1       108.90    180.0     116.7     1.437
+IC H212 C21  C2   OM   1.1       108.90     60.0     116.7     1.437
+IC H213 C21  C2   OM   1.1       108.90    -60.0     116.7     1.437
+
+RESI MPRO         0.00 ! Methylpropionate
+GROUP                  !
+ATOM C1   CTL2   -0.08 !           H22
+ATOM C    CL      0.63 !           |
+ATOM OM   OSL    -0.34 !       H21-C2-H23
+ATOM C2   CTL3   -0.14 !             \
+ATOM O    OBL    -0.52 !             OM
+ATOM H12  HAL     0.09 !            /
+ATOM H13  HAL     0.09 !         O=C
+ATOM H21  HAL     0.09 !            \
+ATOM H22  HAL     0.09 !         H12-C1-H13
+ATOM H23  HAL     0.09 !            /
+GROUP                  !     H112-C11-H111
+ATOM C11  CTL3   -0.27 !           |
+ATOM H111 HAL     0.09 !          H113
+ATOM H112 HAL     0.09 !
+ATOM H113 HAL     0.09 ! 
+BOND C1   C       C    OM      C    O      OM    C2
+BOND C1   C11     C1   H12     C1   H13
+BOND C11  H111    C11  H112    C11  H113
+BOND C2   H21     C2   H22     C2   H23
+IMPR O C1 OM C
+! internal coordinates from experiment for heavy atoms
+IC C1   C    OM   C2   1.520     109.0     180.0     114.8     1.437
+IC O    C    OM   C2   1.200     125.9       0.0     114.8     1.437
+IC C11  C1   C    OM   1.520     108.9     180.0     109.0     1.334
+IC H12  C1   C    OM   1.1       109.75     60.4     109.0     1.334
+IC H13  C1   C    OM   1.1       109.75    -60.4     109.0     1.334
+IC H21  C2   OM   C    1.0788    109.94    180.0     114.8     1.334
+IC H22  C2   OM   C    1.0802    110.50     60.5     114.8     1.334
+IC H23  C2   OM   C    1.0802    110.50    -60.5     114.8     1.334
+IC H111 C11  C1   C    1.1       109.75    180.0     109.0     1.520
+IC H112 C11  C1   C    1.1       109.75     60.4     109.0     1.520
+IC H113 C11  C1   C    1.1       109.75    -60.4     109.0     1.520
+ 
+RESI ACEH         0.00 ! acetic acid
+                       ! atoms in proper order for molvib input
+GROUP                  !
+ATOM C2   CTL3   -0.30 !
+ATOM C1   CL      0.75 !   H21      O2
+ATOM H21  HAL     0.09 !      \    //
+ATOM H22  HAL     0.09 !  H22-C2--C1
+ATOM H23  HAL     0.09 !      /     \
+ATOM O2   OBL    -0.55 !   H23       O1-HO1
+ATOM O1   OHL    -0.61 !
+ATOM HO1  HOL     0.44 !
+BOND C1 O1  O1 HO1  C1 C2  C2 H21  C2 H22  C2 H23
+DOUBLE C1 O2
+IMPR O2 C2  O1  C1
+IC O2   C1   C2   H21   0.0000  0.0000   0.0000  0.0000  0.0000
+IC HO1  O1   C1   O2    0.0000  0.0000   0.0000  0.0000  0.0000
+IC HO1  O1   C1   C2    0.0000  0.0000 180.0000  0.0000  0.0000
+IC O1   C1   C2   H21   0.0000  0.0000 180.0000  0.0000  0.0000
+IC O1   C1   C2   H22   0.0000  0.0000  60.0000  0.0000  0.0000
+IC O1   C1   C2   H23   0.0000  0.0000 -60.0000  0.0000  0.0000
+
+RESI DMPA        -1.00 ! Dimethylphosphate
+GROUP                  !
+ATOM P1   PL      1.50 !
+ATOM O3   O2L    -0.80 !
+ATOM O4   O2L    -0.80 !           H11
+ATOM O1   OSL    -0.55 !            |
+ATOM O2   OSL    -0.55 !       H13- C1-H12
+                       !             \
+ATOM C1   CTL3   -0.17 !     (-) O3   O1
+ATOM H11  HAL     0.09 !          \ /
+ATOM H12  HAL     0.09 !           P1 (+)
+ATOM H13  HAL     0.09 !          /  \
+                       !     (-) O4   O2
+ATOM C2   CTL3   -0.17 !             /
+ATOM H21  HAL     0.09 !        H23-C2-H22
+ATOM H22  HAL     0.09 !            |
+ATOM H23  HAL     0.09 !           H21
+                       !
+BOND P1   O1     P1   O2    P1   O3    P1   O4    O1   C1    O2   C2
+BOND C1   H11    C1   H12   C1   H13   C2   H21   C2   H22   C2   H23
+! repeat dihedrals for multiple periodicities
+! for Charmm21 and previous versions
+!DIHE  O1   P1   O2    C2    O2   P1   O1   C1
+! IC FOR THE g,g conformation (3-21G* opt. structure)
+IC O3   P1   O1   C1   1.4723    107.31    000.0     117.79    1.4356
+IC O4   P1   O2   C2   1.4722    000.0     000.0     117.79    1.4357
+IC O1   P1   O2   C2   1.6343    000.0      73.8     117.79    1.4357
+IC O2   P1   O1   C1   1.6344    000.0      73.7     117.79    1.4356
+IC H11  C1   O1   P1   1.0827    107.8     174.8     117.79    1.6343
+IC H12  C1   O1   P1   1.0800    110.4      54.1     117.79    1.6343
+IC H13  C1   O1   P1   1.0848    110.7     294.3     117.79    1.6343
+IC H21  C2   O2   P1   1.0827    107.9     174.7     117.79    1.6344
+IC H22  C2   O2   P1   1.0800    110.4      54.1     117.79    1.6344
+IC H23  C2   O2   P1   1.0848    110.7     294.2     117.79    1.6344
+ 
+RESI MP_1        -1.00 ! Methylphosphate, anionic
+GROUP                  !
+ATOM P1   PL      1.50 !
+ATOM O3   O2L    -0.82 !
+ATOM O4   O2L    -0.82 !                 H11
+ATOM O1   OSL    -0.62 !                  |
+ATOM O2   OHL    -0.68 !            H13--C1--H12
+ATOM H2   HOL     0.34 !                  |
+                       !                 O1
+ATOM C1   CTL3   -0.17 !                  |
+ATOM H11  HAL     0.09 !         (-) O4--P1(+)--O3 (-)
+ATOM H12  HAL     0.09 !                  |
+ATOM H13  HAL     0.09 !                 O2
+                       !                   \
+                       !                    H2
+                       !
+BOND P1   O1     P1   O2    P1   O3    P1   O4    O1   C1
+BOND C1   H11    C1   H12   C1   H13   O2   H2
+! ester multiple dihedral term
+! for Charmm21 and previous versions
+!DIHE C1  O1   P1   O2
+IC O3   P1   O1   C1   0.0000    000.00    000.0     000.00    0.0000
+IC O4   P1   O1   C1   0.0000    000.00    000.0     000.00    0.0000
+IC O2   P1   O1   C1   0.0000    000.00    000.0     000.00    0.0000
+IC H11  C1   O1   P1   0.0000    000.00    000.0     000.00    0.0000
+IC H12  C1   O1   P1   0.0000    000.00    000.0     000.00    0.0000
+IC H13  C1   O1   P1   0.0000    000.00    000.0     000.00    0.0000
+IC H2   O2   P1   O1   0.0000    000.00    000.0     000.00    0.0000
+ 
+RESI MP_2        -2.00 ! Methylphosphate, dianionic
+GROUP                  !
+ATOM P1   PL      1.10 !
+ATOM O1   OSL    -0.40 !                 H11
+ATOM O2   O2L    -0.90 !                  |
+ATOM O3   O2L    -0.90 !            H13--C1--H12
+ATOM O4   O2L    -0.90 !                  |
+GROUP                  !                  O1
+ATOM C1   CTL3   -0.27 !                  |
+ATOM H11  HAL     0.09 !          (-) O4--P1(+)--O3 (-)
+ATOM H12  HAL     0.09 !                  |
+ATOM H13  HAL     0.09 !                  O2 (-)
+                       !
+BOND P1   O1     P1   O2    P1   O3    P1   O4    O1   C1
+BOND C1   H11    C1   H12   C1   H13
+! ester multiple dihedral term
+! for Charmm21 and previous versions
+!DIHE C1  O1   P1   O2
+IC O3   P1   O1   C1   0.0000    000.00    000.0     000.00    0.0000
+IC O4   P1   O1   C1   0.0000    000.00    000.0     000.00    0.0000
+IC O2   P1   O1   C1   0.0000    000.00    000.0     000.00    0.0000
+IC H11  C1   O1   P1   0.0000    000.00    000.0     000.00    0.0000
+IC H12  C1   O1   P1   0.0000    000.00    000.0     000.00    0.0000
+IC H13  C1   O1   P1   0.0000    000.00    000.0     000.00    0.0000
+! dummy to analyze cetain angles
+IC O3   P1   O4   O1   0.0         0.0       0.0       0.0     0.0
+ 
+RESI  MSO4       -1.00 ! Methylsulfate
+GROUP                  !
+ATOM S    SL      1.33 !           OS2(-1)
+ATOM OS1  OSL    -0.28 !            |
+ATOM OS2  O2L    -0.65 ! (-1) OS2--S(+2)--OS4 (-1)
+ATOM OS3  O2L    -0.65 !            |
+ATOM OS4  O2L    -0.65 !           OS1
+ATOM C1   CTL3   -0.37 !             \
+ATOM H11  HAL     0.09 !         H11-C1-H13
+ATOM H12  HAL     0.09 !              |
+ATOM H13  HAL     0.09 !             H12
+                       !
+BOND  S  OS1  S  OS2  S  OS3  S  OS4  OS1  C1
+BOND  C1 H11  C1 H12  C1 H13
+ACCE  OS1
+ACCE  OS2
+ACCE  OS3
+ACCE  OS4
+
+IC OS4  S    OS2  OS1   0.0000  0.0000   60.0000  0.0000  0.0000
+IC OS2  S    OS2  OS3   0.0000  0.0000  -60.0000  0.0000  0.0000
+IC OS3  S    OS1  OS4   0.0000  0.0000   60.0000  0.0000  0.0000
+IC OS1  S   OS3   OS2   0.0000  0.0000   60.0000  0.0000  0.0000
+IC C1   OS1   S   OS2   0.0000  0.0000   60.0000  0.0000  0.0000
+IC S    OS1  C1   OS3   0.0000  0.0000   60.0000  0.0000  0.0000
+IC OS1  S    OS4  OS2   0.0000  0.0000  180.0000  0.0000  0.0000
+IC OS1  S    OS2  OS3   0.0000  0.0000  180.0000  0.0000  0.0000
+IC OS1  S    OS3  OS2   0.0000  0.0000  180.0000  0.0000  0.0000
+IC OS4  S    OS2  OS1   0.0000  0.0000   60.0000  0.0000  0.0000
+IC OS4  S    OS3  OS1   0.0000  0.0000   60.0000  0.0000  0.0000
+IC OS3  S    OS2  OS1   0.0000  0.0000   60.0000  0.0000  0.0000
+IC OS4  S    OS1  C1    0.0000  0.0000   60.0000  0.0000  0.0000
+IC OS2  S    OS1  C1    0.0000  0.0000   60.0000  0.0000  0.0000
+IC OS3  S    OS1  C1    0.0000  0.0000   60.0000  0.0000  0.0000
+
+RESI TIP3         0.00 ! TIPS3P WATER MODEL
+                       ! GENERATE USING NOANGLE NODIHEDRAL
+GROUP                  !
+ATOM OH2  OT     -0.834
+ATOM H1   HT      0.417
+ATOM H2   HT      0.417
+BOND OH2  H1     OH2  H2    H1   H2    ! THE LAST BOND IS NEEDED FOR SHAKE
+ANGLE H1 OH2 H2    ! REQUIRED
+ACCEPTOR OH2
+PATCHING FIRS NONE LAST NONE
+ 
+RESI TP3M         0.000 ! "mmff" water model, as an analog of tip3p
+GROUP   
+ATOM OH2  OT     -0.834  ! these charges are replaced by the mmff setup   
+ATOM H1   HT      0.417  ! these charges are replaced by the mmff setup
+ATOM H2   HT      0.417  ! these charges are replaced by the mmff setup
+BOND OH2 H1 OH2 H2          ! omits the H1-H2 bond, which is needed for shake with tip3p
+ANGLE H1 OH2 H2             ! required
+ACCEPTOR OH2   
+PATCHING FIRS NONE LAST NONE     
+
+RESI SOD          1.00 ! Sodium Ion
+GROUP
+ATOM SOD  SOD     1.00
+PATCHING FIRST NONE LAST NONE
+ 
+RESI CL          -1.00 ! Chloride Anion
+GROUP
+ATOM CL1  CLA    -1.00
+PATCHING FIRST NONE LAST NONE
+ 
+RESI MG           2.00 ! Magnesium Ion
+GROUP
+ATOM MG   MG      2.00
+PATCHING FIRST NONE LAST NONE
+ 
+RESI NC4          1.00 ! tetramethylammonium
+GROUP                  ! 
+ATOM N    NTL    -0.60 !                H32
+ATOM C1   CTL3   -0.35 !                 |
+ATOM C2   CTL3   -0.35 !            H31-C3-H33
+ATOM C3   CTL3   -0.35 !         H23     |      H41
+ATOM C4   CTL3   -0.35 !         |       |      |
+ATOM H11  HL      0.25 !     H22-C2------N------C4-H42    (+)
+ATOM H12  HL      0.25 !         |       |      |
+ATOM H13  HL      0.25 !         H21     |      H43
+ATOM H21  HL      0.25 !            H11-C1-H13
+ATOM H22  HL      0.25 !                 |
+ATOM H23  HL      0.25 !                 H12
+ATOM H31  HL      0.25
+ATOM H32  HL      0.25
+ATOM H33  HL      0.25
+ATOM H41  HL      0.25
+ATOM H42  HL      0.25
+ATOM H43  HL      0.25
+BOND N C1 N C2 N C3 N C4
+BOND C1 H11 C1 H12 C1 H13
+BOND C2 H21 C2 H22 C2 H23
+BOND C3 H31 C3 H32 C3 H33
+BOND C4 H41 C4 H42 C4 H43
+! internal are wrong
+IC C2   N    C1   H11   0.0000  0.0000  180.0000  0.0000  0.0000
+IC C2   N    C1   H12   0.0000  0.0000  -60.0000  0.0000  0.0000
+IC C2   N    C1   H13   0.0000  0.0000   60.0000  0.0000  0.0000
+IC C2   C1   *N   C3    0.0000  0.0000  120.0000  0.0000  0.0000
+IC C2   C1   *N   C4    0.0000  0.0000 -120.0000  0.0000  0.0000
+IC C3   N    C2   H21   0.0000  0.0000    0.0000  0.0000  0.0000
+IC C3   N    C2   H22   0.0000  0.0000 -120.0000  0.0000  0.0000
+IC C3   N    C2   H23   0.0000  0.0000  120.0000  0.0000  0.0000
+IC C4   N    C3   H31   0.0000  0.0000    0.0000  0.0000  0.0000
+IC C4   N    C3   H32   0.0000  0.0000 -120.0000  0.0000  0.0000
+IC C4   N    C3   H33   0.0000  0.0000  120.0000  0.0000  0.0000
+IC C1   N    C4   H41   0.0000  0.0000    0.0000  0.0000  0.0000
+IC C1   N    C4   H42   0.0000  0.0000 -120.0000  0.0000  0.0000
+IC C1   N    C4   H43   0.0000  0.0000  120.0000  0.0000  0.0000
+ 
+RESI NC5          1.00 ! tetramethylammonium ethyl analog 
+GROUP
+ATOM N    NTL    -0.60 !
+ATOM C1   CTL2   -0.10 !                 |
+ATOM C2   CTL3   -0.35 !               -C3-
+ATOM C3   CTL3   -0.35 !                 |
+ATOM C4   CTL3   -0.35 !            |    |   |
+ATOM H11  HL      0.25 !           -C2---N---C4-     (+)
+ATOM H12  HL      0.25 !            |    |   |
+ATOM H21  HL      0.25 !                 |
+ATOM H22  HL      0.25 !               -C1-
+ATOM H23  HL      0.25 !                 |
+ATOM H31  HL      0.25 !                 |
+ATOM H32  HL      0.25 !               -C5-
+ATOM H33  HL      0.25 !                 |
+ATOM H41  HL      0.25
+ATOM H42  HL      0.25
+ATOM H43  HL      0.25
+GROUP
+ATOM C5   CTL3   -0.27
+ATOM H51  HAL     0.09
+ATOM H52  HAL     0.09
+ATOM H53  HAL     0.09
+BOND N C1 N C2 N C3 N C4
+BOND C1 H11 C1 H12 C1 C5
+BOND C2 H21 C2 H22 C2 H23
+BOND C3 H31 C3 H32 C3 H33
+BOND C4 H41 C4 H42 C4 H43
+BOND C5 H51 C5 H52 C5 H53
+! ab-initio HF/6-31G* structure
+IC C4    N     C1    C5     1.4967  107.80  180.00  115.98   1.5217
+IC C5    C1    N     C2     1.5217  115.98  -61.05  111.12   1.4950
+IC C5    C1    N     C3     1.5217  115.98   61.05  111.12   1.4950
+IC C4    N     C1    H11    1.4967  107.80   57.27  105.76   1.0809
+IC C4    N     C1    H12    1.4967  107.80  -57.27  105.76   1.0809
+IC C1    N     C2    H21    1.5176  111.12 -174.50  108.75   1.0795
+IC C1    N     C2    H22    1.5176  111.12   65.81  109.69   1.0773
+IC C1    N     C2    H23    1.5176  111.12  -54.79  109.07   1.0797
+IC C1    N     C3    H31    1.5176  111.12  174.50  108.75   1.0795
+IC C1    N     C3    H32    1.5176  111.12  -65.81  109.69   1.0773
+IC C1    N     C3    H33    1.5176  111.12   54.79  109.07   1.0797
+IC C1    N     C4    H41    1.5176  107.80  180.00  109.11   1.0793
+IC C1    N     C4    H42    1.5176  107.80   60.03  109.12   1.0793
+IC C1    N     C4    H43    1.5176  107.80  -60.03  109.12   1.0793
+IC N     C1    C5    H51    1.5176  115.98  180.00  107.05   1.0836
+IC N     C1    C5    H52    1.5176  115.98   62.29  112.91   1.0820
+IC N     C1    C5    H53    1.5176  115.98  -62.29  112.91   1.0820
+
+RESI CHOL         1.00 ! choline
+GROUP                  !
+ATOM N    NTL    -0.60 !
+ATOM C1   CTL2   -0.10 !                 |
+ATOM C2   CTL3   -0.35 !               -C3-
+ATOM C3   CTL3   -0.35 !                 |
+ATOM C4   CTL3   -0.35 !            |    |   |
+ATOM H11  HL      0.25 !           -C2---N---C4-     (+)
+ATOM H12  HL      0.25 !            |    |   |
+ATOM H21  HL      0.25 !                 |
+ATOM H22  HL      0.25 !               -C1-
+ATOM H23  HL      0.25 !                 |
+ATOM H31  HL      0.25 !                 |
+ATOM H32  HL      0.25 !                 |
+ATOM H33  HL      0.25 !                 |
+ATOM H41  HL      0.25 !                 |
+ATOM H42  HL      0.25 !                 |
+ATOM H43  HL      0.25 !                 |
+GROUP                  !                 |
+ATOM C5   CTL2    0.05 !                 |
+ATOM H51  HAL     0.09 !               -C5-
+ATOM H52  HAL     0.09 !                 |
+ATOM OH1  OHL    -0.66 !                 OH1---HO1
+ATOM HO1  HOL     0.43 !
+BOND N C1 N C2 N C3 N C4
+BOND C1 H11 C1 H12 C1 C5
+BOND C2 H21 C2 H22 C2 H23
+BOND C3 H31 C3 H32 C3 H33
+BOND C4 H41 C4 H42 C4 H43
+BOND C5 H51 C5 H52
+BOND C5 OH1 OH1 HO1
+! ab-initio HF/6-31G* geometry  of gauche conformer
+IC C4    N     C1    C5     1.4964  107.76  161.60  116.58   1.5208
+IC C5    C1    N     C2     1.5208  116.58  -80.13  111.04   1.5031
+IC C5    C1    N     C3     1.5208  116.58   42.05  111.71   1.4945
+IC N     C1    C5    OH1    1.5158  116.58   56.02  109.57   1.3947
+IC C1    C5    OH1   HO1    1.5208  109.57  169.05  110.84   0.9491
+IC C2    N     C1    H11    1.5031  111.04  158.76  106.72   1.0813
+IC C3    N     C1    H12    1.4945  111.71  165.25  106.14   1.0802
+IC C1    N     C2    H21    1.5158  111.04 -179.38  108.21   1.0796
+IC C3    N     C2    H22    1.4945  109.20  -63.85  109.22   1.0746
+IC C4    N     C2    H23    1.4964  108.15   57.69  108.56   1.0794
+IC C1    N     C3    H31    1.5158  111.71  173.42  108.53   1.0794
+IC C2    N     C3    H32    1.5031  109.20  177.22  109.23   1.0800
+IC C4    N     C3    H33    1.4964  108.88  174.14  109.12   1.0773
+IC C1    N     C4    H41    1.5158  107.76  175.04  109.01   1.0793
+IC C2    N     C4    H42    1.5031  108.15  -64.86  109.05   1.0796
+IC C3    N     C4    H43    1.4945  108.88   56.40  109.30   1.0794
+IC N     C1    C5    H51    1.5158  116.58  176.61  105.66   1.0855
+IC N     C1    C5    H52    1.5158  116.58  -67.32  110.89   1.0847
+ 
+RESI ACHO         1.00 ! acetylcholine
+GROUP                  !
+ATOM N    NTL    -0.60 !
+ATOM C1   CTL2   -0.10 !                 |
+ATOM C2   CTL3   -0.35 !               -C3-
+ATOM C3   CTL3   -0.35 !                 |
+ATOM C4   CTL3   -0.35 !            |    |   |
+ATOM H11  HL      0.25 !           -C2---N---C4-     (+)
+ATOM H12  HL      0.25 !            |    |   |
+ATOM H21  HL      0.25 !                 |
+ATOM H22  HL      0.25 !               -C1-
+ATOM H23  HL      0.25 !                 |
+ATOM H31  HL      0.25 !                 |
+ATOM H32  HL      0.25 !                 |
+ATOM H33  HL      0.25 !                 |
+ATOM H41  HL      0.25 !                 |
+ATOM H42  HL      0.25 !                 |
+ATOM H43  HL      0.25 !                 |
+GROUP                  !                 |  
+ATOM C5   CTL2   -0.05 !               -C5- 
+ATOM OM   OSL    -0.34 !                 |  
+ATOM C    CL      0.63 !                OM
+ATOM C7   CTL3   -0.17 !                /
+ATOM O    OBL    -0.52 !            O==C
+ATOM H51  HAL     0.09 !               |
+ATOM H52  HAL     0.09 !             --C7--
+ATOM H71  HAL     0.09 !               |
+ATOM H72  HAL     0.09 !
+ATOM H73  HAL     0.09 !
+BOND N C1   N C2   N C3   N C4
+BOND C1 H11 C1 H12 C1 C5
+BOND C2 H21 C2 H22 C2 H23
+BOND C3 H31 C3 H32 C3 H33
+BOND C4 H41 C4 H42 C4 H43
+BOND C5 H51 C5 H52
+BOND C7   C       C    OM      OM    C5
+DOUBLE C   O
+BOND C7   H71     C7   H72     C7   H73
+IMPR O C7 OM C
+IC C4    N     C1    C5     0.0000  000.00  161.60  000.00   0.0000
+IC C5    C1    N     C2     0.0000  000.00  -80.13  000.00   0.0000
+IC C5    C1    N     C3     0.0000  000.00   42.05  000.00   0.0000
+IC C2    N     C1    H11    0.0000  000.00  158.76  000.00   0.0000
+IC C3    N     C1    H12    0.0000  000.00  165.25  000.00   0.0000
+IC C1    N     C2    H21    0.0000  000.00 -179.38  000.00   0.0000
+IC C3    N     C2    H22    0.0000  000.00  -63.85  000.00   0.0000
+IC C4    N     C2    H23    0.0000  000.00   57.69  000.00   0.0000
+IC C1    N     C3    H31    0.0000  000.00  173.42  000.00   0.0000
+IC C2    N     C3    H32    0.0000  000.00  177.22  000.00   0.0000
+IC C4    N     C3    H33    0.0000  000.00  174.14  000.00   0.0000
+IC C1    N     C4    H41    0.0000  000.00  175.04  000.00   0.0000
+IC C2    N     C4    H42    0.0000  000.00  -64.86  000.00   0.0000
+IC C3    N     C4    H43    0.0000  000.00   56.40  000.00   0.0000
+IC N     C1    C5    H51    0.0000  000.00  180.00  000.00   0.0000
+IC N     C1    C5    H52    0.0000  000.00  -60.0   000.00   0.0000
+IC N     C1    C5    OM     0.0000  000.00   72.0   000.00   0.0000
+IC C1    C5    OM    C      0.0000  000.00  166.9   000.00   0.0000
+IC C7    C     OM    C5     0.0000  000.00   20.0   000.00   0.0000
+IC O     C     OM    C5     0.0000  000.00 -160.0   000.00   0.0000
+IC H71   C7    C     OM     0.0000  000.00  180.0   000.00   0.0000
+IC H72   C7    C     OM     0.0000  000.00   60.4   000.00   0.0000
+IC H73   C7    C     OM     0.0000  000.00  -60.4   000.00   0.0000
+ 
+RESI PC           0.00 ! phosphatidylcholine
+GROUP                  !
+ATOM N    NTL    -0.60 !
+ATOM C1   CTL2   -0.10 !                 |
+ATOM C2   CTL3   -0.35 !               -C3-
+ATOM C3   CTL3   -0.35 !                 |
+ATOM C4   CTL3   -0.35 !            |    |   |
+ATOM H11  HL      0.25 !           -C2---N---C4-     (+)
+ATOM H12  HL      0.25 !            |    |   |
+ATOM H21  HL      0.25 !                 |
+ATOM H22  HL      0.25 !               -C1-
+ATOM H23  HL      0.25 !                 |
+ATOM H31  HL      0.25 !                 |
+ATOM H32  HL      0.25 !                 |
+ATOM H33  HL      0.25 !                 |
+ATOM H41  HL      0.25 !                 |
+ATOM H42  HL      0.25 !                 |
+ATOM H43  HL      0.25 !                 |
+GROUP                  !                 |
+ATOM C5   CTL2   -0.08 !                 |
+ATOM H51  HAL     0.09 !          H52---C5---H51
+ATOM H52  HAL     0.09 !                 |
+GROUP                  !                 |
+ATOM P1   PL      1.50 !       (-) O3   O1
+ATOM O3   O2L    -0.80 !             \ /
+ATOM O4   O2L    -0.80 !              P1 (+)
+ATOM O1   OSL    -0.55 !             / \
+ATOM O2   OSL    -0.55 !       (-) O4   O2
+GROUP                  !                 |
+ATOM C6   CTL2   -0.17 !                 |
+ATOM H61  HAL     0.09 !            H63-C6-H62
+ATOM H62  HAL     0.09 !                 |
+ATOM H63  HAL     0.09 !                H61
+                       !
+BOND N C1 N C2 N C3 N C4
+BOND C1 H11 C1 H12 C1 C5
+BOND C2 H21 C2 H22 C2 H23
+BOND C3 H31 C3 H32 C3 H33
+BOND C4 H41 C4 H42 C4 H43
+BOND C5 H51 C5 H52
+BOND P1   O1     P1   O2    P1   O3    P1   O4    O1   C5    O2   C6
+BOND C6   H61    C6   H62   C6   H63
+! repeat dihedrals for multiple periodicities
+! for Charmm21 and previous versions
+!DIHE  O1   P1   O2    C2    O2   P1   O1   C1
+IC C4    N     C1    C5     0.0000  000.00  112.00  000.00   0.0000
+IC C5    C1    N     C2     0.0000  000.00 -121.00  000.00   0.0000
+IC C5    C1    N     C3     0.0000  000.00    0.00  000.00   0.0000
+IC C2    N     C1    H11    0.0000  000.00  120.00  000.00   0.0000
+IC C3    N     C1    H12    0.0000  000.00  120.00  000.00   0.0000
+IC C1    N     C2    H21    0.0000  000.00  180.00  000.00   0.0000
+IC C3    N     C2    H22    0.0000  000.00  -60.00  000.00   0.0000
+IC C4    N     C2    H23    0.0000  000.00   60.00  000.00   0.0000
+IC C1    N     C3    H31    0.0000  000.00  180.00  000.00   0.0000
+IC C2    N     C3    H32    0.0000  000.00  180.00  000.00   0.0000
+IC C4    N     C3    H33    0.0000  000.00  180.00  000.00   0.0000
+IC C1    N     C4    H41    0.0000  000.00  180.00  000.00   0.0000
+IC C2    N     C4    H42    0.0000  000.00  -60.00  000.00   0.0000
+IC C3    N     C4    H43    0.0000  000.00   60.00  000.00   0.0000
+IC N     C1    C5    H51    0.0000  000.00 -150.00  000.00   0.0000
+IC N     C1    C5    H52    0.0000  000.00  100.00  000.00   0.0000
+IC N     C1    C5    O1     0.0000  000.00  -30.00  000.00   0.0000
+IC C1    C5    O1    P1     0.0000  000.00  130.00  000.00   0.0000
+IC C5    O1    P1    O2     0.0000  000.00 -160.0   000.00   0.0000
+IC O3    P1    O1    C5     0.0000  000.00   80.00  000.00   0.0000
+IC O4    P1    O1    C5     0.0000  000.00  -60.00  000.00   0.0000
+IC O1    P1    O2    C6     0.0000  000.00  180.00  000.00   0.0000
+IC H61   C6    O2    P1     0.0000  000.00    0.00  000.00   0.0000
+IC H62   C6    O2    P1     0.0000  000.00  120.00  000.00   0.0000
+IC H63   C6    O2    P1     0.0000  000.00 -120.00  000.00   0.0000
+  
+RESI GPC          0.00 ! glycerolphosphorylcholine
+GROUP                  !
+ATOM N    NTL    -0.60 !
+ATOM C1   CTL2   -0.10 !             |
+ATOM C2   CTL3   -0.35 !           -C3-
+ATOM C3   CTL3   -0.35 !             |
+ATOM C4   CTL3   -0.35 !        |    |   |
+ATOM H11  HL      0.25 !       -C2---N---C4-     (+)
+ATOM H12  HL      0.25 !        |    |   |
+ATOM H21  HL      0.25 !             |
+ATOM H22  HL      0.25 !           -C1-
+ATOM H23  HL      0.25 !             |
+ATOM H31  HL      0.25 !             |
+ATOM H32  HL      0.25 !             |
+ATOM H33  HL      0.25 !             |
+ATOM H41  HL      0.25 !             |
+ATOM H42  HL      0.25 !             |
+ATOM H43  HL      0.25 !             |
+GROUP                  !             |
+ATOM C5   CTL2   -0.08 !             |
+ATOM H51  HAL     0.09 !       H51---C5---H52
+ATOM H52  HAL     0.09 !             |
+ATOM P    PL      1.50 !    (-) O3   O1
+ATOM O3   O2L    -0.80 !          \ /
+ATOM O4   O2L    -0.80 !           P (+)
+ATOM O1   OSL    -0.55 !          / \
+ATOM O2   OSL    -0.55 !    (-) O4   O2
+ATOM CG1  CTL2   -0.08 !             |
+ATOM HG11 HAL     0.09 !        HG11-CG1-HG12
+ATOM HG12 HAL     0.09 !             |
+GROUP                  !             | 
+ATOM CG2  CTL1    0.14 !             |
+ATOM HG21 HAL     0.09 !        HG21-CG2-OG2-HO2
+ATOM OG2  OHL    -0.66 !             |
+ATOM HO2  HOL     0.43 !             |       
+GROUP                  !             |  
+ATOM CG3  CTL2    0.05 !             |
+ATOM HG31 HAL     0.09 !        HG31-CG3-OG3-HO3
+ATOM HG32 HAL     0.09 !             |
+ATOM OG3  OHL    -0.66 !             HG32
+ATOM HO3  HOL     0.43 !
+BOND CG1 O2   CG1 HG11  CG1 HG12
+BOND CG2 CG1  CG2 HG21  CG2 OG2   OG2 HO2
+BOND CG3 CG2  CG3 HG31  CG3 HG32  CG3 OG3  OG3 HO3
+BOND N   C1   N   C2    N   C3    N   C4
+BOND C1 H11 C1 H12 C1 C5
+BOND C2 H21 C2 H22 C2 H23
+BOND C3 H31 C3 H32 C3 H33
+BOND C4 H41 C4 H42 C4 H43
+BOND C5 H51 C5 H52
+BOND P   O1   P   O2    P   O3    P   O4    O1   C5
+! repeat dihedrals for multiple periodicities
+! for Charmm21 and previous versions
+!DIHE  O1   P   O2    CG1    O2   P   O1   C5
+! internal coordinates for analysis
+! see H.Hauser,I.Pascher,R.H.Pearson,S.Sundell, BBA 650, 21-51 (1981)
+!  glycerol backbone
+IC O2   CG1  CG2  CG3   0.      0.        0.      0.      0. !  t1
+IC O2   CG1  CG2  OG2   0.      0.        0.      0.      0. !  t2
+IC CG1  CG2  CG3  OG3   0.      0.        0.      0.      0. !  t3
+IC OG2  CG2  CG3  OG3   0.      0.        0.      0.      0. !  t3
+!
+!  zwitterionic headgroup
+IC P    O2   CG1  CG2   0.      0.        0.      0.      0. !  a1
+IC O1   P    O2   CG1   0.      0.        0.      0.      0. !  a2
+IC O2   P    O1   C5    0.      0.        0.      0.      0. !  a3
+IC C1   C5   O1   P     0.      0.        0.      0.      0. !  a4
+IC N    C1   C5   O1    0.      0.        0.      0.      0. !  a5
+IC C2   N    C1   C5    0.      0.        0.      0.      0. !  a6
+IC C3   N    C1   C5    0.      0.        0.      0.      0. !  a6
+IC C4   N    C1   C5    0.      0.        0.      0.      0. !  a6
+IC O1   O2   *P   O3    0.      0.      120.      0.      0. 
+IC O1   O2   *P   O4    0.      0.     -120.      0.      0. 
+  
+RESI LPPC        0.00 ! deoxylysophosphatidylcholine 
+! Polar Head and glycerol backbone
+GROUP                 !          H15B
+ATOM N    NTL   -0.60 !            |
+ATOM C13  CTL3  -0.35 !      H15A-C15-H15C
+ATOM H13A HL     0.25 !            | 
+ATOM H13B HL     0.25 !    H13B    |    H14A
+ATOM H13C HL     0.25 !      |     |     |
+ATOM C14  CTL3  -0.35 !H13A-C13----N----C14-H14B     (+)
+ATOM H14A HL     0.25 !      |     |     |
+ATOM H14B HL     0.25 !    H13C    |    H14C
+ATOM H14C HL     0.25 !            |
+ATOM C15  CTL3  -0.35 !            |
+ATOM H15A HL     0.25 !            |    alpha6
+ATOM H15B HL     0.25 !            |  
+ATOM H15C HL     0.25 !            |
+ATOM C12  CTL2  -0.10 !     H12A--C12---H12B     
+ATOM H12A HL     0.25 !            |
+ATOM H12B HL     0.25 !            |    
+GROUP                 !                  alpha5
+ATOM C11  CTL2  -0.08 !            |
+ATOM H11A HAL    0.09 !     H11A--C11---H11B
+ATOM H11B HAL    0.09 !            |     alpha4
+ATOM P    PL     1.50 !   (-) O13  O12
+ATOM O13  O2L   -0.80 !         \ /      alpha3
+ATOM O14  O2L   -0.80 !          P (+)
+ATOM O11  OSL   -0.55 !         / \      alpha2
+ATOM O12  OSL   -0.55 !   (-) O14  O11
+ATOM C1   CTL2  -0.08 !            |     alpha1
+ATOM HA   HAL    0.09 !       HA---C1---HB
+ATOM HB   HAL    0.09 !            |     theta1
+GROUP                 !            |
+ATOM C2   CTL2  -0.18 !       HR---C2----HS
+ATOM HS   HAL    0.09 !            | 
+ATOM HR   HAL    0.09 !            | 
+GROUP                 !            |
+ATOM C3   CTL2  -0.05 !       HX---C3---HY 
+ATOM HX   HAL    0.09 !            |
+ATOM HY   HAL    0.09 !            |   gamma1
+ATOM O31  OSL   -0.34 !      O32  O31
+ATOM C31  CL     0.63 !       \\ /    gamma2
+ATOM O32  OBL   -0.52 !        C31
+ATOM C32  CTL2  -0.08 !         |     gamma3
+ATOM H2X  HAL    0.09 !  H2X---C32---H2Y
+ATOM H2Y  HAL    0.09 !         |
+GROUP                 !
+ATOM C33  CTL2  -0.18 !         |
+ATOM H3X  HAL    0.09 !  H3X---C33---H3Y 
+ATOM H3Y  HAL    0.09 !         |
+GROUP                 !
+ATOM C34  CTL2  -0.18 !         |
+ATOM H4X  HAL    0.09 !  H4X---C34---H4Y
+ATOM H4Y  HAL    0.09 !         |
+GROUP                 !
+ATOM C35  CTL2  -0.18 !         |
+ATOM H5X  HAL    0.09 !  H5X---C35---H5Y
+ATOM H5Y  HAL    0.09 !         |
+GROUP                 !
+ATOM C36  CTL2  -0.18 !         |
+ATOM H6X  HAL    0.09 !  H6X---C36---H6Y
+ATOM H6Y  HAL    0.09 !         |
+GROUP                 !
+ATOM C37  CTL2  -0.18 !         |
+ATOM H7X  HAL    0.09 !  H7X---C37---H7Y
+ATOM H7Y  HAL    0.09 !         |
+GROUP                 !
+ATOM C38  CTL2  -0.18 !         |
+ATOM H8X  HAL    0.09 !  H8X---C38---H8Y
+ATOM H8Y  HAL    0.09 !         |
+GROUP                 !
+ATOM C39  CTL2  -0.18 !         |
+ATOM H9X  HAL    0.09 !  H9X---C39---H9Y 
+ATOM H9Y  HAL    0.09 !         |
+GROUP                 !
+ATOM C310 CTL2  -0.18 !         |
+ATOM H10X HAL    0.09 ! H10X---C310--H10Y
+ATOM H10Y HAL    0.09 !         |
+GROUP                 !
+ATOM C311 CTL2  -0.18 !         |
+ATOM H11X HAL    0.09 ! H11X---C311--H11Y
+ATOM H11Y HAL    0.09 !         |
+GROUP                 !
+ATOM C312 CTL3  -0.27 !         |
+ATOM H12X HAL    0.09 ! H12X---C312--H12Y
+ATOM H12Y HAL    0.09 !         |
+ATOM H12Z HAL    0.09 !        H12Z
+                      !
+! Polar Head
+BOND  N    C13       N    C14       N    C15       
+BOND  C13  H13A      C13  H13B      C13  H13C 
+BOND  C14  H14A      C14  H14B      C14  H14C 
+BOND  C15  H15A      C15  H15B      C15  H15C 
+BOND  N    C12
+BOND  C12  H12A      C12  H12B      C12  C11
+BOND  C11  H11A      C11  H11B      C11  O12   
+BOND  O12  P         P    O11       P    O13       P    O14 
+! Glycerol Backbone
+BOND  C1   HA        C1    HB       C1   C2        C1   O11       
+BOND  C2   HS        C2    HR       C2   C3
+BOND  C3   HX        C3    HY       C3   O31
+
+! Chain #3
+BOND  O31  C31
+BOND  C31  C32
+DOUBLE  C31  O32
+BOND  C32  H2X       C32  H2Y       C32  C33 
+BOND  C33  H3X       C33  H3Y       C33  C34 
+BOND  C34  H4X       C34  H4Y       C34  C35 
+BOND  C35  H5X       C35  H5Y       C35  C36 
+BOND  C36  H6X       C36  H6Y       C36  C37 
+BOND  C37  H7X       C37  H7Y       C37  C38 
+BOND  C38  H8X       C38  H8Y       C38  C39 
+BOND  C39  H9X       C39  H9Y       C39  C310
+BOND  C310 H10X      C310 H10Y      C310 C311
+BOND  C311 H11X      C311 H11Y      C311 C312
+BOND  C312 H12X      C312 H12Y      C312 H12Z
+
+! repeat dihedrals for multiple periodicities
+! for Charmm21 and previous versions
+!DIHE O11 P   O12 C11    C1  O11 P   O12  !from DMPA
+!DIHE O31 C31 C32 C33  !from MPRO
+!DIHE O32 C31 O31 C3   !from MAS 
+IMPR O32 C32 O31 C31  !from MAS
+
+! Polar head (angle names from Sundaralingam)
+IC       C2    C1    O11   P      0.0  0.0  180.0  0.0  0.0 !alpha1
+IC       C1    O11   P     O12    0.0  0.0  180.0  0.0  0.0 !alpha2
+IC       O11   O12  *P     O13    0.0  0.0  120.0  0.0  0.0
+IC       O11   O12  *P     O14    0.0  0.0  240.0  0.0  0.0
+IC       O11   P     O12   C11    0.0  0.0  180.0  0.0  0.0 !alpha3
+IC       O12   C12  *C11   H11A   0.0  0.0  120.0  0.0  0.0
+IC       O12   C12  *C11   H11B   0.0  0.0  240.0  0.0  0.0
+IC       P     O12   C11   C12    0.0  0.0  180.0  0.0  0.0 !alpha4
+IC       N     C11  *C12   H12A   0.0  0.0  120.0  0.0  0.0
+IC       N     C11  *C12   H12B   0.0  0.0  240.0  0.0  0.0
+IC       O12   C11   C12   N      0.0  0.0  180.0  0.0  0.0 !alpha5
+IC       C11   C12   N     C13    0.0  0.0  180.0  0.0  0.0 !alpha6
+IC       C12   C13  *N     C14    0.0  0.0  120.0  0.0  0.0
+IC       C12   C13  *N     C15    0.0  0.0  240.0  0.0  0.0
+
+! Glycerol
+IC       O11   C1    C2    C3     0.0  0.0  120.0  0.0  0.0 !theta1
+IC       C1    C2    C3    O31    0.0  0.0  180.0  0.0  0.0 !theta3
+
+! Chain 3
+IC       C2    C3    O31   C31    0.0  0.0 -120.0  0.0  0.0 !gamma1
+IC       C3    O31   C31   C32    0.0  0.0  180.0  0.0  0.0 !gamma2
+IC       O31   C31   C32   C33    0.0  0.0  180.0  0.0  0.0 !gamma3
+IC       C32   O31  *C31   O32    0.0  0.0  180.0  0.0  0.0
+IC       C31   C32   C33   C34    0.0  0.0  180.0  0.0  0.0 !gamma4
+IC       C32   C33   C34   C35    0.0  0.0  180.0  0.0  0.0 !gamma5
+IC       C33   C34   C35   C36    0.0  0.0  180.0  0.0  0.0 !gamma6
+IC       C34   C35   C36   C37    0.0  0.0  180.0  0.0  0.0 !gamma7
+IC       C35   C36   C37   C38    0.0  0.0  180.0  0.0  0.0 !gamma8
+IC       C36   C37   C38   C39    0.0  0.0  180.0  0.0  0.0 !gamma9
+IC       C37   C38   C39   C310   0.0  0.0  180.0  0.0  0.0 !gamma10
+IC       C38   C39   C310  C311   0.0  0.0  180.0  0.0  0.0 !gamma11
+IC       C39   C310  C311  C312   0.0  0.0  180.0  0.0  0.0 !gamma12
+
+RESI ETAM       1.00 ! ethanolamine
+GROUP                !
+ATOM N    NH3L -0.30 !           HN2
+ATOM HN1  HCL   0.33 !            |
+ATOM HN2  HCL   0.33 !  (+) HN1---N---HN3
+ATOM HN3  HCL   0.33 !            |
+ATOM C1   CTL2  0.13 !            |
+ATOM H11  HAL   0.09 !     H12---C1---H11
+ATOM H12  HAL   0.09 !            |
+GROUP                !            |
+ATOM C5   CTL2  0.05 !            |
+ATOM H51  HAL   0.09 !      H52---C5---H51
+ATOM H52  HAL   0.09 !            |
+ATOM OH1  OHL  -0.66 !            OH1---HO1
+ATOM HO1  HOL   0.43 !
+BOND N HN1 N HN2 N HN3 N C1
+BOND C1 H11 C1 H12 C1 C5
+BOND C5 H51 C5 H52
+BOND C5 OH1 OH1 HO1
+! HF/6-31G* OPTIMIZED STRUCTURE:
+IC N    C1    C5    OH1    1.5084  107.86   48.44  104.92   1.3987
+IC C1   C5    OH1   HO1    1.5191  104.92  173.19  111.99   0.9495
+IC HN1  N     C1    C5     1.0145  108.35  -49.03  107.86   1.5191
+IC HN2  N     C1    C5     1.0107  112.05   69.23  107.86   1.5191
+IC HN3  N     C1    C5     1.0102  112.39 -169.37  107.86   1.5191
+IC N    C5    *C1   H11    0.0000  000.00  120.00  000.00   0.0000
+IC N    C5    *C1   H12    0.0000  000.00 -120.00  000.00   0.0000
+IC OH1  C1    *C5   H51    0.0000  000.00  120.00  000.00   0.0000
+IC OH1  C1    *C5   H52    0.0000  000.00 -120.00  000.00   0.0000
+
+RESI GPE          0.00 ! L-alpha-glycerylphosphorylethanolamine
+!
+GROUP                  !
+ATOM N     NH3L  -0.30 !           HN2
+ATOM HN1   HCL    0.33 !            |
+ATOM HN2   HCL    0.33 !  (+) HN1---N---HN3
+ATOM HN3   HCL    0.33 !            |
+ATOM C12   CTL2   0.13 !            |
+ATOM H12A  HAL    0.09 !     H12A--C12---H12B
+ATOM H12B  HAL    0.09 !            |
+GROUP                  !            |     alpha5
+ATOM C11  CTL2   -0.08 !            |
+ATOM H11A HAL     0.09 !     H11A--C11---H11B
+ATOM H11B HAL     0.09 !            |     alpha4
+ATOM P    PL      1.50 !   (-) O13  O12
+ATOM O13  O2L    -0.80 !         \ /      alpha3
+ATOM O14  O2L    -0.80 !          P (+)
+ATOM O11  OSL    -0.55 !         / \      alpha2
+ATOM O12  OSL    -0.55 !   (-) O14  O11
+ATOM C1   CTL2   -0.08 !            |     alpha1
+ATOM HA   HAL     0.09 !       HA---C1---HB
+ATOM HB   HAL     0.09 !            |     theta1
+GROUP                  !            | 
+ATOM C2  CTL1    0.14 !             |
+ATOM HS  HAL     0.09 !          HS-C2-OH2-HO2
+ATOM OH2  OHL    -0.66 !            |
+ATOM HO2  HOL     0.43 !            |       
+GROUP                  !            |  
+ATOM C3  CTL2    0.05 !             |
+ATOM HX  HAL     0.09 !          HX-C3-OH3-HO3
+ATOM HY  HAL     0.09 !             |
+ATOM OH3  OHL    -0.66 !            HY
+ATOM HO3  HOL     0.43 !
+! Polar Head
+BOND  N    HN1       N    HN2       N    HN3       N    C12
+BOND  C12  H12A      C12  H12B      C12  C11
+BOND  C11  H11A      C11  H11B      C11  O12
+BOND  O12  P         P    O11       P    O13       P    O14
+! Glycerol Backbone
+BOND  C1   HA        C1    HB       C1   C2        C1   O11
+BOND  C2   HS        C2    C3       C2   OH2
+BOND  C3   HX        C3    HY       C3   OH3
+BOND  OH2  HO2
+BOND  OH3  HO3
+!
+! Polar head (angle names from Sundaralingam)
+IC       C2    C1    O11   P      0.0  0.0  180.0  0.0  0.0 !alpha1
+IC       C1    O11   P     O12    0.0  0.0  180.0  0.0  0.0 !alpha2
+IC       O11   O12  *P     O13    0.0  0.0  120.0  0.0  0.0
+IC       O11   O12  *P     O14    0.0  0.0  240.0  0.0  0.0
+IC       O11   P     O12   C11    0.0  0.0  180.0  0.0  0.0 !alpha3
+IC       O12   C12  *C11   H11A   0.0  0.0  120.0  0.0  0.0
+IC       O12   C12  *C11   H11B   0.0  0.0  240.0  0.0  0.0
+IC       P     O12   C11   C12    0.0  0.0  180.0  0.0  0.0 !alpha4
+IC       N     C11  *C12   H12A   0.0  0.0  120.0  0.0  0.0
+IC       N     C11  *C12   H12B   0.0  0.0  240.0  0.0  0.0
+IC       O12   C11   C12   N      0.0  0.0  180.0  0.0  0.0 !alpha5
+IC       C11   C12   N     HN1    0.0  0.0  180.0  0.0  0.0 !alpha6
+IC       C12   HN1  *N     HN2    0.0  0.0  120.0  0.0  0.0
+IC       C12   HN1  *N     HN3    0.0  0.0  240.0  0.0  0.0
+! Glycerol
+IC       O11   C1    C2    C3     0.0  0.0  120.0  0.0  0.0 !theta1
+IC       C1    C2    C3    OH3    0.0  0.0  180.0  0.0  0.0 !theta3
+IC       C1    C3   *C2    OH2    0.0  0.0 -120.0  0.0  0.0
+! for stereo-specific phopholipid at carbon C2 (labeled hydrogen S)
+IC       O11   C2   *C1    HA     0.0  0.0 +120.0  0.0  0.0
+IC       O11   C2   *C1    HB     0.0  0.0 -120.0  0.0  0.0
+IC       OH2   C1   *C2    HS     0.0  0.0 +120.0  0.0  0.0
+IC       OH3   C2   *C3    HX     0.0  0.0 +120.0  0.0  0.0
+IC       OH3   C2   *C3    HY     0.0  0.0 -120.0  0.0  0.0
+IC       C1    C2    OH2   HO2    0.0  0.0  180.0  0.0  0.0 !beta1
+IC       C2    C3    OH3   HO3    0.0  0.0 -120.0  0.0  0.0 !gamma1
+
+RESI DLPE         0.00 ! 1,2 dilauroyl-DL-Phosphatidylethanolamine
+!
+!  R1 - CH2        
+!       |          (angles and atom names from Sundaralingam)
+!  R2 - CH
+!       |
+!       CH2 - PO4 - CH2 - CH2 - NH3
+!
+! Polar Head and glycerol backbone
+GROUP                  !
+ATOM N     NH3L  -0.30 !           HN2
+ATOM HN1   HCL    0.33 !            |
+ATOM HN2   HCL    0.33 !  (+) HN1---N---HN3
+ATOM HN3   HCL    0.33 !            |
+ATOM C12   CTL2   0.13 !            |
+ATOM H12A  HAL    0.09 !     H12A--C12---H12B
+ATOM H12B  HAL    0.09 !            |
+GROUP                  !            |     alpha5
+ATOM C11  CTL2   -0.08 !            |
+ATOM H11A HAL     0.09 !     H11A--C11---H11B
+ATOM H11B HAL     0.09 !            |     alpha4
+ATOM P    PL      1.50 !   (-) O13  O12
+ATOM O13  O2L    -0.80 !         \ /      alpha3
+ATOM O14  O2L    -0.80 !          P (+)
+ATOM O11  OSL    -0.55 !         / \      alpha2
+ATOM O12  OSL    -0.55 !   (-) O14  O11
+ATOM C1   CTL2   -0.08 !            |     alpha1
+ATOM HA   HAL     0.09 !      H1A---C1---H1B
+ATOM HB   HAL     0.09 !            |     theta1
+GROUP                  !            |
+ATOM C2   CTL1    0.04 !       HS---C2- - - - - - -
+ATOM HS   HAL     0.09 !            | beta1        |
+ATOM O21  OSL    -0.34 !       O22  O21          theta3
+ATOM C21  CL      0.63 !        \\ /  beta2        |
+ATOM O22  OBL    -0.52 !          C21
+ATOM C22  CTL2   -0.08 !          |   beta3        |
+ATOM H2R  HAL     0.09 !   H2R---C22---H2S
+ATOM H2S  HAL     0.09 !          |                |
+GROUP                  !              beta4
+ATOM C3   CTL2   -0.05 !          |                |
+ATOM HX   HAL     0.09 !                      HX---C3---HY
+ATOM HY   HAL     0.09 !          |                |   gamma1
+ATOM O31  OSL    -0.34 !                      O32  O31
+ATOM C31  CL      0.63 !          |            \\ /    gamma2
+ATOM O32  OBL    -0.52 !                         C31
+ATOM C32  CTL2   -0.08 !          |              |     gamma3
+ATOM H2X  HAL     0.09 !                  H2X---C32---H2Y
+ATOM H2Y  HAL     0.09 !          |              |
+GROUP                  !                               gamma4
+ATOM C23  CTL2   -0.18 !          |              |
+ATOM H3R  HAL     0.09 !   H3R ---C23---H3S
+ATOM H3S  HAL     0.09 !          |              |
+GROUP                  !
+ATOM C24  CTL2   -0.18 !          |
+ATOM H4R  HAL     0.09 !   H4R ---C24---H4S      |
+ATOM H4S  HAL     0.09 !          |
+GROUP                  !
+ATOM C25  CTL2   -0.18 !          |              |
+ATOM H5R  HAL     0.09 !   H5R ---C25---H5S
+ATOM H5S  HAL     0.09 !          |              |
+GROUP                  !
+ATOM C26  CTL2   -0.18 !          |
+ATOM H6R  HAL     0.09 !   H6R ---C26---H6S      |
+ATOM H6S  HAL     0.09 !          |
+GROUP                  !
+ATOM C27  CTL2   -0.18 !          |              |
+ATOM H7R  HAL     0.09 !   H7R ---C27---H7S
+ATOM H7S  HAL     0.09 !          |              |
+GROUP                  !
+ATOM C28  CTL2   -0.18 !          |
+ATOM H8R  HAL     0.09 !   H8R ---C28---H8S      |
+ATOM H8S  HAL     0.09 !          |
+GROUP                  !
+ATOM C29  CTL2   -0.18 !          |              |
+ATOM H9R  HAL     0.09 !   H9R ---C29---H9S
+ATOM H9S  HAL     0.09 !          |              |
+GROUP                  !
+ATOM C210 CTL2   -0.18 !          |
+ATOM H10R HAL     0.09 !   H10R---C210--H10S     |
+ATOM H10S HAL     0.09 !          |
+GROUP                  !
+ATOM C211 CTL2   -0.18 !          |              |
+ATOM H11R HAL     0.09 !   H11R---C211--H11S
+ATOM H11S HAL     0.09 !          |              |
+GROUP                  !
+ATOM C212 CTL3   -0.27 !          |
+ATOM H12R HAL     0.09 !   H12R---C212--H12S     |
+ATOM H12S HAL     0.09 !          |
+ATOM H12T HAL     0.09 !         H12T            |
+GROUP                  !
+ATOM C33  CTL2   -0.18 !                         |
+ATOM H3X  HAL     0.09 !                  H3X ---C33---H3Y
+ATOM H3Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C34  CTL2   -0.18 !                         |
+ATOM H4X  HAL     0.09 !                  H4X ---C34---H4Y
+ATOM H4Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C35  CTL2   -0.18 !                         |
+ATOM H5X  HAL     0.09 !                  H5X ---C35---H5Y
+ATOM H5Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C36  CTL2   -0.18 !                         |
+ATOM H6X  HAL     0.09 !                  H6X ---C36---H6Y
+ATOM H6Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C37  CTL2   -0.18 !                         |
+ATOM H7X  HAL     0.09 !                  H7X ---C37---H7Y
+ATOM H7Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C38  CTL2   -0.18 !                         |
+ATOM H8X  HAL     0.09 !                  H8X ---C38---H8Y
+ATOM H8Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C39  CTL2   -0.18 !                         |
+ATOM H9X  HAL     0.09 !                  H9X ---C39---H9Y
+ATOM H9Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C310 CTL2   -0.18 !                         |
+ATOM H10X HAL     0.09 !                  H10X---C310--H10Y
+ATOM H10Y HAL     0.09 !                         |
+GROUP                  !
+ATOM C311 CTL2   -0.18 !                         |
+ATOM H11X HAL     0.09 !                  H11X---C311--H11Y
+ATOM H11Y HAL     0.09 !                         |
+GROUP                  !
+ATOM C312 CTL3   -0.27 !                         |
+ATOM H12X HAL     0.09 !                  H12X---C312--H12Y
+ATOM H12Y HAL     0.09 !                         |
+ATOM H12Z HAL     0.09 !                         H12Z
+ 
+! Polar Head
+BOND  N    HN1       N    HN2       N    HN3       N    C12
+BOND  C12  H12A      C12  H12B      C12  C11
+BOND  C11  H11A      C11  H11B      C11  O12
+BOND  O12  P         P    O11       P    O13       P    O14
+! Glycerol Backbone
+BOND  C1   HA        C1    HB       C1   C2        C1   O11
+BOND  C2   HS        C2    C3       C2   O21
+BOND  C3   HX        C3    HY       C3   O31
+! Chain #2
+BOND  O21  C21
+BOND  C21  C22
+DOUBLE  C21  O22
+BOND  C22  H2R       C22  H2S       C22  C23
+BOND  C23  H3R       C23  H3S       C23  C24
+BOND  C24  H4R       C24  H4S       C24  C25
+BOND  C25  H5R       C25  H5S       C25  C26
+BOND  C26  H6R       C26  H6S       C26  C27
+BOND  C27  H7R       C27  H7S       C27  C28
+BOND  C28  H8R       C28  H8S       C28  C29
+BOND  C29  H9R       C29  H9S       C29  C210
+BOND  C210 H10R      C210 H10S      C210 C211
+BOND  C211 H11R      C211 H11S      C211 C212
+BOND  C212 H12R      C212 H12S      C212 H12T
+! Chain #3
+BOND  O31  C31
+BOND  C31  C32
+DOUBLE  C31  O32
+BOND  C32  H2X       C32  H2Y       C32  C33
+BOND  C33  H3X       C33  H3Y       C33  C34
+BOND  C34  H4X       C34  H4Y       C34  C35
+BOND  C35  H5X       C35  H5Y       C35  C36
+BOND  C36  H6X       C36  H6Y       C36  C37
+BOND  C37  H7X       C37  H7Y       C37  C38
+BOND  C38  H8X       C38  H8Y       C38  C39
+BOND  C39  H9X       C39  H9Y       C39  C310
+BOND  C310 H10X      C310 H10Y      C310 C311
+BOND  C311 H11X      C311 H11Y      C311 C312
+BOND  C312 H12X      C312 H12Y      C312 H12Z
+! repeat dihedrals for multiple periodicities
+! for Charmm21 and previous versions
+!DIHE  O11  P   O12   C11    O12  P   O11  C1 
+IMPR O22 C22 O21 C21    O32 C32 O31 C31  !from MAS
+! Polar head (angle names from Sundaralingam)
+IC       C2    C1    O11   P      0.0  0.0  180.0  0.0  0.0 !alpha1
+IC       C1    O11   P     O12    0.0  0.0  180.0  0.0  0.0 !alpha2
+IC       O11   O12  *P     O13    0.0  0.0  120.0  0.0  0.0
+IC       O11   O12  *P     O14    0.0  0.0  240.0  0.0  0.0
+IC       O11   P     O12   C11    0.0  0.0  180.0  0.0  0.0 !alpha3
+IC       O12   C12  *C11   H11A   0.0  0.0  120.0  0.0  0.0
+IC       O12   C12  *C11   H11B   0.0  0.0  240.0  0.0  0.0
+IC       P     O12   C11   C12    0.0  0.0  180.0  0.0  0.0 !alpha4
+IC       N     C11  *C12   H12A   0.0  0.0  120.0  0.0  0.0
+IC       N     C11  *C12   H12B   0.0  0.0  240.0  0.0  0.0
+IC       O12   C11   C12   N      0.0  0.0  180.0  0.0  0.0 !alpha5
+IC       C11   C12   N     HN1    0.0  0.0  180.0  0.0  0.0 !alpha6
+IC       C12   HN1  *N     HN2    0.0  0.0  120.0  0.0  0.0
+IC       C12   HN1  *N     HN3    0.0  0.0  240.0  0.0  0.0
+! Glycerol
+IC       O11   C1    C2    C3     0.0  0.0  120.0  0.0  0.0 !theta1
+IC       C1    C2    C3    O31    0.0  0.0  180.0  0.0  0.0 !theta3
+IC       C1    C3   *C2    O21    0.0  0.0 -120.0  0.0  0.0
+! for stereo-specific phopholipid at carbon C2 (labeled hydrogen S)
+IC       O11   C2   *C1    HA     0.0  0.0 +120.0  0.0  0.0
+IC       O11   C2   *C1    HB     0.0  0.0 -120.0  0.0  0.0
+IC       O21   C1   *C2    HS     0.0  0.0 +120.0  0.0  0.0
+IC       O31   C2   *C3    HX     0.0  0.0 +120.0  0.0  0.0
+IC       O31   C2   *C3    HY     0.0  0.0 -120.0  0.0  0.0
+! Chain 1
+IC       C1    C2    O21   C21    0.0  0.0  180.0  0.0  0.0 !beta1
+IC       C2    O21   C21   C22    0.0  0.0  120.0  0.0  0.0 !beta2
+IC       O21   C21   C22   C23    0.0  0.0  180.0  0.0  0.0 !beta3
+IC       C22   O21  *C21   O22    0.0  0.0  180.0  0.0  0.0
+IC       C21   C22   C23   C24    0.0  0.0  180.0  0.0  0.0 !beta4
+IC       C22   C23   C24   C25    0.0  0.0  180.0  0.0  0.0 !beta5
+IC       C23   C24   C25   C26    0.0  0.0  180.0  0.0  0.0 !beta6
+IC       C24   C25   C26   C27    0.0  0.0  180.0  0.0  0.0 !beta7
+IC       C25   C26   C27   C28    0.0  0.0  180.0  0.0  0.0 !beta8
+IC       C26   C27   C28   C29    0.0  0.0  180.0  0.0  0.0 !beta9
+IC       C27   C28   C29   C210   0.0  0.0  180.0  0.0  0.0 !beta10
+IC       C28   C29   C210  C211   0.0  0.0  180.0  0.0  0.0 !beta11
+IC       C29   C210  C211  C212   0.0  0.0  180.0  0.0  0.0 !beta12
+! Chain 2
+IC       C2    C3    O31   C31    0.0  0.0 -120.0  0.0  0.0 !gamma1
+IC       C3    O31   C31   C32    0.0  0.0  180.0  0.0  0.0 !gamma2
+IC       O31   C31   C32   C33    0.0  0.0  180.0  0.0  0.0 !gamma3
+IC       C32   O31  *C31   O32    0.0  0.0  180.0  0.0  0.0
+IC       C31   C32   C33   C34    0.0  0.0  180.0  0.0  0.0 !gamma4
+IC       C32   C33   C34   C35    0.0  0.0  180.0  0.0  0.0 !gamma5
+IC       C33   C34   C35   C36    0.0  0.0  180.0  0.0  0.0 !gamma6
+IC       C34   C35   C36   C37    0.0  0.0  180.0  0.0  0.0 !gamma7
+IC       C35   C36   C37   C38    0.0  0.0  180.0  0.0  0.0 !gamma8
+IC       C36   C37   C38   C39    0.0  0.0  180.0  0.0  0.0 !gamma9
+IC       C37   C38   C39   C310   0.0  0.0  180.0  0.0  0.0 !gamma10
+IC       C38   C39   C310  C311   0.0  0.0  180.0  0.0  0.0 !gamma11
+IC       C39   C310  C311  C312   0.0  0.0  180.0  0.0  0.0 !gamma12
+
+RESI DMPC         0.00 ! 1,2 dimiristoyl-SN-glycero-3-Phosphorylcholine
+!
+!  R1 - CH2        
+!       |          (angles and atom names from Sundaralingam)
+!  R2 - CH
+!       |
+!       CH2 - PO4 - CH2 - CH2 - N(CH3)3
+!
+! Polar Head and glycerol backbone
+GROUP                 !          H15B
+ATOM N    NTL   -0.60 !            |
+ATOM C13  CTL3  -0.35 !      H15A-C15-H15C
+ATOM H13A HL     0.25 !            | 
+ATOM H13B HL     0.25 !    H13B    |    H14A
+ATOM H13C HL     0.25 !      |     |     |
+ATOM C14  CTL3  -0.35 !H13A-C13----N----C14-H14B     (+)
+ATOM H14A HL     0.25 !      |     |     |
+ATOM H14B HL     0.25 !    H13C    |    H14C
+ATOM H14C HL     0.25 !            |
+ATOM C15  CTL3  -0.35 !            |
+ATOM H15A HL     0.25 !            |    alpha6
+ATOM H15B HL     0.25 !            |  
+ATOM H15C HL     0.25 !            |
+ATOM C12  CTL2  -0.10 !     H12A--C12---H12B     
+ATOM H12A HL     0.25 !            |
+ATOM H12B HL     0.25 !            |    
+GROUP                 !                  alpha5
+ATOM C11  CTL2  -0.08 !            |
+ATOM H11A HAL    0.09 !     H11A--C11---H11B
+ATOM H11B HAL    0.09 !            |     alpha4
+ATOM P    PL     1.50 !   (-) O13  O12
+ATOM O13  O2L   -0.80 !         \ /      alpha3
+ATOM O14  O2L   -0.80 !          P (+)
+ATOM O11  OSL   -0.55 !         / \      alpha2
+ATOM O12  OSL   -0.55 !   (-) O14  O11
+ATOM C1   CTL2  -0.08 !            |     alpha1
+ATOM HA   HAL    0.09 !       HA---C1---HB
+ATOM HB   HAL    0.09 !            |     theta1
+GROUP                  !            |
+ATOM C2   CTL1    0.04 !       HS---C2- - - - - - -
+ATOM HS   HAL     0.09 !            | beta1        |
+ATOM O21  OSL    -0.34 !       O22  O21          theta3
+ATOM C21  CL      0.63 !        \\ /  beta2        |
+ATOM O22  OBL    -0.52 !          C21
+ATOM C22  CTL2   -0.08 !          |   beta3        |
+ATOM H2R  HAL     0.09 !   H2R---C22---H2S
+ATOM H2S  HAL     0.09 !          |                |
+GROUP                  !              beta4
+ATOM C3   CTL2   -0.05 !          |                |
+ATOM HX   HAL     0.09 !                      HX---C3---HY
+ATOM HY   HAL     0.09 !          |                |   gamma1
+ATOM O31  OSL    -0.34 !                      O32  O31
+ATOM C31  CL      0.63 !          |            \\ /    gamma2
+ATOM O32  OBL    -0.52 !                         C31
+ATOM C32  CTL2   -0.08 !          |              |     gamma3
+ATOM H2X  HAL     0.09 !                  H2X---C32---H2Y
+ATOM H2Y  HAL     0.09 !          |              |
+GROUP                  !                               gamma4
+ATOM C23  CTL2   -0.18 !          |              |
+ATOM H3R  HAL     0.09 !   H3R ---C23---H3S
+ATOM H3S  HAL     0.09 !          |              |
+GROUP                  !
+ATOM C24  CTL2   -0.18 !          |
+ATOM H4R  HAL     0.09 !   H4R ---C24---H4S      |
+ATOM H4S  HAL     0.09 !          |
+GROUP                  !
+ATOM C25  CTL2   -0.18 !          |              |
+ATOM H5R  HAL     0.09 !   H5R ---C25---H5S
+ATOM H5S  HAL     0.09 !          |              |
+GROUP                  !
+ATOM C26  CTL2   -0.18 !          |
+ATOM H6R  HAL     0.09 !   H6R ---C26---H6S      |
+ATOM H6S  HAL     0.09 !          |
+GROUP                  !
+ATOM C27  CTL2   -0.18 !          |              |
+ATOM H7R  HAL     0.09 !   H7R ---C27---H7S
+ATOM H7S  HAL     0.09 !          |              |
+GROUP                  !
+ATOM C28  CTL2   -0.18 !          |
+ATOM H8R  HAL     0.09 !   H8R ---C28---H8S      |
+ATOM H8S  HAL     0.09 !          |
+GROUP                  !
+ATOM C29  CTL2   -0.18 !          |              |
+ATOM H9R  HAL     0.09 !   H9R ---C29---H9S
+ATOM H9S  HAL     0.09 !          |              |
+GROUP                  !
+ATOM C210 CTL2   -0.18 !          |
+ATOM H10R HAL     0.09 !   H10R---C210--H10S     |
+ATOM H10S HAL     0.09 !          |
+GROUP                  !
+ATOM C211 CTL2   -0.18 !          |              |
+ATOM H11R HAL     0.09 !   H11R---C211--H11S
+ATOM H11S HAL     0.09 !          |              |
+GROUP                  !
+ATOM C212 CTL2   -0.18 !          |
+ATOM H12R HAL     0.09 !   H12R---C212--H12S     |
+ATOM H12S HAL     0.09 !          |
+GROUP                  !
+ATOM C213 CTL2   -0.18 !          |              |
+ATOM H13R HAL     0.09 !   H13R---C213--H13S
+ATOM H13S HAL     0.09 !          |              |
+GROUP                  !
+ATOM C214 CTL3   -0.27 !          |
+ATOM H14R HAL     0.09 !   H14R---C214--H14S     |
+ATOM H14S HAL     0.09 !          |
+ATOM H14T HAL     0.09 !         H14T            |
+GROUP                  !
+ATOM C33  CTL2   -0.18 !                         |
+ATOM H3X  HAL     0.09 !                  H3X ---C33---H3Y
+ATOM H3Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C34  CTL2   -0.18 !                         |
+ATOM H4X  HAL     0.09 !                  H4X ---C34---H4Y
+ATOM H4Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C35  CTL2   -0.18 !                         |
+ATOM H5X  HAL     0.09 !                  H5X ---C35---H5Y
+ATOM H5Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C36  CTL2   -0.18 !                         |
+ATOM H6X  HAL     0.09 !                  H6X ---C36---H6Y
+ATOM H6Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C37  CTL2   -0.18 !                         |
+ATOM H7X  HAL     0.09 !                  H7X ---C37---H7Y
+ATOM H7Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C38  CTL2   -0.18 !                         |
+ATOM H8X  HAL     0.09 !                  H8X ---C38---H8Y
+ATOM H8Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C39  CTL2   -0.18 !                         |
+ATOM H9X  HAL     0.09 !                  H9X ---C39---H9Y
+ATOM H9Y  HAL     0.09 !                         |
+GROUP                  !
+ATOM C310 CTL2   -0.18 !                         |
+ATOM H10X HAL     0.09 !                  H10X---C310--H10Y
+ATOM H10Y HAL     0.09 !                         |
+GROUP                  !
+ATOM C311 CTL2   -0.18 !                         |
+ATOM H11X HAL     0.09 !                  H11X---C311--H11Y
+ATOM H11Y HAL     0.09 !                         |
+GROUP                  !
+ATOM C312 CTL2   -0.18 !                         |
+ATOM H12X HAL     0.09 !                  H12X---C312--H12Y
+ATOM H12Y HAL     0.09 !                         |
+GROUP                  !
+ATOM C313 CTL2   -0.18 !                         |
+ATOM H13X HAL     0.09 !                  H13X---C313--H13Y
+ATOM H13Y HAL     0.09 !                         |
+GROUP                  !
+ATOM C314 CTL3   -0.27 !                         |
+ATOM H14X HAL     0.09 !                  H14X---C314--H14Y
+ATOM H14Y HAL     0.09 !                         |
+ATOM H14Z HAL     0.09 !                         H14Z
+ 
+! Polar Head
+BOND  N    C13       N    C14       N    C15       
+BOND  C13  H13A      C13  H13B      C13  H13C 
+BOND  C14  H14A      C14  H14B      C14  H14C 
+BOND  C15  H15A      C15  H15B      C15  H15C 
+BOND  N    C12
+BOND  C12  H12A      C12  H12B      C12  C11
+BOND  C11  H11A      C11  H11B      C11  O12   
+BOND  O12  P         P    O11       P    O13       P    O14 
+! Glycerol Backbone
+BOND  C1   HA        C1    HB       C1   C2        C1   O11
+BOND  C2   HS        C2    C3       C2   O21
+BOND  C3   HX        C3    HY       C3   O31
+! Chain #2
+BOND  O21  C21
+BOND  C21  C22
+DOUBLE C21  O22 
+BOND  C22  H2R       C22  H2S       C22  C23
+BOND  C23  H3R       C23  H3S       C23  C24
+BOND  C24  H4R       C24  H4S       C24  C25
+BOND  C25  H5R       C25  H5S       C25  C26
+BOND  C26  H6R       C26  H6S       C26  C27
+BOND  C27  H7R       C27  H7S       C27  C28
+BOND  C28  H8R       C28  H8S       C28  C29
+BOND  C29  H9R       C29  H9S       C29  C210
+BOND  C210 H10R      C210 H10S      C210 C211
+BOND  C211 H11R      C211 H11S      C211 C212
+BOND  C212 H12R      C212 H12S      C212 C213
+BOND  C213 H13R      C213 H13S      C213 C214
+BOND  C214 H14R      C214 H14S      C214 H14T
+! Chain #3
+BOND  O31  C31
+BOND  C31  C32
+DOUBLE  C31  O32
+BOND  C32  H2X       C32  H2Y       C32  C33
+BOND  C33  H3X       C33  H3Y       C33  C34
+BOND  C34  H4X       C34  H4Y       C34  C35
+BOND  C35  H5X       C35  H5Y       C35  C36
+BOND  C36  H6X       C36  H6Y       C36  C37
+BOND  C37  H7X       C37  H7Y       C37  C38
+BOND  C38  H8X       C38  H8Y       C38  C39
+BOND  C39  H9X       C39  H9Y       C39  C310
+BOND  C310 H10X      C310 H10Y      C310 C311
+BOND  C311 H11X      C311 H11Y      C311 C312
+BOND  C312 H12X      C312 H12Y      C312 C313
+BOND  C313 H13X      C313 H13Y      C313 C314
+BOND  C314 H14X      C314 H14Y      C314 H14Z
+
+! repeat dihedrals for multiple periodicities
+! for Charmm21 and previous versions
+!DIHE O11 P   O12 C11    C1  O11 P   O12  !from DMPA
+!DIHE O31 C31 C32 C33  !from MPRO
+!DIHE O32 C31 O31 C3   !from MAS 
+IMPR O22 C22 O21 C21   !from MAS
+IMPR O32 C32 O31 C31   !from MAS
+
+! Polar head (angle names from Sundaralingam)
+IC       C2    C1    O11   P      0.0  0.0  180.0  0.0  0.0 !alpha1
+IC       C1    O11   P     O12    0.0  0.0  180.0  0.0  0.0 !alpha2
+IC       O11   O12  *P     O13    0.0  0.0  120.0  0.0  0.0
+IC       O11   O12  *P     O14    0.0  0.0  240.0  0.0  0.0
+IC       O11   P     O12   C11    0.0  0.0  180.0  0.0  0.0 !alpha3
+IC       O12   C12  *C11   H11A   0.0  0.0  120.0  0.0  0.0
+IC       O12   C12  *C11   H11B   0.0  0.0  240.0  0.0  0.0
+IC       P     O12   C11   C12    0.0  0.0  180.0  0.0  0.0 !alpha4
+IC       N     C11  *C12   H12A   0.0  0.0  120.0  0.0  0.0
+IC       N     C11  *C12   H12B   0.0  0.0  240.0  0.0  0.0
+IC       O12   C11   C12   N      0.0  0.0  180.0  0.0  0.0 !alpha5
+IC       C11   C12   N     C13    0.0  0.0  180.0  0.0  0.0 !alpha6
+IC       C12   C13  *N     C14    0.0  0.0  120.0  0.0  0.0
+IC       C12   C13  *N     C15    0.0  0.0  240.0  0.0  0.0
+
+! Glycerol
+IC       O11   C1    C2    C3     0.0  0.0  120.0  0.0  0.0 !theta1
+IC       C1    C2    C3    O31    0.0  0.0  180.0  0.0  0.0 !theta3
+IC       C1    C3   *C2    O21    0.0  0.0 -120.0  0.0  0.0
+! for stereo-specific phopholipid at carbon C2 (labeled hydrogen S)
+IC       O11   C2   *C1    HA     0.0  0.0 +120.0  0.0  0.0
+IC       O11   C2   *C1    HB     0.0  0.0 -120.0  0.0  0.0
+IC       O21   C1   *C2    HS     0.0  0.0 +120.0  0.0  0.0
+IC       O31   C2   *C3    HX     0.0  0.0 +120.0  0.0  0.0
+IC       O31   C2   *C3    HY     0.0  0.0 -120.0  0.0  0.0
+! Chain 1
+IC       C1    C2    O21   C21    0.0  0.0  180.0  0.0  0.0 !beta1
+IC       C2    O21   C21   C22    0.0  0.0  120.0  0.0  0.0 !beta2
+IC       O21   C21   C22   C23    0.0  0.0  180.0  0.0  0.0 !beta3
+IC       C22   O21  *C21   O22    0.0  0.0  180.0  0.0  0.0
+IC       C21   C22   C23   C24    0.0  0.0  180.0  0.0  0.0 !beta4
+IC       C22   C23   C24   C25    0.0  0.0  180.0  0.0  0.0 !beta5
+IC       C23   C24   C25   C26    0.0  0.0  180.0  0.0  0.0 !beta6
+IC       C24   C25   C26   C27    0.0  0.0  180.0  0.0  0.0 !beta7
+IC       C25   C26   C27   C28    0.0  0.0  180.0  0.0  0.0 !beta8
+IC       C26   C27   C28   C29    0.0  0.0  180.0  0.0  0.0 !beta9
+IC       C27   C28   C29   C210   0.0  0.0  180.0  0.0  0.0 !beta10
+IC       C28   C29   C210  C211   0.0  0.0  180.0  0.0  0.0 !beta11
+IC       C29   C210  C211  C212   0.0  0.0  180.0  0.0  0.0 !beta12
+IC       C210  C211  C212  C213   0.0  0.0  180.0  0.0  0.0 !beta13
+IC       C211  C212  C213  C214   0.0  0.0  180.0  0.0  0.0 !beta14
+! Chain 2
+IC       C2    C3    O31   C31    0.0  0.0 -120.0  0.0  0.0 !gamma1
+IC       C3    O31   C31   C32    0.0  0.0  180.0  0.0  0.0 !gamma2
+IC       O31   C31   C32   C33    0.0  0.0  180.0  0.0  0.0 !gamma3
+IC       C32   O31  *C31   O32    0.0  0.0  180.0  0.0  0.0
+IC       C31   C32   C33   C34    0.0  0.0  180.0  0.0  0.0 !gamma4
+IC       C32   C33   C34   C35    0.0  0.0  180.0  0.0  0.0 !gamma5
+IC       C33   C34   C35   C36    0.0  0.0  180.0  0.0  0.0 !gamma6
+IC       C34   C35   C36   C37    0.0  0.0  180.0  0.0  0.0 !gamma7
+IC       C35   C36   C37   C38    0.0  0.0  180.0  0.0  0.0 !gamma8
+IC       C36   C37   C38   C39    0.0  0.0  180.0  0.0  0.0 !gamma9
+IC       C37   C38   C39   C310   0.0  0.0  180.0  0.0  0.0 !gamma10
+IC       C38   C39   C310  C311   0.0  0.0  180.0  0.0  0.0 !gamma11
+IC       C39   C310  C311  C312   0.0  0.0  180.0  0.0  0.0 !gamma12
+IC       C310  C311  C312  C313   0.0  0.0  180.0  0.0  0.0 !gamma13
+IC       C311  C312  C313  C314   0.0  0.0  180.0  0.0  0.0 !gamma14
+ 
+RESI SDS         -1.00 ! Dodecylsulphate
+                       ! based on methylsulfate
+GROUP
+ATOM S    SL      1.33 !           OS2(-1)
+ATOM OS1  OSL    -0.28 !             |
+ATOM OS2  O2L    -0.65 !   (-) OS2--S(+2)--OS4 (-)
+ATOM OS3  O2L    -0.65 !             |
+ATOM OS4  O2L    -0.65 !            OS1
+ATOM C1   CTL2   -0.28 !              \
+ATOM H11  HAL     0.09 !          H11-C1-H12
+ATOM H12  HAL     0.09 !               |
+GROUP                  !               |
+ATOM C2   CTL2   -0.18 !          H21-C2-H22
+ATOM H21  HAL     0.09 !               |
+ATOM H22  HAL     0.09 !               |
+GROUP                  !               |
+ATOM C3   CTL2   -0.18 !          H31-C3-H32
+ATOM H31  HAL     0.09 !               |
+ATOM H32  HAL     0.09 !               |
+GROUP                  !               |
+ATOM C4   CTL2   -0.18 !          H41-C4-H42
+ATOM H41  HAL     0.09 !               |
+ATOM H42  HAL     0.09 !               |
+GROUP                  !               |
+ATOM C5   CTL2   -0.18 !          H51-C5-H52
+ATOM H51  HAL     0.09 !               |
+ATOM H52  HAL     0.09 !               |
+GROUP                  !               |
+ATOM C6   CTL2   -0.18 !          H61-C6-H62
+ATOM H61  HAL     0.09 !               |
+ATOM H62  HAL     0.09 !               |
+GROUP                  !               |
+ATOM C7   CTL2   -0.18 !          H71-C7-H72
+ATOM H71  HAL     0.09 !               |
+ATOM H72  HAL     0.09 !               |
+GROUP                  !               |
+ATOM C8   CTL2   -0.18 !          H81-C8-H82
+ATOM H81  HAL     0.09 !               |
+ATOM H82  HAL     0.09 !               |
+GROUP                  !               |
+ATOM C9   CTL2   -0.18 !          H91-C9-H92
+ATOM H91  HAL     0.09 !               |
+ATOM H92  HAL     0.09 !               |
+GROUP                  !               |
+ATOM C10  CTL2   -0.18 !         H101-C10-H102
+ATOM H101 HAL     0.09 !               |
+ATOM H102 HAL     0.09 !               |
+GROUP                  !               |
+ATOM C11  CTL2   -0.18 !         H111-C11-H112
+ATOM H111 HAL     0.09 !               |
+ATOM H112 HAL     0.09 !               |
+GROUP                  !               |
+ATOM C12  CTL3   -0.27 !         H121-C12-H123
+ATOM H121 HAL     0.09 !               |
+ATOM H122 HAL     0.09 !             H122
+ATOM H123 HAL     0.09 !
+
+BOND  S   OS1 S   OS2  S   OS3  S  OS4 
+BOND  OS1 C1  C1  H11  C1  H12  
+BOND  C1  C2  C2  H21  C2  H22
+BOND  C2  C3  C3  H31  C3  H32
+BOND  C3  C4  C4  H41  C4  H42
+BOND  C4  C5  C5  H51  C5  H52
+BOND  C5  C6  C6  H61  C6  H62
+BOND  C6  C7  C7  H71  C7  H72
+BOND  C7  C8  C8  H81  C8  H82
+BOND  C8  C9  C9  H91  C9  H92
+BOND  C9  C10 C10 H101 C10 H102
+BOND  C10 C11 C11 H111 C11 H112
+BOND  C11 C12 C12 H121 C12 H122 C12 H123
+
+ACCE  OS1
+ACCE  OS2
+ACCE  OS3
+ACCE  OS4
+
+IC C2   OS1  OS2  S    2.56     179.99      0.0      40.1      0.00
+IC OS1  OS2  *S   OS3  2.37      40.1     120.0       0.00     0.00
+IC OS1  OS2  *S   OS4  2.37      40.1    -120.0       0.00     0.00
+IC OS2  S    OS1  C1   0.00       0.00    180.0       0.00     0.00
+IC OS4  S    OS2  OS1  1.4530   113.50   -113.75     40.11     2.3733
+IC OS2  S    OS2  OS3  1.4522     0.00      0.00     33.26     2.4296
+IC OS3  S    OS1  OS4  1.4530   105.51    121.17     35.54     2.4088
+IC OS1  S    OS3  OS2  1.5716   105.51    112.45     33.24     2.4296
+IC C1   OS1  S    OS2  1.4263   114.59   -180.00    103.34     1.4522
+IC S    OS1  C1   OS3  1.5716   114.59    -30.52     56.05     2.8947
+IC OS1  S    OS4  OS2  1.5716   105.51   -112.45     33.24     2.4296
+IC OS1  S    OS2  OS3  1.5716   103.34   -113.75     33.26     2.4296
+IC OS1  S    OS3  OS2  1.5716   105.51    112.45     33.24     2.4296
+IC OS4  S    OS2  OS1  1.4530   113.50   -113.75     40.11     2.3733
+IC OS4  S    OS3  OS1  1.4530   114.15    115.37     38.95     2.4088
+IC OS3  S    OS2  OS1  1.4530   113.50    113.75     40.11     2.3733
+IC OS4  S    OS1  C1   1.4530   105.51    -60.58     114.59    1.4263
+IC OS2  S    OS1  C1   1.4522   103.34   -180.00     114.59    1.4263
+IC OS3  S    OS1  C1   1.4530   105.51     60.58     114.59    1.4263
+! REMAINDER IS ALL TRANS
+IC S    OS1  C1   C2   0.0        0.00    180.00       0.0     0.0
+IC OS1  C1   C2   C3   0.0        0.00    180.00       0.0     0.0
+IC C1   C2   C3   C4   0.0        0.00    180.00       0.0     0.0
+IC C2   C3   C4   C5   0.0        0.00    180.00       0.0     0.0
+IC C3   C4   C5   C6   0.0        0.00    180.00       0.0     0.0
+IC C4   C5   C6   C7   0.0        0.00    180.00       0.0     0.0
+IC C5   C6   C7   C8   0.0        0.00    180.00       0.0     0.0
+IC C6   C7   C8   C9   0.0        0.00    180.00       0.0     0.0
+IC C7   C8   C9   C10  0.0        0.00    180.00       0.0     0.0
+IC C8   C9   C10  C11  0.0        0.00    180.00       0.0     0.0
+IC C9   C10  C11  C12  0.0        0.00    180.00       0.0     0.0
+IC OS1  C2   *C1  H11  0.0        0.00    120.00       0.0     0.0
+IC OS1  C2   *C1  H12  0.0        0.00   -120.00       0.0     0.0
+IC C1   C3   *C2  H21  0.0        0.00    120.00       0.0     0.0
+IC C1   C3   *C2  H22  0.0        0.00   -120.00       0.0     0.0
+IC C2   C4   *C3  H31  0.0        0.00    120.00       0.0     0.0
+IC C2   C4   *C3  H32  0.0        0.00   -120.00       0.0     0.0
+IC C3   C5   *C4  H41  0.0        0.00    120.00       0.0     0.0
+IC C3   C5   *C4  H42  0.0        0.00   -120.00       0.0     0.0
+IC C4   C6   *C5  H51  0.0        0.00    120.00       0.0     0.0
+IC C4   C6   *C5  H52  0.0        0.00   -120.00       0.0     0.0
+IC C5   C7   *C6  H61  0.0        0.00    120.00       0.0     0.0
+IC C5   C7   *C6  H62  0.0        0.00   -120.00       0.0     0.0
+IC C6   C8   *C7  H71  0.0        0.00    120.00       0.0     0.0
+IC C6   C8   *C7  H72  0.0        0.00   -120.00       0.0     0.0
+IC C7   C9   *C8  H81  0.0        0.00    120.00       0.0     0.0
+IC C7   C9   *C8  H82  0.0        0.00   -120.00       0.0     0.0
+IC C8   C10  *C9  H91  0.0        0.00    120.00       0.0     0.0
+IC C8   C10  *C9  H92  0.0        0.00   -120.00       0.0     0.0
+IC C9   C11  *C10 H101 0.0        0.00    120.00       0.0     0.0
+IC C9   C11  *C10 H102 0.0        0.00   -120.00       0.0     0.0
+IC C10  C12  *C11 H111 0.0        0.00    120.00       0.0     0.0
+IC C10  C12  *C11 H112 0.0        0.00   -120.00       0.0     0.0
+IC C10  C11  C12  H121 0.0        0.00    180.00       0.0     0.0
+IC C11  H121 *C12 H122 0.0        0.00    120.00       0.0     0.0
+IC C11  H121 *C12 H123 0.0        0.00   -120.00       0.0     0.0
+
+Resi BUTA        0.00 ! BUTANE
+!atoms name changed for consistancy with c27
+Group
+Atom  h11 hal     0.09 !    H12
+Atom  h12 hal     0.09 !     |
+Atom  h13 hal     0.09 ! H11-C1-H13
+Atom  c1  ctl3   -0.27 !     |
+Group                  !     |
+Atom  h21 hal     0.09 ! H21-C2-H22
+Atom  h22 hal     0.09 !     |
+Atom  c2  ctl2   -0.18 !     |
+Group                  !     |
+Atom  h31 hal     0.09 ! H31-C3-H32
+Atom  h32 hal     0.09 !     |
+atom  c3  ctl2   -0.18 !     |
+Group                  !     |
+atom  h41 hal     0.09 ! H41-C4-H43
+atom  h42 hal     0.09 !     |
+atom  h43 hal     0.09 !    H42
+atom  c4  ctl3   -0.27 !
+Bond h11 c1  h12 c1  h13 c1  c1 c2
+Bond h21 c2  h22 c2  c2  c3
+Bond h31 c3  h32 c3  c3  c4
+Bond h41 c4  h42 c4  h43 c4
+ic  c1  c2  c3  c4  0.00  0.00  180.0  0.00 0.00
+ic  c2  c3  c4  h41 0.00  0.00  180.0  0.00 0.00
+ic  c3  h41 *c4 h42 0.00  0.00  120.0  0.00 0.00
+ic  c3  h41 *c4 h43 0.00  0.00 -120.0  0.00 0.00
+ic  c3  c2  c1  h11 0.00  0.00  180.0  0.00 0.00
+ic  c2  h11 *c1 h12 0.00  0.00  120.0  0.00 0.00
+ic  c2  h11 *c1 h13 0.00  0.00 -120.0  0.00 0.00
+ic  c1  c3  *c2 h21 0.00  0.00  120.0  0.00 0.00
+ic  c1  c3  *c2 h22 0.00  0.00 -120.0  0.00 0.00
+ic  c2  c4  *c3 h31 0.00  0.00  120.0  0.00 0.00
+ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
+
+Resi ETHE       0.00 ! ethylene, yin/adm jr.
+Group 
+ Atom c1  cel2 -0.42 !
+ Atom h11 hal2  0.21 !  H11     H21
+ Atom h12 hal2  0.21 !    \     /
+Group                !     C1=C2
+ Atom c2  cel2 -0.42 !    /     \
+ Atom h21 hal2  0.21 !  H12     H22
+ Atom h22 hal2  0.21 !
+Bond c1 h11  c1 h12
+Double c1 c2
+Bond c2 h21  c2 h22
+IMPR h11 h12 c2 c1
+IMPR h12 h11 c2 c1
+IMPR h21 h22 c1 c2
+IMPR h22 h21 c1 c2
+ic h11 c1 c2  h21  0.00 0.00  180.0 0.0  0.0
+ic h12 c2 *c1 h11  0.00 0.00  180.0 0.0  0.0
+ic h22 c1 *c2 h21  0.00 0.00  180.0 0.0  0.0
+ic c1  c2 h21 h22  0.00 0.00  180.0 0.0  0.0
+patc firs none last none
+
+Resi PRPE       0.00 ! propene, yin/adm jr.
+Group
+ Atom c1  cel2 -0.42 !
+ Atom h11 hal2  0.21 ! H11     H21
+ Atom h12 hal2  0.21 !   \     /
+Group                !    C1=C2   H31
+ Atom c2  cel1 -0.15 !   /     \  /
+ Atom h21 hal1  0.15 ! H12      C3
+Group                !         /  \
+ Atom c3  ctl3 -0.27 !       H33  H32
+ Atom h31 hal   0.09 !
+ Atom h32 hal   0.09 !
+ Atom h33 hal   0.09 !
+Bond c1 h11  c1 h12
+Double c1 c2
+Bond c2 h21
+Bond c2 c3
+bond c3 h31  c3 h32  c3 h33
+ic h11 c1 c2  h21  0.00 0.00  180.0 0.0  0.0
+ic h12 c2 *c1 h11  0.00 0.00  180.0 0.0  0.0
+ic c3  c1 *c2 h21  0.00 0.00  180.0 0.0  0.0
+ic h31 c3 c2  c1   0.00 0.00    0.0 0.0  0.0
+ic h32 c3 c2  c1   0.00 0.00  120.0 0.0  0.0
+ic h33 c3 c2  c1   0.00 0.00 -120.0 0.0  0.0
+patc firs none last none
+
+Resi BTE1       0.00 ! 1-Butene, yin/adm jr.
+Group        
+ Atom c1  cel2 -0.42 !
+ Atom h11 hal2  0.21 ! H11     H21 H41
+ Atom h12 hal2  0.21 !   \     /    |
+Group                !    C1=C2    C4-H42
+ Atom c2  cel1 -0.15 !   /     \  /  \
+ Atom h21 hal1  0.15 ! H12      C3    H43
+Group                !         /  \
+ Atom c3  ctl2 -0.18 !       H31  H32
+ Atom h31 hal   0.09 !
+ Atom h32 hal   0.09 !
+Group
+ Atom c4  ctl3 -0.27
+ Atom h41 hal   0.09
+ Atom h42 hal   0.09
+ Atom h43 hal   0.09
+BOND c1 h11  c1 h12
+Double c1 c2
+BOND c2 h21
+BOND c2 c3
+BOND c3 h31  c3 h32
+BOND c3 c4
+BOND c4 h41  c4 h42  c4 h43
+ic  c1   c2 c3  c4   0.00 0.00    0.0 0.00 0.00
+ic  h11  c1 c2  c3   0.00 0.00  180.0 0.00 0.00
+ic  h12  c1 c2  c3   0.00 0.00    0.0 0.00 0.00
+ic  h21  c1 *c2 c3   0.00 0.00  180.0 0.00 0.00
+ic  h31  c2 *c3 c4   0.00 0.00  120.0 0.00 0.00
+ic  h32  c2 *c3 c4   0.00 0.00 -120.0 0.00 0.00
+ic  h41  c4 c3  c2   0.00 0.00  180.0 0.00 0.00
+ic  h42  c4 c3  c2   0.00 0.00   60.0 0.00 0.00
+ic  h43  c4 c3  c2   0.00 0.00  -60.0 0.00 0.00
+patc firs none last none
+
+
+Resi BTE2       0.00 ! 2-Butene, yin/adm jr.
+Group
+ Atom c1  ctl3 -0.27 !  H12 H13
+ Atom h11 hal   0.09 !    \ |
+ Atom h12 hal   0.09 ! H13-C1      H31
+ Atom h13 hal   0.09 !       \     /
+Group                !        C2=C3
+ Atom c2  cel1 -0.15 !       /     \
+ Atom h21 hal1  0.15 !     H21      C4-H41
+Group                !              | \
+ Atom c3  cel1 -0.15 !            H43 H42
+ Atom h31 hal1  0.15 !
+Group
+ Atom c4  ctl3 -0.27
+ Atom h41 hal   0.09
+ Atom h42 hal   0.09
+ Atom h43 hal   0.09
+BOND c1 h11  c1 h12  c1 h13
+BOND c1 c2
+BOND c2 h21
+DOUBLE c2 c3
+BOND c3 h31
+BOND c3 c4
+BOND c4 h41  c4 h42  c4 h43
+ic  c1   c2 c3  c4   0.00 0.00  180.0 0.00 0.00
+ic  h11  c1 c2  c3   0.00 0.00    0.0 0.00 0.00
+ic  h12  c1 c2  c3   0.00 0.00  120.0 0.00 0.00
+ic  h13  c1 c2  c3   0.00 0.00 -120.0 0.00 0.00
+ic  h21  c1 *c2 c3   0.00 0.00  180.0 0.00 0.00
+ic  h31  c4 *c3 c2   0.00 0.00  120.0 0.00 0.00
+ic  h41  c4 c3  c2   0.00 0.00    0.0 0.00 0.00
+ic  h42  c4 c3  c2   0.00 0.00  120.0 0.00 0.00
+ic  h43  c4 c3  c2   0.00 0.00 -120.0 0.00 0.00
+patc firs none last none
+
+Resi HXE2       0.00 ! 2-hexene, yin/adm jr.
+Group
+ Atom c1  ctl3 -0.27 !  H12 H13
+ Atom h11 hal   0.09 !    \ |
+ Atom h12 hal   0.09 ! H13-C1    H31 H51 H52
+ Atom h13 hal   0.09 !       \    /    \ /
+Group                !        C2=C3    C5    H61
+ Atom c2  cel1 -0.15 !       /     \  /  \  /
+ Atom h21 hal1  0.15 !     H21      C4    C6-H62
+Group                !             / \      \
+ Atom c3  cel1 -0.15 !           H41 H42     H63
+ Atom h31 hal1  0.15 !
+Group
+ Atom c4  ctl2 -0.18
+ Atom h41 hal   0.09
+ Atom h42 hal   0.09
+Group
+ Atom c5  ctl2 -0.18
+ Atom h51 hal   0.09
+ Atom h52 hal   0.09
+Group
+ Atom c6  ctl3 -0.27
+ Atom h61 hal   0.09
+ Atom h62 hal   0.09
+ Atom h63 hal   0.09
+
+BOND c1 h11  c1 h12  c1 h13
+BOND c1 c2
+BOND c2 h21
+BOND c2 c3
+BOND c3 h31
+BOND c3 c4
+BOND c4 h41  c4 h42
+BOND c4 c5   c5 h51  c5 h52
+BOND c5 c6   c6 h61  c6 h62  c6 h63
+! all trans
+ic  c1   c2 c3  c4   0.00 0.00  180.0 0.00 0.00
+ic  h11  c1 c2  c3   0.00 0.00    0.0 0.00 0.00
+ic  h12  c1 c2  c3   0.00 0.00  120.0 0.00 0.00
+ic  h13  c1 c2  c3   0.00 0.00 -120.0 0.00 0.00
+ic  h21  c1 *c2 c3   0.00 0.00  180.0 0.00 0.00
+ic  h31  c4 *c3 c2   0.00 0.00  120.0 0.00 0.00
+ic  c2   c3 c4  c5   0.00 0.00  180.0 0.00 0.00
+ic  c3   c5 *c4 h41  0.00 0.00  120.0 0.00 0.00
+ic  c3   c5 *c4 h42  0.00 0.00 -120.0 0.00 0.00
+ic  c3   c4 c5  c6   0.00 0.00  180.0 0.00 0.00
+ic  c4   c6 *c5 h51  0.00 0.00  120.0 0.00 0.00
+ic  c4   c6 *c5 h52  0.00 0.00 -120.0 0.00 0.00
+ic  h61  c6 c5  c4   0.00 0.00  180.0 0.00 0.00
+ic  h62  c6 c5  c4   0.00 0.00   60.0 0.00 0.00
+ic  h63  c6 c5  c4   0.00 0.00  300.0 0.00 0.00
+patc firs none last none
+
+RESI DUM       0.00 ! DUMMY ATOM
+GROUP
+ATOM DUM DUM   0.00
+PATCHING FIRST NONE LAST NONE
+
+END
+
+
+
+

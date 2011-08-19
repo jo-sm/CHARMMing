@@ -1,0 +1,3202 @@
+data_NDB_CIF
+
+loop_
+_ndb_cif_category.category
+_ndb_cif_category.xyz
+_ndb_cif_category.sf
+_ndb_cif_category.correspondence
+_ndb_cif_category.deposition
+_ndb_cif_category.xray_or_nmr  # 1 for X-RAY, 2 for NMR, 3 for both
+_ndb_cif_category.general      # 0 == NO, 1 == YES
+_ndb_cif_category.transfer     # 0 == NO, 1 == CIF
+_ndb_cif_category.comment
+
+'audit_author' 1 0 1 1 3 0 0
+;
+The names of the people responsible for the contents of the entry.
+;
+
+
+#'audit_contact_author' 1 0 1 1
+'audit_contact_author' 1 0 1 0 3 0 0
+;
+Data items in the AUDIT_CONTACT_AUTHOR category record details
+about the name and address of the author to be contacted
+concerning the contents of this data block.
+;
+
+'database' 1 1 1 0 3 0 1
+;              
+Data items in the DATABASE category record details about the
+database identifiers of the data block.
+
+These data items are assigned by database managers and should
+only appear in a data block if they originate from that source.
+;              
+
+'database_2' 1 1 1 1 3 0 1
+;
+Data items in the DATABASE_2 category record details about the
+database identifiers of the data block.
+
+These data items are assigned by database managers and should
+only appear in a data block if they originate from that source.
+
+The somewhat awkward name of this category (DATABASE_2) is a
+consequence of the name DATABASE having been already used in
+the CIF core, but used in a manner different from the usage
+in mmCIF. Since CIF data names, once adopted, cannot be
+changed, a new category was created.
+;
+
+'struct_keywords' 1 1 1 1 3 0 0
+;              
+Data items in the STRUCT_KEYWORDS category specify keywords
+that describe the chemical structure in this entry.
+
+_struct_keywords.ndb_keywords: Keywords describing this structure
+	     Examples: DNA, RNA, T-RNA, DNA/RNA, RIBOZYME, PROTEIN/DNA, 
+                       PROTEIN/RNA, PEPTIDE NUCLEIC ACID, 
+                       PEPTIDE NUCLEIC ACID/DNA
+
+_struct_keywords.text: The PROGRAM can create a list of keywords based
+                              on information of stucture and conformation
+                              type, modifications, mismatches, and drugs.  
+                     Example: 'A-DNA', 'DOUBLE HELIX', 'MODIFIED'
+;
+
+'exptl' 1 0 0 1 3 0 2
+;              
+Data items in the EXPTL category record details about the
+growth of the crystal, and about experimental measurements on
+the crystal, such as shape, size, density, and so on.
+
+_exptl.method: The method used in the experiment.
+     Examples: X-RAY DIFFRACTION, NMR, THEORETICAL MODEL 
+;
+
+'citation' 1 1 0 1 3 0 1
+;              
+Data items in the CITATION category record details about the
+literature cited relevant to the contents of the data block.
+
+Note: _citation.title: Use capitalization appropriatly, or use ONLY capitals
+                       or small letters, and the program will decide on 
+                       capitalization.
+;
+
+'citation_author' 1 1 0 1 3 0 1
+;              
+Data items in the CITATION_AUTHOR category record details
+about the authors associated with the citations in the
+CITATION list.
+
+The initials of first name(s) precede the family name(s) without using spaces.
+Example:  H.M.Berman
+
+; 
+
+'citation_editor' 1 0 0 0 3 0 1
+;              
+Names of an editor of the citation;  relevant for book chapters.
+
+The initials of first name(s) precede the family name(s) without using spaces.
+Example:  H.M.Berman
+
+; 
+
+'ndb_pdb_compnd' 1 0 0 0 3 1 1
+;
+This is only a place holder for the PDB COMPND
+;
+
+
+'ndb_pdb_source' 1 0 0 0 3 1 1
+;
+This is only a place holder for the PDB SOURCE
+;
+
+'struct' 1 1 0 1 3 0 1
+;              
+Data items in the STRUCT category record details about the
+description of the crystallographic structure.
+
+_struct.title: A title for the data block.  The author should attempt to
+               convey the essence of the structure archived in the CIF in the
+               title, and to distinguish this structural result from others.
+   
+      Example: ;
+               5'-D(*(I)CP*CP*GP*G)-3'
+               ;
+               'hen egg white lysozyme at -30 degrees C'
+
+Note: The PROGRAM is able to construct the _struct.title for most NA
+      structures based on sequence, modifier and drug info.
+
+_struct.ndb_title_text: A title for the experiment or analysis that is represented in
+                    the entry.
+
+Note: The PROGRAM will use the title of the primary citation by default, but it 
+can be changed.
+;
+
+#'ndb_na_struct_keywds' 1 0 0 1
+'ndb_na_struct_keywds' 1 0 0 0 3 0 0
+;
+Data items in the NDB_NA_STRUCT_KEYWDS category record details about the
+criteria used to identify the "overall" backbone conformations, the shape of
+the NA and special features.
+
+
+_ndb_na_struct_keywds.conformation_type: Provides overall idea about conformation 
+                                    type.
+                          Examples: 'A', 'B', 'Z', 'RH' (right handed), 'U' 
+                                   (for unusual)
+
+_ndb_na_struct_keywds.strands_description: Gives general structural description of NA.
+                          Examples: 'DOUBLE HELIX', 'TRIPLE HELIX', 
+                                    'QUADRUPLE HELIX', 'SINGLE STRAND'
+
+_ndb_na_struct_keywds.special_features: 
+                         Examples: 'LOOP', 'BULGES', 'FLIPPED-OUT BASES',
+                                   'CYCLIC', 'PARALLEL HELIX', 'HAMMERHEAD'
+;
+
+'entity_poly_seq' 1 0 0 1 3 0 1
+;              
+Data items in the ENTITY_POLY_SEQ category specify the sequence
+of monomers in a polymer.  Allowance is made for the possibility
+of microheterogeneity in a sample by allowing a given sequence
+number to be correlated with more than one monomer id - the
+corresponding ATOM_SITE entries should reflect this
+heterogeneity.
+;
+
+'struct_conf_type' 1 0 0 0 3 0 1
+;             
+Data items in the STRUCT_CONF_TYPE category record details
+about the criteria used to identify backbone conformations of a
+segment of polymer.
+_struct_conf_type.id: enumarated
+
+Note: PROGRAM will use HELX_P (helix with handedness and type not specified-protein),
+      HELX_N (helix with handedness and type not specified-nucleic acid), 
+      TURN_P (turn with type not specified-protein) as default value.
+Enumeration:        HELX_P
+	            helix with handedness and type not specified
+	            (protein)
+
+	            HELX_OT_P
+	            helix with handedness and type that do not
+	            conform to an accepted category (protein)
+
+	            HELX_RH_P
+	            right-handed helix with type not specified
+	            (protein)
+
+	            HELX_RH_OT_P
+	            right-handed helix with type that does not      
+	            conform to an accepted category (protein)
+
+	            HELX_RH_AL_P                                    
+	            right-handed alpha helix (protein)
+	            HELX_RH_GA_P
+	            right-handed gamma helix (protein)             
+	            HELX_RH_OM_P
+	            right-handed omega helix (protein)
+	            HELX_RH_PI_P
+	            right-handed pi helix (protein)
+	            HELX_RH_27_P
+	            right-handad 2-7 helix (protein)
+	            HELX_RH_3T_P
+	            right-handad 3-10 helix (protein)
+	            HELX_RH_PP_P
+	            right-handed polyproline helix (protein)
+
+	            HELX_LH_P
+	            left-handed helix with type not specified
+	            (protein)
+
+	            HELX_LH_OT_P
+	            left-handed helix with type that does not
+	            conform to an accepted category (protein)
+
+	            HELX_LH_AL_P
+	            left-handed alpha helix (protein)
+	            HELX_LH_GA_P
+	            left-handed gamma helix (protein)
+	            HELX_LH_OM_P
+	            left-handed omega helix (protein)
+	            HELX_LH_PI_P
+	            left-handed pi helix (protein)
+	            HELX_LH_27_P
+	            left-handed 2-7 helix (protein)
+	            HELX_LH_3T_P
+	            left-handed 3-10 helix (protein)
+	            HELX_LH_PP_P
+	            left-handed polyproline helix (protein)
+
+	            HELX_N
+	            helix with handedness and type not specified
+	            (nucleic acid)
+
+	            HELX_OT_N
+	            helix with handedness and type that do not
+	            conform to an accepted category (nucleic
+	            acid)
+
+	            HELX_RH_N
+	            right-handed helix with type not specified
+	            (nucleic acid)
+
+	            HELX_RH_OT_N
+	            right-handed helix with type that does not
+	            conform to an accepted category (nucleic
+	            acid)
+
+	            HELX_RH_A_N
+	            right-handed A helix (nucleic acid)
+	            HELX_RH_B_N
+	            right-handed B helix (nucleic acid)
+	            HELX_RH_Z_N
+	            right-handed Z helix (nucleic acid)
+
+	            HELX_LH_N
+	            left-handed helix with type not specified
+	            (nucleic acid)
+
+	            HELX_LH_OT_N
+	            left-handed helix with type that does not
+	            conform to an accepted category (nucleic
+	            acid)
+
+	            HELX_LH_A_N
+	            left-handed A helix (nucleic acid)
+	            HELX_LH_B_N
+	            left-handed B helix (nucleic acid)
+	            HELX_LH_Z_N
+	            left-handed Z helix (nucleic acid)
+
+	            TURN_P
+	            turn with type not specified (protein)
+	            TURN_OT_P
+	            turn with type that does not conform to an
+	            accepted category (protein)
+
+	            TURN_TY1_P
+	            type I turn (protein)
+	            TURN_TY1P_P
+	            type 1 prime turn (protein)
+	            TURN_TY2_P
+	            type II turn (protein)
+	            TURN_TY2P_P
+	            type II prime turn (protein)
+	            TURN_TY3_P
+	            type III turn (protein)
+	            TURN_TY3P_P
+	            type III prime turn (protein)
+
+	            STRN
+	            beta strand (protein)
+;
+
+'struct_conf'  1 0 0 0 3 0 1
+;             
+Data items in the STRUCT_CONF category record details about
+the backbone conformation of a segment of polymer.
+
+The STRUCT_CONF_TYPE records define the criteria used to
+identify the backbone conformations.
+
+Note: At this point, this information is based on the information provided in
+HELIX and TURN records of a PDB file.  
+
+;
+
+#'struct_biol_gen' 1 0 0 1
+'struct_biol_gen' 1 0 0 0 3 0 1
+;             
+Data items in the STRUCT_BIOL_GEN category record details about
+the generation of each biological unit.  The STRUCT_BIOL_GEN
+data items provide the specifications of the components that
+constitute that biological unit, which may include symmetry
+elements.
+
+Example for a structure where the asymmetric unit consists of one strand
+(symmetry 1_555).  The full biological unit will be generated by applying
+symmetry operation 4_655 to strand A using fractional coordinates:
+
+_struct_biol_gen.ndb_full_symmetry_operation: PROGRAM will produce the symmetry 
+operations expressed as XYZ
+
+
+loop_
+_struct_biol_gen.biol_id
+_struct_biol_gen.asym_id
+_struct_biol_gen.symmetry
+1    A   1_555 
+1    A   4_655 
+;
+
+'struct_biol_keywords' 1 0 0 0 3 1 0
+;              
+Data items in the STRUCT_BIOL_KEYWORDS category record details
+about keywords that describe each biological unit.
+_struct_biol_keywords.text:  Keywords describing this biological entity
+;
+
+'struct_biol_view' 1 0 0 0 3 0 0
+;              
+Data items in the STRUCT_BIOL_VIEW category record details
+about how to draw and annotate a useful didactic view of the
+biological structure.
+;
+
+'ndb_struct_pack_gen' 1 0 0 0 3 0 0
+;
+Data items in this category record details about how to generate and color a
+useful packing picture.
+;
+
+#'struct_asym' 1 0 0 1
+'struct_asym' 1 0 0 0 3 0 1
+;              
+Data items in the STRUCT_ASYM category record details about the
+structural elements in the asymmetric unit.
+
+Note: The info is provided mostly by the PROGRAM when coordinates are present.
+The records in this category are also used by the program to match given PDB
+strand id's with CIF label_asym_id's for categories atom_site, 
+struct_sheet_range, struct_sheet_hbond, struct_conf, struct_site, etc.
+_struct_asym.ndb_type: Characterizes type of structural element in the
+asymmetric unit. 
+              Example: NA      (for nucleic acid)
+		       P       (for protein)
+		       HETAD   (for drug)
+		       HETAS   (for solvent)       
+		       HETAI   (for ion)           
+		       HETAIN  (for inhibitor)     
+		       HETAC   (for coenzyme)      
+		       HETIC   (for ion complex)   
+
+; 
+
+'struct_mon_prot_cis' 1 0 0 0 3 1 1
+;
+Description of prolines and other peptides found to be in the cis conformation.
+;
+
+#'ndb_drug_info' 1 0 0 1
+'ndb_drug_info' 1 0 0 0 3 0 1
+; 
+Data items in the NDB_DRUG_INFO category record details about the drug
+molecule(s) of the structure.  
+;
+
+'ndb_na_strand_info' 1 0 0 1 3 1 1
+; 
+Data items in the NDB_NA_STRAND_INFO category record details about the number
+of NA strands per asymmetric unit.
+;
+
+'ndb_solvent_info' 1 0 0 1 3 1 1
+; 
+Data items in the NDB_SOLVENT_INFO category record details about the solvent 
+molecules of the structure.  
+;
+
+'ndb_ion_info' 1 0 0 1 3 1 1
+; 
+Data items in the NDB_ION_INFO category record details about the ion
+molecule(s) of the structure.  
+;
+
+'ndb_protein_info' 1 0 0 0 3 1 1
+; 
+Data items in the NDB_PROTEIN_INFO category record details about the protein 
+molecule(s) of the structure.  
+;
+
+
+'ndb_inhibitor_info' 1 0 0 0 3 1 1
+; 
+Data items in the NDB_INHIBITOR_INFO category record details about the
+inhibitor molecule(s) of the structure.  
+;
+
+'ndb_trna_info' 1 0 0 0 3 1 1
+; 
+Data items in the NDB_TRNA_INFO category record details about the t-RNA
+molecule(s) of the structure.  
+;
+
+'ndb_poly_seq_scheme' 1 0 0 0 3 0 1
+; 
+Note: At this point, the records of this category are used as "place
+holders" for PDB/author residue names and numbers.  The PROGRAM populates
+these records and uses them to match given PDB residue names and numbers with
+CIF label_* items for categories atom_site, struct_sheet_range,
+struct_sheet_hbond, struct_conf, struct_site, etc.  
+;
+
+'entity' 1 0 0 0 3 0 1
+;             
+Data items in the ENTITY category record details (such as
+chemical composition, name, and source) about the molecular
+entities that are present in the crystallographic structure.
+
+Items in the various ENTITY sub-categories provide a full
+chemical description of these molecular entities.
+
+Entities are of three types:  polymer, non-polymer and water.
+Note that the water category includes only water;  ordered
+solvent such as sulfate ion or acetone would be described as
+individual non-polymer entities.
+
+The ENTITY category is specific to macromolecular CIF
+applications, and replaces the function of the CHEMICAL category
+in the CIF core.
+
+It is important to remember that the ENTITY data are not the
+result of the crystallographic experiment;  those results are
+represented in the ATOM_SITE data items.  ENTITY data items
+describe the chemistry of the molecules under investigation,
+and can most usefully be though of as the ideal groups to which
+the structure is restrained or constrained during refinement.
+
+It is also important to remember that entities do not correspond
+directly to the enumeration of the contents of the asymmetric
+unit.  Entities are described only once, even in those structures
+that contain multiple observations of an entity.  The
+STRUCT_ASYM data items, which reference the entity list,
+describe and label the contents of the asymmetric unit.
+
+Note: _entity.ndb_description:  For NA, this record is created by the program
+and will be used to provide the COMPND record in a PDB file.
+;
+
+'entity_keywords' 1 0 0 0 3 0 1
+;              
+Data items in the ENTITY_KEYWORDS category specify keywords
+relevant to the molecular entities.  Note that this list of
+keywords is separate from the list that is used to keyword the
+STRUCT_BIOL data items, and is intended to provide only the
+information that one would know about the molecular entity *if
+one did not know its structure*.  Hence polypeptides are simply
+polypeptides, and not cytokines or beta-alpha-barrels, and
+polyribonucleic acids are simply poly-RNA, and not transfer-
+RNA.
+_entity_keywords.text:
+             Example: polypeptide
+                      DNA
+                      RNA
+                      modified
+                      drug
+                      poly-RNA
+;
+
+'entity_name_com' 1 0 0 0 3 0 1
+;              
+Data items in the ENTITY_NAME_COM category record the common name
+or names associated with the entity.  In some case, the entity
+name may not be the same as the name of the biological structure.
+For instance, HEMOGLOBIN ALPHA CHAIN would be the entity common
+name, not hemoglobin.
+;
+
+'entity_name_sys' 1 0 0 0 3 0 1
+;              
+Data items in the ENTITY_NAME_SYS category record the systematic
+name or names associated with the entity, and tell which system
+was is the source of the systematic name.  In some case, the
+entity name may not be the same as the name of the biological
+structure.  For instance, hemoglobin alpha chain would be the
+entity common name, not hemoglobin.
+;
+
+'ndb_entity_poly_domain' 1 0 0 0 3 1 0
+;
+Data items in the NDB_ENTITY_POLY_DOMAIN category specify domains
+of monomers within a polymer. 
+;
+
+'ndb_struct_biol_func' 1 0 0 0 3 1 0
+;
+EXAMPLE:
+loop_
+_ndb_struct_biol_func.id
+_ndb_struct_biol_func.biol_id
+_ndb_struct_biol_func.function
+1 1 'Oxygen Transport' 
+;
+
+'ndb_entity_func_bind_mode'  1 0 0 0 3 1 1
+;
+Data items in the NDB_ENTITY_FUNC_BIND_MODE category describe 
+characteristics of protein oligonucleotide binding.
+ndb_entity_func_bind_mode.protein_binds_to:
+                  Enumerations: DNA (Protein-DNA binding)
+                                RNA (Protein-RNA binding)
+ndb_entity_func_bind_mode.type:
+                  Enumerations: enzyme (Enzymatic function) 
+                                regulatory (Regulatory function)
+                                structural (Structural function)
+                                other (Other function)
+;
+
+'ndb_entity_func_enzyme'  1 0 0 0 3 1 0
+;
+Data items in the NDB_ENTITY_FUNC_ENZYME category describe 
+characteristics of protein oligonucleotide binding in which
+the binding mode is enzymatic.
+ndb_entity_func_enzyme.type:
+               Enumerations: DNA polymerase 
+                                (DNA polymerase/DNA Nucleotidyl Transferase/DNA
+                                 Reverse Transcriptase) 
+                             RNA polymerase 
+                                (RNA polymerase/RNA Nucleotidyl Transferase) 
+                             DNA nuclease 
+                                (DNA nuclease/DNA phosphodiester hydrolase/DNA
+                                 endonuclease/DNA exonuclease) 
+                             RNA nuclease 
+                                (RNA nuclease/RNA phosphodiester hydrolase/RNA
+                                 endonuclease/RNA exonuclease) 
+                             Lyase 
+                             Glycosylase 
+                             Phosphatase 
+                             Kinase 
+                             Methylase 
+                             Methyltransferase 
+                             Topoisomerase 
+                             Recombinase Integrase 
+                             Recombinase Resolvase 
+                             Other 
+;
+
+'ndb_entity_func_regulatory'  1 0 0 0 3 1 0
+;
+Data items in the NDB_ENTITY_FUNC_REGULATORY category describe 
+characteristics of protein oligonucleotide binding in which
+the binding mode is regulatory.
+ndb_entity_func_regulatory.type:
+                   Enumerations: Transcription Factor/Repressor 
+                                 Transcription Factor/Activator 
+                                 Transcription Factor/General 
+                                 Transcription Factor/Corepressor 
+                                 Transcription Factor/Coactivator 
+                                 Replication Factor 
+                                 Other 
+;
+
+'ndb_entity_func_structural' 1 0 0 0 3 1 0
+;
+Data items in the NDB_ENTITY_FUNC_STRUCTURAL category describe
+characteristics of protein oligonucleotide binding in which
+the binding mode is structural.
+ndb_entity_func_structural.type:
+                   Enumerations: HMG 
+                                 Histone 
+                                 Telomere Binding 
+                                 Viral Coat 
+                                 Other 
+;
+
+'ndb_entity_func_other' 1 0 0 0 3 1 0
+;
+Data items in the NDB_ENTITY_FUNC_OTHER category describe 
+characteristics of protein oligonucleotide binding in which
+the binding mode is not classified.
+ndb_entity_func_other.type:
+              Enumerations: Antibody 
+                            Thrombin 
+                            Other 
+;
+
+'chem_comp' 1 0 0 0 3 0 1
+;              
+Data items in the NONSTANDARD_LIST category give details (such as
+name, mass, charge, etc.) about each of the chemical components
+from which the relevant chemical structures can be constructed.
+
+Note: At this point, the information in this category is only used to store
+FORMUL, HET, HETNAM, and HETSYN records of a PDB file. 
+
+;
+'ndb_nonstandard_list' 1 0 0 0 3 0 1
+;              
+Note: At this point, the information in this category is only used to complete 
+the HET record of a PDB file. 
+;
+
+'entity_src_nat' 1 0 0 0 3 0 1
+;              
+Data items in the ENTITY_SRC_NAT category records details of
+the source from which the entity was obtained, in those cases
+where the entity was isolated directly from a natural tissue.
+;
+
+'entity_src_gen' 1 0 0 0 3 0 1
+;              
+Data items in the ENTITY_SRC_GEN category records details of
+the source from which the entity was obtained, in those cases
+where the source was a genetically manipulated one.  The
+following are treated separately:  Items pertaining to the tissue
+from which the gene was obtained, items pertaining to the host
+organism for gene expression and items pertaining to the actual
+producting organism (plasmid).
+;
+
+'rcsb_entity_src_syn' 1 0 0 0 3 1 1
+  ?
+
+'struct_conn_type' 1 0 0 0 3 0 1
+?
+
+'struct_conn' 1 0 0 0 3 0 1
+;              
+Data items in the STRUCT_CONN category record details about
+the interactions between portions of structure.  These can be
+hydrogen bonds, salt bridges, disulfide bridges, and so on.
+
+The STRUCT_CONN_TYPE records define the criteria used to
+identify these contacts.
+
+Note: These records are also used to describe the base pairing in NAs,
+mismatches, and covalent modifier links.  
+
+The enumerations for _struct_conn.id are (x is a sequential number):
+	'hydrogx', 'saltbrx', 'disulfx', 'mismatx', 'covale_basex', 'covale_sugarx', 
+        'covale_phosphatex'
+
+The enumerations for _struct_conn.conn_type_id are:
+	'hydrog', 'saltbr', 'disulf', 'mismat', 'covale_base', 'covale_sugar', 
+        'covale_phosphate'
+;
+
+'ndb_database_status' 1 0 0 1 3 0 0
+;
+These are internal NDB records to keep track of data processing and status of
+the entry.
+_ndb_database_status.status_code: possible values are 
+TEMP, SUB, PROC, WAIT, REL, HOLD, HPUB, REV, UPD, DEL, ATPDB, BIB, WDRN
+;
+
+'ndb_database_proc' 1 0 0 0 3 0 0
+;
+These are internal NDB records to keep track of the data processing cycle.
+;
+
+'ndb_database_message' 0 0 1 0 3 0 0
+;
+The NDB_DATABASE_MESSAGE category (internal NDB records) provides the
+information about the correspondence related to a structure deposition
+_database_ndb_messag.content_type: possible values are 
+DEPOSIT, REMINDER, QUERY, OTHER
+;
+
+'ndb_database_PDB_master' 1 0 0 0 3 1 1
+;
+Data items in the NDB_DATABASE_PDB_MASTER category record about the
+number of the different records used in the PDB entry.
+;
+
+'database_PDB_rev' 1 0 0 0 3 0 0
+;              
+Data items in the DATABASE_PDB_REV category record details
+about the history of the data block as archived by the Protein
+Data Bank (PDB).
+
+These data items are assigned by the PDB database managers and
+should only appear in a data block if they originate from that
+source.
+;
+
+'database_PDB_rev_record' 1 0 0 0 3 0 0
+?
+
+'ndb_database_PDB_obs_spr' 1 0 0 0 3 0 0
+;
+Data items in the NDB_DATABASE_PDB_OBS_SPR category record information
+in PDB tokens OBSLTE and SPRSDE
+;
+
+'database_PDB_remark' 1 0 0 1 3 1 0
+;             
+Data items in the DATABASE_PDB_REMARK category record details
+about the data block as archived by the Protein Data Bank (PDB).
+
+Some data appearing in PDB REMARK records can be
+algorithmically extracted into the appropriate data items
+in the data block.
+
+These data items are included only for consistency with older
+PDB format files.  They should appear in a data block only if
+that data block was created by reformatting a PDB format file.
+;
+
+'ndb_database_remark' 1 0 0 0 3 1 0
+;             
+Data items in the NDB_DATABASE_REMARK category record keep additional 
+information about the entry.  They are mostly used to create 'non-standard'
+PDB REMARKS (6-99).
+;
+
+'ndb_coord' 1 0 0 0 3 0 1
+;
+These records contain the information if coordinates for chain atoms, hydrogen
+atom, and solvent atoms are available, and if structure factors are available. 
+
+_ndb_coord.chain_atoms_Y_P: answer only Y (yes) or P (prep.), do not answer N
+                            (no) in the case coordinates are not available.
+
+_ndb_coord.hydrogen_atoms_Y_N: answer ONLY after coordinates have been
+                               released.
+
+_ndb_coord.solvent_atoms_Y_N: answer ONLY after coordinates have been
+                              released.
+;
+
+'struct_site' 1 0 0 0 3 0 0
+;              
+Data items in the STRUCT_SITE category record details about
+portions of structure that contribute to certain structurally
+relevant sites (i.e.active sites, substrate-binding subsites,
+metal-coordination sites).
+;
+
+#'struct_site_keywords' 1 0 0 1 0
+'struct_site_keywords' 1 0 0 0 3 0 0
+;
+Data items in the STRUCT_SITE_KEYWORDS category record details
+about the structural site.
+_struct_site_keywords.site_id: In NA, it is mainly used to identify the 
+                               drug binding site.
+                     Examples: 'DRUG BINDING SITE'
+_struct_site_keywords.text: Describes the binding type of a drug to the NA.
+                  Examples: 'INTERCALATION', 'MINOR GROOVE BINDER', 
+                            'COVALENT', 'STACKING'   
+;
+
+'struct_site_gen' 1 0 0 0 3 0 1
+;              
+Data items in the STRUCT_SITE_GEN category record details about
+the generation of portions of structure that contribute to
+structurally relevant sites.
+;
+
+'ndb_hybrid' 1 0 0 0 3 0 0
+;
+These records are used to describe the chimeric characteristics of a DNA/RNA
+structure. 
+_ndb_hybrid.sugar_name: Use 'D' for deoxyribose, 'R' for ribose.
+_ndb_hybrid.residue_names: Combine the residue name plus number.
+                 Examples: C01, G02, C03 
+;
+
+#'exptl_crystal_grow' 1 0 0 1 
+'exptl_crystal_grow' 1 0 0 0 1 0 2
+;              
+Data items in the EXPTL_CRYSTAL_GROW category record details
+about the conditions and methods used to grow the crystal.
+_exptl_crystal_grow.method: e.g. 'VAPOR DIFFUSION, HANGING DROP'
+_exptl_crystal_grow.temp: enter the temperature in Kelvin
+_exptl_crystal_grow.ndb_temp_desc: used for temp. description
+                         Examples: 'ROOM TEMPERATURE'
+;
+
+#'exptl_crystal_grow_comp' 1 0 0 1
+'exptl_crystal_grow_comp' 1 0 0 0 1 1 0
+;
+These records contain details about the components used to produce the
+crystal.  
+EXAMPLE:
+loop_
+_exptl_crystal_grow_comp.crystal_id
+_exptl_crystal_grow_comp.id
+_exptl_crystal_grow_comp.sol_id
+_exptl_crystal_grow_comp.name
+1   1  1 WATER 
+1   2  1 MPD
+1   3  1 SPERMINE_HCL
+1   4  1 'NA CACODYLATE'
+1   5  2 WATER 
+1   6  2 MPD
+
+Note: Solution 1 (.sol_id 1) contains the oligonucleotide.
+      Solution 2 (.sol_id 2) contains the percipitant.
+      Solution 3 (.sol_id 3) is the soaking solution.
+;
+
+#'exptl_crystal' 1 0 0 1
+'exptl_crystal' 1 0 0 0 1 0 2
+;            
+Data items in the EXPTL_CRYSTAL category record details about
+experimental measurements on the crystal or crystals used,
+such as shape, size, density, and so on.
+;
+
+#'diffrn' 1 0 0 1
+'diffrn' 1 0 0 0 1 0 2
+;              
+Data items in the DIFFRN category record details about the temperature 
+(in K) when data were collected.
+;
+
+#'diffrn_detector' 1 0 0 1
+'diffrn_detector' 1 0 0 0 1 0 2
+;              
+Data items in the DIFFRN_MEASUREMENT category record details
+about the device used to orient and/or position the crystal
+during data measurement and the manner in which the diffraction
+data were measured.
+_diffrn_detector.detector:
+                        Example: 'Diffractometer', 'Oscillation camera', 
+                                 'Area Detector', 'Image Plate', 'CCD', Film
+
+_diffrn_detector.type:  (PDB: manufacturer)
+                            Example: 'Siemens-Xentronics' 'Enraf-Nonius Cad4', 
+                                     'Nicolet P3', 'Marresearch',
+                                     'Rigaku AFC-5' 'Rigaku Raxis-II'
+_diffrn_detector.details: (also PDB: optics)
+                    Example: 'BENT MIRROR' 
+                             'YALE MIRRORS'
+                             'COLLIMATOR'
+                             'DUEL SLITS'
+                             'GOBEL MIRRORS'
+                             'MIRROR'
+                             'PINHOLE'
+                             'SUPPER LONG MIRRORS'
+;
+
+#'diffrn_source' 1 0 0 1
+'diffrn_source' 1 0 0 0 1 0 2
+;
+Data items in the DIFFRN_SOURCE category record details
+about the source used in measuring diffraction intensities. 
+_diffrn_source.source:
+                      Example: 'Sealed tube', 'Rotating anode', 'Synchrotron'
+                               
+_diffrn_source.type:
+                      Example: 'Enraf-Nonius'
+
+_diffrn_source.ndb_synchrotron_site: CHESS, 'EMBL/DESY, HAMBURG', NSLS, 
+                                     'PHOTON FACTORY', APS, ESRF, HFBR,
+                                     LURE, ILL, SRS, SSRL 
+;
+
+
+#'diffrn_radiation' 1 0 0 1
+'diffrn_radiation' 1 0 0 0 1 0 2
+;              
+Data items in the DIFFRN_RADIATION category record details
+about the radiation used in measuring diffraction intensities.
+;
+
+'diffrn_radiation_wavelength' 1 0 0 0 1 0 0
+;              
+Data items in the DIFFRN_RADIATION_WAVELENGTH category record
+provides information about the radiation wavelength(s).
+;
+
+#'reflns' 1 0 0 1
+'reflns' 1 0 0 0 1 0 2
+;              
+Data items in the REFLNS category record details about the
+reflection data used to determine the ATOM_SITE data items.
+
+The REFLNS data items specify the parameters that apply to all
+reflections.  The REFLNS data items are not looped.
+
+_reflns.R_free_details (PDB: free R value test set selection, e.g. RANDOM)
+
+;
+
+'reflns_shell'  1 0 0 0 1 1 2
+;
+Data items in the REFLNS_SHELL category record details about
+the reflection data used to determine the ATOM_SITE data items,
+as broken down by shells of resolution.
+;
+
+#'computing'  1 0 0 1
+'computing'  1 0 0 0 1 0 3
+;              
+Data items in the COMPUTING category record details about the
+computer programs used in the crystal structure analysis.
+_computing.data_collection: (Intensity-integration software)
+                  Examples: 'XENGEN 2.0', 'WEISS'
+_computing.data_reduction: (Scaling software)
+                  Examples: 'SCALEPACK',  'XENGEN'
+  
+_computing.structure_solution:
+                   Examples:   'AMORE', 'CCP4', 'LOCAL PROGRAMS'
+_computing.structure_refinement:
+                       Examples: 'X-PLOR', 'NUCLSQ', 'TNT', 'SHELXL' 
+_computing.ndb_structure_refinement_method:  
+                                   Example: 'least squares'
+;
+
+'symmetry' 1 1 0 1 3 0 0
+;             
+Data items in the SYMMETRY category record details about the
+space-group symmetry.
+
+Note: Enter the space group with spaces between the units, as
+in this example: P 21 21 21.
+
+_symmetry.ndb_full_space_group_name_H-M: used for space group PDB 
+(The full Herman-Mauguin symbol is used when others than the standard 
+b-unique setting is used.)
+                                Example: 'A 1 1 2' (instead of C 2)
+                                                     -unique C axis)
+                                         'P 1 1 2'  (instead of P 2)
+                                                      -unique C axis)
+#                                        'P 1 21 1' (instead of P 21) 
+                                         'P 1 1 21' (instead of P 21 
+                                                      -unique C axis)
+                                         'H 3'      (instead of R 3 -hexagonal)
+                                         'H 3 2'    (instead of R 3 2 -hexagonal)
+;
+
+'cell' 1 1 0 1 3 0 0
+;              
+Data items in the CELL category record details about the
+crystallographic cell parameters.
+;
+
+#'refine'  1 0 0 1
+'refine'  1 0 0 0 1 0 2
+;              
+Data items in the REFINE category record details about the
+structure refinement parameters.
+
+_refine.ndb_method_to_determine_struct:
+                               Examples:
+'DM'	 (Direct Methods)
+'ISAS'   (Iterative Single wavelength Anomalous Scattering)
+'ISIR'   (Iterative Single Isomorphous Replacement)
+'ISIRAS' (Iterative Single Isomorphous Replacement with Anomalous Scattering)
+'MAD' 	 (Multi wavelength Anomalous Diffraction)
+'MIR' 	 (Multiple Isomorphous Replacement)
+'MIRAS'  (Multiple Isomorphous Replacement with Anomalous Scattering)
+'MR'	 (Molecular Replacement)
+'SIR' 	 (Single Isomorphous Replacement)
+'SIRAS'	 (Single Isomorphous Replacement with Anomalous Scattering)
+
+;
+
+#'refine_analyze' 1 0 0 1
+'refine_analyze' 1 0 0 0 1 0 2
+;
+Data items in the REFINE_ANALYZE category record details
+about the refined structure that are often used to analyze the
+refinement and asses its quality. 
+;
+
+'refine_occupancy' 1 0 0 0 1 0 0
+;              
+Data items in the REFINE_OCCUPANCY category record details
+about the treatment of atomic occupancies during refinement.
+_refine_occupancy.class:
+                Example: 'all atoms'
+                         'all waters'
+
+_refine_occupancy.treatment: 
+                    Example: 'OF' (for fixed occupancies)
+                             'OR' (for refined occupancies)
+;
+
+'ndb_refine' 1 0 0 0 1 0 2
+;              
+Note: At this point, the information in this category is used to complete
+REMARK 3 of a PDB file. 
+;
+
+#'refine_ls_shell' 1 0 0 1
+'refine_ls_shell' 1 0 0 0 1 1 2
+;              
+Data items in the REFINE_LS_SHELL category record details about
+the results of least-squares refinement, broken out by shells of
+resolution.
+;
+
+'refine_B_iso' 1 0 0 0 1 0 0
+;              
+Data items in the REFINE_B_ISO category record details about
+the treatment of isotropic B (temperature) factors during
+refinement.
+_refine_B_iso.class:
+                Example: 'all atoms'
+                         'all waters'
+
+_refine_B_iso.details:
+                    Example: TF (for fixed temperature factors)
+                             TR (for refined temperature factors)
+
+_refine_B_iso.treatment:
+                    Example: I (for isotropically refinement of B)
+                             A (for anisotropically refinement of B)
+;
+
+#'refine_ls_restr_ncs'  1 0 0 1
+'refine_ls_restr_ncs'  1 0 0 0 1 0 2
+;
+Restraints applied to atomic positions in domains related by
+non-crystallographic symmetry during least-squares refinement.
+;
+
+
+'ndb_xplor_file' 1 0 0 0 1 0 2
+;
+These records are used in REMARK 3 of a PDB file for X-plor refinement.
+;
+
+#'refine_ls_restr' 1 0 0 1
+'refine_ls_restr' 1 0 0 0 1 0 2
+;
+Data items in the REFINE_LS_RESTR category record details about
+the restraints applied to various classes of parameters during
+least-squares refinement.
+
+The following is a enumeration list:
+
+x_bond_d                bond distance X-plor
+x_angle_d               bond angle expressed as a distance X-plor
+x_angle_deg             bond angle degree X-plor
+x_dihedral_angle_d      dihedral angles XPLOR
+x_improper_angle_d      improper_angles XPLOR
+x_mcbond_it             main-chain bond isotropic thermal factor
+x_mcangle_it            main-chain angle isotropic thermal factor
+x_scbond_it             side-chain bond isotropic thermal factor
+x_scangle_it            side-chain angle isotropic thermal factor
+
+n_bond_d                bond distance NUCLSQ
+n_angle_d               bond angle expressed as a distance NUCLSQ
+n_planar_d              planar 1,4 distance NUCLSQ
+n_sugar_bond_it         sugar bond isotropic thermal factor
+n_sugar_angle_it        sugar angle isotropic thermal factor
+n_phos_bond_it          phosphate bond isotropic thermal factor
+n_phos_angle_it         phosphate angle isotropic thermal factor
+n_bond_angle_restr      bond_angle_restraints NUCLSQ
+n_hb_or_metal_coord     H-bond or metal coordination NUCLSQ
+n_dihedral_angle_restr  dihedral angle_restraints NUCLSQ
+n_impr_tor              improper torsion_angle NUCLSQ
+n_sugar_bond_d          sugar bond distance NUCLSQ
+n_sugar_bond_angle_d    sugar bond angle distance NUCLSQ
+n_phos_bond_d           phosphate bond distance NUCLSQ
+n_phos_bond_angle_d     phosphate bond angle distance NUCLSQ
+n_plane_restr           plane restraint NUCLSQ
+n_chiral_restr          chiral center restraint NUCLSQ
+n_incorr_chiral_ct      incorrect chiral centers count NUCLSQ
+n_singtor_nbd           single torsion non bonded contacts NUCLSQ
+n_multtor_nbd           multiple_torsion_non_bonded_contacts NUCLSQ
+n_xhyhbond_nbd          possible (x-h..y) hydrogen-bond NUCLSQ
+
+p_bond_d                bond distance PROLSQ
+p_angle_d               bond angle expressed as a distance PROLSQ
+p_planar_d              planar 1,4 distance PROLSQ
+p_hb_or_metal_coord     H-bond or metal coordination PROLSQ
+p_plane_restr           plane restraint PROLSQ
+p_chiral_restr          chiral center restraint PROLSQ
+p_singtor_nbd           single torsion non bonded contacts PROLSQ
+p_multtor_nbd           multiple_torsion_non_bonded_contacts PROLSQ
+p_xhyhbond_nbd          possible (x-h..y) hydrogen-bond PROLSQ
+p_xyhbond_nbd           possible (x....y) hydrogen-bond
+p_planar_tor            planar torsion angle
+p_staggered_tor         staggered torsion angle
+p_orthonormal_tor       orthonormal torsion angle
+p_transverse_tor        transverse
+p_special_tor           special torsion angle
+
+s_bond_d                bond distance SHELXL
+s_angle_d               bond angle expressed as a distance SHELXL
+s_similar_dist          similar distance SHELXL
+s_from_restr_planes     from restraint planes SHELXL
+s_zero_chiral_vol       zero chiral volume SHELXL
+s_non_zero_chiral_vol   non-zero chiral volume SHELXL
+s_anti_bump_dis_restr   anti bump distance restraint SHELXL
+s_rigid_bond_adp_cmpnt  rigid bond adp components SHELXL
+s_similar_adp_cmpnt     similar adp components SHELXL
+s_approx_iso_adps       approx. isotropic adps SHELXL
+
+t_bond_d                bond distance TNT
+t_angle_deg             bond angle degree TNT
+t_dihedral_angle_d      dihedral angles TNT
+t_pseud_angle           pseudorotation angle
+t_trig_c_planes         trigonal c planes
+t_gen_planes            general planes
+t_it                    isothermal factors
+t_nbd                   non-bonded contacts
+;
+
+'struct_sheet' 1 0 0 0 3 0 1
+;              
+Data items in the STRUCT_SHEET category record details about
+the beta sheets.
+;
+
+'struct_sheet_order' 1 0 0 0 3 0 1
+;              
+Data items in the STRUCT_SHEET_ORDER category record details
+about the order of the residue ranges that form a beta sheet.
+All order linkages are pairwise, and the specified pairs are
+assumed to be adjacent to one another in the sheet. These data
+items are an alternative to the STRUCT_SHEET_TOPOLOGY data
+items, and they allow for the formal description of all manner
+of sheets.
+;
+
+'struct_sheet_range'  1 0 0 0 3 0 1
+;              
+Data items in the STRUCT_SHEET_RANGE category record details
+about the residue ranges that form a beta sheet.  Residues are
+included in a range if they made beta-sheet type hydrogen bonding
+interactions with at least one adjacent strand and if there are
+at least two residues in the range.
+;
+
+'struct_sheet_hbond'  1 0 0 0 3 0 1
+;              
+Data items in the STRUCT_SHEET_HBOND category record details
+about the hydrogen bonding between residue ranges in a beta
+sheet.  It is necessary to treat hydrogen bonding independently
+of the designation of ranges, because the hydrogen bonding may
+begin in different places for the interactions of a given strand
+with the one preceding it and the one following it in the sheet.
+;
+
+'rcsb_struct_sheet_hbond'  1 0 0 0 3 0 1
+?
+
+'struct_ref' 1 0 0 0 3 0 0
+;
+These records are used in the DBREF record of a PDB file and are used as a place
+holder for NDB ID's in PDB files.
+;
+
+
+'struct_ref_seq' 1 0 0 0 3 0 0
+;
+These records are used in the DBREF record of a PDB file and are used as a place
+holder for NDB ID's in PDB files.
+;
+
+'struct_ref_seq_dif' 1 0 0 0 3 1 0
+;
+These records are primarily used for the SEQADV record of a PDB file.
+;
+
+'database_pdb_tvect' 1 0 0 0 3 0 0
+;              
+The DATABASE_PDB_TVECT category provides placeholders for
+the TVECT matrices and vectors used by the Protein Data
+Bank (PDB).
+
+These data items are included only for consistency with older
+PDB format files.  They should appear in a data block only if
+that data block was created by reformatting a PDB format file.
+;
+
+'database_PDB_caveat' 1 0 0 0 3 1 0
+;              
+Data items in the DATABASE_PDB_CAVEAT category record details
+about features of the data block flagged as 'caveats' by the
+Protein Data Bank (PDB).
+
+These data items are included only for consistency with PDB
+format files.  They should appear in a data block only if that
+data block was created by reformatting a PDB format file.
+;
+
+'database_PDB_matrix' 1 0 0 0 7 0 0
+;
+Data items in database_PDB_matrix record the transformation 
+matrices and vectors used by the Protein Data Bank (PDB).
+;
+
+'atom_sites' 1 0 0 1 7 0 1
+;              
+Data items in the ATOM_SITES category record details about
+the crystallographic cell and cell transformations, which are
+common to all atom sites.
+;
+
+'struct_ncs_dom_lim' 1 0 0 0 1 0 0
+;
+Data items in the STRUCT_NCS_DOM_LIM category identify the
+beginning and ending points of polypeptide chain segments
+that form all or part of a domain in an ensemble of domains
+related by non-crystallographic symmetry.
+;
+
+'struct_ncs_ens_gen' 1 0 0 0 1 0 0
+;
+Data items in the STRUCT_NCS_ENS_GEN category list domains
+related by a non-crystallographic symmetry operation and
+identify the operator.
+;
+
+'struct_ncs_oper' 1 0 0 0 5 0 1
+;
+Data items in the STRUCT_NCS_ENS_OPER category describe the
+non-crystallographic symmetry operations.
+
+Each operator is specified as a matrix and a subsequent
+translation vector.  Operators need not represent proper
+rotations.
+;
+
+'ndb_virus_matrix' 1 0 0 0 5 0 0
+?
+
+'atom_sites_footnote' 1 0 0 0 3 1 0
+;
+Data items in the ATOM_SITES_FOOTNOTE category record details about
+footnote information.
+;
+
+'atom_site' 1 0 0 1 3 0 1
+;              
+Data items in the ATOM_SITE category record details about
+the atom sites in a macromolecular crystal structure, such as
+the positional coordinates, atomic displacement parameters,
+magnetic moments and directions, and so on.
+
+The data items for describing anisotropic temperature or thermal
+displacement factors are only used if the corresponding items
+are not given in the ATOM_SITE_ANISOTROP category.
+EXAMPLE 1: (short version)
+loop_
+_atom_site.group_NDB
+_atom_site.id
+_atom_site.label_atom_id
+#_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.ndb_label_seq_num
+#_atom_site.ins_code
+_atom_site.cartn_x
+_atom_site.cartn_y
+_atom_site.cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+ATOM      4  O5*   C A   1      22.329   7.047  20.446  1.00 14.46
+ATOM      5  C5*   C A   1      21.677   8.245  20.934  1.00 10.42
+ATOM      6  C4*   C A   1      21.060   8.969  19.760  1.00 11.68
+ATOM      7  O4*   C A   1      22.132   9.205  18.834  1.00 15.69
+ATOM      8  C3*   C A   1      20.134   8.113  18.982  1.00 10.16
+ATOM      9  O3*   C A   1      18.846   8.373  19.494  1.00 10.35
+#----abbreviated---
+
+EXAMPLE 2: (extended version)
+loop_
+_atom_site.group_NDB
+_atom_site.id
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_entity_id
+_atom_site.label_seq_id
+_atom_site.ndb_label_seq_num
+_atom_site.ins_code
+_atom_site.cartn_x
+_atom_site.cartn_y
+_atom_site.cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+_atom_site.cartn_x_esd
+_atom_site.cartn_y_esd
+_atom_site.cartn_z_esd
+_atom_site.occupancy_esd
+_atom_site.B_iso_or_equiv_esd
+_atom_site.footnote_id
+_atom_site.ndb_not_in_asym
+_atom_site.ndb_PDB_residue_no
+_atom_site.ndb_PDB_residue_name
+_atom_site.ndb_PDB_strand_id
+_atom_site.ndb_PDB_atom_name
+_atom_site.auth_seq_id
+_atom_site.ndb_auth_comp_id
+_atom_site.ndb_auth_asym_id
+_atom_site.ndb_auth_atom_name
+ATOMN    1      O5*    ?   C     A   1   1   1     ?   22.329    7.047    
+20.446    1.00   14.46   ?   ?   ?   ?   ?   ?   ?   1     C     A   O5*   
+1      C     A   O5*   
+ATOMN    2      C5*    ?   C     A   1   1   1     ?   21.677    8.245    
+20.934    1.00   10.42   ?   ?   ?   ?   ?   ?   ?   1     C     A   C5*   
+1      C     A   C5*   
+ATOMN    3      C4*    ?   C     A   1   1   1     ?   21.060    8.969    
+19.760    1.00   11.68   ?   ?   ?   ?   ?   ?   ?   1     C     A   C4*   
+1      C     A   C4*   
+ATOMN    4      O4*    ?   C     A   1   1   1     ?   22.132    9.205    
+18.834    1.00   15.69   ?   ?   ?   ?   ?   ?   ?   1     C     A   O4*   
+1      C     A   O4*   
+ATOMN    5      C3*    ?   C     A   1   1   1     ?   20.134    8.113    
+18.982    1.00   10.16   ?   ?   ?   ?   ?   ?   ?   1     C     A   C3*   
+1      C     A   C3*   
+ATOMN    6      O3*    ?   C     A   1   1   1     ?   18.846    8.373    
+19.494    1.00   10.35   ?   ?   ?   ?   ?   ?   ?   1     C     A   O3*   
+1      C     A   O3*   
+ATOMN    7      C2*    ?   C     A   1   1   1     ?   20.198    8.815    
+17.572    1.00   8.46    ?   ?   ?   ?   ?   ?   ?   1     C     A   C2*   
+1      C     A   C2*   
+
+#----abbreviated---
+;
+
+'atom_site_anisotrop' 1 0 0 1 1 0 1
+;
+The data items describe anisotropic temperature or thermal
+displacement factors.
+;
+
+#'refln' 0 1 0 1
+'refln' 0 1 0 0 1 0 0
+;             
+USED FOR STRUCTURE FACTOR DEPOSITION:
+
+Data items in the REFLN category record details about the
+reflection data used to determine the ATOM_SITE data items.
+
+The REFLN data items refer to individual reflections and must
+be included in loop lists.
+
+The REFLNS data items specify the parameters that apply to all
+reflections.  The REFLNS data items are not looped.
+Example:
+loop_
+_refln.index_h  
+_refln.index_k  
+_refln.index_l  
+_refln.F_meas_au  
+#_refln.F_calc_au  
+#_refln.phase_calc  
+_refln.F_meas_au_sigma  
+   0   0   3      2.10      0.37
+   0   0   6     28.93      0.13
+   0   0   9    107.19      0.38
+   0   0  12     48.58      0.35
+   0   0  15     29.20      0.34
+   0   0  18     41.73      0.34
+
+;
+
+'rcsb_nmr_software' 1 0 0 1 2 1 2 ?
+
+'rcsb_nmr_exptl_sample_conditions' 1 0 0 1 2 1 2 ?
+
+'rcsb_nmr_sample_details' 1 0 0 1 2 1 2 ?
+
+'rcsb_nmr_exptl' 1 0 0 1 2 1 2 ?
+
+'rcsb_nmr_spectrometer' 1 0 0 1 2 1 2 ?
+
+'rcsb_nmr_refine' 1 0 0 1 2 0 2 ?
+
+'rcsb_nmr_ensemble' 1 0 0 1 2 0 2 ?
+
+'rcsb_nmr_representative' 1 0 0 1 2 0 2 ?
+
+'rcsb_nmr_details' 1 0 0 1 2 0 2 ?
+
+'rcsb_struct_link' 1 0 0 0 3 1 1 ?
+
+'rcsb_post_process_details' 1 0 0 0 3 0 0 ?
+
+'rcsb_post_process_status' 1 0 0 0 3 0 0 ?
+
+'rcsb_missing_residue_list' 1 0 0 0 3 1 1 ?
+
+'rcsb_database_related' 1 0 0 0 3 1 0 ?
+
+'rcsb_struct_ncs_virus_gen' 1 0 0 0 1 1 0 ?
+
+'rcsb_struct_ncs_gen' 1 0 0 0 1 1 1 ?
+
+'refine_hist' 1 0 0 0 1 1 1  ?
+
+'rcsb_database_PDB_remark' 1 0 0 0 3 1 0 ?
+
+'ebi_soln_scatter' 1 0 0 0 1 1 0 ?
+
+'ebi_soln_scatter_model' 1 0 0 0 1 1 0 ?
+
+'em_2d_projection_selection' 1 0 0 0 1 0 2 ?
+
+'em_3d_fitting_list' 1 0 0 0 1 0 2 ?
+
+'em_3d_fitting' 1 0 0 0 1 0 2 ?
+
+'em_3d_reconstruction' 1 0 0 0 1 0 2 ?
+
+'em_assembly' 1 0 0 0 1 0 2 ?
+
+'em_sample_preparation' 1 0 0 0 1 0 2 ?
+
+'em_sample_support' 1 0 0 0 1 0 2 ?
+
+'em_vitrification' 1 0 0 0 1 0 2 ?
+
+'em_buffer' 1 0 0 0 1 0 2 ?
+
+'em_imaging' 1 0 0 0 1 0 2 ?
+
+'em_image_scans' 1 0 0 0 1 0 2 ?
+
+'em_detector' 1 0 0 0 1 0 2 ?
+
+'em_entity_assembly' 1 0 0 0 1 1 2 ?
+
+'em_virus_entity' 1 0 0 0 1 1 2 ?
+
+'ccp4_refine_tls_group'  1 0 0 0 1 1 2 ?
+
+'ccp4_refine_tls' 1 0 0 0 1 0 2 ?
+
+'struct_ncs_dom' 1 0 0 0 1 0 2 ?
+
+'ccp4_struct_ncs_dom_lim' 1 0 0 0 1 1 2 ?
+
+'ccp4_refine_ls_restr_ncs' 1 0 0 0 1 1 2 ?
+
+##################################################################
+
+loop_
+_ndb_cif_keyword.category
+_ndb_cif_keyword.keyword
+_ndb_cif_keyword.ndb_token
+_ndb_cif_keyword.special_type
+_ndb_cif_keyword.ndb_field
+_ndb_cif_keyword.key
+_ndb_cif_keyword.deposition
+
+'audit_author' 'name' 'AUTHOR' ? 3 0 1
+
+'audit_contact_author' 'name' 'AUDIT1' ? 2 0 1
+'audit_contact_author' 'address' 'AUDIT2' ? 3 0 1
+'audit_contact_author' 'phone' 'AUDIT3' ? 2 0 1
+'audit_contact_author' 'fax' 'AUDIT4' ? 2 0 1
+'audit_contact_author' 'email' 'AUDIT5' ? 2 0 1
+
+'struct_keywords'  'entry_id' 'HEADER' ? 4 1 1
+'struct_keywords' 'ndb_keywords' 'HEADER' ? 2 0 1
+'struct_keywords' 'text' 'KEYWDS' ? 3 0 1
+
+'database' 'entry_id' 'HEADER' ? 4 1 0
+'database' 'ndb_code_NDB' 'NDBFIL' ? 2 0 0
+'database' 'ndb_code_PDB' 'PDBFIL' ? 2 0 0
+'database' 'code_CSD' 'CSDFIL' ? 2 0 0
+'database' 'ndb_code_BMCD' 'BMCDFI' ? 2 0 0
+##'database' 'code_CSD_new' 'CSDNEW' ? 2 0 0
+'database' 'ndb_code_NDBDID' 'NDBFIL' ? 5 0 0 
+
+'database_2' 'database_id'  'PDBFIL' PDB 1 1 0
+'database_2' 'database_id'  'NDBFIL' NDB 1 1 0
+'database_2' 'database_id'  'RCSBID' RCSB 1 1 0
+'database_2' 'database_code' 'PDBFIL' PDB 2 0 0
+'database_2' 'database_code' 'NDBFIL' NDB 2 0 0
+'database_2' 'database_code' 'RCSBID' RCSB 2 0 0
+
+'entity_keywords' 'entity_id' 'ENTITY' ? 2 1 0
+'entity_keywords' 'text'   ENTKEY ? 4 0 0  
+'entity_keywords' 'ndb_mutation'   ENTMUT ? 4 0 0  
+'entity_keywords' 'ndb_fragment'   FRAGMT ? 4 0 0  
+'entity_keywords' 'ndb_antibody_isotype'   ISOTYP ? 4 0 0
+'entity_keywords' 'ndb_ec'   ECNUM ? 3 0 0  
+'entity_keywords' 'ndb_biological_unit'   BIOUNI ? 4 0 0  
+
+'entity' 'id' 'ENTITY' ? 2 1 0 
+'entity' 'type' 'ENTITY' ? 3 0 0 
+'entity' 'src_method' 'ENTITY' ? 4 0 0 
+'entity' 'ndb_description' 'ENTDES' ? 4 0 0
+'entity' 'formula_weight' ? ? ? 0 0
+'entity' 'ndb_number_of_molecules' 'ENTITY' ? 5 0 0
+'entity' 'details' 'ENTAIL' ? 4 0 0
+'entity' 'rcsb_nonpoly_type' ? ? ? ? ?
+
+'entity_name_com' 'entity_id'  'ENTITY' ? 2 1 0
+'entity_name_com' 'name' 'ENTNAM' ? 4  0 0
+
+'entity_name_sys' 'entity_id'  'ENTITY' ? 2 1 0
+'entity_name_sys' 'name' 'ENTSYS' ? 4 0 0
+
+'ndb_entity_poly_domain' 'id' 'ENPOLY' ?   2 1 0
+'ndb_entity_poly_domain' 'entity_id' 'ENPOLY' ?  3 1 0
+'ndb_entity_poly_domain' 'begin_mon_id' 'ENPOLY' ? 4 0 0
+'ndb_entity_poly_domain' 'begin_seq_num' 'ENPOLY' ? 5 0 0
+'ndb_entity_poly_domain' 'end_mon_id' 'ENPOLY' ? 6 0 0
+'ndb_entity_poly_domain' 'end_seq_num' 'ENPOLY' ? 7 0 0 
+
+'ndb_struct_biol_func' 'id' FUNCTN ? 2 0 0
+'ndb_struct_biol_func' 'biol_id' FUNCTN ? 3 0 0
+'ndb_struct_biol_func' 'function' FUNCTN ? 4 0 0
+
+'ndb_entity_func_bind_mode' 'id' 'BINEMD' ?   2 1 0
+'ndb_entity_func_bind_mode' 'domain_id' 'BINEMD' ?  3 0 0
+'ndb_entity_func_bind_mode' 'entity_id' 'BINEMD' ?  4 0 0
+'ndb_entity_func_bind_mode' 'protein_binds_to' 'BINEMD' ?  5 0 0
+'ndb_entity_func_bind_mode' 'type' 'BINEMD' ?  6 0 0
+
+'ndb_entity_func_enzyme' 'bind_mode_id' 'ENZFCT' ?  2 1 0
+'ndb_entity_func_enzyme' 'type' 'ENZFCT' ?  3 0 0
+
+'ndb_entity_func_regulatory' 'bind_mode_id' 'REGFCT' ?   2 1 0
+'ndb_entity_func_regulatory' 'type' 'REGFCT' ?  3 0 0 
+
+'ndb_entity_func_structural' 'bind_mode_id' 'STRFCT' ?    2 1 0
+'ndb_entity_func_structural' 'type' 'STRFCT' ?   3 0 0
+
+'ndb_entity_func_other' 'bind_mode_id' 'OTHFCT' ?    2 1 0
+'ndb_entity_func_other' 'type' 'OTHFCT' ?   3 0 0
+
+'exptl' 'entry_id' 'HEADER' ? 4 1 1
+'exptl' 'method' 'EXPDTA' ? 3 0 1
+'exptl' 'crystals_number' 'CRMETH' ? 4 0 0
+
+'citation' 'id' 'JRNL' 'TITL' 2 1 1
+#'citation' 'ndb_author_list' 'JRNL' 'AUTH' 5 0 1
+'citation' 'title' 'JRNL' 'TITL' 5 0 1
+'citation' 'journal_abbrev' 'JRNL' 'REF' 5 0 1
+'citation' 'journal_volume' 'JRNL' 'REF' 7 0 1
+'citation' 'page_first' 'JRNL' 'REF' 8 0 1
+'citation' 'page_last' 'JRNL' 'REF' 10 0 1
+'citation' 'year' 'JRNL' 'REF' 9 0 1
+'citation' 'journal_id_ASTM' 'JRNL' 'REFN' 5 0 0
+'citation' 'country' 'JRNL' 'REFN' 6 0 0
+'citation' 'journal_id_ISSN' 'JRNL' 'REFN' 8 0 0
+'citation' 'journal_id_CSD' 'JRNL' 'REFN' 9 0 0
+'citation' 'book_publisher' 'JRNL' 'PUBL' 5 0 0
+'citation' 'rcsb_database_id_PubMed' 'JRNL' 'REFN' 10 0 0
+'citation' 'rcsb_database_id_DOI' 'JRNL' 'REFN' 11 0 0
+
+'citation_author' 'citation_id' 'JRNL' 'AUTH' 2 1 1
+'citation_author' 'name' 'JRNL' 'AUTH' 5 0 1
+
+'citation_editor' 'citation_id' 'JRNL' 'EDIT' 2 1 0
+'citation_editor' 'name' 'JRNL' 'EDIT' 5 0 0
+
+'struct' 'entry_id'  'HEADER' ? 4 1 1 
+#'struct' 'title' 'COMPND' ? 3 0 1
+#'struct' 'ndb_title_text' 'TITLE' ? 3 0 1
+'struct' 'title' 'TITLE' ? 3 0 1
+'struct' 'ndb_descriptor' 'COMPND' ? 3 0 1
+'struct' 'rcsb_model_details' 'MODTLS' ? 3 0 1
+'struct' 'ndb_details' 'MODTLS' ? 4 0 1
+
+'ndb_pdb_compnd'  'id'  'PCOMPN'  ? 2 1 1 
+'ndb_pdb_compnd'  'text' 'PCOMPN' ? 3 0 1
+
+'ndb_pdb_source'  'id'  'PSOURC'  ? 2 1 1 
+'ndb_pdb_source'  'text' 'PSOURC' ? 3 0 1
+
+'struct_biol_gen' 'biol_id' 'STBIOL' ? 3 0 1
+'struct_biol_gen' 'asym_id' 'STBIOL' ? 4 0 1
+'struct_biol_gen' 'ndb_new_asym_id' 'STBIOL' ? 13 1 0
+'struct_biol_gen' 'ndb_new_pdb_asym_id' 'STBIOL' ? 14 0 0
+'struct_biol_gen' 'symmetry' 'STBIOL' ? 5 0 1
+'struct_biol_gen' 'ndb_before_begin_residue_no' 'STBIOL' ? 6 0 0
+'struct_biol_gen' 'ndb_before_end_residue_no' 'STBIOL' ? 7 0 0
+'struct_biol_gen' 'ndb_after_begin_residue_no' 'STBIOL' ? 8 0 0
+'struct_biol_gen' 'ndb_after_end_residue_no' 'STBIOL' ? 9 0 0
+'struct_biol_gen' 'ndb_color_red' 'STBIOL' ? 10 0 0
+'struct_biol_gen' 'ndb_color_green' 'STBIOL' ? 11 0 0
+'struct_biol_gen' 'ndb_color_blue' 'STBIOL' ? 12 0 0
+'struct_biol_gen' 'details' 'BIODES' ? 4 0 0
+'struct_biol_gen' 'ndb_full_symmetry_operation' 'STBIOL' ? 15 0 0 
+'struct_biol_gen' 'rcsb_pdb_order' 'STBIOL' ? 16 0 0
+
+'struct_biol_keywords' 'biol_id' 'BIOKEY' ? 4 1 0
+'struct_biol_keywords' 'text' 'BIOKEY' ? 5 0 0
+
+'struct_biol_view' 'biol_id' 'BIVIEW' ? 2 1 0
+'struct_biol_view' 'id' 'BIVIEW' ? 3 1 0
+'struct_biol_view' 'rot_matrix[1][1]' 'BIVIEW' ? 4  0 0
+'struct_biol_view' 'rot_matrix[1][2]' 'BIVIEW' ? 5 0 0
+'struct_biol_view' 'rot_matrix[1][3]' 'BIVIEW' ? 6 0 0
+'struct_biol_view' 'rot_matrix[2][1]' 'BIVIEW' ? 4 0 0
+'struct_biol_view' 'rot_matrix[2][2]' 'BIVIEW' ? 5 0 0
+'struct_biol_view' 'rot_matrix[2][3]' 'BIVIEW' ? 6 0 0
+'struct_biol_view' 'rot_matrix[3][1]' 'BIVIEW' ? 4 0 0
+'struct_biol_view' 'rot_matrix[3][2]' 'BIVIEW' ? 5 0 0
+'struct_biol_view' 'rot_matrix[3][3]' 'BIVIEW' ? 6 0 0
+'struct_biol_view' 'ndb_vector[1]' 'BIVIEW' ? 7 0 0
+'struct_biol_view' 'ndb_vector[2]' 'BIVIEW' ? 7 0 0
+'struct_biol_view' 'ndb_vector[3]' 'BIVIEW' ? 7 0 0
+
+'ndb_struct_pack_gen' 'id' 'STPACK' ? 2 1 0
+'ndb_struct_pack_gen' 'asym_id'  'STPACK' ? 3 1 0
+'ndb_struct_pack_gen' 'symmetry' 'STPACK' ? 4 0 0
+'ndb_struct_pack_gen' 'color_red'  'STPACK' ? 5 0 0
+'ndb_struct_pack_gen' 'color_green'  'STPACK' ? 6 0 0
+'ndb_struct_pack_gen' 'color_blue' 'STPACK' ? 7 0 0
+'ndb_struct_pack_gen' 'crystal_type' 'CRYTYP' ? 3 0 0
+'ndb_struct_pack_gen' 'packing_type' 'PACTYP' ? 3 0 0
+
+'ndb_na_struct_keywds' 'entry_id'  'HEADER' ? 4 1 1
+'ndb_na_struct_keywds' 'conformation_type' 'STRUCT' ? 2 0 1  
+'ndb_na_struct_keywds' 'strand_description' 'STRUCT' ? 3  0  1
+'ndb_na_struct_keywds' 'special_feature' 'STRKEY' ? 3 0 1
+
+'struct_conf_type' 'id' 'HELIX' HELX_P 1 1 0
+'struct_conf_type' 'id' 'TURN' TURN_P 1 1 0
+'struct_conf_type' 'id' 'STCONF'  HELX_N 3 1 0
+'struct_conf_type' 'criteria' ? ? ? 0 0
+'struct_conf_type' 'reference' ? ? ? 0 0
+
+'struct_conf' 'conf_type_id'  'HELIX' HELX_P 1 0 0
+'struct_conf' 'conf_type_id'  'TURN'  TURN_P 1 0 0
+'struct_conf' 'conf_type_id'  'STCONF' HELX_N 3 0 0  
+
+'struct_conf' 'id'  'HELIX' HELX_P 2  1  0 #HELX_P helix with handedness and type not specified (protein)
+'struct_conf' 'id'  'TURN' TURN_P 2   1  0 #TURN_P turn with type not specified (protein)
+'struct_conf' 'id'  'STCONF'  HELX_N 2 1  0 #HELX_N helix with handedness and type not specified
+
+'struct_conf' 'pdb_id' 'HELIX'  HELX_P 3  0  0
+'struct_conf' 'pdb_id' 'TURN'   TURN_P 3  0  0
+'struct_conf' 'pdb_id' 'STCONF' HELX_N ?  0  0
+
+'struct_conf' 'beg_label_comp_id'  'HELIX'  HELX_P 4 0 0
+'struct_conf' 'beg_label_comp_id'  'TURN'  TURN_P 4 0 0
+'struct_conf' 'beg_label_comp_id'  'STCONF' HELX_N  4 0 0
+
+'struct_conf' 'beg_label_asym_id'  'HELIX'  HELX_P 5 0 0
+'struct_conf' 'beg_label_asym_id'  'TURN'  TURN_P 5 0 0
+'struct_conf' 'beg_label_asym_id'  'STCONF' HELX_N  5 0 0
+
+'struct_conf' 'beg_label_seq_id'  'HELIX'  HELX_P 6 0 0
+'struct_conf' 'beg_label_seq_id'  'TURN'  TURN_P 6 0 0
+'struct_conf' 'beg_label_seq_id'  'STCONF' HELX_N  6 0 0
+
+'struct_conf' 'ndb_beg_label_ins_code_pdb' 'HELIX'  HELX_P 7 0 0
+'struct_conf' 'ndb_beg_label_ins_code_pdb' 'TURN'  TURN_P 7 0 0
+'struct_conf' 'ndb_beg_label_ins_code_pdb' 'STCONF' HELX_N ? 0 0
+
+'struct_conf' 'end_label_comp_id'  'HELIX'  HELX_P 8 0 0
+'struct_conf' 'end_label_comp_id'  'TURN'  TURN_P 8 0 0
+'struct_conf' 'end_label_comp_id'  'STCONF' HELX_N  7 0 0
+
+'struct_conf' 'end_label_asym_id'  'HELIX'  HELX_P 9 0 0
+'struct_conf' 'end_label_asym_id'  'TURN'  TURN_P 9 0 0
+'struct_conf' 'end_label_asym_id'  'STCONF' HELX_N  8 0 0
+
+'struct_conf' 'end_label_seq_id'  'HELIX'  HELX_P 10 0 0
+'struct_conf' 'end_label_seq_id'  'TURN'  TURN_P 10 0 0
+'struct_conf' 'end_label_seq_id'  'STCONF' HELX_N  9 0 0
+
+'struct_conf' 'ndb_end_label_ins_code_pdb' 'HELIX'  HELX_P 11 0 0
+'struct_conf' 'ndb_end_label_ins_code_pdb' 'TURN' TURN_P 11 0 0
+'struct_conf' 'ndb_end_label_ins_code_pdb' 'STCONF' HELX_N ? 0 0
+#
+'struct_conf' 'beg_auth_comp_id'  'PHELX'  HELX_P 4 0 0
+'struct_conf' 'beg_auth_comp_id'  'PTURN'  TURN_P 4 0 0
+'struct_conf' 'beg_auth_comp_id'  'STCONF' HELX_N  4 0 0
+
+'struct_conf' 'beg_auth_asym_id'  'PHELX'  HELX_P 5 0 0
+'struct_conf' 'beg_auth_asym_id'  'PTURN'  TURN_P 5 0 0
+'struct_conf' 'beg_auth_asym_id'  'STCONF' HELX_N  5 0 0
+
+'struct_conf' 'beg_auth_seq_id'   'PHELX'  HELX_P 6 0 0
+'struct_conf' 'beg_auth_seq_id'   'PTURN'  TURN_P 6 0 0
+'struct_conf' 'beg_auth_seq_id'   'STCONF' HELX_N  6 0 0
+
+'struct_conf' 'end_auth_comp_id'  'PHELX'  HELX_P 8 0 0
+'struct_conf' 'end_auth_comp_id'  'PTURN'  TURN_P 8 0 0
+'struct_conf' 'end_auth_comp_id'  'STCONF' HELX_N  7 0 0
+
+'struct_conf' 'end_auth_asym_id'  'PHELX'  HELX_P 9 0 0
+'struct_conf' 'end_auth_asym_id'  'PTURN'  TURN_P 9 0 0
+'struct_conf' 'end_auth_asym_id'  'STCONF' HELX_N  8 0 0
+
+'struct_conf' 'end_auth_seq_id'   'PHELX'  HELX_P 10 0 0
+'struct_conf' 'end_auth_seq_id'   'PTURN'  TURN_P 10 0 0
+'struct_conf' 'end_auth_seq_id'   'STCONF' HELX_N  9 0 0
+#
+'struct_conf' 'ndb_helix_class_pdb' 'HELIX'  HELX_P 12 0 0   
+'struct_conf' 'ndb_helix_class_pdb' 'PTURN'  TURN_P ? 0 0
+'struct_conf' 'ndb_helix_class_pdb' 'STCONF' HELX_N ? 0 0
+ 
+'struct_conf' 'details'  'HELIX'  HELX_P 13 0 0
+'struct_conf' 'details'  'TURN'  TURN_P 12 0 0
+'struct_conf' 'details'  'STCONF'  HELX_N 10 0 0
+
+'struct_conf' 'ndb_length'  'HELIX'  HELX_P 14 0 0
+'struct_conf' 'ndb_length'  'PTURN'  TURN_P ? 0 0
+'struct_conf' 'ndb_length'  'STCONF' HELX_N ? 0 0
+
+'struct_asym' 'id' 'SEQIFO' ? 3 1 0
+'struct_asym' 'ndb_pdb_id' 'SEQIFO' ? 4 0 0
+'struct_asym' 'ndb_alt_id' 'SEQIFO' ? 5 0 0
+'struct_asym' 'rcsb_blank_PDB_chainid_flag' ? ? ? 0 0
+'struct_asym' 'ndb_type' 'SEQIFO' ? 6 0 0
+'struct_asym' 'ndb_order' 'SEQIFO' ? 7 0 0
+'struct_asym' 'ndb_modified' 'SEQIFO' ? 8 0 0
+'struct_asym' 'ndb_fraction_per_asym_unit' 'SEQIFO' ? 9 0 0
+'struct_asym' 'entity_id' 'SEQIFO' ? 10 0 0
+'struct_asym' 'ndb_missing_num_begin_of_chain_not_in_seqres' 'SEQIFO' ? 11 0 0
+'struct_asym' 'ndb_missing_num_end_of_chain_not_in_seqres' 'SEQIFO' ? 12 0 0
+'struct_asym' 'ndb_missing_num_begin_of_chain_in_seqres' 'SEQIFO' ? 13 0 0
+'struct_asym' 'details' 'STASYM'  ? 6 0 0
+
+'struct_mon_prot_cis' 'id' 'CISPEP' ? 2 0 0
+'struct_mon_prot_cis' 'label_comp_id' 'CISPEP' ? 3 0 0
+'struct_mon_prot_cis' 'label_seq_id'  'CISPEP' ? 5 0 0
+'struct_mon_prot_cis' 'label_asym_id' 'CISPEP' ? 4 0 0
+'struct_mon_prot_cis' 'ndb_label_ins_code' 'CISPEP' ? 6 0 0
+'struct_mon_prot_cis' 'ndb_label_comp_id_2' 'CISPEP' ? 7 0 0
+'struct_mon_prot_cis' 'ndb_label_seq_id_2'  'CISPEP' ? 9 0 0
+'struct_mon_prot_cis' 'ndb_label_asym_id_2' 'CISPEP' ? 8 0 0
+'struct_mon_prot_cis' 'ndb_label_ins_code_2' 'CISPEP' ? 10 0 0
+'struct_mon_prot_cis' 'ndb_model_num' 'CISPEP' ? 11 0 0
+'struct_mon_prot_cis' 'ndb_omega_angle' 'CISPEP' ? 12 0 0
+
+'chem_comp' 'id'  'FORMUL' ? 3 1 0
+#'chem_comp' 'id'  'HETNAM' ? 3 1 0
+#'chem_comp' 'id'  'HETSYN' ? 3 1 0
+#'chem_comp' 'id'  'MODRES' ? ? ? 0
+#'chem_comp' 'ndb_PDB_id'  'MODRES' ? 2 1 0
+'chem_comp' 'type' ? ? ? ? ?
+'chem_comp' 'mon_nstd_flag' ? ? ? ? ?
+'chem_comp' 'name'  'HETNAM' ? 4 0 0
+#'chem_comp' 'name'  'MODRES' ? 3 1 0
+'chem_comp' 'ndb_synonyms' 'HETSYN' ? 4 0 0
+'chem_comp' 'formula' 'FORMUL' ? 6 0 0
+'chem_comp' 'formula_weight' 'FORMUL' ? 5 0 0
+'chem_comp' 'ndb_component_no' 'FORMUL' ? 2 0 0
+#'chem_comp' 'mon_nstd_parent_comp_id'  'MODRES' ? 7 1 0
+#'chem_comp' 'ndb_details'  'MODRES' ? 8 1 0
+
+'ndb_nonstandard_list' 'id'  'HET' ? 2 0 0
+#'ndb_nonstandard_list' 'id'  'MODRES' ? 2 1 0
+'ndb_nonstandard_list' 'label_asym_id' 'HET' ? 3 0 0
+#'ndb_nonstandard_list' 'label_asym_id'  'MODRES' ? 4 1 0
+'ndb_nonstandard_list' 'label_seq_id' 'HET' ? 4 0 0
+#'ndb_nonstandard_list' 'label_seq_id'   'MODRES' ? 5 1 0
+'ndb_nonstandard_list' 'ins_code' 'HET' ? 5 0 0
+#'ndb_nonstandard_list' 'ins_code'  'MODRES' ? 6 1 0
+'ndb_nonstandard_list' 'auth_asym_id' 'HET' ? 3 0 0
+'ndb_nonstandard_list' 'auth_seq_id' 'HET' ? 4 0 0
+'ndb_nonstandard_list' 'number_atoms_nh' 'HET' ? 6 0 0
+
+'ndb_poly_seq_scheme' 'id' 'SEQRES' ? 3 1 0
+'ndb_poly_seq_scheme' 'entity_id' 'SEQIFO' ? 10 0 0
+'ndb_poly_seq_scheme' 'seq_id' ? ? ? 0 0
+'ndb_poly_seq_scheme' 'mon_id'  'SEQRES' ? 5 0 0
+'ndb_poly_seq_scheme' 'ndb_num' 'NDBSQN' ? 5  0 0
+'ndb_poly_seq_scheme' 'pdb_num' 'PDBSQN' ? 5 0 0
+'ndb_poly_seq_scheme' 'auth_num' 'ALTSQN' ? 5 0 0
+'ndb_poly_seq_scheme' 'pdb_mon_id' 'PDBSQR' ? 5 0 0
+'ndb_poly_seq_scheme' 'auth_mon_id' 'ALTSQR' ? 5 0 0
+'ndb_poly_seq_scheme' 'pdb_id' 'SEQIFO' ? 4 0 0
+
+'entity_src_nat' 'entity_id' 'SRCNNM' ? 2 1 0
+'entity_src_nat' 'common_name' 'SRCNNM' ? 3 0 0
+'entity_src_nat' 'ndb_organism_scientific' 'SRCNN1' ? 3 0 0
+'entity_src_nat' 'genus' 'SRCNNM' ? 4 0 0
+'entity_src_nat' 'species' 'SRCNSP' ? 3 0 0
+'entity_src_nat' 'strain' 'SRCNSP' ? 4 0 0
+'entity_src_nat' 'tissue' 'SRCNTS' ? 3 0 0
+'entity_src_nat' 'tissue_fraction' 'SRCNTS' ? 4 0 0
+'entity_src_nat' 'ndb_secretion' 'SRCNSE' ? 3 0 0
+'entity_src_nat' 'ndb_fragment'  'SRCNFR' ? 3 0 0
+'entity_src_nat' 'ndb_variant' 'SRCNFR' ? 4 0 0
+'entity_src_nat' 'ndb_cell_line' 'SRCNSC' ? 3 0 0
+'entity_src_nat' 'ndb_atcc' 'SRCNSC' ? 4 0 0
+'entity_src_nat' 'ndb_culture_collection' 'SRCNCC' ? 3 0 0
+'entity_src_nat' 'ndb_cellular_location' 'SRCNSC' ? 5 0 0
+'entity_src_nat' 'ndb_organ' 'SRCNOR' ? 3 0 0
+'entity_src_nat' 'ndb_organelle' 'SRCNOR' ? 4 0 0
+'entity_src_nat' 'ndb_cell' 'SRCNOR' ? 5 0 0
+'entity_src_nat' 'ndb_plasmid_name' 'SRCNPL' ? 4 0 0
+'entity_src_nat' 'ndb_plasmid_details' 'SRCNPL' ? 5 0 0
+'entity_src_nat' 'details' 'SRCNDS' ? 4 0 0
+
+'entity_src_gen' 'entity_id' 'SRCGNM' ? 2 1 0
+'entity_src_gen' 'gene_src_common_name' 'SRCGE1' ? 3 0 0
+'entity_src_gen' 'gene_src_genus' 'SRCGE1' ? 4 0 0
+'entity_src_gen' 'ndb_gene_src_gene' 'SRCGE1' ? 5 0 0
+'entity_src_gen' 'gene_src_species' 'SRCGE2' ? 3 0 0
+'entity_src_gen' 'gene_src_strain' 'SRCGE2' ? 4 0 0
+'entity_src_gen' 'gene_src_tissue' 'SRCGE3' ? 3 0 0
+'entity_src_gen' 'gene_src_tissue_fraction' 'SRCGE3' ? 4 0 0
+#'entity_src_gen' 'gene_src_details' 'SRCGE4' ? 4 0 0
+#'entity_src_gen' 'gene_src_details' 'SRCGDS' ? 4 0 0
+'entity_src_gen' 'ndb_gene_src_fragment' 'SRCGFR' ? 3 0 0
+'entity_src_gen' 'ndb_gene_src_scientific_name' 'SRCGNM' ? 3 0 0
+'entity_src_gen' 'ndb_gene_src_variant' 'SRCGFR' ? 4 0 0
+'entity_src_gen' 'ndb_gene_src_cell_line' 'SRCGSP' ? 3 0 0
+'entity_src_gen' 'ndb_gene_src_atcc' 'SRCGSP' ? 4 0 0
+'entity_src_gen' 'ndb_gene_src_culture_collection' 'SRCGCC' ? 3 0 0
+'entity_src_gen' 'ndb_gene_src_organ' 'SRCGTS' ? 3 0 0
+'entity_src_gen' 'ndb_gene_src_organelle' 'SRCGTS' ? 4 0 0
+'entity_src_gen' 'ndb_gene_src_cell' 'SRCGTS' ? 5 0 0
+'entity_src_gen' 'ndb_gene_src_cellular_location' 'SRCGSP' ? 5 0 0
+'entity_src_gen' 'host_org_common_name' 'SRCGHN' ? 3 0 0
+'entity_src_gen' 'ndb_host_org_scientific_name' 'SRCGHS' ? 5 0 0
+'entity_src_gen' 'host_org_genus' 'SRCGHN' ? 4 0 0
+'entity_src_gen' 'ndb_host_org_gene' 'SRCGHN' ? 5 0 0
+'entity_src_gen' 'ndb_host_org_organ' 'SRCGH1' ? 3 0 0
+'entity_src_gen' 'host_org_species' 'SRCGHS' ? 3 0 0
+'entity_src_gen' 'ndb_host_org_tissue' 'SRCGHT' ? 3 0 0
+'entity_src_gen' 'ndb_host_org_tissue_fraction' 'SRCGHT' ? 4 0 0
+'entity_src_gen' 'ndb_host_org_strain' 'SRCGHS' ? 4 0 0
+'entity_src_gen' 'ndb_host_org_variant' 'SRCGHV' ? 3 0 0
+'entity_src_gen' 'ndb_host_org_cell_line' 'SRCGHV' ? 4 0 0
+'entity_src_gen' 'ndb_host_org_atcc' 'SRCGHC' ? 3 0 0
+'entity_src_gen' 'ndb_host_org_culture_collection' 'SRCGCC' ? 4 0 0
+'entity_src_gen' 'ndb_host_org_cell' 'SRCGHC' ? 4 0 0
+'entity_src_gen' 'ndb_host_org_organelle' 'SRCGH1' ? 4 0 0
+'entity_src_gen' 'ndb_host_org_cellular_location' 'SRCGHC' ? 5 0 0
+'entity_src_gen' 'ndb_host_org_vector_type' 'SRCGVE' ? 3 0 0
+'entity_src_gen' 'ndb_host_org_vector' 'SRCGVE' ? 4 0 0
+'entity_src_gen' 'plasmid_name' 'SRCGPL' ? 4 0 0
+'entity_src_gen' 'plasmid_details' 'SRCGPL' ? 5 0 0
+'entity_src_gen' 'ndb_description' 'SRCGDS' ? 4 0 0
+
+'rcsb_entity_src_syn' 'entity_id' 'SRCSYN' ? 2 1 0
+'rcsb_entity_src_syn' 'details' 'SRCSYN' ? 4 0 0
+
+'entity_poly_seq' 'entity_id' 'SEQIFO' ? 10 1 0
+'entity_poly_seq' 'num' ? ?  ? 0 0
+'entity_poly_seq' 'mon_id' 'SEQRES' ? 5 0 0
+
+'struct_conn_type' 'id' 'BSPAIR' hydrog 1 0 0
+'struct_conn_type' 'id' 'HYDBND' hydrog 1 0 0
+'struct_conn_type' 'id' 'SSBOND' disulf 1 0 0
+'struct_conn_type' 'id' 'MISMAT' mismat 1 0 0
+'struct_conn_type' 'id' 'LINK'   covale 1 0 0
+'struct_conn_type' 'id' 'SLTBRG' saltbr 1 0 0
+'struct_conn_type' 'id' 'MODRES' modres 1 0 0
+'struct_conn_type' 'id' 'MODIFB' covale_base      1 0 0
+'struct_conn_type' 'id' 'MODIFS' covale_sugar     1 0 0
+'struct_conn_type' 'id' 'MODIFP' covale_phosphate 1 0 0
+'struct_conn_type' 'criteria' ? ? ? 0 0
+'struct_conn_type' 'reference' ? ? ? 0 0
+
+'struct_conn' 'id' 'BSPAIR' hydrog 2 1 0 #hydrog     
+'struct_conn' 'id' 'HYDBND' hydrog 21 1 0 #hydbnd     
+'struct_conn' 'id' 'LINK'   covale   16 1 0 #link
+'struct_conn' 'id' 'MODRES' modres 9 1 0 #modres
+'struct_conn' 'id' 'SLTBRG' saltbr 16 1 0 #sltbrg
+'struct_conn' 'id' 'SSBOND' disulf 2 1 0 #disulf
+'struct_conn' 'id' 'MISMAT' mismat 2 1 0 #mismat
+'struct_conn' 'id' 'MODIFB' covale_base      2 1 0  #covale_base
+'struct_conn' 'id' 'MODIFS' covale_sugar     2 1 0  #covale_sugar
+'struct_conn' 'id' 'MODIFP' covale_phosphate 2 1 0  #covale_phosphate
+
+'struct_conn' 'conn_type_id' 'BSPAIR' hydrog 1 0 0  #(hydrog, saltbr, disulf, mismat,
+                                   #covale_base, covale_sugar, covale_phosphate)
+'struct_conn' 'conn_type_id' 'HYDBND' hydrog 1 0 0 
+'struct_conn' 'conn_type_id' 'SSBOND' disulf 1 0 0 
+'struct_conn' 'conn_type_id' 'MISMAT' mismat 1 0 0 
+'struct_conn' 'conn_type_id' 'LINK'   covale             1 0 0
+'struct_conn' 'conn_type_id' 'SLTBRG' saltbr           1 0 0
+'struct_conn' 'conn_type_id' 'MODRES' modres           1 0 0
+'struct_conn' 'conn_type_id' 'MODIFB' covale_base      1 0 0
+'struct_conn' 'conn_type_id' 'MODIFS' covale_sugar     1 0 0
+'struct_conn' 'conn_type_id' 'MODIFP' covale_phosphate 1 0 0
+
+'struct_conn' 'ndb_PDB_id' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ndb_PDB_id' 'HYDBND' hydrog ? 0 0
+'struct_conn' 'ndb_PDB_id' 'LINK'   covale  ? 0 0
+'struct_conn' 'ndb_PDB_id' 'SLTBRG' saltbr ? 0 0
+'struct_conn' 'ndb_PDB_id' 'SSBOND' disulf ? 0 0
+'struct_conn' 'ndb_PDB_id' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ndb_PDB_id' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ndb_PDB_id' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ndb_PDB_id' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ndb_PDB_id' 'MODRES' modres    2 0 0
+
+'struct_conn' 'ndb_ptnr1_mod_name' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ndb_ptnr1_mod_name' 'HYDBND' hydrog ? 0 0
+'struct_conn' 'ndb_ptnr1_mod_name' 'LINK'   covale  ? 0 0
+'struct_conn' 'ndb_ptnr1_mod_name' 'SLTBRG' saltbr ? 0 0
+'struct_conn' 'ndb_ptnr1_mod_name' 'SSBOND' disulf ? 0 0
+'struct_conn' 'ndb_ptnr1_mod_name' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ndb_ptnr1_mod_name' 'MODRES' modres ? 0 0
+'struct_conn' 'ndb_ptnr1_mod_name' 'MODIFB' covale_base 3 0 0 
+'struct_conn' 'ndb_ptnr1_mod_name' 'MODIFP' covale_phosphate 3 0 0
+'struct_conn' 'ndb_ptnr1_mod_name' 'MODIFS' covale_sugar     3 0 0 
+
+#'struct_conn' 'ndb_ptnr1_sugar_name' 'MODIFS' covale_sugar 13 0 0 
+#'struct_conn' 'ndb_ptnr1_sugar_name' 'BSPAIR' hydrog ? 0 0
+#'struct_conn' 'ndb_ptnr1_sugar_name' 'HYDBND' hydrog ? 0 0 
+#'struct_conn' 'ndb_ptnr1_sugar_name' 'LINK'   covale  ? 0 0
+#'struct_conn' 'ndb_ptnr1_sugar_name' 'SLTBRG' saltbr ? 0 0
+#'struct_conn' 'ndb_ptnr1_sugar_name' 'SSBOND' disulf ? 0 0
+#'struct_conn' 'ndb_ptnr1_sugar_name' 'MISMAT' mismat ? 0 0
+#'struct_conn' 'ndb_ptnr1_sugar_name' 'MODIFB' covale_base ? 0 0
+#'struct_conn' 'ndb_ptnr1_sugar_name' 'MODIFP' covale_phosphate ? 0 0
+#'struct_conn' 'ndb_ptnr1_sugar_name' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ndb_ptnr1_replaced_atom' 'MODIFS' covale_sugar 12  0 0  
+'struct_conn' 'ndb_ptnr1_replaced_atom' 'MODIFP' covale_phosphate 12 0 0 
+'struct_conn' 'ndb_ptnr1_replaced_atom' 'MODIFB' covale_base 12 0 0
+'struct_conn' 'ndb_ptnr1_replaced_atom' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ndb_ptnr1_replaced_atom' 'HYDBND' hydrog ? 0 0
+'struct_conn' 'ndb_ptnr1_replaced_atom' 'LINK'   covale  ? 0 0
+'struct_conn' 'ndb_ptnr1_replaced_atom' 'SLTBRG' saltbr ? 0 0
+'struct_conn' 'ndb_ptnr1_replaced_atom' 'SSBOND' disulf ? 0 0
+'struct_conn' 'ndb_ptnr1_replaced_atom' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ndb_ptnr1_replaced_atom' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ptnr1_label_asym_id' 'BSPAIR' hydrog 3 0 0 
+'struct_conn' 'ptnr1_label_asym_id' 'HYDBND' hydrog 5 0 0 
+'struct_conn' 'ptnr1_label_asym_id' 'SSBOND' disulf 4 0 0 
+'struct_conn' 'ptnr1_label_asym_id' 'MISMAT' mismat 3 0 0 
+'struct_conn' 'ptnr1_label_asym_id' 'LINK'   covale             5 0 0
+'struct_conn' 'ptnr1_label_asym_id' 'SLTBRG' saltbr           5 0 0
+'struct_conn' 'ptnr1_label_asym_id' 'MODRES' modres           4 0 0
+'struct_conn' 'ptnr1_label_asym_id' 'MODIFB' covale_base      5 0 0
+'struct_conn' 'ptnr1_label_asym_id' 'MODIFP' covale_phosphate 5 0 0 
+'struct_conn' 'ptnr1_label_asym_id' 'MODIFS' covale_sugar     5 0 0
+
+'struct_conn' 'ptnr1_label_comp_id' 'BSPAIR' hydrog 4 0 0
+'struct_conn' 'ptnr1_label_comp_id' 'HYDBND' hydrog 4 0 0
+'struct_conn' 'ptnr1_label_comp_id' 'SSBOND' disulf 3 0 0 
+'struct_conn' 'ptnr1_label_comp_id' 'MISMAT' mismat 4 0 0
+'struct_conn' 'ptnr1_label_comp_id' 'LINK'   covale   4 0 0
+'struct_conn' 'ptnr1_label_comp_id' 'SLTBRG' saltbr 4 0 0
+'struct_conn' 'ptnr1_label_comp_id' 'MODRES' modres 3 0 0
+'struct_conn' 'ptnr1_label_comp_id' 'MODIFB' covale_base 6 0  0
+'struct_conn' 'ptnr1_label_comp_id' 'MODIFP' covale_phosphate 6 0  0
+'struct_conn' 'ptnr1_label_comp_id' 'MODIFS' covale_sugar 6 0 0 
+
+'struct_conn' 'ptnr1_label_seq_id' 'BSPAIR' hydrog 5 0 0 
+'struct_conn' 'ptnr1_label_seq_id' 'HYDBND' hydrog 6 0 0 
+'struct_conn' 'ptnr1_label_seq_id' 'SSBOND' disulf 5 0 0
+'struct_conn' 'ptnr1_label_seq_id' 'MISMAT' mismat 5 0 0 
+'struct_conn' 'ptnr1_label_seq_id' 'LINK'   covale   6 0 0
+'struct_conn' 'ptnr1_label_seq_id' 'SLTBRG' saltbr 6 0 0
+'struct_conn' 'ptnr1_label_seq_id' 'MODRES' modres 5 0 0
+'struct_conn' 'ptnr1_label_seq_id' 'MODIFB' covale_base 7 0 0 
+'struct_conn' 'ptnr1_label_seq_id' 'MODIFP' covale_phosphate 7 0  0
+'struct_conn' 'ptnr1_label_seq_id' 'MODIFS' covale_sugar 7 0 0 
+
+'struct_conn' 'ptnr1_label_atom_id' 'BSPAIR' hydrog 6 0 0 
+'struct_conn' 'ptnr1_label_atom_id' 'HYDBND' hydrog 2 0 0 
+'struct_conn' 'ptnr1_label_atom_id' 'LINK'   covale   2 0 0
+'struct_conn' 'ptnr1_label_atom_id' 'SLTBRG' saltbr 2 0 0
+'struct_conn' 'ptnr1_label_atom_id' 'MODIFB' covale_base 4 0 0 
+'struct_conn' 'ptnr1_label_atom_id' 'MODIFP' covale_phosphate 4 0  0
+'struct_conn' 'ptnr1_label_atom_id' 'MODIFS' covale_sugar 4 0  0
+'struct_conn' 'ptnr1_label_atom_id' 'SSBOND' disulf ? 0 0
+'struct_conn' 'ptnr1_label_atom_id' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ptnr1_label_atom_id' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ndb_ptnr1_label_alt_loc' 'HYDBND' hydrog 3 0 0 
+'struct_conn' 'ndb_ptnr1_label_alt_loc' 'LINK'   covale   3 0 0
+'struct_conn' 'ndb_ptnr1_label_alt_loc' 'SLTBRG' saltbr 3 0 0
+'struct_conn' 'ndb_ptnr1_label_alt_loc' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ndb_ptnr1_label_alt_loc' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ndb_ptnr1_label_alt_loc' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ndb_ptnr1_label_alt_loc' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ndb_ptnr1_label_alt_loc' 'SSBOND' disulf ? 0 0
+'struct_conn' 'ndb_ptnr1_label_alt_loc' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ndb_ptnr1_label_alt_loc' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ndb_ptnr1_label_ins_code' 'HYDBND'  hydrog 7 0 0 
+'struct_conn' 'ndb_ptnr1_label_ins_code' 'LINK'    covale   7 0 0
+'struct_conn' 'ndb_ptnr1_label_ins_code' 'SLTBRG'  saltbr 7 0 0
+'struct_conn' 'ndb_ptnr1_label_ins_code' 'SSBOND'  disulf 6 0 0 
+'struct_conn' 'ndb_ptnr1_label_ins_code' 'MODRES'  modres 6 0 0
+'struct_conn' 'ndb_ptnr1_label_ins_code' 'MODIFP'  covale_phosphate ? 0 0 
+'struct_conn' 'ndb_ptnr1_label_ins_code' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ndb_ptnr1_label_ins_code' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ndb_ptnr1_label_ins_code' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ndb_ptnr1_label_ins_code' 'MISMAT' mismat ? 0 0
+
+'struct_conn' 'ndb_ptnr1_standard_comp_id' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ndb_ptnr1_standard_comp_id' 'HYDBND' hydrog ? 0 0
+'struct_conn' 'ndb_ptnr1_standard_comp_id' 'LINK'   covale  ? 0 0
+'struct_conn' 'ndb_ptnr1_standard_comp_id' 'SLTBRG' saltbr ? 0 0
+'struct_conn' 'ndb_ptnr1_standard_comp_id' 'SSBOND' disulf ? 0 0
+'struct_conn' 'ndb_ptnr1_standard_comp_id' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ndb_ptnr1_standard_comp_id' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ndb_ptnr1_standard_comp_id' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ndb_ptnr1_standard_comp_id' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ndb_ptnr1_standard_comp_id' 'MODRES'  modres 7 0 0
+
+'struct_conn' 'ptnr1_symmetry' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ptnr1_symmetry' 'HYDBND' hydrog 19 0 0
+'struct_conn' 'ptnr1_symmetry' 'LINK' covale 14 0 0
+'struct_conn' 'ptnr1_symmetry' 'SLTBRG' saltbr 14 0 0
+'struct_conn' 'ptnr1_symmetry' 'SSBOND' disulf ? 0 0
+'struct_conn' 'ptnr1_symmetry' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ptnr1_symmetry' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ptnr1_symmetry' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ptnr1_symmetry' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ptnr1_symmetry' 'MODRES'  modres ? 0 0
+
+'struct_conn' 'ptnr2_label_asym_id' 'BSPAIR' hydrog 7  0 0
+'struct_conn' 'ptnr2_label_asym_id' 'HYDBND' hydrog 16 0 0
+'struct_conn' 'ptnr2_label_asym_id' 'SSBOND' disulf 8 0 0
+'struct_conn' 'ptnr2_label_asym_id' 'MISMAT' mismat 6 0 0
+'struct_conn' 'ptnr2_label_asym_id' 'LINK'   covale   11 0 0
+'struct_conn' 'ptnr2_label_asym_id' 'SLTBRG' saltbr 11 0 0
+'struct_conn' 'ptnr2_label_asym_id' 'MODIFB' covale_base 9 0 0 
+'struct_conn' 'ptnr2_label_asym_id' 'MODIFP' covale_phosphate 9 0 0 
+'struct_conn' 'ptnr2_label_asym_id' 'MODIFS' covale_sugar 9 0  0
+'struct_conn' 'ptnr2_label_asym_id' 'MODRES'  modres ? 0 0
+
+'struct_conn' 'ptnr2_label_comp_id' 'BSPAIR' hydrog 8  0 0 
+'struct_conn' 'ptnr2_label_comp_id' 'HYDBND' hydrog 15 0 0 
+'struct_conn' 'ptnr2_label_comp_id' 'SSBOND'  disulf 7 0 0 
+'struct_conn' 'ptnr2_label_comp_id' 'MISMAT' mismat 7 0  0
+'struct_conn' 'ptnr2_label_comp_id' 'LINK'   covale   10 0 0
+'struct_conn' 'ptnr2_label_comp_id' 'SLTBRG' saltbr 10 0 0
+'struct_conn' 'ptnr2_label_comp_id' 'MODIFB' covale_base 10 0 0 
+'struct_conn' 'ptnr2_label_comp_id' 'MODIFP' covale_phosphate 10 0 0 
+'struct_conn' 'ptnr2_label_comp_id' 'MODIFS' covale_sugar 10 0 0 
+'struct_conn' 'ptnr2_label_comp_id' 'MODRES'  modres ? 0 0
+
+'struct_conn' 'ptnr2_label_seq_id' 'BSPAIR' hydrog 9  0 0 
+'struct_conn' 'ptnr2_label_seq_id' 'HYDBND' hydrog 17 0 0 
+'struct_conn' 'ptnr2_label_seq_id' 'SSBOND' disulf 9 0 0 
+'struct_conn' 'ptnr2_label_seq_id' 'MISMAT' mismat 8 0  0
+'struct_conn' 'ptnr2_label_seq_id' 'LINK'   covale   12 0 0
+'struct_conn' 'ptnr2_label_seq_id' 'SLTBRG' saltbr 12 0 0
+'struct_conn' 'ptnr2_label_seq_id' 'MODIFB' covale_base 11 0  0
+'struct_conn' 'ptnr2_label_seq_id' 'MODIFP' covale_phosphate 11 0 0 
+'struct_conn' 'ptnr2_label_seq_id' 'MODIFS' covale_sugar 11 0 0 
+'struct_conn' 'ptnr2_label_seq_id' 'MODRES'  modres ? 0 0
+
+'struct_conn' 'ptnr2_label_atom_id' 'BSPAIR' hydrog 10 0 0 
+'struct_conn' 'ptnr2_label_atom_id' 'HYDBND' hydrog 13 0 0 
+'struct_conn' 'ptnr2_label_atom_id' 'SSBOND' disulf ? 0 0
+'struct_conn' 'ptnr2_label_atom_id' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ptnr2_label_atom_id' 'LINK'   covale   8  0 0
+'struct_conn' 'ptnr2_label_atom_id' 'SLTBRG' saltbr 8  0 0
+'struct_conn' 'ptnr2_label_atom_id' 'MODIFB' covale_base 8 0 0 
+'struct_conn' 'ptnr2_label_atom_id' 'MODIFP' covale_phosphate 8 0 0 
+'struct_conn' 'ptnr2_label_atom_id' 'MODIFS' covale_sugar 8 0 0  
+'struct_conn' 'ptnr2_label_atom_id' 'MODRES'  modres ? 0 0
+
+'struct_conn' 'ndb_ptnr2_label_alt_loc' 'HYDBND' hydrog 14 0 0 
+'struct_conn' 'ndb_ptnr2_label_alt_loc' 'LINK'   covale   9  0 0
+'struct_conn' 'ndb_ptnr2_label_alt_loc' 'SLTBRG' saltbr 9  0 0
+'struct_conn' 'ndb_ptnr2_label_alt_loc' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ndb_ptnr2_label_alt_loc' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ndb_ptnr2_label_alt_loc' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ndb_ptnr2_label_alt_loc' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ndb_ptnr2_label_alt_loc' 'SSBOND' disulf ? 0 0
+'struct_conn' 'ndb_ptnr2_label_alt_loc' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ndb_ptnr2_label_alt_loc' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ndb_ptnr2_label_ins_code' 'HYDBND'  hydrog 18 0 0
+'struct_conn' 'ndb_ptnr2_label_ins_code' 'LINK'   covale   13 0 0
+'struct_conn' 'ndb_ptnr2_label_ins_code' 'SLTBRG' saltbr 13 0 0
+'struct_conn' 'ndb_ptnr2_label_ins_code' 'SSBOND'  disulf 10 0 0 
+'struct_conn' 'ndb_ptnr2_label_ins_code' 'MODIFP'  covale_phosphate ? 0 0 
+'struct_conn' 'ndb_ptnr2_label_ins_code' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ndb_ptnr2_label_ins_code' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ndb_ptnr2_label_ins_code' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ndb_ptnr2_label_ins_code' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ndb_ptnr2_label_ins_code' 'MODRES' modres ? 0 0
+#
+'struct_conn' 'ptnr1_auth_asym_id' 'PSSBND' disulf 4 0 0 
+'struct_conn' 'ptnr1_auth_asym_id' 'HYDBND' hydrog ? 0 0
+'struct_conn' 'ptnr1_auth_asym_id' 'LINK'   covale   ? 0 0
+'struct_conn' 'ptnr1_auth_asym_id' 'SLTBRG' saltbr ? 0 0
+'struct_conn' 'ptnr1_auth_asym_id' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ptnr1_auth_asym_id' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ptnr1_auth_asym_id' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ptnr1_auth_asym_id' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ptnr1_auth_asym_id' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ptnr1_auth_asym_id' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ptnr1_auth_comp_id' 'PSSBND' disulf 3 0 0 
+'struct_conn' 'ptnr1_auth_comp_id' 'HYDBND' hydrog ? 0 0
+'struct_conn' 'ptnr1_auth_comp_id' 'LINK'   covale   ? 0 0
+'struct_conn' 'ptnr1_auth_comp_id' 'SLTBRG' saltbr ? 0 0
+'struct_conn' 'ptnr1_auth_comp_id' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ptnr1_auth_comp_id' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ptnr1_auth_comp_id' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ptnr1_auth_comp_id' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ptnr1_auth_comp_id' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ptnr1_auth_comp_id' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ptnr1_auth_seq_id' 'PSSBND' disulf 5 0 0
+'struct_conn' 'ptnr1_auth_seq_id' 'HYDBND' hydrog ? 0 0
+'struct_conn' 'ptnr1_auth_seq_id' 'LINK'   covale   ? 0 0
+'struct_conn' 'ptnr1_auth_seq_id' 'SLTBRG' saltbr ? 0 0
+'struct_conn' 'ptnr1_auth_seq_id' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ptnr1_auth_seq_id' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ptnr1_auth_seq_id' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ptnr1_auth_seq_id' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ptnr1_auth_seq_id' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ptnr1_auth_seq_id' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ptnr2_auth_asym_id' 'PSSBND' disulf 8 0 0
+'struct_conn' 'ptnr2_auth_asym_id' 'HYDBND' hydrog ? 0 0
+'struct_conn' 'ptnr2_auth_asym_id' 'LINK'   covale   ? 0 0
+'struct_conn' 'ptnr2_auth_asym_id' 'SLTBRG' saltbr ? 0 0
+'struct_conn' 'ptnr2_auth_asym_id' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ptnr2_auth_asym_id' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ptnr2_auth_asym_id' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ptnr2_auth_asym_id' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ptnr2_auth_asym_id' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ptnr2_auth_asym_id' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ptnr2_auth_comp_id' 'PSSBND' disulf 7 0 0 
+'struct_conn' 'ptnr2_auth_comp_id' 'HYDBND' hydrog ? 0 0
+'struct_conn' 'ptnr2_auth_comp_id' 'LINK'   covale   ? 0 0
+'struct_conn' 'ptnr2_auth_comp_id' 'SLTBRG' saltbr ? 0 0
+'struct_conn' 'ptnr2_auth_comp_id' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ptnr2_auth_comp_id' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ptnr2_auth_comp_id' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ptnr2_auth_comp_id' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ptnr2_auth_comp_id' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ptnr2_auth_comp_id' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ptnr2_auth_seq_id' 'PSSBND' disulf 9 0 0 
+'struct_conn' 'ptnr2_auth_seq_id' 'HYDBND' hydrog ? 0 0
+'struct_conn' 'ptnr2_auth_seq_id' 'LINK'   covale   ? 0 0
+'struct_conn' 'ptnr2_auth_seq_id' 'SLTBRG' saltbr ? 0 0
+'struct_conn' 'ptnr2_auth_seq_id' 'BSPAIR' hydrog ? 0 0
+'struct_conn' 'ptnr2_auth_seq_id' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ptnr2_auth_seq_id' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ptnr2_auth_seq_id' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ptnr2_auth_seq_id' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ptnr2_auth_seq_id' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ptnr2_symmetry' 'BSPAIR' hydrog 11 0 0 #replace 'A' with 1_555, and S with sym. 
+'struct_conn' 'ptnr2_symmetry' 'HYDBND' hydrog 20 0 0
+'struct_conn' 'ptnr2_symmetry' 'LINK'   covale   15 0 0
+'struct_conn' 'ptnr2_symmetry' 'SLTBRG' saltbr 15 0 0
+'struct_conn' 'ptnr2_symmetry' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'ptnr2_symmetry' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'ptnr2_symmetry' 'MODIFS' covale_sugar ? 0 0
+'struct_conn' 'ptnr2_symmetry' 'SSBOND' disulf ? 0 0
+'struct_conn' 'ptnr2_symmetry' 'MISMAT' mismat ? 0 0
+'struct_conn' 'ptnr2_symmetry' 'MODRES' modres ? 0 0
+
+'struct_conn' 'ndb_ptnr3_label_atom_id'  'HYDBND' hydrog 8 0 0 
+'struct_conn' 'ndb_ptnr3_label_seq_id'   'HYDBND' hydrog 11 0 0 
+'struct_conn' 'ndb_ptnr3_label_comp_id'  'HYDBND' hydrog ? 0 0 
+'struct_conn' 'ndb_ptnr3_label_asym_id'  'HYDBND' hydrog 10 0 0
+'struct_conn' 'ndb_ptnr3_label_alt_loc'  'HYDBND' hydrog 9 0 0 
+'struct_conn' 'ndb_ptnr3_label_ins_code' 'HYDBND' hydrog 12 0 0
+
+'struct_conn' 'details' 'BSPAIR' hydrog 12 0 0 
+'struct_conn' 'details' 'SSBOND' disulf 11 0 0 
+'struct_conn' 'details' 'MODRES' modres 8 0 0 
+'struct_conn' 'details' 'HYDBND' hydrog ? 0 0
+'struct_conn' 'details' 'LINK'   covale   ? 0 0
+'struct_conn' 'details' 'SLTBRG' saltbr ? 0 0
+'struct_conn' 'details' 'MODIFB' covale_base ? 0 0
+'struct_conn' 'details' 'MODIFP' covale_phosphate ? 0 0
+'struct_conn' 'details' 'MODIFS' covale_sugar 13 0 0
+'struct_conn' 'details' 'MISMAT' mismat ? 0 0
+
+'ndb_database_status' 'status_code' 'NDBFIL' ? 4 0 0
+'ndb_database_status' 'entry_id' 'HEADER' ? 4 1 1
+'ndb_database_status' 'ndb_tid' 'NDBFIL' ? 3 0 0
+'ndb_database_status' 'status_coordinates_in_NDB' 'STATUS' ? 2 0 0
+'ndb_database_status' 'recvd_deposit_form' 'RECVD1' ? 2 0 0
+'ndb_database_status' 'date_deposition_form' 'RECVD1' ? 3 0 0
+'ndb_database_status' 'recvd_coordinates' 'RECVD1' ? 4 0 0
+'ndb_database_status' 'date_coordinates' 'RECVD1' ? 5 0 0
+'ndb_database_status' 'recvd_struct_fact' 'RECVD1' ? 6 0 0
+'ndb_database_status' 'date_struct_fact' 'RECVD1' ? 7 0 0
+'ndb_database_status' 'recvd_internal_approval' 'RECVD1' ? 8 0 0
+'ndb_database_status' 'recvd_nmr_constraints' 'RECVD1' ? 9 0 0
+'ndb_database_status' 'date_nmr_constraints' 'RECVD1' ? 10 0 0
+'ndb_database_status' 'recvd_manuscript' 'RECVD2' ? 2 0 0
+'ndb_database_status' 'date_manuscript' 'RECVD2' ? 3 0 0
+'ndb_database_status' 'name_depositor' 'PROCES' ? 7 0 0
+'ndb_database_status' 'rcsb_annotator' 'PROCES' ? 9 0 0
+'ndb_database_status' 'recvd_author_approval' 'RECVD2' ? 4 0 0
+'ndb_database_status' 'date_author_approval' 'RECVD2' ? 5 0 0
+'ndb_database_status' 'recvd_initial_deposition_date' 'RECVD2' ? 6 0 0
+'ndb_database_status' 'date_submitted' 'RECVD2' ? 7 0 0
+'ndb_database_status' 'author_approval_type' 'RECVD2' ? 8 0 0
+'ndb_database_status' 'author_release_status_code' 'RECVD2' ? 9 0 0
+'ndb_database_status' 'date_revised' 'REVISE' ? 3 0 0
+'ndb_database_status' 'revision_id' 'REVISE' ? 4 0 0
+'ndb_database_status' 'replaced_entry_id' 'REVISE' ? 6 0 0
+'ndb_database_status' 'revision_description' 'REVISE' ? 5 0 0
+'ndb_database_status' 'date_of_NDB_release' 'RELEAS' ? 2 0 0
+'ndb_database_status' 'date_released_to_PDB' 'RELEAS' ? 3 0 0
+'ndb_database_status' 'date_of_PDB_release' 'PROCES' ? 4 0 0
+'ndb_database_status' 'date_hold_coordinates' 'RELEAS' ? 4 0 1
+'ndb_database_status' 'date_hold_struct_fact' 'RELEAS' ? 5 0 1
+'ndb_database_status' 'hold_for_publication' 'RELEAS' ? 6 0 1
+'ndb_database_status' 'date_hold_nmr_constraints' 'RELEAS' ? 7 0 1
+'ndb_database_status' 'dep_release_code_coordinates' 'RELEAS' ? 8 0 1
+'ndb_database_status' 'dep_release_code_struct_fact' 'RELEAS' ? 9 0 1
+'ndb_database_status' 'dep_release_code_nmr_constraints' 'RELEAS' ? 10 0 1
+'ndb_database_status' 'dep_release_code_sequence' 'RELEAS' ? 11 0 1
+'ndb_database_status' 'pdb_date_of_author_approval' 'PROCES' ? 3 0 0
+'ndb_database_status' 'deposit_site' 'PROCES' ? 5 0 0
+'ndb_database_status' 'process_site' 'PROCES' ? 6 0 0
+'ndb_database_status' 'skip_PDB_REMARK' 'RMKSKP' ? 2 0 0
+
+'ndb_database_proc' 'entry_id' 'HEADER' ? 4 1 0
+'ndb_database_proc' 'cycle_id' 'NDBPRO' ? 2 0 0
+'ndb_database_proc' 'date_begin_cycle' 'NDBPRO' ? 4 0 0
+'ndb_database_proc' 'date_end_cycle' 'NDBPRO' ? 5 0 0
+'ndb_database_proc' 'details' 'NDBPRO' ? 6 0 0
+
+'ndb_database_message' 'entry_id' 'HEADER' ? 4 1 0
+'ndb_database_message' 'message_id' 'MESSAG' ? 2 0 0
+'ndb_database_message' 'date' 'MESSAG' ? 4 0 0
+'ndb_database_message' 'content_type' 'MESSAG' ? 5 0 0
+'ndb_database_message' 'message_type' 'MESSAG' ? 6 0 0
+'ndb_database_message' 'sender' 'SENDER' ? 3 0 0
+'ndb_database_message' 'sender_address_fax' 'SENDER' ? 4 0 0
+'ndb_database_message' 'sender_address_phone' 'SENDER' ? 5 0 0
+'ndb_database_message' 'sender_address_email' 'SENDER' ? 6 0 0
+'ndb_database_message' 'sender_address_mail' 'ADSEND' ? 4 0 0
+'ndb_database_message' 'receiver' 'RECEIV' ? 3 0 0
+'ndb_database_message' 'receiver_address_fax' 'RECEIV' ? 4 0 0
+'ndb_database_message' 'receiver_address_phone' 'RECEIV' ? 5 0 0
+'ndb_database_message' 'receiver_address_email' 'RECEIV' ? 6 0 0
+'ndb_database_message' 'receiver_address_mail' 'ADRECV' ? 4 0 0
+'ndb_database_message' 'message' 'MESSAG' ? 7 0 0
+
+'ndb_database_PDB_master' 'num_remark'  'MASTER' ? 2 1 0
+'ndb_database_PDB_master' 'num_ftnote'  'MASTER' ? 3 0 0
+'ndb_database_PDB_master' 'num_het'     'MASTER' ? 4 0 0
+'ndb_database_PDB_master' 'num_helix'   'MASTER' ? 5 0 0
+'ndb_database_PDB_master' 'num_sheet'   'MASTER' ? 6 0 0
+'ndb_database_PDB_master' 'num_turn'    'MASTER' ? 7 0 0
+'ndb_database_PDB_master' 'num_site'    'MASTER' ? 8 0 0
+'ndb_database_PDB_master' 'num_trans'   'MASTER' ? 9 0 0
+'ndb_database_PDB_master' 'num_coord'   'MASTER' ? 10 0 0
+'ndb_database_PDB_master' 'num_ter'     'MASTER' ? 11 0 0
+'ndb_database_PDB_master' 'num_conect'  'MASTER' ? 12 0 0
+'ndb_database_PDB_master' 'num_seqres'  'MASTER' ? 13 0 0
+
+'database_PDB_rev' 'num'  'REVDAT' ? 2 1 0
+'database_PDB_rev' 'date' 'REVDAT' ? 4 0 0
+'database_PDB_rev' 'date_original' 'HEADER' ? 3 0 0
+'database_PDB_rev' 'status' 'STATUS' ? 5 0 0
+'database_PDB_rev' 'replaces' 'REVDAT' ? 5 0 0
+'database_PDB_rev' 'mod_type'  'REVDAT' ? 6 0 0
+'database_PDB_rev' 'rcsb_record_revised_1' 'REVDAT' ? 7 0 0
+'database_PDB_rev' 'rcsb_record_revised_2' 'REVDAT' ? 8 0 0
+'database_PDB_rev' 'rcsb_record_revised_3' 'REVDAT' ? 9 0 0
+'database_PDB_rev' 'rcsb_record_revised_4' 'REVDAT' ? 10 0 0
+
+'database_PDB_rev_record' 'rev_num' ?  ?  ?  ?  ?
+'database_PDB_rev_record' 'type' ?  ?  ?  ?  ?
+'database_PDB_rev_record' 'details' ?  ?  ?  ?  ?
+
+'ndb_database_PDB_obs_spr' 'id' 'OBSLTE' 'OBSLTE' 1 1 0
+'ndb_database_PDB_obs_spr' 'id' 'SPRSDE' 'SPRSDE' 1 1 0
+'ndb_database_PDB_obs_spr' 'date' 'OBSLTE' 'OBSLTE' 3 0 0
+'ndb_database_PDB_obs_spr' 'date' 'SPRSDE' 'SPRSDE' 3 0 0
+'ndb_database_PDB_obs_spr' 'pdb_id' 'OBSLTE' 'OBSLTE' 5 0 0
+'ndb_database_PDB_obs_spr' 'pdb_id' 'SPRSDE' 'SPRSDE' 4 0 0
+'ndb_database_PDB_obs_spr' 'replace_pdb_id' 'OBSLTE' 'OBSLTE' 4 0 0
+'ndb_database_PDB_obs_spr' 'replace_pdb_id' 'SPRSDE' 'SPRSDE' 5 0 0
+#
+#'database_PDB_remark' 'num' ? ? ? ? ?
+'database_PDB_remark' 'id' 'PREMRK' ? 2 1 1
+'database_PDB_remark' 'text' 'PREMRK' ? 3 0 1
+
+'ndb_database_remark' 'id' 'REMARK' ? 2 1 0
+'ndb_database_remark' 'text' 'REMARK' ? 3 0 0
+
+'ndb_coord' 'entry_id' 'HEADER' ? 4 1 0
+'ndb_coord' 'chain_atoms_Y_P' 'COORDA' ? 2 0 0
+'ndb_coord' 'hydrogen_atoms_Y_N' 'COORDH' ? 2 0 0
+'ndb_coord' 'solvent_atoms_Y_N' 'COORDS' ? 2 0 0
+'ndb_coord' 'structure_factors_Y_N' 'COORDA' ? 3 0 0
+
+'ndb_drug_info' 'id' 'DCHEM' ? 2 0 1
+'ndb_drug_info' 'name' 'DCHEM' ? 4 0 1
+#'ndb_drug_info' 'name_synonyms' 'DTRIV' ? 4 0 1
+'ndb_drug_info' 'num_per_asym_unit' 'DNOMOL' ? 3 0 1
+'ndb_drug_info' 'num_of_whole_molecule' 'DNOMOL' ? 4 0 0
+'ndb_drug_info' 'size_of_molecule_per_asym_unit' 'DNOMOL' ? 5 0 0
+
+'ndb_na_strand_info' 'id' 'NCHAIN' ? 2 0 1
+'ndb_na_strand_info' 'num_of_NA_strands_per_asym_unit' 'NCHAIN' ? 3 0 1
+'ndb_na_strand_info' 'num_of_NA_strands_per_biol_unit' 'NCHAIN' ? 4 0 1
+'ndb_na_strand_info' 'fract_NA_strand_per_asym_unit' 'NCHAIN' ? 5 0 0
+
+'ndb_solvent_info' 'id' 'NSOLVT' ? 2 0 1
+'ndb_solvent_info' 'name' 'NSOLVT' ? 3 0 1
+'ndb_solvent_info' 'numb_per_asym_unit' 'NSOLVT' ? 4 0 1
+
+'ndb_ion_info' 'id' 'NION' ? 2 0 1
+'ndb_ion_info' 'name' 'NION' ? 3 0 1
+'ndb_ion_info' 'numb_per_asym_unit' 'NION' ? 4 0 1
+
+'ndb_protein_info' 'id' 'PROTEI' ? 2 1 0
+'ndb_protein_info' 'name' 'PROTEI' ? 4 0 0
+'ndb_protein_info' 'num_per_asym_unit' 'PROTEI' ? 5 0 0
+
+'ndb_inhibitor_info' 'id' 'INHIBT' ? 2 0 0
+'ndb_inhibitor_info' 'name' 'INHIBT' ? 4 0 0
+'ndb_inhibitor_info' 'num_per_asym_unit' 'INHIBT' ? 5 0 0
+
+'ndb_trna_info' 'id' 'TRNANA' ? 2 0 0
+'ndb_trna_info' 'name' 'TRNANA' ? 4 0 0
+'ndb_trna_info' 'num_per_asym_unit' 'TRNANA' ? 5 0 0
+
+'struct_site' 'id' 'SITELS' ? 3 1 0
+'struct_site' 'details' 'SITELS' ? 4 0 0
+
+'struct_site_keywords' 'site_id' 'DBIND' ? 5 1 1
+'struct_site_keywords' 'text'  'DBIND' ? 4  0 1
+
+'struct_site_gen' 'id' 'SITE' ? 2 1 0
+'struct_site_gen' 'site_id' 'SITE' ? 3 0 0
+'struct_site_gen' 'ndb_num_res' 'SITE' ? 4 0 0
+'struct_site_gen' 'label_comp_id' 'SITE' ? 5 0 0
+'struct_site_gen' 'label_asym_id' 'SITE' ? 6 0 0
+'struct_site_gen' 'label_seq_id' 'SITE' ? 7 0 0
+'struct_site_gen' 'ndb_label_ins_code' 'SITE' ? 8 0 0
+'struct_site_gen' 'auth_comp_id' 'SITE' ? 5 0 0
+'struct_site_gen' 'auth_asym_id' 'SITE' ? 6 0 0
+'struct_site_gen' 'auth_seq_id' 'SITE' ? 7 0 0
+'struct_site_gen' 'label_atom_id' ? ? ?  0 0
+'struct_site_gen' 'label_alt_id' ? ? ?  0 0
+'struct_site_gen' 'symmetry' ? ? ?  0 0
+'struct_site_gen' 'details' ? ? ? 0 0
+
+'ndb_hybrid' 'id' 'HYBRID' ? 2 1 0
+'ndb_hybrid' 'sugar_name' 'HYBRID' ? 4 0 0
+'ndb_hybrid' 'strand_id' 'HYBRID' ? 5 0 0
+'ndb_hybrid' 'residue_names' 'HYBRID' ? 6 0 0
+
+'exptl_crystal_grow' 'crystal_id'  'CRMETH' ? 5 0 1
+'exptl_crystal_grow' 'method' 'CRMETH' ? 3 0 1
+'exptl_crystal_grow' 'temp' 'CRTEMP' ? 2 0 1
+'exptl_crystal_grow' 'temp_details' 'CRTEMP' ? 4 0 1
+'exptl_crystal_grow' 'pH' 'PHVAL' ? 2 0 1
+'exptl_crystal_grow' 'rcsb_pH_range' 'PHVAL' ? 2 0 1
+'exptl_crystal_grow' 'rcsb_details' 'CRDTLS' ? 3 0 1
+
+'exptl_crystal_grow_comp' 'crystal_id'  'CRSOLU' ? 3  0 1
+'exptl_crystal_grow_comp' 'id'   'CRSOLU' ? 2 0 1
+'exptl_crystal_grow_comp' 'sol_id'   'CRSOLU' ? 4 0 1  
+'exptl_crystal_grow_comp' 'name'   'CRSOLU' ? 5 0 1
+
+'exptl_crystal_grow_comp' 'volume'   ? ? ? 0 0
+'exptl_crystal_grow_comp' 'conc'   ? ? ? 0 0
+'exptl_crystal_grow_comp' 'details'   ? ? ? 0 0
+
+#'exptl_crystal_grow_comp' 'ndb_solv' 'CRSOLV' ? 3 0 0
+#'exptl_crystal_grow_comp' 'ndb_salt' 'CRSALT' ? 3 0 0
+#'exptl_crystal_grow_comp' 'ndb_bath' 'CRBATH' ? 3 0 0
+#'exptl_crystal_grow_comp' 'ndb_soak_solv' 'SOAKSV' ? 3 0 0
+#'exptl_crystal_grow_comp' 'ndb_soak_salt' 'SOAKSA' ? 3 0 0
+
+'exptl_crystal' 'id' ? ? ? 0 1
+'exptl_crystal' 'density_meas' 'DENSTY' ? 2 0 1
+'exptl_crystal' 'density_matthews' 'DENSTY' ? 3 0 1
+'exptl_crystal' 'density_percent_sol' 'PERWAT' ? 2 0 1
+'exptl_crystal' 'description' 'CRMET1' ? 3 0 0
+
+'diffrn' 'id'  'DTTEMP' ? 5 1 1
+'diffrn' 'ambient_temp' 'DTTEMP' ? 2  0 1
+'diffrn' 'ambient_temp_details' 'DTTEMP' ? 4 0 1
+
+'diffrn_detector' 'diffrn_id'   'DTTEMP' ? 5 1 1
+'diffrn_detector' 'detector' 'DTMETH' ? 4 0 1
+'diffrn_detector' 'type' 'DTMETH' ? 3 0 1
+'diffrn_detector' 'ndb_collection_date' 'DTMEAS' ? 2 0 1
+'diffrn_detector' 'details'  'RADIAT' ? 5 0 1 
+
+'diffrn_source' 'diffrn_id' 'DTTEMP' ? 5 1 1
+'diffrn_source' 'ndb_synchrotron_y_n' 'DTMETH' ? 2 0 1 
+'diffrn_source' 'source' 'DTMETH' ? 5 0 1
+'diffrn_source' 'type' 'RADIAT' ? 6 0 1
+'diffrn_source' 'ndb_synchrotron_site' 'DTMEAS' ? 3 0 1
+'diffrn_source' 'ndb_synchrotron_beamline' 'DTMEAS' ? 4 0 1 
+'diffrn_source' 'rcsb_wavelength' 'WAVLEN' ? 3 0 1
+'diffrn_source' 'rcsb_wavelength_list' 'WAVLEN' ? 4 0 1
+
+'diffrn_radiation' 'diffrn_id'   'DTWAVE' ? 3 1 1
+'diffrn_radiation' 'wavelength_id'   'DTWAVE' ? 2 1 1
+'diffrn_radiation' 'ndb_monochromatic_or_laue_m_l' 'RADIAT' ? 3 0 1 
+'diffrn_radiation' 'monochromator' 'RADIAT' ? 4 0 1
+'diffrn_radiation' 'rcsb_diffrn_protocol' 'DIFPTL' ? 3 0 1
+
+'diffrn_radiation_wavelength' 'id'   'DTWAVE' ? 2 1 1
+'diffrn_radiation_wavelength' 'wavelength' 'DTWAVE'   ? 4 0 1
+
+'reflns' 'entry_id' 'HEADER' ? 4 1 1
+'reflns' 'observed_criterion_sigma_I' 'REFLEC' ? 3 0 1 
+'reflns' 'observed_criterion_sigma_F' 'REFLEC' ? 4 0 1 
+'reflns' 'd_resolution_low' 'RESTOT' ? 2 0 1 
+'reflns' 'd_resolution_high' 'RESTOT' ? 3 0  1
+'reflns' 'number_obs' 'REFLEC' ? 5 0  1
+'reflns' 'number_all' 'RESTOT' ? 5 0  1
+'reflns' 'percent_possible_obs' 'PERCOM' ? 2 0 1
+#'reflns' 'percent_possible_all' 'PERCOM' ? 2 0 1
+'reflns' 'ndb_Rmerge_I_obs' 'RESTOT' ? 6 0 1 
+'reflns' 'ndb_Rsym_value' 'RESTOT' ? 8 0 1
+'reflns' 'ndb_netI_over_av_sigmaI' 'RESTOT' ? 9 0 1 
+'reflns' 'B_iso_Wilson_estimate' 'BVALUE' ?  3 0 1  
+#'reflns' 'R_free_details' 'FREERF' ? 3 0 1 
+'reflns' 'ndb_redundancy' 'RESTOT' ? 7 0 1
+
+'reflns_shell' 'd_res_high' 'SHELC' ? 2 0 0
+'reflns_shell' 'd_res_low'  'SHELC' ? 3 0 0 
+'reflns_shell' 'percent_possible_all'  'SHELC' ? 4 0  0
+'reflns_shell' 'Rmerge_I_obs'  'SHELC' ? 6 0 0 
+'reflns_shell' 'ndb_Rsym_value'  'SHELC' ? 8 0 0 
+'reflns_shell' 'meanI_over_sigI_obs' 'SHELC' ? 7 0 0 
+#'refine_ls_shell' 'redundancy_reflns_obs'  'SHELC' ? 5 0 0 
+'reflns_shell' 'ndb_redundancy' 'SHELC' ? 5 0 0
+
+'computing' 'entry_id' 'HEADER' ? 4 1 1
+'computing' 'data_collection'  'DTMEAS' ? 5  0 1  #original 'diffrn_measurement' 'ndb_intens_integr_software'
+'computing' 'data_reduction' 'DTMEAS' ? 6  0 1 #original 'ndb_data_scaling_software'
+'computing' 'structure_solution'  'DTMEA1' ? 2  0 1 
+'computing' 'structure_refinement' 'REFMET' ? 4 0  1
+'computing' 'ndb_structure_refinement_method' 'REFMET' ? 3 0 1 
+
+'symmetry' 'entry_id' 'HEADER' ? 4 1 1
+'symmetry' 'space_group_name_H-M' 'CRYST1' ? 8  0  1
+'symmetry' 'ndb_full_space_group_name_H-M' 'CRYST1' ? 11  0 1 
+'symmetry' 'cell_setting'  'CRYST1' ? 12 0 0
+'symmetry' 'Int_Tables_number' 'CRYST1' ? 13 0 0
+
+'cell'  'entry_id' 'HEADER' ? 4 1 1
+'cell' 'length_a' 'CRYST1' ? 2 0  1
+'cell' 'length_b' 'CRYST1' ? 3 0  1
+'cell' 'length_c' 'CRYST1' ? 4 0  1
+'cell' 'angle_alpha' 'CRYST1' ? 5 0  1
+'cell' 'angle_beta' 'CRYST1' ? 6 0  1
+'cell' 'angle_gamma' 'CRYST1' ? 7 0  1
+'cell' 'Z_PDB' 'CRYST1' ? 9 0  1
+'cell' 'ndb_unique_axis' 'CRYST1' ? 10 0 0
+#'cell' 'volume' ? ? ? 0 0 
+#'cell' 'details' ? ? ? 0  0
+
+'refine' 'entry_id' 'HEADER' ? 4 1 1
+'refine' 'ls_number_reflns_obs' 'RFACTR' ? 3 0  1
+'refine' 'ls_number_reflns_all' 'RNOCUT' ? 7 0  1        #new add
+'refine' 'ndb_ls_sigma_I' 'RFACTR' ? 4 0 1 
+'refine' 'ndb_ls_sigma_F' 'RFACTR' ? 5 0 1 
+'refine' 'ndb_data_cutoff_high_absF' 'RFACTR' ? 12 0 1   #new
+'refine' 'ndb_data_cutoff_low_absF' 'RFACTR' ? 10 0 1    #new
+'refine' 'rcsb_data_cutoff_high_rms_absF' 'RFACTR' ? 13 0 1
+'refine' 'ls_d_res_low' 'RFACTR' ? 6 0  1
+'refine' 'ls_d_res_high' 'RFACTR' ? 7 0 1 
+'refine' 'ls_percent_reflns_obs' 'PERCOM' ? 3 0 1 
+'refine' 'ls_R_factor_obs' 'RFACTR' ? 8 0  1
+'refine' 'ls_R_factor_all' 'RFACTR' ? 9 0 1 
+'refine' 'ls_R_factor_R_work' 'RFACTR' ? 11 0  1
+#
+#
+#'refine' 'ls_R_factor_R_work' 'RFACTR' ? 8 0  1
+#'refine' 'ls_R_factor_obs' 'RFACTR' ? 9 0 1
+#'refine' 'ls_R_factor_all' 'RFACTR' ? 11 0  1
+#
+#
+'refine' 'ls_R_factor_R_free' 'FREERF' ? 2 0 1 
+'refine' 'ls_R_factor_R_free_error' 'FREERF' ? 6 0 1 
+'refine' 'ls_R_factor_R_free_error_details' ? ? ? ? ?
+'refine' 'ls_percent_reflns_R_free' 'FREERF' ? 4 0 1 
+'refine' 'ls_number_reflns_R_free'  'FREERF' ? 5 0 1 
+'refine' 'ls_number_parameters'   'REFINE' ?  2 0 1 
+'refine' 'ls_number_restraints'  'REFINE' ?  3 0 1 
+#'refine' 'ls_redundancy_reflns_obs' 'RESTOT' ? 7 0 1
+'refine' 'occupancy_min' 'TRTMNT' ? 11 0 0 
+'refine' 'occupancy_max' 'TRTMNT' ? 12 0 0 
+'refine' 'correlation_coeff_Fo_to_Fc' 'COFOFC' ? 2 0 1
+'refine' 'correlation_coeff_Fo_to_Fc_free' 'COFOFC' ? 3 0 1
+'refine' 'B_iso_mean' 'BVALUE' ?  2 0 1 
+'refine' 'aniso_B[1][1]' 'BVALUE' ?  4 0 1 
+'refine' 'aniso_B[2][2]' 'BVALUE' ? 5 0 1 
+'refine' 'aniso_B[3][3]' 'BVALUE' ? 6 0 1 
+'refine' 'aniso_B[1][2]' 'BVALUE' ? 7 0 1 
+'refine' 'aniso_B[1][3]' 'BVALUE' ? 8 0 1 
+'refine' 'aniso_B[2][3]' 'BVALUE' ? 9 0 1 
+'refine' 'solvent_model_details'    'SOLMOD' ? 2 0 1 
+'refine' 'solvent_model_param_ksol' 'SOLMOD' ? 3 0 1 
+'refine' 'solvent_model_param_bsol' 'SOLMOD' ? 4 0 1 
+'refine' 'ccp4_solvent_vdw_probe_radii'  'SOLMOD' ? 5 0 1
+'refine' 'ccp4_solvent_ion_probe_radii'  'SOLMOD' ? 6 0 1
+'refine' 'ccp4_solvent_shrinkage_radii'   'SOLMOD' ? 7 0 1
+'refine' 'ndb_ls_cross_valid_method' 'FREERF' ? 7 0 1 
+'refine' 'details' 'REFREM' ? 3 0 1 
+'refine' 'ndb_starting_model' 'XFILE2' ? 2 0 1 
+'refine' 'ndb_method_to_determine_struct' 'XFILE1' ? 3 0  1
+'refine' 'ndb_isotropic_thermal_model' 'RMSGEN' ? 7 0 1 
+'refine' 'ndb_stereochemistry_target_values' 'XFILE3'  ? 2 0  1
+'refine' 'ndb_stereochem_target_val_spec_case' 'XFILE3'  ? 3 0  1
+'refine' 'ndb_R_Free_selection_details' 'FREERF' ? 3 0 1 
+'refine' 'rcsb_overall_ESU_R' 'REFESU' ? 2 0 1
+'refine' 'rcsb_overall_ESU_R_Free' 'REFESU' ? 3 0 1
+'refine' 'ebi_overall_ESU_ML' 'REFESU' ? 4 0 1
+'refine' 'ebi_overall_ESU_B' 'REFESU' ? 5 0 1
+
+'ndb_refine' 'entry_id' 'HEADER' ? 4 1 1
+'ndb_refine' 'R_factor_all_no_cutoff' 'RNOCUT' ? 2 0 1 
+'ndb_refine' 'R_factor_obs_no_cutoff' 'RNOCUT' ? 3 0 1 
+'ndb_refine' 'free_R_factor_no_cutoff' 'RNOCUT' ? 4 0  1
+'ndb_refine' 'free_R_val_test_set_size_perc_no_cutoff' 'RNOCUT' ? 5 0 1 
+'ndb_refine' 'free_R_val_test_set_ct_no_cutoff' 'RNOCUT' ? 6 0 1 
+#'ndb_refine' 'number_reflns_obs_no_cutoff' 'RNOCUT' ? 7 0  1
+'ndb_refine' 'R_factor_all_4sig_cutoff' 'R4SCUT' ? 2 0 1 
+'ndb_refine' 'R_factor_obs_4sig_cutoff' 'R4SCUT' ? 3 0 1 
+'ndb_refine' 'free_R_factor_4sig_cutoff' 'R4SCUT' ? 4 0  1
+'ndb_refine' 'free_R_val_test_set_size_perc_4sig_cutoff' 'R4SCUT' ? 5 0 1 
+'ndb_refine' 'free_R_val_test_set_ct_4sig_cutoff' 'R4SCUT' ? 6 0 1 
+'ndb_refine' 'number_reflns_obs_4sig_cutoff' 'R4SCUT' ? 7 0 1 
+
+'refine_analyze' 'entry_id' 'HEADER' ? 4 1 1
+'refine_analyze' 'Luzzati_coordinate_error_obs' 'REFERR' ? 2 0 1 
+'refine_analyze' 'Luzzati_sigma_a_obs' 'REFERR' ? 3 0  1
+'refine_analyze' 'Luzzati_d_res_low_obs' 'REFERR' ? 4 0  1
+'refine_analyze' 'Luzzati_coordinate_error_free' 'REFERR' ? 5 0  1
+'refine_analyze' 'Luzzati_sigma_a_free' 'REFERR' ? 6 0  1
+'refine_analyze' 'Luzzati_d_res_low_free' 'REFERR' ? 7 0  1
+'refine_analyze' 'number_disordered_residues'   'REFINE' ? 4       0 1 
+'refine_analyze' 'occupancy_sum_hydrogen'  'REFINE' ? 6  0 1 
+'refine_analyze' 'occupancy_sum_non_hydrogen'  'REFINE' ? 5  0 1 
+
+'refine_occupancy' 'class' 'TRTMNT' ? 4 1 0
+'refine_occupancy' 'treatment' 'TRTMNT' ? 10 0 0 
+
+'refine_ls_shell' 'ndb_total_number_of_bins_used' 'SHELL' ? 12  0 1 
+'refine_ls_shell' 'd_res_high' 'SHELL' ? 2  0 1 
+'refine_ls_shell' 'd_res_low' 'SHELL' ? 3 0 1 
+'refine_ls_shell' 'number_reflns_R_work' 'SHELL' ? 5  0 1 
+'refine_ls_shell' 'R_factor_R_work' 'SHELL' ? 6 0 1 
+'refine_ls_shell' 'percent_reflns_obs' 'SHELL' ? 4 0 1 
+#'refine_ls_shell' 'redundancy_reflns_obs'  'SHELC' ? 5 0 0 
+#'refine_ls_shell' 'number_reflns_R_free' 'SHELL' ? 11 0 1 
+'refine_ls_shell' 'R_factor_R_free' 'SHELL' ? 7 0 1 
+'refine_ls_shell' 'R_factor_R_free_error' 'SHELL' ? 10 0 1   #???'ndb_R_val_estimated_error'
+'refine_ls_shell' 'percent_reflns_R_free' 'SHELL' ? 8 0 1 
+'refine_ls_shell' 'number_reflns_R_free' 'SHELL' ? 9 0 1 
+
+'refine_B_iso' 'class' 'TRTMNT' ? 4 1 0
+'refine_B_iso' 'ndb_residue_name' 'TRTMNT' ? 5 0 0 
+'refine_B_iso' 'ndb_strand' 'TRTMNT' ? 6 0 0 
+'refine_B_iso' 'ndb_residue_num' 'TRTMNT' ? 7  0 0 
+'refine_B_iso' 'details' 'TRTMNT' ? 8 0 0 
+'refine_B_iso' 'treatment' 'TRTMNT' ? 9 0  0
+
+'struct_sheet'  'id'  'SHEET' ? 3 0 0 
+'struct_sheet'  'type'  'SHEET' ? ? 0 0 
+'struct_sheet'  'number_strands'  'SHEET' ? 4  0 0 
+'struct_sheet'  'details'  'SHEET' ? ? 0 0 
+
+'struct_sheet_order' 'sheet_id'  'SHEET' ? 3  1 0
+'struct_sheet_order' 'range_id_1'  'SHEET' ? 2 1 0 
+'struct_sheet_order' 'range_id_2'  'SHEET' ? 2 1 0
+'struct_sheet_order' 'offset'  ? ? ? 0  0
+'struct_sheet_order' 'sense'   'SHEET' ?  13 0 0 
+
+'struct_sheet_range' 'sheet_id'  'SHEET' ? 3 1 0
+'struct_sheet_range' 'id'  'SHEET' ? 2 1 0
+'struct_sheet_range' 'beg_label_comp_id'  'SHEET' ? 5 0 0
+'struct_sheet_range' 'beg_label_asym_id'  'SHEET' ? 6 0 0 
+'struct_sheet_range' 'beg_label_seq_id'  'SHEET' ? 7 0 0 
+'struct_sheet_range' 'ndb_beg_label_ins_code_pdb'  'SHEET' ? 8 0 0 
+'struct_sheet_range' 'end_label_comp_id'  'SHEET' ? 9 0 0 
+'struct_sheet_range' 'end_label_asym_id'  'SHEET' ? 10 0 0 
+'struct_sheet_range' 'end_label_seq_id'  'SHEET' ? 11 0 0 
+'struct_sheet_range' 'ndb_end_label_ins_code_pdb'  'SHEET' ? 12 0 0 
+'struct_sheet_range' 'symmetry'  'SHEET' ? ? 0 0 
+#
+'struct_sheet_range' 'beg_auth_comp_id'  'PSHET' ? 5 0 0
+'struct_sheet_range' 'beg_auth_asym_id'  'PSHET' ? 6 0 0 
+'struct_sheet_range' 'beg_auth_seq_id'  'PSHET' ? 7 0 0 
+'struct_sheet_range' 'end_auth_comp_id'  'PSHET' ? 9 0 0 
+'struct_sheet_range' 'end_auth_asym_id'  'PSHET' ? 10 0 0 
+'struct_sheet_range' 'end_auth_seq_id'  'PSHET' ? 11 0 0 
+
+'struct_sheet_hbond' 'sheet_id'  'SHEET' ? 3 1 0
+'struct_sheet_hbond' 'range_id_1'  'SHEET' ? 2 1 0
+'struct_sheet_hbond' 'range_1_beg_label_atom_id'  'SHEET' ? 14 0 0 
+'struct_sheet_hbond' 'ndb_range_1_beg_label_comp_id'  'SHEET' ? 15  0 0 
+'struct_sheet_hbond' 'ndb_range_1_beg_label_asym_id'  'SHEET' ? 16 0 0 
+'struct_sheet_hbond' 'range_1_beg_label_seq_id'  'SHEET' ? 17 0 0 
+'struct_sheet_hbond' 'ndb_range_1_beg_label_ins_code' 'SHEET' ? 18 0 0 
+
+'struct_sheet_hbond' 'ndb_range_1_beg_auth_comp_id'  'PSHET' ? 15  0 0 
+'struct_sheet_hbond' 'ndb_range_1_beg_auth_asym_id'  'PSHET' ? 16 0 0 
+'struct_sheet_hbond' 'range_1_beg_auth_seq_id'  'PSHET' ? 17 0 0 
+
+# 'struct_sheet_hbond' 'range_2_beg_label_atom_id' ? ? ?   0  0
+				#need to talk about
+                            #it: in pdb: single h-bonds, in mmcif beginning and end ??
+# 'struct_sheet_hbond' 'ndb_range_2_beg_label_comp_id'  ? ? ? 0 0 
+# 'struct_sheet_hbond' 'ndb_range_2_beg_label_asym_id'  ? ? ? 0 0 
+# 'struct_sheet_hbond' 'range_2_beg_label_seq_id'   ? ? ? 0 0 
+# 'struct_sheet_hbond' 'ndb_range_2_beg_label_ins_code'  ? ? ? 0 0 
+
+'struct_sheet_hbond' 'range_1_end_label_atom_id'  'SHEET' ? 19 0 0 
+'struct_sheet_hbond' 'ndb_range_1_end_label_comp_id'  'SHEET' ? 20 0 0 
+'struct_sheet_hbond' 'ndb_range_1_end_label_asym_id'  'SHEET' ? 21 0 0 
+'struct_sheet_hbond' 'range_1_end_label_seq_id'  'SHEET' ? 22 0 0 
+'struct_sheet_hbond' 'ndb_range_1_end_label_ins_code' 'SHEET' ? 23 0 0 
+
+'struct_sheet_hbond' 'ndb_range_1_end_auth_comp_id'  'PSHET' ? 20 0 0 
+'struct_sheet_hbond' 'ndb_range_1_end_auth_asym_id'  'PSHET' ? 21 0 0 
+'struct_sheet_hbond' 'range_1_end_auth_seq_id'  'PSHET' ? 22 0 0 
+
+# 'struct_sheet_hbond' 'ndb_range_2_end_label_comp_id'   ? ? ? 0 0 
+# 'struct_sheet_hbond' 'ndb_range_2_end_label_asym_id'   ? ? ? 0 0 
+# 'struct_sheet_hbond' 'range_2_end_label_seq_id'   ? ? ? 0  0
+# 'struct_sheet_hbond' 'ndb_range_2_end_label_ins_code'  ? ? ? 0 0 
+#
+'rcsb_struct_sheet_hbond' 'sheet_id'   'SHEET' ? 3 1 0
+'rcsb_struct_sheet_hbond' 'range_id_1' ?       ? ? 0 0
+'rcsb_struct_sheet_hbond' 'range_id_2' 'SHEET' ? 2 1 0
+'rcsb_struct_sheet_hbond' 'range_1_label_atom_id' 'SHEET' ? 19 0 0 
+'rcsb_struct_sheet_hbond' 'range_1_label_comp_id' 'SHEET' ? 20 0 0 
+'rcsb_struct_sheet_hbond' 'range_1_label_asym_id' 'SHEET' ? 21 0 0 
+'rcsb_struct_sheet_hbond' 'range_1_label_seq_id'  'SHEET' ? 22 0 0 
+'rcsb_struct_sheet_hbond' 'range_1_PDB_ins_code'  'SHEET' ? 23 0 0 
+
+'rcsb_struct_sheet_hbond' 'range_1_auth_atom_id'  'PSHET' ? 19 0 0
+'rcsb_struct_sheet_hbond' 'range_1_auth_comp_id'  'PSHET' ? 20 0 0 
+'rcsb_struct_sheet_hbond' 'range_1_auth_asym_id'  'PSHET' ? 21 0 0 
+'rcsb_struct_sheet_hbond' 'range_1_auth_seq_id'   'PSHET' ? 22 0 0 
+
+'rcsb_struct_sheet_hbond' 'range_2_label_atom_id' 'SHEET' ? 14 0 0 
+'rcsb_struct_sheet_hbond' 'range_2_label_comp_id' 'SHEET' ? 15 0 0 
+'rcsb_struct_sheet_hbond' 'range_2_label_asym_id' 'SHEET' ? 16 0 0 
+'rcsb_struct_sheet_hbond' 'range_2_label_seq_id'  'SHEET' ? 17 0 0 
+'rcsb_struct_sheet_hbond' 'range_2_PDB_ins_code'  'SHEET' ? 18 0 0 
+
+'rcsb_struct_sheet_hbond' 'range_2_auth_atom_id'  'PSHET' ? 14 0 0
+'rcsb_struct_sheet_hbond' 'range_2_auth_comp_id'  'PSHET' ? 15 0 0 
+'rcsb_struct_sheet_hbond' 'range_2_auth_asym_id'  'PSHET' ? 16 0 0 
+'rcsb_struct_sheet_hbond' 'range_2_auth_seq_id'   'PSHET' ? 17 0 0 
+#
+'refine_ls_restr_ncs' 'dom_id' 'NCSMOD' ? 2 0 1
+'refine_ls_restr_ncs' 'ncs_model_details' 'XFILES' ? 5 0  1
+'refine_ls_restr_ncs' 'rms_dev_position'  'NCSMOD' ? 3 0 1 
+'refine_ls_restr_ncs' 'weight_position'  'NCSMOD' ? 4 0  1
+'refine_ls_restr_ncs' 'rms_dev_B_iso' 'NCSMOD' ? 5 0  1
+'refine_ls_restr_ncs' 'weight_B_iso' 'NCSMOD' ? 6 0 1 
+
+'ndb_xplor_file' 'serial_no' 'XFILES' ? 2 0 1
+'ndb_xplor_file' 'param_file' 'XFILES' ? 3 0  1
+'ndb_xplor_file' 'topol_file' 'XFILES' ? 4 0 1 
+
+'refine_ls_restr' 'type' ? ? ? 0 1
+'refine_ls_restr' 'dev_ideal' ? ? ? 0 1 
+'refine_ls_restr' 'dev_ideal_target' ? ? ? 0 1 
+'refine_ls_restr' 'weight' ? ? ? 0 1 
+'refine_ls_restr' 'number' ? ? ? 0 1 
+#'refine_ls_restr' 'criterion' ? ? ? 0  1
+#'refine_ls_restr' 'rejects' ? ? ? 0  1
+
+'struct_ref' 'id' 'DBREF' ? 16 1 0 
+'struct_ref' 'db_name' 'DBREF' ? 8 0 0 
+'struct_ref' 'db_code' 'DBREF' ? 10 0 0 
+'struct_ref' 'entity_id'  ?    ?  ? ? ?
+'struct_ref' 'rcsb_seq_one_letter_code' ? ? ? ? ?
+'struct_ref' 'rcsb_align_begin' ? ? ? ? ?
+'struct_ref' 'biol_id' ?    ?  ? ? ?
+
+'struct_ref_seq' 'align_id' 'DBREF' ? 15 1 0 
+'struct_ref_seq' 'ref_id' 'DBREF' ? 16 0 0
+'struct_ref_seq' 'ndb_pdb_id_code' 'DBREF' ? 2  0 0 
+'struct_ref_seq' 'ndb_chain_id' 'DBREF' ? 3 0 0 
+'struct_ref_seq' 'seq_align_beg' 'DBREF' ? 4 0 0 
+'struct_ref_seq' 'ndb_seq_align_beg_ins_code' 'DBREF' ? 5 0 0 
+'struct_ref_seq' 'seq_align_end' 'DBREF' ? 6 0 0 
+'struct_ref_seq' 'ndb_seq_align_end_ins_code' 'DBREF' ? 7 0  0
+'struct_ref_seq' 'ndb_db_accession' 'DBREF' ? 9 0 0 
+'struct_ref_seq' 'db_align_beg' 'DBREF' ? 11 0  0
+'struct_ref_seq' 'ndb_db_align_beg_ins_code' 'DBREF' ? 12 0 0 
+'struct_ref_seq' 'db_align_end' 'DBREF' ? 13 0 0 
+'struct_ref_seq' 'ndb_db_align_end_ins_code' 'DBREF' ? 14 0 0 
+
+'struct_ref_seq_dif' 'align_id'  'SEQADV' ? 12 0 0 
+'struct_ref_seq_dif' 'ndb_pdb_id_code' 'SEQADV' ? 2 0 0 
+'struct_ref_seq_dif' 'mon_id'  'SEQADV' ? 3 0 0     
+'struct_ref_seq_dif' 'ndb_pdb_chain_id' 'SEQADV' ? 4 0 0 
+'struct_ref_seq_dif' 'seq_num'   'SEQADV' ? 5 0 0      
+'struct_ref_seq_dif' 'ndb_pdb_ins_code' 'SEQADV' ? 6 0 0 
+'struct_ref_seq_dif' 'ndb_seq_db_name' 'SEQADV' ? 7 0 0 
+'struct_ref_seq_dif' 'ndb_seq_db_accession_code' 'SEQADV' ? 8 0 0 
+'struct_ref_seq_dif' 'db_mon_id'  'SEQADV' ? 9 0 0  
+'struct_ref_seq_dif' 'ndb_seq_db_seq_num'  'SEQADV' ? 10 0 0 
+'struct_ref_seq_dif' 'details'  'SEQADV' ? 11 0 0 
+
+'database_pdb_tvect' 'id' 'TVECT' ? 2 1 0
+'database_pdb_tvect' 'vector[1]'  'TVECT' ? 3 0  0
+'database_pdb_tvect' 'vector[2]'  'TVECT' ? 4 0 0 
+'database_pdb_tvect' 'vector[3]'  'TVECT' ? 5 0 0 
+'database_pdb_tvect' 'details'  'TVECT' ? 6 0 0 
+
+'database_PDB_caveat' 'id' 'CAVEAT' ? 3 0  0 ##needs to be changed like pdb_remark:
+                                         ##keep the whole pdb record ???
+'database_PDB_caveat' 'text' 'CAVEAT' ? 4 0 0
+
+'database_PDB_matrix' 'entry_id' 'HEADER' ? 4 1 1
+'database_PDB_matrix' 'origx[1][1]' 'ORIGX' ? 2 0 0
+'database_PDB_matrix' 'origx[1][2]' 'ORIGX' ? 3 0 0
+'database_PDB_matrix' 'origx[1][3]' 'ORIGX' ? 4 0 0
+'database_PDB_matrix' 'origx[2][1]' 'ORIGX' ? 2 0 0
+'database_PDB_matrix' 'origx[2][2]' 'ORIGX' ? 3 0 0
+'database_PDB_matrix' 'origx[2][3]' 'ORIGX' ? 4 0 0
+'database_PDB_matrix' 'origx[3][1]' 'ORIGX' ? 2 0 0
+'database_PDB_matrix' 'origx[3][2]' 'ORIGX' ? 3 0 0
+'database_PDB_matrix' 'origx[3][3]' 'ORIGX' ? 4 0 0
+'database_PDB_matrix' 'origx_vector[1]' 'ORIGX' ? 5 0 0
+'database_PDB_matrix' 'origx_vector[2]' 'ORIGX' ? 5 0 0
+'database_PDB_matrix' 'origx_vector[3]' 'ORIGX' ? 5 0 0
+
+'atom_sites' 'entry_id' 'HEADER' ? 4 1 1
+'atom_sites' 'cartn_transform_axes' ? ? ? 0 0
+'atom_sites' 'fract_transf_matrix[1][1]' 'SCALE' ? 2 0 1
+'atom_sites' 'fract_transf_matrix[1][2]' 'SCALE' ? 3 0 1
+'atom_sites' 'fract_transf_matrix[1][3]' 'SCALE' ? 4 0 1
+'atom_sites' 'fract_transf_matrix[2][1]' 'SCALE' ? 2 0 1
+'atom_sites' 'fract_transf_matrix[2][2]' 'SCALE' ? 3 0 1
+'atom_sites' 'fract_transf_matrix[2][3]' 'SCALE' ? 4 0 1
+'atom_sites' 'fract_transf_matrix[3][1]' 'SCALE' ? 2 0 1
+'atom_sites' 'fract_transf_matrix[3][2]' 'SCALE' ? 3 0 1
+'atom_sites' 'fract_transf_matrix[3][3]' 'SCALE' ? 4 0 1
+'atom_sites' 'fract_transf_vector[1]' 'SCALE' ? 5 0 1
+'atom_sites' 'fract_transf_vector[2]' 'SCALE' ? 5 0 1
+'atom_sites' 'fract_transf_vector[3]' 'SCALE' ? 5 0 1 
+#'atom_sites' 'fract_transform_axes' ? ? ? 0 0 
+
+'struct_ncs_dom_lim' 'dom_id' 'STBNCS' ? 3 1 0
+'struct_ncs_dom_lim' 'beg_label_alt_id' ? ? ? 0 0
+'struct_ncs_dom_lim' 'beg_label_asym_id' 'STBNCS' ? 4 0 0
+'struct_ncs_dom_lim' 'beg_label_comp_id' 'STBNCS' ? 5 0 0
+'struct_ncs_dom_lim' 'beg_label_seq_id' 'STBNCS' ? 6 0 0
+'struct_ncs_dom_lim' 'end_label_alt_id' ? ? ? 0 0
+'struct_ncs_dom_lim' 'end_label_asym_id' 'STBNCS' ? 7 0 0
+'struct_ncs_dom_lim' 'end_label_comp_id' 'STBNCS' ? 8 0 0
+'struct_ncs_dom_lim' 'end_label_seq_id' 'STBNCS' ? 9 0 0
+
+'struct_ncs_ens_gen' 'dom_id_1' 'STBNCS' ? 10 0 0
+'struct_ncs_ens_gen' 'dom_id_2' 'STBNCS' ? 3 1 0
+'struct_ncs_ens_gen' 'ens_id' ? ? ? 0 0
+'struct_ncs_ens_gen' 'oper_id' 'STBNCS' ? 11 0 0
+
+'struct_ncs_oper' 'id' 'MTRIX' ? 2   1 0 #used to be 'atom_sites' 
+'struct_ncs_oper' 'code' 'MTRIX' ? 7 0 0 
+'struct_ncs_oper' 'details' ? ? ? 0  0
+'struct_ncs_oper' 'matrix[1][1]' 'MTRIX' ? 3 0 0 
+'struct_ncs_oper' 'matrix[1][2]' 'MTRIX' ? 4 0 0 
+'struct_ncs_oper' 'matrix[1][3]' 'MTRIX' ? 5 0 0 
+'struct_ncs_oper' 'matrix[2][1]' 'MTRIX' ? 3 0 0 
+'struct_ncs_oper' 'matrix[2][2]' 'MTRIX' ? 4 0 0 
+'struct_ncs_oper' 'matrix[2][3]' 'MTRIX' ? 5 0 0 
+'struct_ncs_oper' 'matrix[3][1]' 'MTRIX' ? 3 0 0 
+'struct_ncs_oper' 'matrix[3][2]' 'MTRIX' ? 4 0 0
+'struct_ncs_oper' 'matrix[3][3]' 'MTRIX' ? 5 0 0 
+'struct_ncs_oper' 'vector[1]' 'MTRIX' ? 6 0 0 
+'struct_ncs_oper' 'vector[2]' 'MTRIX' ? 6 0 0 
+'struct_ncs_oper' 'vector[3]' 'MTRIX' ? 6 0 0 
+
+'ndb_virus_matrix' 'id' 'BIOMT' ? 2   1 0
+'ndb_virus_matrix' 'matrix[1][1]' 'BIOMT' ? 3 0 0 
+'ndb_virus_matrix' 'matrix[1][2]' 'BIOMT' ? 4 0 0 
+'ndb_virus_matrix' 'matrix[1][3]' 'BIOMT' ? 5 0 0 
+'ndb_virus_matrix' 'matrix[2][1]' 'BIOMT' ? 3 0 0 
+'ndb_virus_matrix' 'matrix[2][2]' 'BIOMT' ? 4 0 0 
+'ndb_virus_matrix' 'matrix[2][3]' 'BIOMT' ? 5 0 0 
+'ndb_virus_matrix' 'matrix[3][1]' 'BIOMT' ? 3 0 0 
+'ndb_virus_matrix' 'matrix[3][2]' 'BIOMT' ? 4 0 0
+'ndb_virus_matrix' 'matrix[3][3]' 'BIOMT' ? 5 0 0 
+'ndb_virus_matrix' 'vector[1]' 'BIOMT' ? 6 0 0 
+'ndb_virus_matrix' 'vector[2]' 'BIOMT' ? 6 0 0 
+'ndb_virus_matrix' 'vector[3]' 'BIOMT' ? 6 0 0 
+#
+'atom_sites_footnote' 'id' 'FTNOTE' ? 2 0 0 
+'atom_sites_footnote' 'text' 'FTNOTE' ? 3 0 0 
+#
+'atom_site' 'group_PDB' 'ATOMN' ? 1 0 1
+'atom_site' 'id'  'ATOMN' ? 2 1 1
+'atom_site' 'type_symbol' 'ATOMN' ? ? 0 0
+'atom_site' 'label_atom_id' 'ATOMN' ? 3 0  1 
+'atom_site' 'label_alt_id' 'ATOMN' ? 4 0  1 
+
+'atom_site' 'label_comp_id' 'ATOMN' ? 5 0  1 
+'atom_site' 'label_asym_id' 'ATOMN' ? 6 0  1 
+'atom_site' 'label_entity_id' 'ATOMN' ? ?  0 0 
+'atom_site' 'label_seq_id' 'ATOMN' ? ? 0 0 #<---- ?pointer to _entity_poly_seq.num ? 
+                         #it used to be 20   where  _atom_site.auth_seq_id ???= 'ndb_alias_residue_no'
+'atom_site' 'ndb_label_seq_num' 'ATOMN' ? 7 0  1 
+'atom_site' 'ndb_ins_code' 'ATOMN' ? 8 0  1 
+
+'atom_site' 'Cartn_x' 'ATOMN' ? 9 0  1 
+'atom_site' 'Cartn_y' 'ATOMN' ? 10 0  1 
+'atom_site' 'Cartn_z' 'ATOMN' ? 11 0  1 
+'atom_site' 'occupancy' 'ATOMN' ? 12 0  1 
+'atom_site' 'B_iso_or_equiv' 'ATOMN' ? 13 0  1 
+
+'atom_site' 'Cartn_x_esd' 'SIGATM' ? 9 0 0 
+'atom_site' 'Cartn_y_esd' 'SIGATM' ? 10 0 0 
+'atom_site' 'Cartn_z_esd' 'SIGATM' ? 11 0 0 
+'atom_site' 'occupancy_esd' 'SIGATM' ? 12 0 0 
+'atom_site' 'B_iso_or_equiv_esd' 'SIGATM' ? 13 0  0
+
+'atom_site' 'footnote_id' 'ATOMN' ? 14 0 0 
+'atom_site' 'ndb_not_in_asym' 'ATOMN' ? 15 0 0 
+
+#'atom_site' 'ndb_PDB_residue_no' 'ATOMN' ? 16 0  0
+#'atom_site' 'ndb_PDB_residue_name' 'ATOMN' ? 17 0 0
+#'atom_site' 'ndb_PDB_strand_id' 'ATOMN' ? 18 0 0
+#'atom_site' 'ndb_PDB_atom_name' 'ATOMN' ? 19 0 0
+#'atom_site' 'auth_seq_id' 'ATOMN' ? 20 0  0
+#'atom_site' 'auth_comp_id' 'ATOMN' ? 21 0 0
+#'atom_site' 'auth_asym_id' 'ATOMN' ? 22 0 0
+
+'atom_site' 'auth_seq_id' 'ATOMN' ? 16 0  0
+'atom_site' 'auth_comp_id' 'ATOMN' ? 17 0 0 
+'atom_site' 'auth_asym_id' 'ATOMN' ? 18 0 0 
+'atom_site' 'auth_atom_id' 'ATOMN' ? 19 0 0 
+'atom_site' 'ndb_auth_seq_id' 'ATOMN' ? 20 0  0
+'atom_site' 'ndb_auth_comp_id' 'ATOMN' ? 21 0 0 
+'atom_site' 'ndb_auth_asym_id' 'ATOMN' ? 22 0 0 
+'atom_site' 'ndb_auth_atom_name' 'ATOMN' ? 23 0 0
+
+'atom_site' 'ndb_model' 'MODEL' ? 2 0 0
+#
+'atom_site_anisotrop' 'id' 'ANISOU' ? 2 1 1
+'atom_site_anisotrop' 'type_symbol' 'ANISOU' ? ? 0 0
+'atom_site_anisotrop' 'ndb_label_atom_id' 'ANISOU' ? 3 0 1 
+'atom_site_anisotrop' 'ndb_label_alt_id'  'ANISOU' ? 4 0 1 
+'atom_site_anisotrop' 'ndb_label_comp_id'  'ANISOU' ? 5  0 1 
+'atom_site_anisotrop' 'ndb_label_asym_id'  'ANISOU' ? 6  0 1 
+'atom_site_anisotrop' 'ndb_label_seq_num'  'ANISOU' ? 7 0 1 
+'atom_site_anisotrop' 'ndb_label_ins_code'  'ANISOU' ? 8 0 1 
+'atom_site_anisotrop' 'U[1][1]' 'ANISOU' ? 9 0  1
+'atom_site_anisotrop' 'U[1][2]' 'ANISOU' ? 10 0  1
+'atom_site_anisotrop' 'U[1][3]' 'ANISOU' ? 11 0  1
+'atom_site_anisotrop' 'U[2][2]' 'ANISOU' ? 12 0  1
+'atom_site_anisotrop' 'U[2][3]' 'ANISOU' ? 13 0  1
+'atom_site_anisotrop' 'U[3][3]' 'ANISOU' ? 14 0 1 
+'atom_site_anisotrop' 'U[1][1]_esd' 'SIGUIJ' ? 9 0 0
+'atom_site_anisotrop' 'U[1][2]_esd' 'SIGUIJ' ? 10 0 0 
+'atom_site_anisotrop' 'U[1][3]_esd' 'SIGUIJ' ? 11 0 0 
+'atom_site_anisotrop' 'U[2][2]_esd' 'SIGUIJ' ? 12 0 0 
+'atom_site_anisotrop' 'U[2][3]_esd' 'SIGUIJ' ? 13 0 0 
+'atom_site_anisotrop' 'U[3][3]_esd' 'SIGUIJ' ? 14 0  0
+'atom_site_anisotrop' 'ndb_not_in_asym' 'ANISOU' ? 15 0 0 
+'atom_site_anisotrop' 'ndb_PDB_residue_no'  'ANISOU' ? 16 0 0 
+'atom_site_anisotrop' 'ndb_PDB_residue_name'  'ANISOU' ? 17 0  0
+'atom_site_anisotrop' 'ndb_PDB_strand_id'  'ANISOU' ? 18 0  0
+'atom_site_anisotrop' 'ndb_PDB_atom_name'  'ANISOU' ? 19 0 0 
+'atom_site_anisotrop' 'ndb_auth_seq_id'  'ANISOU' ? 20 0 0 
+'atom_site_anisotrop' 'ndb_auth_comp_id'  'ANISOU' ? 21 0 0 
+'atom_site_anisotrop' 'ndb_auth_asym_id'  'ANISOU' ? 22 0 0 
+'atom_site_anisotrop' 'ndb_auth_atom_name'  'ANISOU' ? 23 0 0 
+
+'refln' 'wavelength_id' 'DTMETH' ? 7 1 1
+'refln' 'crystal_id'  ? ? ? 1 1
+'refln' 'scale_group_code'  ? ? ? 1 1 
+'refln' 'index_h' 'STRFAC' ? 2 0 1 
+'refln' 'index_k' 'STRFAC' ? 3 0 1 
+'refln' 'index_l' 'STRFAC' ? 4 0 1 
+'refln' 'F_meas_au' 'STRFAC' ? 5 0 1 
+'refln' 'F_calc_au' 'STRFAC' ? 6 0 1 
+'refln' 'phase_calc' 'STRFAC' ? 7 0 1 
+#'refln' 'F_meas_au_sigma' 'STRFAC' ? 8 0 1 
+'refln' 'F_meas_sigma_au' 'STRFAC' ? 8 0 1
+'refln' 'status' 'STRFAC' ? 9 0 1 
+'refln' 'intensity_meas' 'STRFAC' ? 10 0 1 
+'refln' 'intensity_calc' 'STRFAC' ? 11 0 1 
+'refln' 'intensity_sigma' 'STRFAC' ? 12 0 1 
+'refln' 'ndb_anomalous_diff' 'STRFAC' ? 13 0 1 
+'refln' 'ndb_anomalous_diff_sigma' 'STRFAC' ? 14 0 1 
+ 
+'rcsb_nmr_software' 'classification' 'SFTWAR' ? 3 0 1
+'rcsb_nmr_software' 'name' 'SFTWAR' ? 4 0 1
+'rcsb_nmr_software' 'version' 'SFTWAR' ? 5 0 1
+'rcsb_nmr_software' 'authors' 'SFTWAR' ? 6 0 1
+
+'rcsb_nmr_exptl_sample_conditions' 'conditions_id' 'NMRSMP' ? 2 0 1
+#'rcsb_nmr_exptl_sample_conditions' 'solution_id' 'NMRSMP' ? 3 0 1
+'rcsb_nmr_exptl_sample_conditions' 'temperature' 'NMRSMP' ? 4 0 1
+'rcsb_nmr_exptl_sample_conditions' 'pressure_units' 'NMRSMP' ? 8 0 1
+'rcsb_nmr_exptl_sample_conditions' 'pressure' 'NMRSMP' ? 5 0 1
+'rcsb_nmr_exptl_sample_conditions' 'pH' 'NMRSMP' ? 6 0 1
+'rcsb_nmr_exptl_sample_conditions' 'ionic_strength' 'NMRSMP' ? 7 0 1
+
+'rcsb_nmr_sample_details' 'solution_id' 'NMRSDT' ? 2 0 1
+'rcsb_nmr_sample_details' 'contents' 'NMRSDT' ? 3 0 1
+
+'rcsb_nmr_exptl' 'experiment_id' 'NMREXP' ? 2 0 1
+'rcsb_nmr_exptl' 'conditions_id' 'NMREXP' ? 3 0 1
+'rcsb_nmr_exptl' 'type' 'NMREXP' ? 4 0 1
+'rcsb_nmr_exptl' 'solution_id' 'NMREXP' ? 5 0 1
+
+'rcsb_nmr_spectrometer' 'spectrometer_id' 'NMRSPM' ? 2 0 1
+'rcsb_nmr_spectrometer' 'model' 'NMRSPM' ? 3 0 1
+'rcsb_nmr_spectrometer' 'manufacturer' 'NMRSPM' ? 4 0 1
+'rcsb_nmr_spectrometer' 'field_strength' 'NMRSPM' ? 5 0 1
+
+'rcsb_nmr_refine' 'entry_id' 'HEADER' ? 4 1 1
+'rcsb_nmr_refine' 'method' 'XFILE1' ? 3 0 1
+'rcsb_nmr_refine' 'details' 'REFREM' ? 3 0 1
+
+'rcsb_nmr_ensemble' 'entry_id' 'HEADER' ? 4 1 1
+'rcsb_nmr_ensemble' 'conformers_calculated_total_number' 'NMRSMB' ? 2 0 1
+'rcsb_nmr_ensemble' 'conformers_submitted_total_number' 'NMRSMB' ? 3 0 1
+'rcsb_nmr_ensemble' 'conformer_selection_criteria' 'NMRSMB' ? 4 0 1
+
+'rcsb_nmr_representative' 'entry_id' 'HEADER' ? 4 1 1
+'rcsb_nmr_representative' 'conformer_id' 'NMRPST' ? 2 0 1
+'rcsb_nmr_representative' 'selection_criteria' 'NMRPST' ? 3 0 1
+
+'rcsb_nmr_details' 'entry_id' 'HEADER' ? 4 1 1
+'rcsb_nmr_details' 'text' 'CRMET1' ? 3 0 1
+
+'rcsb_struct_link' 'id' 'SCLINK' ? 16 0 0
+'rcsb_struct_link' 'ptnr1_label_alt_id' 'SCLINK' ? 3 0 0
+'rcsb_struct_link' 'ptnr1_label_asym_id' 'SCLINK' ? 5 0 0
+'rcsb_struct_link' 'ptnr1_label_atom_id' 'SCLINK' ? 2 0 0
+'rcsb_struct_link' 'ptnr1_label_comp_id' 'SCLINK' ? 4 0 0
+'rcsb_struct_link' 'ptnr1_label_seq_id' 'SCLINK' ? 6 0 0
+'rcsb_struct_link' 'ptnr1_label_ins_code' 'SCLINK' ? 7 0 0
+'rcsb_struct_link' 'ptnr1_symmetry' 'SCLINK' ? 14 0 0
+'rcsb_struct_link' 'ptnr2_label_alt_id' 'SCLINK' ? 9 0 0
+'rcsb_struct_link' 'ptnr2_label_asym_id' 'SCLINK' ? 11 0 0
+'rcsb_struct_link' 'ptnr2_label_atom_id' 'SCLINK' ? 8  0 0
+'rcsb_struct_link' 'ptnr2_label_comp_id' 'SCLINK' ? 10 0 0
+'rcsb_struct_link' 'ptnr2_label_seq_id' 'SCLINK' ? 12 0 0
+'rcsb_struct_link' 'ptnr2_label_ins_code' 'SCLINK' ? 13 0 0
+'rcsb_struct_link' 'ptnr2_symmetry' 'SCLINK' ? 15 0 0
+'rcsb_struct_link' 'details' SCLINK' ? 17 0 0
+
+'rcsb_post_process_details' 'entry_id' 'HEADER' ? 4 1 1
+'rcsb_post_process_details' 'text' 'PDETLS' ? 2 0 1
+'rcsb_post_process_details' 'seq_details' 'PDETLS' ? 3 0 1
+
+'rcsb_post_process_status' 'entry_id' 'HEADER' ? 4 1 1
+'rcsb_post_process_status' 'cycle_id' 'PTATUS' ? 2 0 1
+'rcsb_post_process_status' 'date_begin' 'PTATUS' ? 3 0 1
+'rcsb_post_process_status' 'date_end' 'PTATUS' ? 4 0 1
+'rcsb_post_process_status' 'details' 'PTATUS' ? 5 0 1
+'rcsb_post_process_status' 'annotator' 'PTATUS' ? 6 0 1
+
+'rcsb_missing_residue_list' 'label_seq_id' 'MISRES' ? 2 0 0
+'rcsb_missing_residue_list' 'pdb_model_id' 'MISRES' ? 3 0 0
+'rcsb_missing_residue_list' 'pdb_chain_id' 'MISRES' ? 4 0 0
+'rcsb_missing_residue_list' 'pdb_residue_name' 'MISRES' ? 5 0 0
+'rcsb_missing_residue_list' 'pdb_residue_number' 'MISRES' ? 6 0 0
+'rcsb_missing_residue_list' 'pdb_insertion_code' 'MISRES' ? 7 0 0
+
+'rcsb_database_related' 'db_name' 'RENTRY' ? 3 0 0 
+'rcsb_database_related' 'db_id' 'RENTRY' ? 4 0 0
+'rcsb_database_related' 'details' 'RENTRY' ? 5 0 0
+
+'rcsb_struct_ncs_virus_gen' 'id' 'NCSRMK' ? 2 0 0
+'rcsb_struct_ncs_virus_gen' 'oper_id' 'NCSRMK' ? 3 0 0
+'rcsb_struct_ncs_virus_gen' 'asym_id' 'NCSRMK' ? 4 0 0
+'rcsb_struct_ncs_virus_gen' 'pdb_chain_id' 'NCSRMK' ? 5 0 0
+
+'rcsb_struct_ncs_gen' 'id' 'NCSGEN' ? 2 0 0
+'rcsb_struct_ncs_gen' 'oper_id' 'NCSGEN' ? 3 0 0
+'rcsb_struct_ncs_gen' 'from_asym_id' 'NCSGEN' ? 4 0 0
+'rcsb_struct_ncs_gen' 'from_pdb_chain_id' 'NCSGEN' ? 5 0 0
+'rcsb_struct_ncs_gen' 'to_asym_id' 'NCSGEN' ? 6 0 0
+'rcsb_struct_ncs_gen' 'to_pdb_chain_id' 'NCSGEN' ? 7 0 0
+'rcsb_struct_ncs_gen' 'rcsb_pdb_order'  'NCSGEN' ? 8 0 0
+
+'refine_hist' 'cycle_id'   'ATNUMS' ? 2 0 0
+'refine_hist' 'rcsb_number_atoms_protein' 'ATNUMS' ? 3 0 0
+'refine_hist' 'rcsb_number_atoms_nucleic_acid' 'ATNUMS' ? 4 0 0
+'refine_hist' 'rcsb_number_atoms_ligand' 'ATNUMS' ? 5 0 0
+'refine_hist' 'rcsb_number_atoms_solvent' 'ATNUMS' ? 6 0 0
+'refine_hist' 'rcsb_number_atoms_total' 'ATNUMS' ? 7 0 0
+'refine_hist' 'd_res_high' ? ? 0 0 0
+'refine_hist' 'd_res_low' ? ? 0 0 0
+
+'rcsb_database_PDB_remark' 'id'  'PDBRMK' ? 2 0 0
+'rcsb_database_PDB_remark' 'text' 'PDBRMK' ? 4 0 0
+
+'ebi_soln_scatter' 'id' 'SOLEXP' ? 2 0 0
+'ebi_soln_scatter' 'type' 'SOLEXP' ? 3 0 0
+'ebi_soln_scatter' 'source_type' 'SOLEXP' ? 4 0 0
+'ebi_soln_scatter' 'source_class' 'SOLEXP' ? 5 0 0
+'ebi_soln_scatter' 'source_beamline' 'SOLEXP' ? 6 0 0
+'ebi_soln_scatter' 'source_beamline_instrument' 'SOLEXP' ? 7 0 0
+'ebi_soln_scatter' 'detector_type' 'SOLEXP' ? 8 0 0
+'ebi_soln_scatter' 'detector_specific' 'SOLEXP' ? 9 0 0
+'ebi_soln_scatter' 'temperature' 'SOLEXP' ? 10 0 0
+'ebi_soln_scatter' 'ph' 'SOLEXP' ? 11 0 0
+'ebi_soln_scatter' 'num_time_frames' 'SOLEXP' ? 12 0 0
+'ebi_soln_scatter' 'concentration_range' 'SOLEXP' ? 13 0 0
+'ebi_soln_scatter' 'buffer_name' 'SOLEXP' ? 14 0 0
+'ebi_soln_scatter' 'data_reduction_software_list' 'SOLEXP' ? 15 0 0
+'ebi_soln_scatter' 'data_analysis_software_list' 'SOLEXP' ? 16 0 0
+'ebi_soln_scatter' 'mean_guiner_radius' 'SOLEXP' ? 17 0 0
+'ebi_soln_scatter' 'mean_guiner_radius_esd' 'SOLEXP' ? 18 0 0
+'ebi_soln_scatter' 'min_mean_cross_sectional_radii_gyration' 'SOLEXP' ? 19 0 0
+'ebi_soln_scatter' 'min_mean_cross_sectional_radii_gyration_esd' 'SOLEXP' ? 20 0 0
+'ebi_soln_scatter' 'max_mean_cross_sectional_radii_gyration' 'SOLEXP' ? 21 0 0
+'ebi_soln_scatter' 'max_mean_cross_sectional_radii_gyration_esd' 'SOLEXP' ? 22 0 0
+'ebi_soln_scatter' 'protein_length' 'SOLEXP' ? 23 0 0
+
+'ebi_soln_scatter_model' 'scatter_id' 'SOLMDL' ? 10 0 0
+'ebi_soln_scatter_model' 'id' 'SOLMDL' ? 11 0 0
+'ebi_soln_scatter_model' 'method' 'SOLMDL' ? 2 0 0
+'ebi_soln_scatter_model' 'software_list' 'SOLMDL' ? 3 0 0
+'ebi_soln_scatter_model' 'software_author_list' 'SOLMDL' ? 4 0 0
+'ebi_soln_scatter_model' 'entry_fitting_list' 'SOLMDL' ? 5 0 0
+'ebi_soln_scatter_model' 'details' 'SOLMDL' ? 6 0 0
+'ebi_soln_scatter_model' 'num_conformers_calculated' 'SOLMDL' ? 7 0 0
+'ebi_soln_scatter_model' 'num_conformers_submitted' 'SOLMDL' ? 8 0 0
+'ebi_soln_scatter_model' 'conformer_selection_criteria' 'SOLMDL' ? 9 0 0
+
+'em_2d_projection_selection' 'entry_id' 'HEADER' ? 4 1 1
+'em_2d_projection_selection' 'software_name' 'CMRFMT' ? 2 0 0
+#'em_2d_projection_selection' 'method'
+'em_2d_projection_selection' 'num_particles' 'CMRNST' ? 5 0 0
+#'em_2d_projection_selection' 'citation_id'
+
+'em_3d_fitting_list' 'id'  ? ? ? ? ?
+'em_3d_fitting_list' 'fitting_id' ? ? ? ? ?
+'em_3d_fitting_list' 'pdb_entry_id' 'CEMFIT' ? 2 0 0
+#'em_3d_fitting_list' 'pdb_chain_id'
+
+'em_3d_fitting' 'id' ? ? ? ? ?
+'em_3d_fitting' 'entry_id' 'HEADER' ? 4 1 1
+'em_3d_fitting' 'ref_space' 'CEMFIT' ? 3 0 0
+'em_3d_fitting' 'ref_protocol' 'CEMFIT' ? 4 0 0
+'em_3d_fitting' 'target_criteria' 'CEMFIT' ? 5 0 0
+'em_3d_fitting' 'overall_b_value' ''CEMFIT' ? 6 0 0
+'em_3d_fitting' 'method' 'CEMFIT' ? 7 0 0
+
+'em_3d_reconstruction' 'entry_id' 'HEADER' ? 4 1 1
+'em_3d_reconstruction' 'id' ? ? ? ? ?
+'em_3d_reconstruction' 'method' 'CMRFMT' ? 3 0 0
+'em_3d_reconstruction' 'nominal_pixel_size' 'CMRNST' ? 2 0 0
+'em_3d_reconstruction' 'actual_pixel_size' 'CMRNST' ? 3 0 0
+'em_3d_reconstruction' 'resolution' 'CMRNST' ? 4 0 0
+'em_3d_reconstruction' 'ctf_correction_method' 'CMRNST' ? 6 0 0
+'em_3d_reconstruction' 'magnification_calibration' 'CMRNST' ? 7 0 0
+'em_3d_reconstruction' 'details' 'CMRNST' ? 8 0 0
+
+'em_assembly' 'id' ? ? ? ? ?
+'em_assembly' 'entry_id' 'HEADER' ? 4 1 1
+'em_assembly' 'aggregation_state' 'EMSAMP' ? 2 0 0
+'em_assembly' 'name' 'EMSAMP' ? 3 0 0
+'em_assembly' 'details' 'EMSAMP' ? 9 0 0
+
+'em_sample_preparation' 'entry_id' 'HEADER' ? 4 1 1
+'em_sample_preparation' 'id' ? ? ? ? ?
+'em_sample_preparation' 'buffer_id' ? ? ? ? ?
+'em_sample_preparation' 'support_id' ? ? ? ? ?
+'em_sample_preparation' 'sample_concentration' 'EMSAMP' ? 4 0 0
+'em_sample_preparation' 'ph' 'EMSAMP' ? 8 0 0
+
+'em_sample_support' 'id' ? ? ? ? ?
+'em_sample_support' 'details' 'EMSAMP' ? 5 0 0
+
+'em_vitrification' 'entry_id' 'HEADER' ? 4 1 1
+'em_vitrification' 'id' ? ? ? ? ?
+'em_vitrification' 'details' 'EMSAMP' ? 6 0 0
+
+'em_buffer' 'id' ? ? ? ? ?
+'em_buffer' 'name' 'EMSAMP' ? 7 0 0
+
+'em_imaging' 'entry_id' 'HEADER' ? 4 1 1
+'em_imaging' 'id' ? ? ? ? ?
+'em_imaging' 'sample_support_id' ? ? ? ? ?
+'em_imaging' 'detector_id' ? ? ? ? ?
+'em_imaging' 'scans_id' ? ? ? ? ?
+'em_imaging' 'date' 'EMDATA' ? 2 0 0
+'em_imaging' 'temperature' 'EMDATA' ? 4 0 0
+'em_imaging' 'microscope_model' 'EMDATA' ? 5 0 0
+'em_imaging' 'nominal_defocus_min' 'EMDATA' ? 7 0 0
+'em_imaging' 'nominal_defocus_max' 'EMDATA' ? 8 0 0
+'em_imaging' 'tilt_angle_min' 'EMDATA' ? 9 0 0
+'em_imaging' 'tilt_angle_max' 'EMDATA' ? 10 0 0
+'em_imaging' 'nominal_cs' 'EMDATA' ? 11 0 0
+'em_imaging' 'mode' 'EMDATA' ? 12 0 0
+'em_imaging' 'electron_dose' 'EMDATA' ? 13 0 0
+'em_imaging' 'illumination_mode' 'EMDATA' ? 14 0 0
+'em_imaging' 'nominal_magnification' 'EMDATA' ? 15 0 0
+'em_imaging' 'calibrated_magnification' 'EMDATA' ? 16 0 0
+'em_imaging' 'electron_source' 'EMDATA' ? 17 0 0
+'em_imaging' 'accelerating_voltage' 'EMDATA' ? 18 0 0
+'em_imaging' 'details' 'EMDATA' ? 19 0 0
+'em_imaging' 'specimen_holder_type' ? ? ? ? ?
+'em_imaging' 'specimen_holder_model' ? ? ? ? ?
+
+'em_image_scans' 'entry_id' 'HEADER' ? 4 1 1
+'em_image_scans' 'id' ? ? ? ? ?
+'em_image_scans' 'number_digital_images' 'EMDATA' ? 3 0 0
+
+'em_detector' 'entry_id' 'HEADER' ? 4 1 1
+'em_detector' 'id' ? ? ? ? ?
+'em_detector' 'type' 'EMDATA' ? 6 0 0
+
+'em_entity_assembly' 'id' 'ASSEMB' ? 2 0 0
+'em_entity_assembly' 'assembly_id' ? ? ? ? ?
+'em_entity_assembly' 'type' ? ? ? ? ?
+'em_entity_assembly' 'name' 'ASSEMB' ? 3 0 0
+'em_entity_assembly' 'go_id' 'ASSEMB' ? 5 0 0
+'em_entity_assembly' 'ipr_id' 'ASSEMB' ? 4 0 0
+'em_entity_assembly' 'details' 'ASSEMB' ? 7 0 0
+
+'em_virus_entity' 'id' ? ? ? ? ?
+'em_virus_entity' 'entity_assembly_id' 'VIRPAR' ? 2 0 0
+'em_virus_entity' 'virus_host_category' 'VIRPAR' ? 3 0 0
+'em_virus_entity' 'virus_host_species' 'VIRPAR' ? 4 0 0
+'em_virus_entity' 'virus_host_growth_cell' 'VIRPAR' ? 5 0 0
+'em_virus_entity' 'virus_type' 'VIRPAR' ? 6 0 0
+'em_virus_entity' 'virus_isolate' 'VIRPAR' ? 7 0 0
+'em_virus_entity' 'ictvdb_id' 'VIRPAR' ? 8 0 0
+
+'ccp4_refine_tls_group' 'id' 'TLSRNG' ? 7 0 0
+'ccp4_refine_tls_group' 'refine_tls_id' 'TLSRNG' ? 2 0 0
+'ccp4_refine_tls_group' 'beg_label_asym_id' 'TLSRNG' ? 3 0 0
+'ccp4_refine_tls_group' 'beg_label_seq_id' 'TLSRNG' ? 4 0 0
+'ccp4_refine_tls_group' 'beg_auth_seq_id' ? ? ? ? ?
+'ccp4_refine_tls_group' 'end_label_asym_id' 'TLSRNG' ? 5 0 0
+'ccp4_refine_tls_group' 'end_label_seq_id' 'TLSRNG' ? 6 0 0
+'ccp4_refine_tls_group' 'end_auth_seq_id' ? ? ? ? ?
+'ccp4_refine_tls_group' 'selection' ? ? ? ? ?
+
+'ccp4_refine_tls' 'id'       'TLSGRO' ?  2 1 1
+'ccp4_refine_tls' 'details'  ?        ?  ? ? ?
+'ccp4_refine_tls' 'method'   'TLSGRO' ?  7 0 1
+'ccp4_refine_tls' 'origin_x' 'TLSGRO' ?  4 0 1
+'ccp4_refine_tls' 'origin_y' 'TLSGRO' ?  5 0 1
+'ccp4_refine_tls' 'origin_z' 'TLSGRO' ?  6 0 1
+'ccp4_refine_tls' 'T[1][1]'  'TTENSR' ?  3 0 1
+'ccp4_refine_tls' 'T[2][2]'  'TTENSR' ?  4 0 1
+'ccp4_refine_tls' 'T[3][3]'  'TTENSR' ?  5 0 1
+'ccp4_refine_tls' 'T[1][2]'  'TTENSR' ?  6 0 1
+'ccp4_refine_tls' 'T[1][3]'  'TTENSR' ?  7 0 1
+'ccp4_refine_tls' 'T[2][3]'  'TTENSR' ?  8 0 1
+'ccp4_refine_tls' 'L[1][1]'  'LTENSR' ?  3 0 1
+'ccp4_refine_tls' 'L[2][2]'  'LTENSR' ?  4 0 1
+'ccp4_refine_tls' 'L[3][3]'  'LTENSR' ?  5 0 1
+'ccp4_refine_tls' 'L[1][2]'  'LTENSR' ?  6 0 1
+'ccp4_refine_tls' 'L[1][3]'  'LTENSR' ?  7 0 1
+'ccp4_refine_tls' 'L[2][3]'  'LTENSR' ?  8 0 1
+'ccp4_refine_tls' 'S[1][1]'  'STENSR' ?  3 0 1
+'ccp4_refine_tls' 'S[1][2]'  'STENSR' ?  4 0 1
+'ccp4_refine_tls' 'S[1][3]'  'STENSR' ?  5 0 1
+'ccp4_refine_tls' 'S[2][1]'  'STENSR' ?  6 0 1
+'ccp4_refine_tls' 'S[2][2]'  'STENSR' ?  7 0 1
+'ccp4_refine_tls' 'S[2][3]'  'STENSR' ?  8 0 1
+'ccp4_refine_tls' 'S[3][1]'  'STENSR' ?  9 0 1
+'ccp4_refine_tls' 'S[3][2]'  'STENSR' ? 10 0 1
+'ccp4_refine_tls' 'S[3][3]'  'STENSR' ? 11 0 1
+
+'struct_ncs_dom' 'id'      'NCSGRO' ? 2 0 1
+'struct_ncs_dom' 'details' 'NCSGRO' ? 4 0 1
+
+'ccp4_struct_ncs_dom_lim' 'dom_id'           'CCPNCS' ? 2 0 1
+'ccp4_struct_ncs_dom_lim' 'component_id'     'CCPNCS' ? 7 0 1
+'ccp4_struct_ncs_dom_lim' 'beg_auth_asym_id' 'CCPNCS' ? 3 0 1
+'ccp4_struct_ncs_dom_lim' 'beg_auth_seq_id'  'CCPNCS' ? 4 0 1
+'ccp4_struct_ncs_dom_lim' 'end_auth_asym_id' 'CCPNCS' ? 5 0 1
+'ccp4_struct_ncs_dom_lim' 'end_auth_seq_id'  'CCPNCS' ? 6 0 1
+'ccp4_struct_ncs_dom_lim' 'refine_code'      'CCPNCS' ? 8 0 1
+
+'ccp4_refine_ls_restr_ncs' 'dom_id'       'TMLPTL' ? 2 0 1
+'ccp4_refine_ls_restr_ncs' 'type'         'TMLPTL' ? 7 0 1
+'ccp4_refine_ls_restr_ncs' 'auth_asym_id' 'TMLPTL' ? 3 0 1
+'ccp4_refine_ls_restr_ncs' 'number'       'TMLPTL' ? 4 0 1
+'ccp4_refine_ls_restr_ncs' 'rms_dev'      'TMLPTL' ? 5 0 1
+'ccp4_refine_ls_restr_ncs' 'weight'       'TMLPTL' ? 6 0 1

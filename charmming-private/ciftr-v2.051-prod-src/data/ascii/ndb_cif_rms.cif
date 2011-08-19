@@ -1,0 +1,196 @@
+data_NDB_CIF_RMS
+loop_
+_ndb_cif_program.full_name
+_ndb_cif_program.abbreviation
+'x-plor 3.0' x
+'x-plor 3.1' x
+'x-plor 3.8' x
+'x-plor 3.843' x
+x-plor x
+'cns 0.1' c
+'cns 0.3' c
+cns c
+cnx c
+'cnx (msi)' c
+nuclsq n
+shelxl s
+tnt t
+'tnt 5-d' t
+'tnt 5d' t
+'refmac 5' r
+'refmac 5.' r
+prolsq p
+ccp4   p
+profft p
+gprlsa p
+refmac p
+restrain p
+protein p
+shelx-76 s
+shelx-86 s
+'shelx 76' s
+shelx-93 s
+shelxl-93 s
+shelxl-96 s
+shelx s
+
+loop_
+_ndb_cif_rms.type
+_ndb_cif_rms.dev_ideal_token
+_ndb_cif_rms.dev_ideal_field
+_ndb_cif_rms.dev_ideal_target_token
+_ndb_cif_rms.dev_ideal_target_field
+_ndb_cif_rms.ndb_weight_token
+_ndb_cif_rms.ndb_weight_field
+_ndb_cif_rms.ndb_count_token
+_ndb_cif_rms.ndb_count_field
+x_bond_d                RMSGEN  2    ?     ?   ?     ?     ?    ?
+x_bond_d_na             RMSGE1  3    ?     ?   ?     ?     ?    ?
+x_bond_d_prot           RMSGE1  2    ?     ?   ?     ?     ?    ?
+n_bond_d                RMSDIS  2  RMSDIS  3   ?     ?     ?    ? 
+p_bond_d                RMSDIS  2  RMSDIS  3   ?     ?     ?    ?
+s_bond_d                RMSGEN  2     ?    ?   ?     ?     ?    ?
+t_bond_d                RMSTN1  2     ?    ? RMSTN1  3  RMSTN1  4
+x_angle_d               RMSGEN  4     ?    ?   ?     ?     ?    ?
+x_angle_d_na            RMSGE1  7     ?    ?   ?     ?     ?    ?
+x_angle_d_prot          RMSGE1  6     ?    ?   ?     ?     ?    ?
+n_angle_d               RMSDIS  4  RMSDIS  5   ?     ?     ?    ?
+p_angle_d               RMSDIS  4  RMSDIS  5   ?     ?     ?    ?
+s_angle_d               RMSGEN  4     ?    ?   ?     ?     ?    ?
+x_angle_deg             RMSGEN  3     ?    ?   ?     ?     ?    ?
+x_angle_deg_na          RMSGE1  5     ?    ?   ?     ?     ?    ?
+x_angle_deg_prot        RMSGE1  4     ?    ?   ?     ?     ?    ?
+p_angle_deg             RMSGEN  3     ?    ?   ?     ?     ?    ?
+t_angle_deg             RMSTN1  5     ?    ? RMSTN1  6  RMSTN1  7
+n_planar_d              RMSDIS  6  RMSDIS  7   ?     ?     ?    ?
+p_planar_d              RMSDIS  6  RMSDIS  7   ?     ?     ?    ?
+n_hb_or_metal_coord     RMSDIS  8  RMSDIS  9   ?     ?     ?    ?
+p_hb_or_metal_coord     RMSDIS  8  RMSDIS  9   ?     ?     ?    ?
+x_dihedral_angle_d      RMSGEN  5    ?     ?   ?     ?     ?    ?
+x_dihedral_angle_d_na   RMSGE1  9    ?     ?   ?     ?     ?    ?
+x_dihedral_angle_d_prot RMSGE1  8    ?     ?   ?     ?     ?    ?
+t_dihedral_angle_d      RMSTN1  8    ?     ? RMSTN1  9  RMSTN1 10
+x_improper_angle_d      RMSGEN  6    ?     ?    ?    ?     ?    ?
+x_improper_angle_d_na   RMSGE1 11    ?     ?    ?    ?     ?    ?
+x_improper_angle_d_prot RMSGE1 10    ?     ?    ?    ?     ?    ?
+x_mcbond_it             RMSISO  2  RMSISO  3    ?    ?     ?    ?
+x_mcangle_it            RMSISO  4  RMSISO  5    ?    ?     ?    ?
+x_scbond_it             RMSISO  6  RMSISO  7    ?    ?     ?    ?
+x_scangle_it            RMSISO  8  RMSISO  9    ?    ?     ?    ?  
+p_mcbond_it             RMSISO  2  RMSISO  3    ?    ?     ?    ?
+p_mcangle_it            RMSISO  4  RMSISO  5    ?    ?     ?    ?
+p_scbond_it             RMSISO  6  RMSISO  7    ?    ?     ?    ?
+p_scangle_it            RMSISO  8  RMSISO  9    ?    ?     ?    ?  
+n_sugar_bond_it         RMSISN  2  RMSISN  3    ?    ?     ?    ?
+n_sugar_angle_it        RMSISN  4  RMSISN  5    ?    ?     ?    ?  
+n_phos_bond_it          RMSISN  6  RMSISN  7    ?    ?     ?    ?
+n_phos_angle_it         RMSISN  8  RMSISN  9    ?    ?     ?    ?
+n_bond_angle_restr      RMSANG  2  RMSANG  3    ?    ?     ?    ?
+n_dihedral_angle_restr  RMSANG  4  RMSANG  5    ?    ?     ?    ?
+n_impr_tor              RMSANG  6  RMSANG  7    ?    ?     ?    ?
+n_sugar_bond_d          RMSDIN  2  RMSDIN  3    ?    ?     ?    ?
+n_sugar_bond_angle_d    RMSDIN  4  RMSDIN  5    ?    ?     ?    ?
+n_phos_bond_d           RMSDIN  6  RMSDIN  7    ?    ?     ?    ?
+n_phos_bond_angle_d     RMSDIN  8  RMSDIN  9    ?    ?     ?    ?
+n_plane_restr           RMSPLA  2  RMSPLA  3    ?    ?     ?    ?
+p_plane_restr           RMSPLA  2  RMSPLA  3    ?    ?     ?    ?        
+n_chiral_restr          RMSVOL  2  RMSVOL  3    ?    ?     ?    ?
+p_chiral_restr          RMSVOL  2  RMSVOL  3    ?    ?     ?    ?        
+t_incorr_chiral_ct      RMSVOL  4    ?     ?    ?    ?     ?    ?
+n_singtor_nbd           RMSNBO  2  RMSNBO  3    ?    ?     ?    ?  
+p_singtor_nbd           RMSNBO  2  RMSNBO  3    ?    ?     ?    ?          
+n_multtor_nbd           RMSNBO  4  RMSNBO  5    ?    ?     ?    ?            
+p_multtor_nbd           RMSNBO  4  RMSNBO  5    ?    ?     ?    ?           
+n_xhyhbond_nbd          RMSNBO  6  RMSNBO  7    ?    ?     ?    ?        
+p_xhyhbond_nbd          RMSNBO  6  RMSNBO  7    ?    ?     ?    ?        
+p_xyhbond_nbd           RMSNBO  8  RMSNBO  9    ?    ?     ?    ? 
+p_planar_tor            RMSCON  2  RMSCON  3    ?    ?     ?    ?          
+p_staggered_tor         RMSCON  4  RMSCON  5    ?    ?     ?    ?     
+p_orthonormal_tor       RMSCON  6  RMSCON  7    ?    ?     ?    ?     
+p_transverse_tor        RMSCON  8  RMSCON  9    ?    ?     ?    ?    
+p_special_tor           RMSCON 10  RMSCON 11    ?    ?     ?    ?     
+s_similar_dist          SHELXL  2     ?    ?    ?    ?     ?    ?
+s_from_restr_planes     SHELXL  3     ?    ?    ?    ?     ?    ?
+s_zero_chiral_vol       SHELXL  4     ?    ?    ?    ?     ?    ?
+s_non_zero_chiral_vol   SHELXL  5     ?    ?    ?    ?     ?    ?
+s_anti_bump_dis_restr   SHELXL  6     ?    ?    ?    ?     ?    ?
+s_rigid_bond_adp_cmpnt  SHELXL  7     ?    ?    ?    ?     ?    ?
+s_similar_adp_cmpnt     SHELXL  8     ?    ?    ?    ?     ?    ?
+s_approx_iso_adps       SHELXL  9     ?    ?    ?    ?     ?    ?
+t_pseud_angle           RMSTN1 11     ?    ?  RMSTN1 12  RMSTN1 13
+t_trig_c_planes         RMSTN2  2     ?    ?  RMSTN2  3  RMSTN2  4 
+t_gen_planes            RMSTN2  5     ?    ?  RMSTN2  6  RMSTN2  7
+t_it                    RMSTN2  8     ?    ?  RMSTN2  9  RMSTN2 10
+t_nbd                   RMSTN2 11     ?    ?  RMSTN2 12  RMSTN2 13
+
+o_bond_d                RMSGEN  2    ?     ?   ?     ?     ?    ?
+o_bond_d_na             RMSGE1  3    ?     ?   ?     ?     ?    ?
+o_bond_d_prot           RMSGE1  2    ?     ?   ?     ?     ?    ?
+o_angle_d               RMSGEN  4     ?    ?   ?     ?     ?    ?
+o_angle_d_na            RMSGE1  7     ?    ?   ?     ?     ?    ?
+o_angle_d_prot          RMSGE1  6     ?    ?   ?     ?     ?    ?
+o_angle_deg             RMSGEN  3     ?    ?   ?     ?     ?    ?
+o_angle_deg_na          RMSGE1  5     ?    ?   ?     ?     ?    ?
+o_angle_deg_prot        RMSGE1  4     ?    ?   ?     ?     ?    ?
+o_dihedral_angle_d      RMSGEN  5    ?     ?   ?     ?     ?    ?
+o_dihedral_angle_d_na   RMSGE1  9    ?     ?   ?     ?     ?    ?
+o_dihedral_angle_d_prot RMSGE1  8    ?     ?   ?     ?     ?    ?
+o_improper_angle_d      RMSGEN  6    ?     ?    ?    ?     ?    ?
+o_improper_angle_d_na   RMSGE1 11    ?     ?    ?    ?     ?    ?
+o_improper_angle_d_prot RMSGE1 10    ?     ?    ?    ?     ?    ?
+o_mcbond_it             RMSISO  2  RMSISO  3    ?    ?     ?    ?
+o_mcangle_it            RMSISO  4  RMSISO  5    ?    ?     ?    ?
+o_scbond_it             RMSISO  6  RMSISO  7    ?    ?     ?    ?
+o_scangle_it            RMSISO  8  RMSISO  9    ?    ?     ?    ?  
+
+c_bond_d                RMSGEN  2    ?     ?   ?     ?     ?    ?
+c_bond_d_na             RMSGE1  3    ?     ?   ?     ?     ?    ?
+c_bond_d_prot           RMSGE1  2    ?     ?   ?     ?     ?    ?
+c_angle_d               RMSGEN  4     ?    ?   ?     ?     ?    ?
+c_angle_d_na            RMSGE1  7     ?    ?   ?     ?     ?    ?
+c_angle_d_prot          RMSGE1  6     ?    ?   ?     ?     ?    ?
+c_angle_deg             RMSGEN  3     ?    ?   ?     ?     ?    ?
+c_angle_deg_na          RMSGE1  5     ?    ?   ?     ?     ?    ?
+c_angle_deg_prot        RMSGE1  4     ?    ?   ?     ?     ?    ?
+c_dihedral_angle_d      RMSGEN  5    ?     ?   ?     ?     ?    ?
+c_dihedral_angle_d_na   RMSGE1  9    ?     ?   ?     ?     ?    ?
+c_dihedral_angle_d_prot RMSGE1  8    ?     ?   ?     ?     ?    ?
+c_improper_angle_d      RMSGEN  6    ?     ?    ?    ?     ?    ?
+c_improper_angle_d_na   RMSGE1 11    ?     ?    ?    ?     ?    ?
+c_improper_angle_d_prot RMSGE1 10    ?     ?    ?    ?     ?    ?
+c_mcbond_it             RMSISO  2  RMSISO  3    ?    ?     ?    ?
+c_mcangle_it            RMSISO  4  RMSISO  5    ?    ?     ?    ?
+c_scbond_it             RMSISO  6  RMSISO  7    ?    ?     ?    ?
+c_scangle_it            RMSISO  8  RMSISO  9    ?    ?     ?    ?  
+
+r_bond_refined_d         RMSRF1  3  RMSRF1  4    ?    ?  RMSRF1  2
+r_bond_other_d           RMSRF1  6  RMSRF1  7    ?    ?  RMSRF1  5
+r_angle_refined_deg      RMSRF1  9  RMSRF1 10    ?    ?  RMSRF1  8
+r_angle_other_deg        RMSRF1 12  RMSRF1 13    ?    ?  RMSRF1 11
+r_dihedral_angle_1_deg   RMSRF2  3  RMSRF2  4    ?    ?  RMSRF2  2
+r_dihedral_angle_2_deg   RMSRF7  6  RMSRF7  7    ?    ?  RMSRF7  5
+r_dihedral_angle_3_deg   RMSRF2  6  RMSRF2  7    ?    ?  RMSRF2  5
+r_dihedral_angle_4_deg   RMSRF7  9  RMSRF7 10    ?    ?  RMSRF7  8
+r_chiral_restr           RMSRF2  9  RMSRF2 10    ?    ?  RMSRF2  8
+r_gen_planes_refined     RMSRF2 12  RMSRF2 13    ?    ?  RMSRF2 11
+r_gen_planes_other       RMSRF3  3  RMSRF3  4    ?    ?  RMSRF3  2
+r_nbd_refined            RMSRF3  6  RMSRF3  7    ?    ?  RMSRF3  5
+r_nbd_other              RMSRF3  9  RMSRF3 10    ?    ?  RMSRF3  8
+r_nbtor_refined          RMSRF8  3  RMSRF8  4    ?    ?  RMSRF8  2
+r_nbtor_other            RMSRF3 12  RMSRF3 13    ?    ?  RMSRF3 11
+r_xyhbond_nbd_refined    RMSRF4  3  RMSRF4  4    ?    ?  RMSRF4  2
+r_xyhbond_nbd_other      RMSRF6 12  RMSRF6 13    ?    ?  RMSRF6 11
+r_metal_ion_refined      RMSRF8  6  RMSRF8  7    ?    ?  RMSRF8  5
+r_metal_ion_other        RMSRF8  9  RMSRF8 10    ?    ?  RMSRF8  8
+r_symmetry_vdw_refined   RMSRF4  6  RMSRF4  7    ?    ?  RMSRF4  5
+r_symmetry_vdw_other     RMSRF4  9  RMSRF4 10    ?    ?  RMSRF4  8
+r_symmetry_hbond_refined RMSRF4 12  RMSRF4 13    ?    ?  RMSRF4 11
+r_symmetry_hbond_other   RMSRF7  3  RMSRF7  4    ?    ?  RMSRF7  2
+r_mcbond_it              RMSRF5  3  RMSRF5  4    ?    ?  RMSRF5  2
+r_mcbond_other           RMSRF8 12  RMSRF8 13    ?    ?  RMSRF8 11
+r_mcangle_it             RMSRF5  6  RMSRF5  7    ?    ?  RMSRF5  5
+r_scbond_it              RMSRF5  9  RMSRF5 10    ?    ?  RMSRF5  8
+r_scangle_it             RMSRF5 12  RMSRF5 13    ?    ?  RMSRF5 11
+r_rigid_bond_restr       RMSRF6  3  RMSRF6  4    ?    ?  RMSRF6  2
+r_sphericity_free        RMSRF6  6  RMSRF6  7    ?    ?  RMSRF6  5
+r_sphericity_bonded      RMSRF6  9  RMSRF6 10    ?    ?  RMSRF6  8

@@ -1,0 +1,107 @@
+                                                       $$@DATE@$$
+
+The following geometrical and stereochemical features have been calculated 
+for your structure.
+
+    CLOSE CONTACTS
+    --------------
+
+==> Distances smaller than 2.2 Angstroms are considered as close contacts
+    for heavy atoms, 1.6 Angstroms for hydrogens.
+
+$$@.1.close@$$
+
+
+    BOND DISTANCES AND ANGLES
+    -------------------------
+
+==> Bond and angle checks are performed by first computing the average rms
+    error for all bonds and angles relative to standard values for nucleotide
+    units [L. Clowney et al., Geometric Parameters in Nucleic Acids: Nitrogenous
+    Bases, J.Am.Chem.Soc. 1996, 118, 509-518; A. Gelbin et al., Geometric
+    Parameters in Nucleic Acids: Sugar and Phosphate Constituents, J.Am.Chem.Soc.
+    1996, 118, 519-529] and amino acid units [R.A. Engh and R. Huber, Accurate
+    Bond and Angle Parameters for X-ray protein structure refinement, Acta
+    Crystallogr. 1991, A47, 392-400]. Any bond or angle which deviates from the
+    dictionary values by more than six times this computed rms error is 
+    identified as an outlier.
+
+    *** Covalent Bond Lengths:
+
+$$@.cov-bond-rpt@$$
+
+    *** Covalent Angle Values:
+
+$$@.cov-angle-rpt@$$
+
+
+    TORSION ANGLES
+    --------------
+
+    The torsion angle distributions have been checked.  To view these reports, 
+    please refer to the ADIT Validation Server at 
+    http://pdb.rutgers.edu/validate.
+
+
+$$@CHIRALITY@$$
+    CHIRALITY
+    ---------
+
+    The chirality has been checked. O1P, O2P, and hydrogen atoms which do not
+    follow the convention defined in the IUBMB (Liebecq, C. Compendium of 
+    Biochemical Nomenclature and Related Documents, 2nd ed.; Portland Press:
+    London and Chapel Hill, 1992) and IUPAC nomenclature (J.L. Markley, A. Bax,
+    Y. Arata, C.W. Hilbers, R. Kaptein, B.D. Sykes, P.E. Wright and K. Wüthrich,
+    Recommendations for the Presentation of NMR Structures of Proteins and
+    Nucleic Acids, Pure & Appl. Chem., Vol. 70, pp. 117-142, 1998) have been 
+    standardized.  Any other stereochemical violations are listed below.
+
+$$@CHIRALITY@$$
+
+$$@EZ@$$
+    HYDROGEN NOMENCLATURE
+    ---------------------
+
+    The nomenclature of hydrogens has been checked and if necessary has been
+    standardized to comply with PDB nomenclature. 
+
+    The nomenclature of hydrogens on the ND2 atoms of Asn residues, the 
+    NE2 atoms of Gln, and/or on the NH1 and NH2 atoms of Arg residues has been
+    checked for agreement with the standard for E/Z orientation presented in 
+    [J.L. Markley, et al., Recommendations for the Presentation of NMR 
+    Structures of Proteins and Nucleic Acids, Pure & Appl. Chem., 1998, 70, 
+    117-142]. These hydrogens and/or the NH1 and NH2 atoms of Arg residues may 
+    have been switched accordingly.
+
+$$@EZ@$$
+
+$$@MISSING RESIDUES@$$
+    MISSING RESIDUES
+    ----------------
+
+==> The following residues are missing:
+    (Note: The SEQ number starts from 1 for each chain according to SEQRES
+     sequence record.)
+    
+     RES MOD#C SEQ          
+
+$$@MISSING RESIDUES@$$
+$$@MISSING ATOMS@$$
+    MISSING ATOMS
+    -------------
+
+==> The following residues have missing atoms:                        
+
+     RES MOD#C SEQ          ATOMS
+
+$$@MISSING ATOMS@$$
+$$@EXTRA ATOMS@$$
+    EXTRA ATOMS
+    -----------
+
+==> The following residues have extra atoms:                         
+    
+     RES MOD#C SEQ          ATOMS
+    
+$$@EXTRA ATOMS@$$
+

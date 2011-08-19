@@ -1,0 +1,178 @@
+                                                       $$@DATE@$$
+
+Greetings,
+
+	thank you for depositing your structure with the Nucleic Acid Database
+(NDB).  
+
+        Your entry has been assigned the NDB id code $$@NDBFIL 2@$$.  A copy of your
+processed NDB file in PDB format is attached.
+
+	After reviewing the entry, please acknowledge receipt of this message,
+forward the following part of this letter to us and respond to any issues
+raised as a result of our checking.  Please do this within ONE WEEK.  In the
+absence of a response from you, this entry will be made available THIRTY DAYS
+from the date of this message.  NDB will release this entry at that time
+unless you notify us in writing to the contrary.
+
+     Thank you for your time and effort in responding to these points.  In
+doing so, you are helping the NDB to make your entry as complete and accurate
+as possible.
+
+        If you would like to find out more about the NDB resources, please
+visit our World Wide Web site at http://ndbserver.rutgers.edu.
+
+
+                                     Sincerely yours,
+
+                                     NDB Data Processing Staff
+
+
+Please direct all correspondence to:
+
+The Nucleic Acid Database                       E-mail:
+Rutgers, The State University of New Jersey     deposit@ndbserver.rutgers.edu
+Wright and Rieman Labs                          Fax: (732) 445-4320
+Chemistry                                       Phone: (732) 445-0103
+610 Taylor Rd
+Piscataway, NJ 08854-8087
+
+
+===============================================================================
+
+Entry $$@NDBFIL 2@$$:
+
+$$@HEADER@$$
+$$@COMPND@$$
+$$@AUTHOR@$$
+
+[ ] I give permission to release entry $$@NDBFIL 2@$$ without further corrections. 
+
+$$@PUBLICATION@$$
+[ ] I wish to hold entry $$@NDBFIL 2@$$ until publication.
+$$@else@$$
+[ ] I wish to hold the coordinates of entry $$@NDBFIL 2@$$ until $$@RELEAS 4@$$.  
+$$@PUBLICATION@$$
+
+$$@STRUCTURE FACTOR@$$
+[ ] I wish to hold the structure factors of entry $$@NDBFIL 2@$$ until $$@RELEAS 5@$$.  
+
+$$@STRUCTURE FACTOR@$$
+[ ] I give permission to release entry $$@NDBFIL 2@$$ after the enclosed corrections 
+have been made.  (You may change single words or replace the entire entry.)
+
+*** Important ***
+If you haven't already done so, please submit your structure factor file.
+
+===============================================================================
+
+
+The following checks were made on $$@NDBFIL 2@$$:
+-----------------------------------------
+
+DISTANCES AND ANGLES 
+
+We have checked your intra and intermolecular distances and angles with the
+procedures currently in place at PDB:
+
+==> The following solvent molecules are further away than 3.5 Angstroms from
+    macromolecule atoms which are available for hydrogen bonding in the
+    asymmetric unit.
+    
+$$@CLOSE CONTACT1@$$
+
+    The coordinates for water molecules which could be translated back into
+    the asymmetric unit are listed.  If you do not indicate otherwise we will 
+    replace the solvent coordinates in the entry with the ones below:
+
+$$@CLOSE CONTACT2@$$
+
+
+==> Close contacts in same asymmetric unit.  Distances smaller than 2.2 
+    Angstroms are considered as close contacts.                
+
+$$@.1.close@$$
+
+==> Close contacts based on crystal symmetry.  Distances smaller than 2.2
+    Angstroms are considered as close contacts.
+
+$$@.close@$$
+
+==> Bond and angle checks are performed by first computing the average rms
+    error for all bonds and angles relative to standard values for nucleotide
+    units [L. Clowney et al., Geometric Parameters in Nucleic Acids: Nitrogenous
+    Bases, J.Am.Chem.Soc. 1996, 118, 509-518; A. Gelbin et al., Geometric
+    Parameters in Nucleic Acids: Sugar and Phosphate Constituents, J.Am.Chem.Soc.
+    1996, 118, 519-529] and amino acid units [R.A. Engh and R. Huber, Accurate
+    Bond and Angle Parameters for X-ray protein structure refinement, Acta
+    Crystallogr. 1991, A47, 392-400]. Any bond or angle which deviates from the
+    dictionary values by more than six times this computed rms error is 
+    identified as an outlier.
+
+
+
+    *** Covalent Bond Lengths:
+
+$$@.cov-bond-rpt@$$
+
+    *** Covalent Angle Values:
+
+$$@.cov-angle-rpt@$$
+
+
+TORSION ANGLES
+ 
+The torsion angle distributions have been checked.  The postscript file of the
+conformation rings showing the torsion angle distributions will be sent in a
+separate E-mail message.
+
+
+$$@CHIRALITY@$$
+CHIRALITY
+
+The chirality has been checked and there are no incorrect carbon chiral centers.
+Some of O1P and O2P atoms do not follow the convention defined in the standard 
+IUBMB nomenclature (Liebecq, C. Compendium of Biochemical Nomenclature and Related 
+Documents, 2nd ed.; Portland Press: London and Chapel Hill, 1992). If you do not 
+indicate otherwise, we will switch the labels of O1P and O2P as shown below.
+
+$$@CHIRALITY@$$
+
+OTHER IMPORTANT ISSUES
+
+==> Please check carefully REMARKS 3 and 200 and fill in the parameters as
+    appropriate.
+
+    
+$$@MISSING RESIDUES@$$
+==> The following residues are missing:
+    (Note: The SEQ number starts from 1 for each chain according to SEQRES
+     sequence record.)
+    
+     RES MOD#C SEQ          
+
+$$@MISSING RESIDUES@$$
+$$@MISSING ATOMS@$$
+==> The following residues have missing atoms:                        
+
+     RES MOD#C SEQ          ATOMS
+
+$$@MISSING ATOMS@$$
+$$@EXTRA ATOMS@$$
+==> The following residues have extra atoms:                         
+    
+     RES MOD#C SEQ          ATOMS
+    
+$$@EXTRA ATOMS@$$
+
+
+$$@HYDROGEN ATOMS@$$
+==> Your file contains hydrogen atoms. Do you wish to keep the hydrogen atoms in your
+    coordinates file or allow us to delete the hydrogen atoms?
+$$@HYDROGEN ATOMS@$$
+
+
+$$@REPRINTS@$$
+==> Because we did not get the (p)reprint of the paper, we did the best we could.
+    Please check every item very carefully.
+$$@REPRINTS@$$

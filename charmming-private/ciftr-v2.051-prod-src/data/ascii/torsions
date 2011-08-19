@@ -1,0 +1,64 @@
+NDB torsion file
+Version 2.0a, February 21, 1996
+# In this version added mean and standard deviation to the ranges.
+# The hashmark is the comment character, and any comments should be added in this area.
+# The following number is the number of standards in this file, and
+# all subsequent fields follow the same pattern:
+# number of standards;
+# name of following standard;
+# number of rings and total number of entries for this
+#     standard, folowed by default default color values for Postscript printer;
+# e.g., for "7 9  0.85 0.85 0.95" 
+# 7 is the number of rings, 9 is the total number of entries for this 
+# standard, and 0.85 0.85 0.95 are the color values.
+# Lines must be < 120 characters.
+3
+A-DNA 
+7 9  0.85 0.85 0.95
+alpha       180   190   0    0  
+alpha       260   320   292  12 
+beta        140   220   174  15 
+gamma       30    80    56   10 
+gamma       140   160   0    0  
+delta       60    100   80   6  
+epsilon     160   250   202  13 
+zeta        250   320   287  12 
+chi         160   250  	198  11   
+B-DNA 
+7 13 0.80 0.90 0.90      
+alpha       270   330   297  15
+beta        130   200   176  9    BI
+beta        130   200   147  8    BII
+gamma       20    80    48   12
+delta       70    180   129  14   BI
+delta       70    180   146  10   BII
+epsilon     160   270   185  13   BI
+epsilon     160   270   246  20   BII
+zeta        150   210   176  16   BII
+zeta        230   300   264  11   BI
+chi         200   300   257  14   BI, purines
+chi         200   300   241  8    BI, pyrimidines
+chi         200   300   272  10   BII
+Z-DNA
+7 21  0.90 0.80 0.90     
+alpha       40    100  71    13   purines
+alpha       150   250  201   20   ZI, pyrimidines
+alpha       150   250  168   16   ZII, pyrimidines
+beta        150   250  183   9    purines
+beta        150   250  225   16   ZI, pyrimidines
+beta        150   250  166   14   ZII, pyrimidines
+gamma       160   210  179   9    purines
+gamma       20    90   54    13   pyrimidines
+delta       80    160  95    8    C3'-endo, purines
+delta       80    160  148   7    C2'-endo, purines
+delta       80    160  141   8    pyrimidines
+epsilon     180   300  240   9    ZI, purines
+epsilon     180   300  189   12   ZII, purines
+epsilon     180   300  267   9    pyrimidines
+zeta        280   340  301   16   ZI, purines
+zeta        40    100  52    14   ZII, purines
+zeta        40    100  75    9    pyrimidines
+chi         50    90   63    5    ZI, C3'-endo, purines
+chi         50    90   58    5    ZII, C3'-endo, purines
+chi         50    90   76    6    C2'-endo, purines
+chi         180	  220  204   8    pyrimidines

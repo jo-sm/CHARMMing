@@ -1,0 +1,3014 @@
+#				 NDBTOKEN FORMAT 
+# number_of_tokens
+# Token token_name 
+#	serial_field 
+#	no_of_fields 
+#	continue_no_field 
+#       continue_field 
+#	matrix_field 
+#	ndb_only
+#	PDB_continue_no_field
+# Field Description
+# 	field_name 
+#	field_type 
+#	field_width 
+#	field_precision 
+#	field_start_column 
+#	ndb_only
+#	mixed_cases
+#     		.
+#		.
+# Number of field information should be the same as no_of_fields
+#
+#    serial_field: The sequential number of the field for serial number      
+#    continue_no_field: The sequential number of the field for continuation number
+#    continue_field: The sequential number of the field that should be continued
+#    ndb_only: 1 goes into ndb only, 
+#              0 means it is a PDB and NDB token
+#
+#    serial_field, continue_no_field, continue_field are 0 if they do not exist,
+#        otherwise they should be the sequential number of the field for it
+#    matrix_field is 0 if not a matrix, 3 if is a matrix
+#    ndb_only : does not go into pdb
+#
+#    field_type     data_type of the field
+#                   1 = integer
+#                   2 = real
+#		    3 = alpha single word left justifed
+#		    4 = alpha single word right justifed
+#		    5 = alpha multiword left justified
+#		    6 = alpha multiword right justified
+#		    7 = date
+#
+#  THE ORDER OF THE TOKENS SHOULD BE THE SAME THE WAY ORDEr APPEAR IN FILES
+#
+data_NDB_TOKENS
+
+loop_
+_ndb_token.name
+_ndb_token.serial_no
+_ndb_token.continuation_no
+_ndb_token.continuation
+_ndb_token.matrix_field
+_ndb_token.ndb_only
+_ndb_token.pdb_continued_no_field
+'HEADER' 0 0 0 0 0 0
+'OBSLTE' 0 2 0 0 0 0
+'TITLE' 0 2 3 0 0 2
+'CAVEAT' 0 2 3 0 0 0
+'COMPND' 4 5 3 0 0 2
+'PCOMPN' 4 5 3 0 1 2
+'NDBFIL' 0 0 0 0 1 0
+'PDBFIL' 0 0 0 0 1 0
+'RCSBID' 0 0 0 0 1 0
+'CSDFIL' 0 0 0 0 1 0
+'FILERR' 0 0 0 0 1 0
+'BMCDFI' 0 0 0 0 1 0
+'CSDNEW' 0 0 0 0 1 0
+'SOURCE' 4 5 3 0 0 2
+'PSOURC' 4 5 3 0 1 2
+'KEYWDS' 0 2 3 0 0 0
+'UNUSUA' 0 2 3 0 0 0
+'EXPDTA' 0 2 3 0 0 0
+'AUTHOR' 0 2 3 0 0 0
+'REVDAT' 0 0 0 0 0 0
+'SPRSDE' 0 2 0 0 0 0
+'JRNL' 0 0 0 0 0 0
+'AUDIT1' 3 0 0 0 1 0
+'AUDIT2' 4 2 3 0 1 0
+'AUDIT3' 3 0 0 0 1 0
+'AUDIT4' 3 0 0 0 1 0
+'AUDIT5' 3 0 0 0 1 0
+'ENTITY'  2 0 0 0 1 0
+'ENTDES'  2 3 4 0 1 0
+'ENTAIL'  2 3 4 0 1 0
+'ENTKEY'  2 3 4 0 1 0
+'ENTNAM'  2 3 4 0 1 0
+'ENTSYS'  2 3 4 0 1 0
+'ENTMUT'  2 3 4 0 1 0
+'FRAGMT'  2 3 4 0 1 0
+'ISOTYP'  2 3 4 0 1 0
+'ECNUM'   2 0 0 0 1 0
+'BIOUNI'  2 3 4 0 1 0
+'ENPOLY'  2 0 0 0 1 0
+'BINEMD'  2 0 0 0 1 0
+'ENZFCT'  2 0 0 0 1 0
+'REGFCT'  2 0 0 0 1 0
+'FUNCTN'  0 5 4 0 1 0
+'STRFCT'  2 0 0 0 1 0
+'OTHFCT'  2 0 0 0 1 0
+'CLSCOP'  2 0 0 0 1 0
+'CLCATH'  2 0 0 0 1 0
+'STASYM'  2 3 6 0 1 0
+'STBIOL'  2 0 0 0 1 0
+'STBNCS'  2 0 0 0 1 0
+'CCPNCS'  2 0 0 0 1 0
+'BIODES'  2 3 4 0 1 0
+'BIOKEY' 2 3 5 0 1 0
+'BIVIEW' 0 0 0 3 1 0
+'STPACK' 2 0 0 0 1 0
+'CRYTYP' 2 0 0 0 1 0
+'PACTYP' 2 0 0 0 1 0
+'SRCNNM'  2 0 0 0 1 0
+'SRCNSP'  2 0 0 0 1 0
+'SRCNTS'  2 0 0 0 1 0
+'SRCNSE'  2 0 0 0 1 0
+'SRCNDS'  2 3 4 0 1 0
+'SRCNFR'  2 0 0 0 1 0
+'SRCNSC'  2 0 0 0 1 0
+'SRCNCC'  2 0 0 0 1 0
+'SRCNOR'  2 0 0 0 1 0
+'SRCNPL'  2 0 0 0 1 0
+'SRCGFR'  2 0 0 0 1 0
+'SRCGNM'  2 0 0 0 1 0
+'SRCNN1'  2 0 0 0 1 0
+'SRCGST'  2 0 0 0 1 0
+'SRCGSP'  2 0 0 0 1 0
+'SRCGCC'  2 0 0 0 1 0
+'SRCGTS'  2 0 0 0 1 0
+'SRCGTI'  2 0 0 0 1 0
+'SRCGDS'  2 3 4 0 1 0
+'SRCSYN'  2 3 4 0 1 0
+'SRCGE1' 2 0 0 0 1 0
+'SRCGE2' 2 0 0 0 1 0
+'SRCGE3' 2 0 0 0 1 0
+'SRCGE4' 2 0 0 0 1 0
+'SRCGE5' 2 0 0 0 1 0
+'SRCGHN' 2 0 0 0 1 0
+'SRCGHS' 2 0 0 0 1 0
+'SRCGH1' 2 0 0 0 1 0
+'SRCGHT' 2 0 0 0 1 0
+'SRCGHV' 2 0 0 0 1 0
+'SRCGHC' 2 0 0 0 1 0
+'SRCGVE' 2 0 0 0 1 0
+'SRCGHD' 2 3 4 0 1 0
+'SRCGPL' 2 3 5 0 1 0
+'MODIFB' 2 0 0 0 1 0
+'MODIFP' 2 0 0 0 1 0
+'MODIFS' 2 0 0 0 1 0
+'HYBRID' 2 3 6 0 1 0
+'BSPAIR' 2 0 0 0 1 0
+'MISMAT' 2 0 0 0 1 0
+'PROTEI' 2 3 4 0 1 0
+'TRNANA' 2 3 4 0 1 0
+'INHIBT' 2 3 4 0 1 0
+'COENZY' 2 3 4 0 1 0
+'DCHEM' 2 3 4 0 1 0
+'DTRIV' 2 3 4 0 1 0
+'DBIND' 2 3 4 0 1 0
+'DNOMOL' 2 0 0 0 1 0
+'NSOLVT' 2 0 0 0 1 0
+'STRUCT' 0 0 0 0 1 0
+'STRKEY' 0 2 3 0 1 0
+'STCONF' 2 0 0 0 1 0
+'CRMETH' 5 2 3 0 1 0
+'CRMET1' 0 2 3 0 1 0
+'MODTLS' 0 2 3 0 1 0
+'CRDTLS' 0 2 3 0 1 0
+'CRSOLU' 2 0 0 0 1 0
+'CRSOLV' 2 0 0 0 1 0
+'CRSALT' 2 0 0 0 1 0
+'CRBATH' 2 0 0 0 1 0
+'CRTEMP' 5 3 0 0 1 0
+'PHVAL' 3 0 0 0 1 0
+'SOAKSV' 2 0 0 0 1 0
+'SOAKSA' 2 0 0 0 1 0
+'DENSTY' 0 0 0 0 1 0
+'MOLWT' 0 0 0 0 1 0
+'PERWAT' 0 0 0 0 1 0
+'NCHAIN' 2 0 0 0 1 0
+'CHAINS' 2 0 0 0 1 0
+'NWATER' 0 0 0 0 1 0
+'NION' 2 0 0 0 1 0
+'DTMETH' 7 0 0 0 1 0
+'DTTEMP' 5 3 4 0 1 0
+'DTWAVE' 2 0 0 0 1 0
+'WAVLEN' 2 0 0 0 1 0
+'REFLEC' 2 0 0 0 1 0
+'SHELC' 0 0 0 0 1 0 
+'DTMEAS' 7 0 0 0 1 0
+'DTMEA1' 0 0 0 0 1 0
+'RADIAT' 2 0 0 0 1 0 
+'RESTOT' 0 0 0 0 1 0
+'REFMET' 2 0 0 0 1 0
+'SFTWAR' 2 0 0 0 1 0
+'NMRECD' 0 2 3 0 1 0
+'NMREXP' 0 0 0 0 1 0
+'NMRPST' 0 0 0 0 1 0
+'NMRSDT' 0 0 0 0 1 0
+'NMRSFT' 0 2 3 0 1 0
+'NMRSMB' 0 0 0 0 1 0
+'NMRSMP' 0 0 0 0 1 0
+'NMRSPM' 2 0 0 0 1 0
+'RENTRY' 0 2 5 0 1 0
+'TRTMNT' 2 3 4 0 1 0
+'BVALUE' 0 0 0 0 1 0
+'RFACTR' 2 0 0 0 1 0
+'REFREM' 0 2 3 0 1 0
+'SHELL' 0 0 0 0 1 0
+'REFINE' 0 0 0 0 1 0
+'RNOCUT' 0 0 0 0 1 0
+'R4SCUT' 0 0 0 0 1 0
+'COORDA' 0 0 0 0 1 0
+'COORDH' 0 0 0 0 1 0
+'COORDS' 0 0 0 0 1 0
+'ATNUMS' 0 0 0 0 1 0
+'RECVD1' 0 0 0 0 1 0
+'RECVD2' 0 0 0 0 1 0
+'STATUS' 0 0 0 0 1 0
+'RELEAS' 0 0 0 0 1 0
+'PROCES' 0 0 0 0 1 0
+'RMKSKP' 0 0 0 0 1 0
+'NDBPRO' 2 3 6 0 1 0
+'REVISE' 0 2 5 0 1 0
+'MESSAG' 2 3 6 0 1 0
+'SENDER' 2 0 0 0 1 0
+'SENDER' 2 0 0 0 1 0
+'ADSEND' 2 3 4 0 1 0
+'RECEIV' 2 0 0 0 1 0
+'ADRECV' 2 3 4 0 1 0
+'PTATUS' 0 0 0 0 1 0
+'PDETLS' 0 0 0 0 1 0
+'SYMTRA' 2 0 0 0 1 0
+'SYMMET' 0 0 0 0 1 0
+'REMARK' 2 0 3 0 0 0
+'PREMRK' 2 0 3 0 1 0
+'PDBRMK' 2 3 4 0 1 0
+'DBREF' 15 0 0 0 0 0
+'SEQADV' 12 0 0 0 0 0
+'MISRES' 0 0 0 0 1 0
+#'UNPAIR' 2 0 0 0 1 0
+'SEQRES' 2 0 0 0 0 0
+'SEQIFO' 2 0 0 0 1 0
+'NDBSQN' 2 0 0 0 1 0
+'PDBSQN' 2 0 0 0 1 0
+'ALTSQN' 2 0 0 0 1 0
+'PDBSQR' 2 0 0 0 1 0
+'ALTSQR' 2 0 0 0 1 0
+'MODRES' 9 0 0 0 0 0
+'FTNOTE' 2 0 3 0 0 0
+'HET' 8 0 0 0 0 0
+'HETNAM' 5 2 4 0 0 0
+'HETSYN' 0 2 4 0 0 0
+'FORMUL' 7 4 0 0 0 0
+'HELIX' 2 0 0 0 0 0
+'PHELX' 2 0 0 0 1 0
+'SHEET' 24 0 0 0 0 0
+'PSHET' 24 0 0 0 1 0
+'TURN'  2 0 0 0 0 0
+'PTURN'  2 0 0 0 1 0
+'REFERR' 0 0 0 0 1 0
+'REFESU' 0 0 0 0 1 0
+'FREERF' 0 0 0 0 1 0
+'RMSGEN' 0 0 0 0 1 0
+'RMSGE1' 0 0 0 0 1 0
+'ESDGEN' 0 0 0 0 1 0
+'PERCOM' 0 0 0 0 1 0
+'RMSDIS' 0 0 0 0 1 0
+'RMSANG' 0 0 0 0 1 0
+'RMSDIN' 0 0 0 0 1 0
+'RMSPLA' 0 0 0 0 1 0
+'RMSVOL' 0 0 0 0 1 0
+'RMSNBO' 0 0 0 0 1 0
+'RMSCON' 0 0 0 0 1 0
+'RMSISO' 0 0 0 0 1 0
+'RMSISN' 0 0 0 0 1 0
+'NCSMOD' 2 0 0 0 1 0
+'XFILES' 2 0 0 0 1 0
+'DIFPTL' 4 2 3 0 1 0
+'XFILE1' 0 2 3 0 1 0
+'XFILE2' 0 3 2 0 1 0
+'XFILE3' 0 0 0 0 1 0
+'SHELXL' 0 0 0 0 1 0
+'COFOFC' 0 0 0 0 1 0
+'NCSTLS' 0 0 0 0 1 0
+'NCSGRO' 2 0 0 0 1 0
+'RMSRF1' 0 0 0 0 1 0
+'RMSRF2' 0 0 0 0 1 0
+'RMSRF3' 0 0 0 0 1 0
+'RMSRF4' 0 0 0 0 1 0
+'RMSRF5' 0 0 0 0 1 0
+'RMSRF6' 0 0 0 0 1 0
+'RMSRF7' 0 0 0 0 1 0
+'RMSRF8' 0 0 0 0 1 0
+'RFTPOS' 0 0 0 0 1 0
+'RFMPOS' 0 0 0 0 1 0
+'RFLPOS' 0 0 0 0 1 0
+'RFTTHR' 0 0 0 0 1 0
+'RFMTHR' 0 0 0 0 1 0
+'RFLTHR' 0 0 0 0 1 0
+'TMLPTL' 0 0 0 0 1 0
+'TLSGRO' 2 0 0 0 1 0
+'TLSRNG' 0 0 0 0 1 0
+'TTENSR' 2 0 0 0 1 0
+'LTENSR' 2 0 0 0 1 0
+'STENSR' 2 0 0 0 1 0
+'CMRFMT' 0 0 0 0 1 0
+'CEMFIT' 0 0 0 0 1 0
+'CMRNST' 0 0 0 0 1 0
+'EMSAMP' 0 0 0 0 1 0
+'EMDATA' 0 0 0 0 1 0
+'ASSEMB' 0 0 0 0 1 0
+'VIRPAR' 0 0 0 0 1 0
+'SOLEXP' 0 0 0 0 1 0
+'SOLMDL' 0 0 0 0 1 0
+'RMSTN1' 0 0 0 0 1 0 
+'RMSTN2' 0 0 0 0 1 0 
+'RMSSUM' 0 0 0 0 1 0
+'SOLMOD' 0 0 0 0 1 0 
+'SYMMA' 2 0 0 3 1 0
+'SSBOND' 2 0 0 0 0 0
+'PSSBND' 2 0 0 0 1 0
+'LINK' 16 0 0 0 0 0
+'SCLINK' 16 0 0 0 1 0
+'HYDBND' 21 0 0 0 0 0
+'SLTBRG' 16 0 0 0 0 0
+'CISPEP' 0 0 0 0 0 0
+'CISPRO' 0 0 0 0 0 0
+'SITE' 2 0 0 0 0 0
+'SITELS' 0 2 4 0 1 0
+'CRYST1' 0 0 0 0 0 0
+'ORIGX' 0 0 0 3 0 0
+'SCALE' 0 0 0 3 0 0
+'MTRIX' 2 0 0 3 0 0
+'TVECT' 0 0 0 0 0 0
+'BIOMT' 2 0 0 3 1 0
+'NCSGEN' 2 0 0 0 1 0
+'NCSRMK' 2 0 0 0 1 0
+'MODEL' 2 0 0 0 0 0
+'ATOMN' 2 0 0 0 0 0
+'ATOMP' 2 0 0 0 0 0
+'ATOMS' 2 0 0 0 0 0
+'ATOMMN' 2 0 0 0 0 0
+'ATOMMP' 2 0 0 0 0 0
+'HETAD' 2 0 0 0 0 0
+'HETAI' 2 0 0 0 0 0
+'HETIC' 2 0 0 0 0 0
+'HETAC' 2 0 0 0 0 0
+'HETAIN' 2 0 0 0 0 0
+'HETAS' 2 0 0 0 0 0
+'SIGATM' 2 0 0 0 0 0 
+'ANISOU' 2 0 0 0 0 0
+'SIGUIJ' 2 0 0 0 0 0
+'STRFAC' 2 0 0 0 1 0
+'TER' 2 0 0 0 0 0
+'ENDMDL' 0 0 0 0 0 0
+'CONECT' 2 0 0 0 0 0
+'MASTER' 0 0 0 0 0 0
+'END' 0 0 0 0 0 0 
+
+
+loop_
+_ndb_field.token_name
+_ndb_field.name
+_ndb_field.type
+_ndb_field.width
+_ndb_field.precision
+_ndb_field.start_column
+_ndb_field.ndb_only
+_ndb_field.mixed_cases
+'HEADER' 'Section' 3 6 0 1 0 0
+'HEADER' 'Classification' 5 40 0 11 0 0
+'HEADER' 'Initial_Deposition_Date' 7 10 0 51 0 0
+'HEADER' 'Structure_ID' 3 10 0 63 0 0
+
+'OBSLTE' 'Section' 3 6 0 1 0 0
+'OBSLTE' 'Continuation' 1 2 0 9 0 0
+'OBSLTE' 'Date' 7 9 0 12 0 0
+'OBSLTE' 'ID_old' 4 4 0 22 0 0
+'OBSLTE' 'ID_new' 3 32 0 32 0 0
+
+'TITLE' 'Section' 3 6 0 1 0 0
+'TITLE' 'Continuation' 1 2 0 9 0 0
+'TITLE' 'Title' 5 60 0 11 0 0
+
+'CAVEAT' 'Section' 3 6 0 1 0 0
+'CAVEAT' 'Continuation' 1 2 0 9 0 0
+'CAVEAT' 'PDB_ID' 3 4 0 12 0 0
+'CAVEAT' 'Comment' 5 51 0 20 0 0
+
+'COMPND' 'Section' 3 6 0 1 0 0
+'COMPND' 'PDB_Continuation' 1 2 0 9 0 0
+'COMPND' 'Descriptor' 5 60 0 11 0 1
+'COMPND' 'Serial_No'  1 3 0  72 1 0
+'COMPND' 'Continuation' 1 2 0  76 1 0
+
+'PCOMPN' 'Section' 3 6 0 1 0 0
+'PCOMPN' 'PDB_Continuation'  1 3 0 8 0 0
+'PCOMPN' 'PDB_Compound_Name' 5 60 0 12 0 0
+'PCOMPN' 'Serial_No'  1 3 0  72 1 0
+'PCOMPN' 'Continuation' 1 2 0  76 1 0
+
+'NDBFIL' 'Section' 3 6 0 1 0 0
+'NDBFIL' 'NDB_ID'  5 10 0 11 0 0
+'NDBFIL' 'Temp_NDB_ID' 5 10 0 22 0 0
+'NDBFIL' 'Status_Code' 5 6 0 33 0 0
+'NDBFIL' 'NDBDID'  5 10 0 40 0 0
+
+'PDBFIL' 'Section' 3 6 0 1 0 0
+'PDBFIL' 'PDB_ID' 5 15 0 11 0 0
+
+'RCSBID' 'Section' 3 6 0 1 0 0
+'RCSBID' 'RCSB_ID' 5 15 0 11 0 0
+
+'FILERR' 'Section' 3 6 0 1 0 0
+'FILERR' 'Seq_conflict' 1 4 0 12 0 0
+'FILERR' 'Term_seq_conflict' 1  4 0 17 0 0
+'FILERR' 'Missing_residue' 1  4 0 22 0 0
+'FILERR' 'Bib_section' 1  4 0 27 0 0
+'FILERR' 'Nomenclature' 1  4 0 32 0 0
+'FILERR' 'Internal' 1  4 0 37 0 0
+
+'CSDFIL' 'Section' 3 6 0 1 0 0
+'CSDFIL' 'CSD_ID' 5 15 0 11 0 0
+
+'BMCDFI' 'Section' 3 6 0 1 0 0
+'BMCDFI' 'BMCD_ID' 5 15 0 11 0 0
+
+'CSDNEW' 'Section' 3 6 0 1 0 0
+'CSDNEW' 'CSD_ID_New' 5 15 0 11 0 0
+
+'SOURCE' 'Section' 3 6 0 1 0 0
+'SOURCE' 'PDB_Continuation' 1 2 0 9 0 0
+'SOURCE' 'Source' 5 60 0 11 0 0
+'SOURCE' 'Serial_No'  1 3 0  72 1 0
+'SOURCE' 'Continuation' 1 2 0  76 1 0
+
+'PSOURC' 'Section' 3 6 0 1 0 0
+'PSOURC' 'PDB_Continuation' 1 3 0 8 0 0
+'PSOURC' 'PDB_source_record' 5 60 0 12 0 0
+'PSOURC' 'Serial_No'  1 3 0  72 1 0
+'PSOURC' 'Continuation' 1 2 0  76 1 0
+
+
+'KEYWDS' 'Section' 3 6 0 1 0 0
+'KEYWDS' 'Continuation' 1 2 0 9 0 0
+'KEYWDS' 'Keywords_PDB' 5 60 0 11 0 0
+
+'UNUSUA' 'Section' 3 6 0 1 0 0
+'UNUSUA' 'Continuation' 1 2 0 9 0 0
+'UNUSUA' 'Special_Structural_Features' 5 60 0 11 0 0
+
+'EXPDTA' 'Section' 3 6 0 1 0 0
+'EXPDTA' 'Continuation' 1 2 0 9 0 0
+'EXPDTA' 'Experimental_Technique' 3 60 0 11 0 0
+
+'AUTHOR' 'Section' 3 6 0 1 0 0
+'AUTHOR' 'Continuation' 1 2 0 9 0 0
+'AUTHOR' 'Author1' 5 60 0 11 0 1
+
+'REVDAT' 'Section' 3 6 0 1 0 0
+'REVDAT' 'Revision_Number' 1 3 0 8 0 0
+'REVDAT' 'Continuation' 1 2 0 11 0 0
+'REVDAT' 'Revision_Date' 7 10 0 14 0 0
+'REVDAT' 'Revision_ID' 3 5 0 24 0 0
+'REVDAT' 'Revision_Type' 1 1 0 32 0 0
+'REVDAT' 'Revision_Records' 5 6 0 40 0 0
+'REVDAT' 'Revision_Record2' 3 6 0 47 0 0
+'REVDAT' 'Revision_Record3' 3 6 0 54 0 0
+'REVDAT' 'Revision_Record4' 3 6 0 61 0 0
+
+'JRNL' 'Section' 3 6 0 1 0 0
+'JRNL' 'Citation' 5 62 0 11 0 0
+
+'AUDIT1' 'Section' 3 6 0 1 0 0
+'AUDIT1' 'Contact_author_name'  5 60 0 11 0 0
+'AUDIT1' 'Serial_No'  1  3 0  72 0 0
+
+'AUDIT2' 'Section' 3 6 0 1 0 0
+'AUDIT2' 'Continuation' 1 2 0 9 0 0
+'AUDIT2' 'Contact_author_address'  5 60 0 11 0 0
+'AUDIT2' 'Serial_No'  1  3 0  72 0 0
+
+'AUDIT3' 'Section' 3 6 0 1 0 0
+'AUDIT3' 'Contact_author_phone'  5 60 0 11 0 0
+'AUDIT3' 'Serial_No'  1  3 0  72 0 0
+
+'AUDIT4' 'Section' 3 6 0 1 0 0
+'AUDIT4' 'Contact_author_fax'  5 60 0 11 0 0
+'AUDIT4' 'Serial_No'  1  3 0  72 0 0
+
+'AUDIT5' 'Section' 3 6 0 1 0 0
+'AUDIT5' 'Contact_author_email'  5 60 0 11 0 0
+'AUDIT5' 'Serial_No'  1  3 0  72 0 0
+
+'ENTITY' 'Section' 3 6 0 1 0 0
+'ENTITY' 'Entity_ID' 1 2 0 9 0 0
+'ENTITY' 'Chemical_Type' 5 30 0 12 0 0
+'ENTITY' 'Source_Method' 5 30 0 43 0 0
+'ENTITY' 'Number_of_Molecules' 2 6 2 73 0 0
+
+'ENTDES' 'Section' 3 6 0 1 0 0
+'ENTDES' 'Entity_ID' 1 2 0 9 0 0
+'ENTDES' 'Continuation' 1 1 0 12 0 0
+'ENTDES' 'Description' 5 60 0 14 0 0
+
+'ENTAIL' 'Section' 3 6 0 1 0 0
+'ENTAIL' 'Entity_ID' 1 2 0 9 0 0
+'ENTAIL' 'Continuation' 1 1 0 12 0 0
+'ENTAIL' 'Description' 5 60 0 14 0 0
+
+'ENTKEY'  'Section' 3 6 0 1 0 0
+'ENTKEY'  'Entity_ID' 1 2 0 9 0 0
+'ENTKEY'  'Continuation' 1 1 0 11 0 0
+'ENTKEY'  'Keywords' 5 90 0 12 0 0
+
+'ENTMUT'  'Section' 3 6 0 1 0 0
+'ENTMUT'  'Entity_ID' 1 2 0 9 0 0
+'ENTMUT'  'Continuation' 1 1 0 11 0 0
+'ENTMUT'  'Mutation' 5 90 0 12 0 0
+
+'FRAGMT'  'Section' 3 6 0 1 0 0
+'FRAGMT'  'Entity_ID' 1 2 0 9 0 0
+'FRAGMT'  'Continuation' 1 1 0 11 0 0
+'FRAGMT'  'Fragment' 5 90 0 12 0 0
+
+'ISOTYP'  'Section' 3 6 0 1 0 0
+'ISOTYP'  'Entity_ID' 1 2 0 9 0 0
+'ISOTYP'  'Continuation' 1 1 0 11 0 0
+'ISOTYP'  'Antibody_Isotype' 5 90 0 12 0 0
+
+'ECNUM'  'Section' 3 6 0 1 0 0
+'ECNUM'  'Entity_ID' 1 2 0 9 0 0
+'ECNUM'  'EC_Number' 5 90 0 12 0 0
+
+'BIOUNI'  'Section' 3 6 0 1 0 0
+'BIOUNI'  'Entity_ID' 1 2 0 9 0 0
+'BIOUNI'  'Continuation' 1 1 0 11 0 0
+'BIOUNI'  'Biological_Unit' 5 100 0 12 0 0
+
+'ENTNAM' 'Section' 3 6 0 1 0 0
+'ENTNAM' 'Entity_ID' 1 2 0 9 0 0
+'ENTNAM' 'Continuation' 1 1 0 11 0 0
+'ENTNAM' 'Common_Name' 5 60 0 12 0 0
+
+'ENTSYS' 'Section' 3 6 0 1 0 0
+'ENTSYS' 'Entity_ID' 1 2 0 9 0 0
+'ENTSYS' 'Continuation' 1 1 0 11 0 0
+'ENTSYS' 'Systematic_Name' 5 60 0 12 0 0
+
+'ENPOLY' 'Section' 3 6 0 1 0 0
+'ENPOLY' 'Serial_No' 1 2 0 9 0 0
+'ENPOLY' 'Entity_ID' 1 5 0 12 0 0
+'ENPOLY' 'Begin_Res_Name' 4 3 0 18 0 0
+'ENPOLY' 'Begin_Res_Num' 1 4 0 23 0 0
+'ENPOLY' 'End_Res_Name' 4 3 0 28 0 0
+'ENPOLY' 'End_Res_Num' 1 4 0 33 0 0
+
+'BINEMD' 'Section' 3 6 0 1 0 0
+'BINEMD' 'Serial_No' 1 2 0 9 0 0
+'BINEMD' 'Domain_ID' 5 5 0 12 0 0
+'BINEMD' 'Entity_ID' 1 5 0 18 0 0
+'BINEMD' 'Protein_Binds_to' 5 8 0 25 0 0
+'BINEMD' 'Type' 5 15 0 35 0 0
+
+'ENZFCT' 'Section' 3 6 0 1 0 0
+'ENZFCT' 'Bind_Mode_ID' 5 5 0 9 0 0
+'ENZFCT' 'Type' 5 75 0 15 0 0
+
+'REGFCT' 'Section' 3 6 0 1 0 0
+'REGFCT' 'Bind_Mode_ID' 5 5 0 9 0 0
+'REGFCT' 'Type' 5 75 0 15 0 0
+
+'STRFCT' 'Section' 3 6 0 1 0 0
+'STRFCT' 'Bind_Mode_ID' 5 5 0 9 0 0
+'STRFCT' 'Type' 5 75 0 15 0 0
+
+'FUNCTN' 'Section' 3 6 0 1 0 0
+'FUNCTN' 'ID' 1 2 0 8 0 0
+'FUNCTN' 'Biol_ID' 1 2 0 11 0 0
+'FUNCTN' 'Function' 5 60 0 14 0 0
+'FUNCTN' 'Continuation' 1 1 0 76 0 0
+
+'OTHFCT' 'Section' 3 6 0 1 0 0
+'OTHFCT' 'Bind_Mode_ID' 5 5 0 9 0 0
+'OTHFCT' 'Type' 5 75 0 15 0 0
+
+'CLSCOP' 'Section' 3 6 0 1 0 0
+'CLSCOP' 'Serial_No' 1 2 0 9 0 0
+'CLSCOP' 'Type' 5 75 0 12 0 0
+
+'CLCATH' 'Section' 3 6 0 1 0 0
+'CLCATH' 'Serial_No' 1 2 0 9 0 0
+'CLCATH' 'Type' 5 75 0 12 0 0
+
+'STASYM' 'Section' 3 6 0 1 0 0
+'STASYM' 'Serial_No' 1 2 0 9 0 0
+'STASYM' 'Continuation' 1 1 0 12 0 0
+'STASYM' 'Asym_ID' 3 2 0 14 0 0
+'STASYM' 'Entity_ID' 1 5 0 17 0 0
+'STASYM' 'Struct_Asym_Description' 5 55 0 28 0 0
+
+'STBIOL' 'Section' 3 6 0 1 0 0
+'STBIOL' 'Serial_No' 1 2 0 9 0 0
+'STBIOL' 'Biol_ID' 1 2 0 14 0 0
+'STBIOL' 'Asym_ID' 3 2 0 17 0 0
+'STBIOL' 'Symmetry' 5 7 0 20 0 0
+'STBIOL' 'Before_Begin_Residue_No' 1 5 0 30 0 0
+'STBIOL' 'Before_End_Residue_No'   1 5 0 38 0 0
+'STBIOL' 'After_Begin_Residue_No'  1 5 0 45 0 0
+'STBIOL' 'After_End_Residue_No'    1 5 0 52 0 0
+'STBIOL' 'Color_Red' 2 4 1 62 0 0
+'STBIOL' 'Color_Green' 2 4 1 67 0 0
+'STBIOL' 'Color_Blue' 2 4 1 72 0 0
+'STBIOL' 'NDB_Strand_ID' 3 2 0 77 0 0
+'STBIOL' 'PDB_Strand_ID' 3 2 0 80 0 1
+'STBIOL' 'Symmetry_Operation_in_XYZ' 5 40 0 83 0 0
+'STBIOL' 'PDB_Order' 1 2 0 124 0 0
+'STBIOL' 'PDB_Chain_Flag' 3 3 0 127 0 0
+
+'STBNCS' 'Section' 3 6 0 1 0 0
+'STBNCS' 'Serial_No' 1 2 0 9 0 0
+'STBNCS' 'Dom_ID' 3 2 0 12 0 0
+'STBNCS' 'Begin_Asym_ID' 3 2 0 15 0 0
+'STBNCS' 'Begin_Res_Name' 4 3 0 18 0 0
+'STBNCS' 'Begin_Res_Num' 1 4 0 22 0 0
+'STBNCS' 'End_Asym_ID' 3 2 0 27 0 0
+'STBNCS' 'End_Res_Name' 4 3 0 30 0 0
+'STBNCS' 'End_Res_Num' 1 4 0 34 0 0
+'STBNCS' 'From_Dom_ID' 3 2 0 39 0 0
+'STBNCS' 'Oper_ID' 1 3 0 42 0 0
+
+'CCPNCS' 'Section' 3 6 0 1 0 0
+'CCPNCS' 'Serial_No' 1 2 0 9 0 0
+'CCPNCS' 'Begin_Asym_ID' 3 2 0 13 0 0
+'CCPNCS' 'Begin_Res_Num' 1 4 0 17 0 0
+'CCPNCS' 'End_Asym_ID' 3 2 0 23 0 0
+'CCPNCS' 'End_Res_Num' 1 4 0 27 0 0
+'CCPNCS' 'Component' 1 3 0 33 0 0
+'CCPNCS' 'Code' 1 3 0 38 0 0
+
+'BIODES' 'Section' 3 6 0 1 0 0
+'BIODES' 'Serial_No' 1 2 0 9 0 0
+'BIODES' 'Continuation' 5 2 0 11 0 0
+'BIODES' 'Struct_Biol_Gen_Description' 5 60 0 14 0 0
+
+'BIOKEY' 'Section' 3 6 0 1 0 0
+'BIOKEY' 'Serial_No' 1 2 0 9 0 0
+'BIOKEY' 'Continuation' 1 1 0 12 0 0
+'BIOKEY' 'Biol_ID' 1 2 0 14 0 0
+'BIOKEY' 'Keywords' 5 60 0 18 0 0 
+
+'BIVIEW' 'Section' 3 6 0 1 0 0
+'BIVIEW' 'Biol_ID' 1 2 0 9 1 0
+'BIVIEW' 'View_ID' 1 2 0 12 1 0
+'BIVIEW' 'X' 2 10 6 15 0 0
+'BIVIEW' 'Y' 2 10 6 25 0 0
+'BIVIEW' 'Z' 2 10 6 35 0 0
+'BIVIEW' 'T' 2 10 6 45 0 0
+
+'STPACK' 'Section' 3 6 0 1 0 0
+'STPACK' 'Serial_No' 1 2 0 9 0 0
+'STPACK' 'Asym_ID' 3 2 0 12 0 0
+'STPACK' 'Symmetry_Operation_No' 5 7 0 15 0 0
+'STPACK' 'Color_Red' 2 4 1 24 0 0
+'STPACK' 'Color_Green' 2 4 1 29 0 0
+'STPACK' 'Color_Blue' 2 4 1 33 0 0
+
+'CRYTYP' 'Section' 3 6 0 1 0 0
+'CRYTYP' 'Serial_No' 1 2 0 9 0 0
+'CRYTYP' 'Type' 5 6 0 12 0 0
+
+'PACTYP' 'Section' 3 6 0 1 0 0
+'PACTYP' 'Serial_No' 1 2 0 9 0 0
+'PACTYP' 'Type' 5 40 0 12 0 0
+
+'SRCNNM' 'Section' 3 6 0 1 0 0
+'SRCNNM' 'Serial_No' 1 2 0 9 0 0
+'SRCNNM' 'Natural_Source_Common_Name' 5 35 0 12 0 0
+'SRCNNM' 'Genus' 5 35 0 48 0 0
+
+'SRCNN1' 'Section' 3 6 0 1 0 0
+'SRCNN1' 'Serial_No' 1 2 0 9 0 0
+'SRCNN1' 'Organism_Scientific' 5 35 0 12 0 0
+'SRCNN1' 'Genus' 5 35 0 48 0 0
+
+'SRCNSP' 'Section' 3 6 0 1 0 0
+'SRCNSP' 'Serial_No' 1 2 0 9 0 0
+'SRCNSP' 'Species' 5 35 0 12 0 0
+'SRCNSP' 'Strain' 5 35 0 48 0 0
+
+'SRCNTS' 'Section' 3 6 0 1 0 0
+'SRCNTS' 'Serial_No' 1 2 0 9 0 0
+'SRCNTS' 'Tissue' 5 35 0 12 0 0
+'SRCNTS' 'Tissue_Fraction' 5 35 0 48 0 0
+
+'SRCNSE' 'Section' 3 6 0 1 0 0
+'SRCNSE' 'Serial_No' 1 2 0 9 0 0
+'SRCNSE' 'Secretion' 5 35 0 12 0 0
+
+'SRCNFR' 'Section' 3 6 0 1 0 0
+'SRCNFR' 'Serial_No' 1 2 0 9 0 0
+'SRCNFR' 'Fragment' 5 35 0 12 0 0
+'SRCNFR' 'Variant' 5 35 0 48 0 0
+
+'SRCNSC' 'Section' 3 6 0 1 0 0
+'SRCNSC' 'Serial_No' 1 2 0 9 0 0
+'SRCNSC' 'Cell_line' 5 35 0 12 0 0
+'SRCNSC' 'ATCC_number' 5 10 0 48 0 0
+'SRCNSC' 'Cellular_location' 5 35 0 59 0 0
+
+'SRCNCC' 'Section' 3 6 0 1 0 0
+'SRCNCC' 'Serial_No' 1 2 0 9 0 0
+'SRCNCC' 'Collection' 5 50 0 12 0 0
+
+'SRCNOR' 'Section' 3 6 0 1 0 0
+'SRCNOR' 'Serial_No' 1 2 0 9 0 0
+'SRCNOR' 'Organ' 5 25 0 12 0 0
+'SRCNOR' 'Organelle' 5 25 0 38 0 0
+'SRCNOR' 'Cell' 5 25 0 64 0 0
+
+'SRCNDS' 'Section' 3 6 0 1 0 0
+'SRCNDS' 'Serial_No' 1 2 0 9 0 0
+'SRCNDS' 'Continuation' 1 1 0 12 0 0
+'SRCNDS' 'Details' 5 60 0 14 0 0 
+
+'SRCNPL' 'Section' 3 6 0 1 0 0
+'SRCNPL' 'Serial_No' 1 2 0 9 0 0
+'SRCNPL' 'Continuation' 1 1 0 12 0 0
+'SRCNPL' 'Plasmid_Common_Name' 5 30 0 35 0 0
+'SRCNPL' 'Plasmid_Description' 5 30 0 67 0 0
+
+'SRCGFR' 'Section' 3 6 0 1 0 0
+'SRCGFR' 'Serial_No' 1 2 0 9 0 0
+'SRCGFR' 'Fragment' 5 35 0 12 0 0
+'SRCGFR' 'Variant' 5 35 0 48 0 0
+
+'SRCGNM' 'Section' 3 6 0 1 0 0
+'SRCGNM' 'Serial_No' 1 2 0 9 0 0
+'SRCGNM' 'Organism_Scientific' 5 35 0 12 0 0
+'SRCGNM' 'Organism_Common' 5 35 0 48 0 0
+
+'SRCGST' 'Section' 3 6 0 1 0 0
+'SRCGST' 'Serial_No' 1 2 0 9 0 0
+'SRCGST' 'Strain' 5 35 0 12 0 0
+'SRCGST' 'Secretion' 5 35 0 48 0 0
+
+'SRCGSP' 'Section' 3 6 0 1 0 0
+'SRCGSP' 'Serial_No' 1 2 0 9 0 0
+'SRCGSP' 'Cell_Line' 5 35 0 12 0 0
+'SRCGSP' 'ATCC_Number' 5 10 0 48 0 0
+'SRCGSP' 'Cellular_Location' 5 35 0 59 0 0
+
+'SRCGCC' 'Section' 3 6 0 1 0 0
+'SRCGCC' 'Serial_No' 1 2 0 9 0 0
+'SRCGCC' 'Gene_Collection' 5 35 0 12 0 0
+'SRCGCC' 'Host_Collection' 5 35 0 48 0 0
+
+'SRCGTS' 'Section' 3 6 0 1 0 0
+'SRCGTS' 'Serial_No' 1 2 0 9 0 0
+'SRCGTS' 'Organ' 5 25 0 12 0 0
+'SRCGTS' 'Organelle' 5 25 0 38 0 0
+'SRCGTS' 'Cell' 5 25 0 64 0 0
+
+'SRCGTI' 'Section' 3 6 0 1 0 0
+'SRCGTI' 'Serial_No' 1 2 0 9 0 0
+'SRCGTI' 'Tissue' 5 25 0 12 0 0
+'SRCGTI' 'Tissue_Fraction' 5 25 0 38 0 0
+
+'SRCGDS' 'Section' 3 6 0 1 0 0
+'SRCGDS' 'Serial_No' 1 2 0 9 0 0
+'SRCGDS' 'Continuation' 1 1 0 12 0 0
+'SRCGDS' 'Source_Description' 5 60 0 14 0 0 
+
+'SRCSYN' 'Section' 3 6 0 1 0 0
+'SRCSYN' 'Serial_No' 1 2 0 9 0 0
+'SRCSYN' 'Continuation' 1 1 0 12 0 0
+'SRCSYN' 'Source_Description' 5 60 0 14 0 0
+
+'SRCGE1' 'Section' 3 6 0 1 0 0
+'SRCGE1' 'Serial_No' 1 2 0 9 0 0
+'SRCGE1' 'Source_Gene_Common_Name' 5 35 0 12 0 0
+'SRCGE1' 'Source_Gene_Genus' 5 35 0 48 0 0
+'SRCGE1' 'Gene' 5 35 0 85 0 0
+
+'SRCGE2' 'Section' 3 6 0 1 0 0
+'SRCGE2' 'Serial_No' 1 2 0 9 0 0
+'SRCGE2' 'Gene_Species' 5 35 0 12 0 0
+'SRCGE2' 'Gene_Strain' 5 35 0 48 0 0
+
+'SRCGE3' 'Section' 3 6 0 1 0 0
+'SRCGE3' 'Serial_No' 1 2 0 9 0 0
+'SRCGE3' 'Gene_Tissue' 5 35 0 12 0 0
+'SRCGE3' 'Gene_Tissue_Fraction' 5 35 0 48 0 0
+
+'SRCGE4' 'Section' 3 6 0 1 0 0
+'SRCGE4' 'Serial_No' 1 2 0 9 0 0
+'SRCGE4' 'Continuation' 1 1 0 12 0 0 
+'SRCGE4' 'Gene_Description' 5 60 0 14 0 0
+
+'SRCGE5' 'Section' 3 6 0 1 0 0
+'SRCGE5' 'Serial_No' 1 2 0 9 0 0
+'SRCGE5' 'Gene_src_plasmid' 5 35 0 12 0 0
+
+'SRCGHN' 'Section' 3 6 0 1 0 0
+'SRCGHN' 'Serial_No' 1 2 0 9 0 0
+'SRCGHN' 'Host_Common_Name' 5 35 0 12 0 0
+'SRCGHN' 'Host_Genus' 5 35 0 48 0 0
+'SRCGHN' 'Host_Gene' 5 55 0 85 0 0
+
+'SRCGHS' 'Section' 3 6 0 1 0 0
+'SRCGHS' 'Serial_No' 1 2 0 9 0 0
+'SRCGHS' 'Host_Species' 5 35 0 12 0 0
+'SRCGHS' 'Host_Strain' 5 35 0 48 0 0
+'SRCGHS' 'Host_Scientific_Name' 5 35 0 85 0 0
+
+'SRCGH1' 'Section' 3 6 0 1 0 0
+'SRCGH1' 'Serial_No' 1 2 0 9 0 0
+'SRCGH1' 'Host_Organ' 5 35 0 12 0 0
+'SRCGH1' 'Host_Organelle' 5 35 0 48 0 0
+
+'SRCGHT' 'Section' 3 6 0 1 0 0
+'SRCGHT' 'Serial_No' 1 2 0 9 0 0
+'SRCGHT' 'Host_Tissue' 5 35 0 12 0 0
+'SRCGHT' 'Host_Tissue_Fraction' 5 35 0 48 0 0
+
+'SRCGHV' 'Section'        3 6  0 1  0 0
+'SRCGHV' 'Serial_No'      1 2  0 9  0 0
+'SRCGHV' 'Host_Varient'   5 35 0 12 0 0
+'SRCGHV' 'Host_Cell_line' 5 35 0 48 0 0
+
+'SRCGHC' 'Section'                3 6 0 1 0 0
+'SRCGHC' 'Serial_No' 1 2 0 9 0 0
+'SRCGHC' 'Host_ATCC_Number' 5 15 0 12 0 0
+'SRCGHC' 'Host_Cell' 5 20 0 29 0 0
+'SRCGHC' 'Host_Cellular_Location' 5 35 0 51 0 0
+
+'SRCGVE' 'Section' 3 6 0 1 0 0
+'SRCGVE' 'Serial_No' 1 2 0 9 0 0
+'SRCGVE' 'Host_Vector_Type' 5 35 0 12 0 0
+'SRCGVE' 'Host_Vector' 5 35 0 48 0 0
+
+'SRCGHD' 'Section' 3 6 0 1 0 0
+'SRCGHD' 'Serial_No' 1 2 0 9 0 0
+'SRCGHD' 'Continuation' 1 1 0 12 0 0 
+'SRCGHD' 'Host_Description' 5 60 0 14 0 0
+
+'SRCGPL' 'Section' 3 6 0 1 0 0
+'SRCGPL' 'Serial_No' 1 2 0 9 0 0
+'SRCGPL' 'Continuation' 1 1 0 12 0 0
+'SRCGPL' 'Plasmid_Common_Name' 5 30 0 35 0 0
+'SRCGPL' 'Plasmid_Description' 5 30 0 67 0 0
+
+'MODIFB' 'Base_Modifier' 3 6 0 1 0 0
+'MODIFB' 'Serial_No' 1 3 0 8 0 0
+'MODIFB' 'Modifier_Name' 5 19 0 12 0 0
+'MODIFB' 'Modifier_Atom_Name' 3 4 0 32 0 0
+'MODIFB' 'Modifier_Strand_ID' 4 2 0 36 0 0
+'MODIFB' 'Modifier_Residue_Name' 4 4 0 39 0 0
+'MODIFB' 'Modifier_Residue_Number' 1 4 0 44 0 0
+'MODIFB' 'Parent_Residue_Atom_Name' 3 4 0 49 0 0
+'MODIFB' 'Parent_Residue_Strand_ID' 4 2 0 53 0 0
+'MODIFB' 'Parent_Residue_Name' 4 4 0 56 0 0
+'MODIFB' 'Parent_Residue_Number' 1 4 0 61 0 0
+'MODIFB' 'Replaced_Atom_Name'    3 4 0 66 0 0
+
+'MODIFP' 'Phosphate_Modifier' 3 6 0 1 0 0
+'MODIFP' 'Serial_No' 1 3 0 8 0 0
+'MODIFP' 'Modifier_Name' 5 19 0 12 0 0
+'MODIFP' 'Modifier_Atom_Name' 3 4 0 32 0 0
+'MODIFP' 'Modifier_Strand_ID' 4 2 0 36 0 0
+'MODIFP' 'Modifier_Residue_Name' 4 4 0 39 0 0
+'MODIFP' 'Modifier_Residue_Number' 1 4 0 44 0 0
+'MODIFP' 'Parent_Residue_Atom_Name' 3 4 0 49 0 0
+'MODIFP' 'Parent_Residue_Strand_ID' 4 2 0 53 0 0
+'MODIFP' 'Parent_Residue_Name' 4 4 0 56 0 0
+'MODIFP' 'Parent_Residue_Number' 1 4 0 61 0 0
+'MODIFP' 'Replaced_Atom_Name'    3 4 0 66 0 0
+
+'MODIFS' 'Sugar_Modifier' 3 6 0 1 0 0
+'MODIFS' 'Serial_No' 1 3 0 8 0 0
+'MODIFS' 'Sugar_Modifier_Name' 5 19 0 12 0 0
+'MODIFS' 'Modifier_Atom_Name' 3 4 0 32 0 0
+'MODIFS' 'Modifier_Strand_ID' 4 2 0 36 0 0
+'MODIFS' 'Modifier_Residue_Name' 4 4 0 39 0 0
+'MODIFS' 'Modifier_Residue_Number' 1 4 0 44 0 0
+'MODIFS' 'Parent_Residue_Atom_Name' 3 4 0 49 0 0
+'MODIFS' 'Parent_Residue_Strand_ID' 4 2 0 53 0 0
+'MODIFS' 'Parent_Residue_Name' 4 4 0 56 0 0
+'MODIFS' 'Parent_Residue_Number' 1 4 0 61 0 0
+'MODIFS' 'Replaced_Atom_Name' 3 4 0 66 0 0
+'MODIFS' 'Sugar_Name' 4 25 0 71 0 0
+
+'HYBRID' 'Section' 3 6 0 1 0 0
+'HYBRID' 'Serial_No' 1 2 0 9 0 0
+'HYBRID' 'Continuation' 1 1 0 12 0 0
+'HYBRID' 'Sugar' 3 1 0 14 0 0
+'HYBRID' 'Strand_ID' 4 2 0 15 0 0
+'HYBRID' 'Residue_Names' 5 52 0 18 0 0
+
+'BSPAIR' 'Section' 3 6 0 1 0 0
+'BSPAIR' 'Bspair_Serial_No' 1 3 0 8 0 0
+'BSPAIR' 'Strand_ID_1' 4 2 0 11 0 0
+'BSPAIR' 'Residue_Name_1' 3 1 0 14 0 0
+'BSPAIR' 'Residue_Sequence_No_1' 1 3 0 16 0 0
+'BSPAIR' 'Atom_Name_1' 3 4 0 19 0 0
+'BSPAIR' 'Strand_ID_2' 4 2 0 23 0 0
+'BSPAIR' 'Residue_Name_2' 3 1 0 26 0 0
+'BSPAIR' 'Residue_Sequence_No_2' 1 3 0 28 0 0
+'BSPAIR' 'Atom_Name_2' 3 4 0 31 0 0
+'BSPAIR' 'Coordinate_Type_Asym_or_Gen' 3 1 0 36 0 0
+'BSPAIR' 'Bonding_Type' 5 35 0 39 0 0
+
+'MISMAT' 'Mismatch' 3 6 0 1 0 0
+'MISMAT' 'Serial_No' 1 2 0 9 0 0
+'MISMAT' 'Strand_ID_1' 4 2 0 11 0 0
+'MISMAT' 'Residue_1' 4 4 0 14 0 0
+'MISMAT' 'Residue_No_1' 1 4 0 19 0 0
+'MISMAT' 'Strand_ID_2' 4 2 0 23 0 0
+'MISMAT' 'Residue_2' 4 4 0 26 0 0
+'MISMAT' 'Residue_No_2' 1 4 0 31 0 0
+
+'PROTEI' 'Section' 3 6 0 1 0 0
+'PROTEI' 'Entity_ID' 1 2 0 9 0 0
+'PROTEI' 'Continuation' 1 2 0 12 0 0
+'PROTEI' 'Protein_Name' 5 56 0 15 0 0
+'PROTEI' 'No_Of_Protein_Mol_Asym_Unit' 2 10 3 73 0 0
+
+'TRNANA' 'Section' 3 6 0 1 0 0
+'TRNANA' 'Serial_No' 1 2 0 9 0 0
+'TRNANA' 'Continuation' 1 2 0 12 0 0
+'TRNANA' 'Trna_Name' 5 56 0 15 0 0
+'TRNANA' 'No_Of_tRNA_Mol_Asym_Unit' 2 10 3 73 0 0
+
+'INHIBT' 'Section' 3 6 0 1 0 0
+'INHIBT' 'Serial_No' 1 2 0 9 0 0
+'INHIBT' 'Continuation' 1 2 0 12 0 0
+'INHIBT' 'Protein_Ligand_Name' 5 56 0 15 0 0
+'INHIBT' 'No_Of_Ligand_Mol_Asym_Unit' 2 10 3 73 0 0
+
+'COENZY' 'Section' 3 6 0 1 0 0
+'COENZY' 'Serial_No' 1 2 0 9 0 0
+'COENZY' 'Continuation' 1 2 0 12 0 0
+'COENZY' 'Coenzyme_Name' 5 56 0 15 0 0
+'COENZY' 'No_Of_Coenzyme_Mol_Asym_Unit' 2 10 3 73 0 0
+
+'DCHEM' 'Drug' 3 6 0 1 0 0
+'DCHEM' 'Serial_No' 1 2 0 9 0 0
+'DCHEM' 'Continuation' 1 2 0 12 0 0
+'DCHEM' 'Drug_Name' 5 56 0 15 0 0
+
+'DTRIV' 'Section' 3 6 0 1 0 0
+'DTRIV' 'Drug_Serial_No' 1 2 0 9 0 0
+'DTRIV' 'Continuation' 1 2 0 12 0 0
+'DTRIV' 'Drug_Name_Synonyms' 5 56 0 15 0 0
+
+'DBIND' 'Section' 3 6 0 1 0 0
+'DBIND' 'Binding_Serial_No' 1 2 0 9 0 0
+'DBIND' 'Continuation' 1 2 0 12 0 0
+'DBIND' 'Drug_Binding_Type' 5 56 0 15 0 0
+'DBIND' 'Drug_Binding_Site_id' 5 20 0 73 0 0
+
+'DNOMOL' 'Section' 3 6 0 1 0 0
+'DNOMOL' 'Drug_Serial_No' 1 2 0 9 0 0
+'DNOMOL' 'No_Of_Drug_Mol_Asym_Unit' 2 10 3 12 0 0
+'DNOMOL' 'No_Of_Drug_Mol_Biol_Unit' 2 10 3 24 0 0
+'DNOMOL' 'Fraction_Drug_Per_Asym_Unit' 5 10 3 44 0 0
+
+'NSOLVT' 'Section' 3 6 0 1 0 0
+'NSOLVT' 'Solvent_Serial_No' 1 2 0 9 0 0
+'NSOLVT' 'Solvent_Name' 5 48 0 12 0 0
+'NSOLVT' 'Number_Of_Solvent_Asym_Unit' 2 10 3 61 0 0
+
+'STRUCT' 'Section' 3 6 0 1 0 0
+'STRUCT' 'Conformation_Type' 5 24 0 12 0 0
+'STRUCT' 'NA_Structural_Description' 5 18 0 37 0 0
+
+'STRKEY' 'Section' 3 6 0 1 0 0
+'STRKEY' 'Continuation' 1 2 0 9 0 0
+'STRKEY' 'Special_Structural_Feature'  5 70 0 12 0 0
+
+'STCONF' 'Section' 3 6 0 1 0 0
+'STCONF' 'Serial_No' 1 2 0 9 0 0
+'STCONF' 'Conf_Type_ID' 5 15 0 12 0 0
+'STCONF' 'Beg_Res_Name' 3 1 0 28 0 0
+'STCONF' 'Beg_Strand_ID' 4 2 0 29 0 0
+'STCONF' 'Beg_Seq_No' 1 2 0 32 0 0
+'STCONF' 'End_Res_Name' 3 1 0 35 0 0
+'STCONF' 'End_Strand_ID' 4 2 0 36 0 0
+'STCONF' 'End_Seq_No' 1 2 0 39 0 0
+'STCONF' 'Details' 5 20 0 43 0 0
+
+'CRMETH' 'Section' 3 6 0 1 0 0
+'CRMETH' 'Continuation' 1 2 0 9 0 0
+'CRMETH' 'Crystallization_Method' 5 59 0 12 0 0
+'CRMETH' 'Number_of_Crystals_Used' 1 2 0 73 0 0
+'CRMETH' 'Crystal_ID' 5 12 0 77 0 0
+
+'CRMET1' 'Section' 3 6 0 1 0 0
+'CRMET1' 'Continuation' 1 2 0 9 0 0
+'CRMET1' 'Crystallization_Remark' 5 60 0 12 0 0
+'CRMET1' 'Crystal_ID' 5 12 0 77 0 0
+
+'MODTLS' 'Section' 3 6 0 1 0 0
+'MODTLS' 'Continuation' 1 2 0 9 0 0
+'MODTLS' 'Model_Remark' 5 60 0 12 0 0
+'MODTLS' 'NDB_details' 5 60 0 74 0 0
+
+'CRDTLS' 'Section' 3 6 0 1 0 0
+'CRDTLS' 'Continuation' 1 2 0 9 0 0
+'CRDTLS' 'Crystallization_Details' 5 60 0 12 0 0
+'CRDTLS' 'Crystal_ID' 5 12 0 77 0 0
+
+'CRSOLU' 'Section' 3 6 0 1 0 0
+'CRSOLU' 'Serial_No' 1 2 0 9 0 0
+'CRSOLU' 'Crystal_ID' 5 12 0 12 0 0
+'CRSOLU' 'Solvent_ID' 1 2 0 25 0 0
+'CRSOLU' 'Component' 5 80 0 28 0 0
+
+'CRSOLV' 'Section' 3 6 0 1 0 0
+'CRSOLV' 'Solvent_No' 1 2 0 9 0 0
+'CRSOLV' 'Crystallization_Solvent_Name' 5 59 0 12 0 0
+
+'CRSALT' 'Section' 3 6 0 1 0 0
+'CRSALT' 'Serial_No' 1 2 0 9 0 0
+'CRSALT' 'Crystallization_Salt_Name' 5 59 0 12 0 0
+
+'CRBATH' 'Section' 3 6 0 1 0 0
+'CRBATH' 'Serial_No' 1 2 0 9 0 0
+'CRBATH' 'Crystalliz_Reservoir_Component' 5 59 0 12 0 0
+
+'CRTEMP' 'Section' 3 6 0 1 0 0
+'CRTEMP' 'Crystallization_Temp_K' 2 7 2 12 0 0
+'CRTEMP' 'Continuation' 1 2 0 20 0 0
+'CRTEMP' 'Crystallization_Temp_Descr' 5 48 0 23 0 0
+'CRTEMP' 'Serial_No' 1 3 0 73 0 0
+
+'PHVAL' 'Section' 3 6 0 1 0 0
+'PHVAL' 'pH_Value' 2 5 2 12 0 0
+'PHVAL' 'Serial_No' 1 3 0 19 0 0
+
+'SOAKSV' 'Section' 3 6 0 1 0 0
+'SOAKSV' 'Serial_No' 1 2 0 9 0 0
+'SOAKSV' 'Soaking_Solvent' 5 59 0 12 0 0
+
+'SOAKSA' 'Section' 3 6 0 1 0 0
+'SOAKSA' 'Serial_No' 1 2 0 9 0 0
+'SOAKSA' 'Soaking_Salt' 5 59 0 12 0 0
+
+'DENSTY' 'Section' 3 6 0 1 0 0
+'DENSTY' 'Density' 2 10 4 12 0 0
+'DENSTY' 'Matthews_coefficient' 2 4 2 23 0 0
+
+'MOLWT' 'Section' 3 6 0 1 0 0
+'MOLWT' 'Molecular_Weight' 2 10 4 12 0 0
+
+'PERWAT' 'Section' 3 6 0 1 0 0
+'PERWAT' 'Percent_Water' 2 10 4 12 0 0
+
+'NCHAIN' 'Section' 3 6 0 1 0 0
+'NCHAIN' 'Serial_No' 1 2 0 9 0 0
+'NCHAIN' 'No_Of_Strands_Per_Asym_Unit' 2 10 3 12 0 0
+'NCHAIN' 'No_Of_Strands_Per_Biol_Unit' 2 10 3 24 0 0
+'NCHAIN' 'Fraction_Chain_Per_Asym' 5 10 3 44 0 0
+
+'CHAINS' 'Section' 3 6 0 1 0 0
+'CHAINS' 'Serial_No' 1 2 0 9 0 0
+'CHAINS' 'No_Of_Strands_Per_Asym_Unit' 2 10 3 12 0 0
+'CHAINS' 'Biomolecule_ID' 5 20 3 23 0 0
+
+'NWATER' 'Section' 3 6 0 1 0 0
+'NWATER' 'Number_Of_Waters_Asym_Unit' 2 10 3 12 0 0
+
+'NION' 'Section' 3 6 0 1 0 0
+'NION' 'Serial_No' 1 2 0 9 0 0
+'NION' 'Ion_Name' 5 48 0 12 0 0
+'NION' 'Number_of_Ion_Asym_Unit' 2 10 3 61 0 0
+
+'DTMETH' 'Section' 3 6 0 1 0 0
+'DTMETH' 'Synchrotron_Y_N' 3 1 0 10 0 0
+'DTMETH' 'Detector_Brand' 5 20 0 12 0 0
+'DTMETH' 'Data_Collection_Device' 5 20 0 33 0 0
+'DTMETH' 'Xray_Source' 5 18 0 53 0 0
+'DTMETH' 'Wave_Length' 2 6 3 71 0 0
+'DTMETH' 'Data_Set_No' 1 5 0 77 0 0
+
+'DTTEMP' 'Section' 3 6 0 1 0 0
+'DTTEMP' 'Data_Collection_Temp_K' 2 7 2 12 0 0
+'DTTEMP' 'Continuation' 1 2 0 20 0 0
+'DTTEMP' 'Data_Collection_Temp_Descr' 5 48 0 23 0 0
+'DTTEMP' 'Data_Set_No' 1 8 0 72 0 0
+
+'DTWAVE' 'Section' 3 6 0 1 0 0
+'DTWAVE' 'Wave_Length_ID' 1 3 0 8 0 0
+'DTWAVE' 'Data_Set_No' 1 3 0 12 0 0
+'DTWAVE' 'Wave_Length' 2 7 4 18 0 0
+
+'WAVLEN' 'Section' 3 6 0 1 0 0
+'WAVLEN' 'Data_Set_No' 1 3 0 8 0 0
+'WAVLEN' 'Wave_Length' 3 15 0 12 0 0
+'WAVLEN' 'Wave_Length_List' 3 50 0 28 0 0
+
+'REFLEC' 'Section' 3 6 0 1 0 0
+'REFLEC' 'Serial_No' 1 2 0 9 0 0
+'REFLEC' 'Rejection_criteria_Sigma_I' 2 7 3 12 0 0
+'REFLEC' 'Rejection_criteria_Sigma_F' 2 7 3 20 0 0
+'REFLEC' 'No_Unique_Reflections' 1 10 0 28 0 0
+#'REFLEC' 'Data_Set_No' 5 8 0 39 0 0
+
+'SHELC' 'Section' 3 6 0 1 0 0
+'SHELC' 'd_res_high_shell_high' 2 5 3 12 0 0
+'SHELC' 'd_res_low_shell_high' 2 5 3 19 0 0 
+'SHELC' 'Completeness_perc_shell_high' 2 5 3 27 0 0 
+'SHELC' 'Data_redundancy_shell_high' 2 5 3 34 0 0 
+'SHELC' 'Merging_R_value_shell_high' 2 5 3 41 0 0 
+'SHELC' 'Sigma_shell_high' 2 5 3 48 0 0 
+'SHELC' 'Sym_R_value_shell_high' 2 7 3 54 0 0 
+
+'DTMEAS' 'Section' 3 6 0 1 0 0
+'DTMEAS' 'Data_Collection_Date' 7 10 0 12 0 0
+'DTMEAS' 'Synchrotron_Site' 5 20 0 22 0 0
+'DTMEAS' 'Beamline' 5 10 0 44 0 0
+'DTMEAS' 'Intensity_Integr_Software' 5 26 0 55 0 0
+'DTMEAS' 'Data_Scaling_Software' 5 20 0 82 0 0 
+'DTMEAS' 'Data_Set_No' 1 8 0 110 0 0
+
+'DTMEA1' 'Section' 3 6 0 1 0 0
+'DTMEA1' 'Structure_Solution_Software' 5 50 0 9 0 0
+'DTMEA1' 'Data_Set_No' 1 8 0 60 0 0
+
+'RADIAT' 'Section' 3 6 0 1 0 0
+'RADIAT' 'Data_Set_No' 1 4 0 7 0 0
+'RADIAT' 'Monochromatic_or_Laue_M_L'  3 1 0 12 0  0
+'RADIAT' 'Monochromator' 5 26 0 14 0 0
+'RADIAT' 'Optics' 5 26 0 40 0 0
+'RADIAT' 'Radiation_Source_Type' 5 45 0 67 0 0
+
+'RESTOT' 'Section' 3 6 0 1 0 0
+'RESTOT' 'Lower_Resol_Limit_Data_Coll' 2 7 3 12 0 0
+'RESTOT' 'Upper_Resol_Limit_Data_Coll' 2 7 3 20 0 0
+'RESTOT' 'Data_Set_No' 5 8 0 28 0 0
+'RESTOT' 'No_Total_Collect_Reflections' 1 6 0 38 0 0
+'RESTOT' 'Merge_R_Value' 2 10 3 46 0 0
+'RESTOT' 'Data_Redundancy' 2 5 3 58 0 0
+'RESTOT' 'Sym_R_Value' 2 7 3 64 0 0
+'RESTOT' 'I_Over_Sigma_I' 2 8 4 72 0 0
+
+'REFMET' 'Section' 3 6 0 1 0 0
+'REFMET' 'Serial_No' 1 2 0 9 0 0
+'REFMET' 'Refinement_Method' 5 33 0 12 0 0
+'REFMET' 'Refinement_Program' 5 55 0 46 0 0
+'REFMET' 'Program_Author' 5 30 0 102 0 0
+
+'SFTWAR' 'Section' 3 6 0 1 0 0
+'SFTWAR' 'Serial_No' 1 2 0 9 0 0
+'SFTWAR' 'Classification' 5 30 0 12 0 0
+'SFTWAR' 'Program' 5 20 0 43 0 0
+'SFTWAR' 'Version' 5 10 0 64 0 0
+'SFTWAR' 'Authors' 5 30 0 75 0 0
+
+'NMRECD' 'Section' 3 6 0 1 0 0
+'NMRECD' 'Continuation' 1 2 0 9 0 0
+'NMRECD' 'Experiment_Conducted' 5 60 0 12 0 0
+
+'NMREXP' 'Section' 3 6 0 1 0 0
+'NMREXP' 'Experiment_ID' 1 3 0 8 0 0
+'NMREXP' 'Condition_ID' 1 3 0 12 0 0
+'NMREXP' 'Type' 5 30 0 16 0 0
+'NMREXP' 'Solution_ID' 1 3 0 47 0 0
+
+'NMRPST' 'Section' 3 6 0 1 0 0
+'NMRPST' 'Conformer_ID' 5 11 0 8 0 0
+'NMRPST' 'Selection_Criteria' 5 50 0 20 0 0
+
+'NMRSDT' 'Section' 3 6 0 1 0 0
+'NMRSDT' 'Solution_ID' 1 3 0 8 0 0
+'NMRSDT' 'Contents' 5 60 0 12 0 0
+
+'NMRSFT' 'Section' 3 6 0 1 0 0
+'NMRSFT' 'Continuation' 1 2 0 9 0 0
+'NMRSFT' 'Software_Used' 5 60 0 12 0 0
+
+'NMRSMB' 'Section' 3 6 0 1 0 0
+'NMRSMB' 'Calculated_Total_Num' 1 4 0 8 0 0
+'NMRSMB' 'Submited_Total_Num' 1 4 0 13 0 0
+'NMRSMB' 'Selection_Criteria' 5 50 0 18 0 0
+
+'NMRSMP' 'Section' 3 6 0 1 0 0
+'NMRSMP' 'Solution_ID' 1 3 0 8 0 0
+'NMRSMP' 'Condition_ID' 1 3 0 12 0 0
+'NMRSMP' 'Temperature'  2 7 2 16 0 0
+'NMRSMP' 'Pressure' 5 25 0 24 0 0
+'NMRSMP' 'PH_Value' 2 5 2 50 0 0
+'NMRSMP' 'Ion_Strength' 5 25 0 56 0 0
+'NMRSMP' 'Pressure_Unit' 5 20 0 82 0 0
+
+'NMRSPM' 'Section' 3 6 0 1 0 0
+'NMRSPM' 'Serial_No' 1 3 0 8 0 0
+'NMRSPM' 'Model' 5 20 0 12 0 0
+'NMRSPM' 'Manufacturer' 5 20 0 33 0 0
+'NMRSPM' 'Field_Strength' 5 20 0 54 0 0
+
+'RENTRY' 'Section' 3 6 0 1 0 0
+'RENTRY' 'Continuation' 1 2 0 8 0 0
+'RENTRY' 'DB_Name' 3 10 0 11 0 0
+'RENTRY' 'DB_ID'   3 10 0 22 0 0
+'RENTRY' 'Details'  5 60 0 33 0 0
+
+'TRTMNT' 'Section' 3 6 0 1 0 0
+'TRTMNT' 'Serial_No' 1 2 0 9 0 0
+'TRTMNT' 'Continuation' 1 2 0 12 0 0
+'TRTMNT' 'Atom_Type_Atom_Name' 3 22 0 15 0 0
+'TRTMNT' 'Residue_Name' 4 4 0 38 0 0
+'TRTMNT' 'Strand_ID' 4 2 0 42 0 0
+'TRTMNT' 'Residue_Number' 1 4 0 45 0 0
+'TRTMNT' 'Temp_Factor_Fixed_Or_Refined' 3 2 0 50 0 0
+'TRTMNT' 'Iso_Aniso' 3 1 0 53 0 0
+'TRTMNT' 'Occupancy_Fixed' 3 2 0 55 0 0
+'TRTMNT' 'Lo_Lim_Occ' 2 6 2 58 0 0
+'TRTMNT' 'Up_Lim_Occ' 2 6 2 65 0 0
+
+'RFACTR' 'Section' 3 6 0 1 0 0
+'RFACTR' 'Serial_No' 1 2 0 9 0 0
+'RFACTR' 'Reflec_For_Refinement' 1 10 0 12 0 0
+'RFACTR' 'Sigma_Cutoff_I' 2 7 3 23 0 0
+'RFACTR' 'Sigma_Cutoff_F' 2 7 3 31 0 0
+'RFACTR' 'Lower_Resol_Limit' 2 7 3 39 0 0
+'RFACTR' 'Upper_Resol_Limit' 2 7 3 47 0 0
+'RFACTR' 'R_Value_Obs' 2 10 3 55 0 0
+'RFACTR' 'R_Value_All' 2 10 3 66 0 0
+'RFACTR' 'Data_Cutoff_Low_absF' 2 7 4 85 0 0
+'RFACTR' 'R_Value_Work' 2 10 3 93 0 0
+'RFACTR' 'Data_Cutoff_High_absF' 2 15 3 105 0 0
+'RFACTR' 'Data_Cutoff_High_RmsabsF' 2 15 3 121 0 0
+
+'REFREM' 'Section' 3 6 0 1 0 0
+'REFREM' 'Continuation' 1 2 0 8 0 0
+'REFREM' 'Refinement_Remark' 5 60 0 12 0 0
+
+'SHELL' 'Section' 3 6 0 1 0 0
+'SHELL' 'Shell_Resol_High' 2 6 2 9 0 0
+'SHELL' 'Shell_Resol_Low' 2 6 2 16 0 0
+'SHELL' 'Comleteness_in_Shell' 2 6 2 23 0 0
+'SHELL' 'Reflec_in_Shell' 1  6 0 30 0 0
+'SHELL' 'R_value_in_Shell' 2 6 3 37 0 0
+'SHELL' 'Free_R_Value_in_Shell' 2 6 3 44 0 0
+'SHELL' 'Free_R_Val_Test_Set_Size_Perc' 2 6 2 51 0 0
+'SHELL' 'Free_R_Val_Test_Set_Size_Count' 2 6 2 58 0 0
+'SHELL' 'Free_R_val_estimated_error' 2 6 2 65 0 0
+'SHELL' 'No_Refln_R_Free' 2 6 2 72 0 0
+'SHELL' 'Total_Number_of_Bins_used' 2 6 2 79 0 0
+
+'REFINE' 'Section' 3 6 0 1 0 0
+'REFINE' 'ls_Number_Parameters' 1 6 0 12 0 0
+'REFINE' 'ls_Number_Restraints' 1 6 0 19 0 0
+'REFINE' 'ls_Number_Disordered_Res' 1 6 0 26 0 0
+'REFINE' 'ls_Occ_Sum_Non_Hydrogen_Atoms' 2 6 2 34 0 0
+'REFINE' 'ls_Occ_Sum_Hydrogen_Atoms' 2 6 2 42 0 0
+
+
+'RNOCUT' 'Section' 3 6 0 1 0 0
+'RNOCUT' 'R_Factor_All_No_Cutoff' 2 6 3 12 0 0
+'RNOCUT' 'R_Factor_Obs_No_Cutoff' 2 6 3 19 0 0
+'RNOCUT' 'R_Factor_R_free_No_Cutoff' 2 6 3 26 0 0
+'RNOCUT' 'fr_R_Val_tst_Size_Perc_No_Cut' 2 6 3 33 0 0
+'RNOCUT' 'fr_R_Val_tst_Size_Ct_No_Cut' 2 6 2 40 0 0 
+'RNOCUT' 'Number_Reflns_Obs_No_Cutoff' 1 10 0 51 0 0
+
+'R4SCUT' 'Section' 3 6 0 1 0 0
+'R4SCUT' 'R_Factor_All_4sigCut' 2 6 3 12 0 0
+'R4SCUT' 'R_Factor_Obs_4sigCut' 2 6 3 19 0 0
+'R4SCUT' 'R_Factor_R_free_4sigCut' 2 6 3 26 0 0
+'R4SCUT' 'fr_R_Val_tst_Size_Perc_4sigCut' 2 6 2 33 0 0
+'R4SCUT' 'fr_R_Val_tst_Size_Ct_4sigCut' 2 6 2 40 0 0 
+'R4SCUT' 'Number_Reflns_Obs_4sigCut' 1 10 0 51 0 0
+
+'COORDA' 'Section' 3 6 0 1 0 0
+'COORDA' 'Coordinates_Y_N' 3 1 0 12 0 0
+'COORDA' 'Structure_Factors_Y_N' 3 1 0 15 0 0
+
+'COORDH' 'Section' 3 6 0 1 0 0
+'COORDH' 'Hydrogen_Coordinates_Y_N' 3 1 0 12 0 0
+
+'COORDS' 'Section' 3 6 0 1 0 0
+'COORDS' 'Solvent_Coordinates_Y_N' 3 1 0 12 0 0
+
+'ATNUMS' 'Section' 3 6 0 1 0 0
+'ATNUMS' 'Cyclic_ID' 3 6 0 8 0 0
+'ATNUMS' 'Protein_Atoms_Number' 1 6 0 14 0 0
+'ATNUMS' 'Nucleic_Acid_Atoms_Number' 1 6 0 21 0 0
+'ATNUMS' 'Ligand_Atoms_Number' 1 5 0 28 0 0
+'ATNUMS' 'Solvent_Atoms_Number' 1 5 0 34 0 0
+'ATNUMS' 'Total_Atoms_Number' 1 7 0 40 0 0
+
+'RECVD1' 'Section' 3 6 0 1 0 0
+'RECVD1' 'Received_Depos_Form_Y_N' 3 1 0 11 0 0
+'RECVD1' 'Received_Depos_Form_Date' 7 16 0 13 0 0
+'RECVD1' 'Received_Coordinates_Y_N'  3 1 0 30 0 0
+'RECVD1' 'Received_Coordinates_Date' 7 16 0 32 0 0
+'RECVD1' 'Received_Struct_Factor_Y_N' 3 1 0 49 0 0
+'RECVD1' 'Received_Struct_Factor_Date'  7 16 0 51 0 0
+'RECVD1' 'Received_Internal_Approval_Y_N' 3 1 0 68 0 0
+'RECVD1' 'Received_NMR_Contraints_Y_N' 3 1 0 70 0 0
+'RECVD1' 'Received_NMR_Contraints_Date' 7 16 0 72 0 0
+
+'RECVD2' 'Section' 3 6 0 1 0 0
+'RECVD2' 'Received_Manuscript_Y_N'  3 1 0 11 0 0
+'RECVD2' 'Received_Manuscript_Date' 7 16 0 13 0 0
+'RECVD2' 'Received_Author_Approval_Y_N' 3 1 0 30 0 0
+'RECVD2' 'Received_Author_Approval_Date' 7 16 0 32 0 0
+'RECVD2' 'Initial_Deposition_Date' 7 16 0 49 0 0
+'RECVD2' 'Received_Complete_Depos_Date' 7 16 0 66 0 0
+'RECVD2' 'Author_Approval_Type' 5 10 0 83 0 0
+'RECVD2' 'Author_Release_Status_Code' 5 10 0 94 0 0
+
+'STATUS' 'Section' 3 6 0 1 0 0
+'STATUS' 'NDB_Status' 4 1 0 11 0 0
+'STATUS' 'NDB_Code' 3 3 0 13 0 0
+'STATUS' 'NDB_Date' 7 10 0 17 0 0
+'STATUS' 'PDB_Status' 4 1 0 28 0 0
+'STATUS' 'PDB_Code' 3 3 0 30 0 0
+'STATUS' 'PDB_Date' 7 10 0 34 0 0
+'STATUS' 'CSD_Status' 4 1 0 45 0 0
+'STATUS' 'CSD_Code' 3 3 0 47 0 0
+'STATUS' 'CSD_Date' 7 10 0 51 0 0
+'STATUS' 'Remark' 5 20 0 62 0 0
+
+'RELEAS' 'Section' 3 6 0 1 0 0
+'RELEAS' 'NDB_Release_Date' 7 16 0 11 0 0
+'RELEAS' 'Sent_To_PDB_Date' 7 16 0 28 0 0
+'RELEAS' 'Coordinate_On_Hold_Until_Date' 7 16 0 45 0 0
+'RELEAS' 'Struct_F_On_Hold_Until_Date' 7 16 0 62 0 0
+'RELEAS' 'Hold_Until_Publication_Y_N' 3 1 0 79 0 0
+'RELEAS' 'Constraints_On_Hold_Until_Date' 7 16 0 81 0 0
+'RELEAS' 'Dep_Release_Code_Coordinates' 5 6 0 98 0 0
+'RELEAS' 'dep_Release_Code_Struct_Fact' 5 6 0 105 0 0
+'RELEAS' 'dep_Release_Code_NMR_Constraints' 5 6 0 112 0 0
+'RELEAS' 'dep_release_code_sequence' 5 6 0 119 0 0
+
+'PROCES' 'Section' 3 6 0 1 0 0
+'PROCES' 'NDB_Processed_Date' 7 10 0 11 0 0
+'PROCES' 'PDB_Author_Revised_Date' 7 10 0 22 0 0
+'PROCES' 'PDB_Release_Date' 7 10 0 33 0 0
+'PROCES' 'Deposit_Site' 5 10 0 44 0 0
+'PROCES' 'Process_Site' 5 10 0 55 0 0
+'PROCES' 'Depositor_Name' 5 20 0 66 0 1
+'PROCES' 'Skip_Remark_500' 3 1 0 87 0 0
+'PROCES' 'Annotator_Name' 5 20 0 89 0 0
+
+'NDBPRO' 'Section' 3 6 0 1 0 0
+'NDBPRO' 'Serial_No' 1 2 0 9 0 0
+'NDBPRO' 'Continuation'  1 2 0 12 0 0
+'NDBPRO' 'Start_Date' 7 16 0 15 0 0
+'NDBPRO' 'End_Date' 7 16 0 32 0 0
+'NDBPRO' 'Process_Description' 5 90 0 48 0 0
+
+'RMKSKP' 'Section' 3 6 0 1 0 0
+'RMKSKP' 'Skip_Remark' 5 50 0 8 0 0
+
+'REVISE' 'Section' 3 6 0 1 0 0
+'REVISE' 'Continuation'  1 2 0 9 0 0
+'REVISE' 'Revised_Date' 7 16 0 11 0 0
+'REVISE' 'Revised_NDB_ID' 3 9 0 28 0 0
+'REVISE' 'Revised_Description' 5 40 0 38 0   0
+'REVISE' 'Replaced_Entry_Id' 3 9 0 79 0   0
+
+'MESSAG' 'Section' 3 6 0 1 0 0
+'MESSAG' 'Serial_No' 1 2 0 9 0 0
+'MESSAG' 'Continuation'  1 2 0 12 0 0
+'MESSAG' 'Message_Date' 7 16 0 15 0 0
+'MESSAG' 'Content_Type' 7 16 0 32 0 0
+'MESSAG' 'Message_Type' 7 16 0 49 0 0
+'MESSAG' 'Message' 5 25 0 66 0 0
+
+'SENDER' 'Section' 3 6 0 1 0 0
+'SENDER' 'Serial_No' 1 2 0 9 0 0
+'SENDER' 'Name' 5 9 0 25 0 0
+'SENDER' 'Fax_Number' 5 15 0 38 0 0
+'SENDER' 'Phone_Number'  5 15 0 54 0 0
+'SENDER' 'Email_Address' 5 15 0 70 0  0
+
+'ADSEND' 'Section' 3 6 0 1 0 0
+'ADSEND' 'Serial_No' 1 2 0 9 0 0
+'ADSEND' 'Continuation'  1 2 0 12 0 0
+'ADSEND' 'Address'  5 60 0 15 0 0
+
+'RECEIV' 'Section' 3 6 0 1 0 0
+'RECEIV' 'Serial_No' 1 2 0 9 0 0
+'RECEIV' 'Name' 5 25 0 12 0 0
+'RECEIV' 'Fax_Number' 5 15 0 38 0 0
+'RECEIV' 'Phone_Number'  5 15 0 54 0 0
+'RECEIV' 'Email_Address' 5 35 0 70 0  0
+
+'ADRECV' 'Section' 3 6 0 1 0 0
+'ADRECV' 'Serial_No' 1 2 0 9 0 0
+'ADRECV' 'Continuation'  1 2 0 12 0 0
+'ADRECV' 'Address'  5 60 0 14 0 0
+
+'PTATUS' 'Section' 3 6 0 1 0 0
+'PTATUS' 'Serial_No' 1 3 0 9 0 0
+'PTATUS' 'Begin_Date' 7 16 0 13 0 0
+'PTATUS' 'End_Date' 7 16 0 30 0 0
+'PTATUS' 'Details' 5 50 0 47 0 0
+'PTATUS' 'Annotator' 5 15 0 98 0 0
+
+'PDETLS' 'Section' 3 6 0 1 0 0
+'PDETLS' 'Text' 5 50 0 8 0 0
+'PDETLS' 'Seq_Details' 5 50 0 59 0 0
+
+'SYMTRA' 'Section' 3 6 0 1 0 0
+'SYMTRA' 'Symmetry_Serial_No' 1 2 0 9 0 0
+'SYMTRA' 'Generated_Strand_ID' 4 2 0 11 0 0
+'SYMTRA' 'From_Strand_ID' 3 3 0 16 0 0
+'SYMTRA' 'PDB_Generated_Strand_ID' 4 2 0 19 0 0
+'SYMTRA' 'Symmetry_Operation_No' 1 2 0 24 0 0
+'SYMTRA' 'Translation_For_X' 1 2 0 28 0 0
+'SYMTRA' 'Translation_For_Y' 1 2 0 31 0 0
+'SYMTRA' 'Translation_For_Z' 1 2 0 34 0 0
+
+'SYMMET' 'Section' 3 6 0 1 0 0
+'SYMMET' 'Symmetry_No' 1 2 0 8 0 0
+'SYMMET' 'Symmetry_Op' 5 70 0 11 0 0
+
+'SPRSDE' 'Section' 3 6 0 1 0 0
+'SPRSDE' 'Continuation' 1 2 0 9 0 0
+'SPRSDE' 'Date' 7 9 0 12 0 0
+'SPRSDE' 'ID_new' 4 4 0 22 0 0
+'SPRSDE' 'ID_old' 3 32 0 32 0 0
+
+'REMARK' 'Section' 3 6 0 1 0 0
+'REMARK' 'Number' 1 3 0 8 0 0
+'REMARK' 'Comment' 5 65 0 12 0 0
+
+'PREMRK' 'Section' 3 6 0 1 0 0
+'PREMRK' 'Number' 1 3 0 8 0 0
+'PREMRK' 'Comment' 5 65 0 12 0 0
+
+'PDBRMK' 'Section' 3 6 0 1 0 0
+'PDBRMK' 'Number' 1 3 0 8 0 0
+'PDBRMK' 'Continuation' 1 2 0 12 0 0
+'PDBRMK' 'Descriptor' 5 65 0 15 0 0
+
+'MODRES' 'Section' 3 6 0 1 0 0
+'MODRES' 'PDB_ID_Code' 4 4 0 8 0  0
+'MODRES' 'Residue_Name_Used' 4 3 0 13 0 0
+'MODRES' 'Strand_ID' 4 2 0 16 0 1
+'MODRES' 'Residue_Number' 4 4 0 19 0 0
+'MODRES' 'Ins_Code'  3 1 0 23 0 0
+'MODRES' 'Standard_Residue_Name' 4 3 0 25 0 0
+'MODRES' 'Modification_Description' 5 41 0 30 0 0
+'MODRES' 'Serial_No' 1 3 0 73 1 0
+
+'DBREF' 'Section' 3 6 0 1 0 0
+'DBREF' 'PDB_ID_Code' 4 4 0 8 0 0
+'DBREF' 'Strand_ID' 4 2 0 12 0 1
+'DBREF' 'Begin_Residue_Number' 4 4 0 15 0 0
+'DBREF' 'Begin_Ins_Code' 4 1 0 19 0 0
+'DBREF' 'End_Residue_Number' 4 4 0 21 0 0
+'DBREF' 'End_Ins_Code' 4 1 0 25 0 0
+'DBREF' 'Database' 5 6 0 27 0 0
+'DBREF' 'Database_Accession_No' 5 8 0 34 0  0
+'DBREF' 'Database_ID_Code' 5 12 0 43 0  0
+'DBREF' 'Database_Begin_Residue_Number' 4 5 0 56 0 0
+'DBREF' 'Databaes_Begin_Ins_Code' 4 1 0 61 0 0
+'DBREF' 'Database_End_Residue_Number' 4 5 0 63 0 0
+'DBREF' 'Databaes_End_Ins_Code' 4 1 0 68 0 0
+'DBREF' 'Serial_No' 1 2 0 70 1 0
+'DBREF' 'Ref_ID' 1 2 0 73 1 0
+
+'SEQADV' 'Section' 3 6 0 1 0 0
+'SEQADV' 'PDB_ID_Code' 4 4 0 8 0 0
+'SEQADV' 'PDB_Res_Name_In_Conflict' 4 3 0 13 0 0
+'SEQADV' 'PDB_Strand_ID' 4 2 0 16 0 1
+'SEQADV' 'PDB_Residue_Number' 4 4 0 19 0 0
+'SEQADV' 'PDB_Ins_Code' 4 1 0 23 0 0
+'SEQADV' 'Sequence_Database' 5 4 0 25 0 0
+'SEQADV' 'Seq_Database_Accession_No' 5 9 0 30 0  0
+'SEQADV' 'Seq_Res_Name' 4 3 0 40 0 0
+'SEQADV' 'Seq_Residue_Number' 4 5 0 44 0 0
+'SEQADV' 'Conflict_Comment' 5 21 0 50 0  0
+'SEQADV' 'Serial_No' 1 2 0 71 1 0
+
+'MISRES' 'Section' 3 6 0 1 0 0
+'MISRES' 'Seq_Num' 1 4 0 8 0 0
+'MISRES' 'PDB_Model_ID' 1 3 0 13 0 0
+'MISRES' 'PDB_Strand_ID' 4 2 0 16 0 1
+'MISRES' 'PDB_Res_Name' 4 3 0 19 0 0
+'MISRES' 'PDB_Res_Num' 1 4 0 23 0 0
+'MISRES' 'PDB_Insert_Code' 4 1 0 28 0 0
+
+#'UNPAIR' 'Section' 3 6 0 1 0 0
+#'UNPAIR' 'Serial_No' 1 3 0 8 0 0
+#'UNPAIR' 'Strand_ID' 4 2 0 13 0 0
+#'UNPAIR' 'Residue_Name' 4 3 0 17 0 0
+#'UNPAIR' 'Residue_Number' 1 4 0 22 0 0
+
+'SEQRES' 'Section' 3 6 0 1 0 0
+'SEQRES' 'Serial_No' 1 2 0 9 0 0
+'SEQRES' 'Strand_ID' 4 2 0 11 0 1
+'SEQRES' 'Strand_Length' 1 4 0 14 0 0
+'SEQRES' 'Residue_Name01' 4 3 0 20 0 0
+'SEQRES' 'Residue_Name02' 4 3 0 24 0 0
+'SEQRES' 'Residue_Name03' 4 3 0 28 0 0
+'SEQRES' 'Residue_Name04' 4 3 0 32 0 0
+'SEQRES' 'Residue_Name05' 4 3 0 36 0 0
+'SEQRES' 'Residue_Name06' 4 3 0 40 0 0
+'SEQRES' 'Residue_Name07' 4 3 0 44 0 0
+'SEQRES' 'Residue_Name08' 4 3 0 48 0 0
+'SEQRES' 'Residue_Name09' 4 3 0 52 0 0
+'SEQRES' 'Residue_Name10' 4 3 0 56 0 0
+'SEQRES' 'Residue_Name11' 4 3 0 60 0 0
+'SEQRES' 'Residue_Name12' 4 3 0 64 0 0
+'SEQRES' 'Residue_Name13' 4 3 0 68 0 0
+
+'SEQIFO' 'Section' 3 6 0 1 0 0
+'SEQIFO' 'Serial_No' 1 2 0 9 0 0
+'SEQIFO' 'Strand_ID' 4 2 0 11 0 1
+'SEQIFO' 'Pdb_Strand_ID' 4 4 0 14 0 1
+'SEQIFO' 'Pub_Strand_ID' 4 3 0 18 0 0
+'SEQIFO' 'Strand_Type' 4 3 0 22 0 0
+'SEQIFO' 'Strand_Order' 1 3 0 26 0 0
+'SEQIFO' 'Strand_Modified' 4 1 0 30 0 0
+'SEQIFO' 'Fract_Per_Asym_Unit' 5 10 0 32 0 0
+'SEQIFO' 'Entity_ID' 1 5 0 45 0 0
+'SEQIFO' 'No_Res_Begin_Not_In_Seqres' 1 8 0 51 0 0
+'SEQIFO' 'No_Res_End_Not_In_Seqres' 1 8 0 60 0 0
+'SEQIFO' 'No_Res_Begin_In_Seqres' 1 8 0 69 0  0
+
+'NDBSQN' 'Section' 3 6 0 1 0 0
+'NDBSQN' 'Serial_No' 1 2 0 9 0 0
+'NDBSQN' 'Strand_ID' 4 2 0 11 0 1
+'NDBSQN' 'Strand_Length' 1 4 0 14 0 0
+'NDBSQN' 'Residue_No01' 4 4 0 20 0 0
+'NDBSQN' 'Residue_No02' 4 4 0 24 0 0
+'NDBSQN' 'Residue_No03' 4 4 0 28 0 0
+'NDBSQN' 'Residue_No04' 4 4 0 32 0 0
+'NDBSQN' 'Residue_No05' 4 4 0 36 0 0
+'NDBSQN' 'Residue_No06' 4 4 0 40 0 0
+'NDBSQN' 'Residue_No07' 4 4 0 44 0 0
+'NDBSQN' 'Residue_No08' 4 4 0 48 0 0
+'NDBSQN' 'Residue_No09' 4 4 0 52 0 0
+'NDBSQN' 'Residue_No10' 4 4 0 56 0 0
+'NDBSQN' 'Residue_No11' 4 4 0 60 0 0
+'NDBSQN' 'Residue_No12' 4 4 0 64 0 0
+'NDBSQN' 'Residue_No13' 4 4 0 68 0 0
+
+'PDBSQN' 'Section' 3 6 0 1 0 0
+'PDBSQN' 'Serial_No' 1 2 0 9 0 0
+'PDBSQN' 'Strand_ID' 4 2 0 11 0 1
+'PDBSQN' 'Strand_Length' 1 4 0 14 0 0
+'PDBSQN' 'Residue_No01' 4 4 0 20 0 0
+'PDBSQN' 'Residue_No02' 4 4 0 24 0 0
+'PDBSQN' 'Residue_No03' 4 4 0 28 0 0
+'PDBSQN' 'Residue_No04' 4 4 0 32 0 0
+'PDBSQN' 'Residue_No05' 4 4 0 36 0 0
+'PDBSQN' 'Residue_No06' 4 4 0 40 0 0
+'PDBSQN' 'Residue_No07' 4 4 0 44 0 0
+'PDBSQN' 'Residue_No08' 4 4 0 48 0 0
+'PDBSQN' 'Residue_No09' 4 4 0 52 0 0
+'PDBSQN' 'Residue_No10' 4 4 0 56 0 0
+'PDBSQN' 'Residue_No11' 4 4 0 60 0 0
+'PDBSQN' 'Residue_No12' 4 4 0 64 0 0
+'PDBSQN' 'Residue_No13' 4 4 0 68 0 0
+
+'ALTSQN' 'Section' 3 6 0 1 0 0
+'ALTSQN' 'Serial_No' 1 2 0 9 0 0
+'ALTSQN' 'Strand_ID' 4 2 0 11 0 1
+'ALTSQN' 'Strand_Length' 1 4 0 14 0 0
+'ALTSQN' 'Residue_No01' 4 4 0 20 0 0
+'ALTSQN' 'Residue_No02' 4 4 0 24 0 0
+'ALTSQN' 'Residue_No03' 4 4 0 28 0 0
+'ALTSQN' 'Residue_No04' 4 4 0 32 0 0
+'ALTSQN' 'Residue_No05' 4 4 0 36 0 0
+'ALTSQN' 'Residue_No06' 4 4 0 40 0 0
+'ALTSQN' 'Residue_No07' 4 4 0 44 0 0
+'ALTSQN' 'Residue_No08' 4 4 0 48 0 0
+'ALTSQN' 'Residue_No09' 4 4 0 52 0 0
+'ALTSQN' 'Residue_No10' 4 4 0 56 0 0
+'ALTSQN' 'Residue_No11' 4 4 0 60 0 0
+'ALTSQN' 'Residue_No12' 4 4 0 64 0 0
+'ALTSQN' 'Residue_No13' 4 4 0 68 0 0
+
+'PDBSQR' 'Section' 3 6 0 1 0 0
+'PDBSQR' 'Serial_No' 1 2 0 9 0 0
+'PDBSQR' 'Strand_ID' 4 2 0 11 0 1
+'PDBSQR' 'Strand_Length' 1 4 0 14 0 0
+'PDBSQR' 'Residue_Name01' 4 4 0 20 0 0
+'PDBSQR' 'Residue_Name02' 4 4 0 24 0 0
+'PDBSQR' 'Residue_Name03' 4 4 0 28 0 0
+'PDBSQR' 'Residue_Name04' 4 4 0 32 0 0
+'PDBSQR' 'Residue_Name05' 4 4 0 36 0 0
+'PDBSQR' 'Residue_Name06' 4 4 0 40 0 0
+'PDBSQR' 'Residue_Name07' 4 4 0 44 0 0
+'PDBSQR' 'Residue_Name08' 4 4 0 48 0 0
+'PDBSQR' 'Residue_Name09' 4 4 0 52 0 0
+'PDBSQR' 'Residue_Name10' 4 4 0 56 0 0
+'PDBSQR' 'Residue_Name11' 4 4 0 60 0 0
+'PDBSQR' 'Residue_Name12' 4 4 0 64 0 0
+'PDBSQR' 'Residue_Name13' 4 4 0 68 0 0
+
+'ALTSQR' 'Section' 3 6 0 1 0 0
+'ALTSQR' 'Serial_No' 1 2 0 9 0 0
+'ALTSQR' 'Strand_ID' 4 2 0 11 0 1
+'ALTSQR' 'Strand_Length' 1 4 0 14 0 0
+'ALTSQR' 'Residue_Name01' 4 4 0 20 0 0
+'ALTSQR' 'Residue_Name02' 4 4 0 24 0 0
+'ALTSQR' 'Residue_Name03' 4 4 0 28 0 0
+'ALTSQR' 'Residue_Name04' 4 4 0 32 0 0
+'ALTSQR' 'Residue_Name05' 4 4 0 36 0 0
+'ALTSQR' 'Residue_Name06' 4 4 0 40 0 0
+'ALTSQR' 'Residue_Name07' 4 4 0 44 0 0
+'ALTSQR' 'Residue_Name08' 4 4 0 48 0 0
+'ALTSQR' 'Residue_Name09' 4 4 0 52 0 0
+'ALTSQR' 'Residue_Name10' 4 4 0 56 0 0
+'ALTSQR' 'Residue_Name11' 4 4 0 60 0 0
+'ALTSQR' 'Residue_Name12' 4 4 0 64 0 0
+'ALTSQR' 'Residue_Name13' 4 4 0 68 0 0
+
+'FTNOTE' 'Section' 3 6 0 1 0 0
+'FTNOTE' 'Footnote_Number' 1 3 0 8 0 0
+'FTNOTE' 'Footnote' 5 59 0 12 0 0
+
+'HET' 'Section' 3 6 0 1 0 0
+'HET' 'Het_Group_ID' 4 3 0 8 0 0
+'HET' 'Het_Strand_ID' 4 2 0 12 0 1
+'HET' 'Het_Seq_No' 1 4 0 14 0 0
+'HET' 'Het_Ins_Code' 3 1 0 18 0 0
+'HET' 'Het_No_Atoms' 1 5 0 21 0 0
+'HET' 'Het_Text' 5 40 0 31 0 0
+'HET' 'Serial_No' 1 2 0 72 1 0
+
+'HETNAM' 'Section' 3 6 0 1 0 0
+'HETNAM' 'Continuation' 1 3 0 8 0 0
+'HETNAM' 'Het_Group_ID' 4 3 0 12 0 0
+'HETNAM' 'Chemical_Name' 3 54 0 16 0 0
+'HETNAM' 'SerialNo' 1 2 0 70 1 0
+
+'HETSYN' 'Section' 3 6 0 1 0 0
+'HETSYN' 'Continuation' 1 3 0 8 0 0
+'HETSYN' 'Het_Group_ID' 4 3 0 12 0 0
+'HETSYN' 'Synonyms' 3 54 0 16 0 0
+
+'FORMUL' 'Section' 3 6 0 1 0 0
+'FORMUL' 'Formula_Component_No' 1 2 0 9 0 0
+'FORMUL' 'Het_Group_ID' 4 3 0 13 0 0
+'FORMUL' 'Continuation' 1 2 0 17 0 0
+'FORMUL' 'Formula_MW' 3 1 0 19 0 0
+'FORMUL' 'Formula' 5 51 0 20 0 0
+'FORMUL' 'Serial_No' 1 2 0 73 1 0
+
+'HELIX' 'Section' 3 6 0 1 0 0
+'HELIX' 'Serial_No' 1 3 0 8 0 0
+'HELIX' 'Helix_id' 6 3 0 12 0 0
+'HELIX' 'Beg_NDB_res_name' 4 3 0 16 0 0
+'HELIX' 'Beg_NDB_Strand_ID' 4 2 0 19 0 1
+'HELIX' 'Beg_NDB_res_num' 1 4 0 22 0 0
+'HELIX' 'Beg_NDB_ins_code' 3 1 0 26 0 0
+'HELIX' 'End_NDB_res_name' 4 3 0 28 0 0
+'HELIX' 'End_NDB_Strand_ID' 4 2 0 31 0 1
+'HELIX' 'End_NDB_res_num' 1 4 0 34 0 0
+'HELIX' 'End_NDB_ins_code' 3 1 0 38 0 0
+'HELIX' 'Helix_class' 1 2 0 39 0 0
+'HELIX' 'Details' 5 30 0 41 0 0
+'HELIX' 'Length' 1 5 0 72 0 0
+
+'PHELX' 'Section' 3 6 0 1 0 0
+'PHELX' 'Serial_No' 1 3 0 8 0 0
+'PHELX' 'Helix_id' 6 3 0 12 0 0
+'PHELX' 'Beg_res_name' 4 3 0 16 0 0
+'PHELX' 'Beg_Strand_ID' 4 2 0 19 0 1
+'PHELX' 'Beg_res_num' 1 4 0 22 0 0
+'PHELX' 'Beg_ins_code' 3 1 0 26 0 0
+'PHELX' 'End_res_name' 4 3 0 28 0 0
+'PHELX' 'End_Strand_ID' 4 2 0 31 0 1
+'PHELX' 'End_res_num' 1 4 0 34 0 0
+'PHELX' 'End_ins_code' 3 1 0 38 0 0
+'PHELX' 'Helix_class' 1 2 0 39 0 0
+'PHELX' 'Details' 5 30 0 41 0 0
+'PHELX' 'Length' 1 5 0 72 0 0
+
+'SHEET' 'Section' 3 6 0 1 0 0
+'SHEET' 'Range_id' 1 3 0 8 0 0
+'SHEET' 'Sheet_id' 6 3 0 12 0 0
+'SHEET' 'Number_of_strands' 1 2 0 15 0 0
+'SHEET' 'Beg_NDB_res_name' 4 3 0 18 0 0
+'SHEET' 'Beg_NDB_Strand_ID' 4 2 0 21 0 1
+'SHEET' 'Beg_NDB_res_num' 1 4 0 23 0 0
+'SHEET' 'Beg_NDB_ins_code'  3 1 0 27 0 0
+'SHEET' 'End_NDB_res_name' 4 3 0 29 0 0
+'SHEET' 'End_NDB_Strand_ID' 4 2 0 32 0 1
+'SHEET' 'End_NDB_res_num' 1 4 0 34 0 0
+'SHEET' 'End_NDB_ins_code' 3 1 0 38 0 0
+'SHEET' 'Sense' 1 2 0 39 0 0
+'SHEET' 'H_bond_cur_str_NDB_atom_id' 3 4 0 42 0 0
+'SHEET' 'H_bond_cur_str_NDB_res_name' 4 3 0 46 0 0
+'SHEET' 'H_bond_cur_str_NDB_Strand_ID' 4 2 0 49 0 1
+'SHEET' 'H_bond_cur_str_NDB_res_num' 1 4 0 51 0 0
+'SHEET' 'H_bond_cur_str_NDB_ins_code' 3 1 0 55 0 0
+'SHEET' 'H_bond_prev_str_NDB_atom_id' 3 4 0 57 0 0
+'SHEET' 'H_bond_prev_str_NDB_res_name' 4 3 0 61 0 0
+'SHEET' 'H_bond_prev_str_NDB_Strand_ID' 4 2 0 64 0 1
+'SHEET' 'H_bond_prev_str_NDB_res_num' 1 4 0 66 0 0
+'SHEET' 'H_bond_prev_str_NDB_ins_code' 3 1 0 70 0 0
+'SHEET' 'Serial_no' 1 3 0 73 1 0
+
+'PSHET' 'Section' 3 6 0 1 0 0
+'PSHET' 'Range_id' 1 3 0 8 0 0
+'PSHET' 'Sheet_id' 6 3 0 12 0 0
+'PSHET' 'Number_of_strands' 1 2 0 15 0 0
+'PSHET' 'Beg_res_name' 4 3 0 18 0 0
+'PSHET' 'Beg_Strand_ID' 4 2 0 21 0 1
+'PSHET' 'Beg_res_num' 1 4 0 23 0 0
+'PSHET' 'Beg_ins_code'  3 1 0 27 0 0
+'PSHET' 'End_res_name' 4 3 0 29 0 0
+'PSHET' 'End_Strand_ID' 4 2 0 32 0 1
+'PSHET' 'End_res_num' 1 4 0 34 0 0
+'PSHET' 'End_ins_code' 3 1 0 38 0 0
+'PSHET' 'Sense' 1 2 0 39 0 0
+'PSHET' 'H_bond_cur_str_atom_id' 3 4 0 42 0 0
+'PSHET' 'H_bond_cur_str_res_name' 4 3 0 46 0 0
+'PSHET' 'H_bond_cur_str_Strand_ID' 4 2 0 49 0 1
+'PSHET' 'H_bond_cur_str_res_num' 1 4 0 51 0 0
+'PSHET' 'H_bond_cur_str_ins_code' 3 1 0 55 0 0
+'PSHET' 'H_bond_prev_str_atom_id' 3 4 0 57 0 0
+'PSHET' 'H_bond_prev_str_res_name' 4 3 0 61 0 0
+'PSHET' 'H_bond_prev_str_Strand_ID' 4 2 0 64 0 1
+'PSHET' 'H_bond_prev_str_res_num' 1 4 0 66 0 0
+'PSHET' 'H_bond_prev_str_ins_code' 3 1 0 70 0 0
+'PSHET' 'Serial_no' 1 3 0 73 1 0
+
+'TURN' 'Section' 3 6 0 1 0 0
+'TURN' 'Serial_no' 1 3 0 8 0 0
+'TURN' 'Turn_id' 6 3 0 12 0 0
+'TURN' 'Beg_NDB_res_name' 4 3 0 16 0 0
+'TURN' 'Beg_NDB_Strand_ID' 4 2 0 19 0 1
+'TURN' 'Beg_NDB_res_num' 1 4 0 21 0 0
+'TURN' 'Beg_NDB_ins_code' 3 1 0 25 0 0
+'TURN' 'End_NDB_residue_name' 4 3 0 27 0 0
+'TURN' 'End_NDB_Strand_ID' 4 2 0 30 0 1
+'TURN' 'End_NDB_res_num' 1 4 0 32 0 0
+'TURN' 'End_NDB_ins_code' 3 1 0 36 0 0
+'TURN' 'Comment' 5 30 0 41 0 0
+
+'PTURN' 'Section' 3 6 0 1 0 0
+'PTURN' 'Serial_no' 1 3 0 8 0 0
+'PTURN' 'Turn_id' 6 3 0 12 0 0
+'PTURN' 'Beg_res_name' 4 3 0 16 0 0
+'PTURN' 'Beg_Strand_ID' 4 2 0 19 0 1
+'PTURN' 'Beg_res_num' 1 4 0 21 0 0
+'PTURN' 'Beg_ins_code' 3 1 0 25 0 0
+'PTURN' 'End_residue_name' 4 3 0 27 0 0
+'PTURN' 'End_Strand_ID' 4 2 0 30 0 1
+'PTURN' 'End_res_num' 1 4 0 32 0 0
+'PTURN' 'End_ins_code' 3 1 0 36 0 0
+'PTURN' 'Comment' 5 30 0 41 0 0
+
+'REFERR' 'Section' 3 6 0 1 0 0
+'REFERR' 'Esd_Luzzati_Plot' 2 4 2 9 0 0
+'REFERR' 'Esd_from_Sigmaa' 2 4 2 15 0 0
+'REFERR' 'Low_Resol_Cutoff' 2 4 2 23 0 0
+'REFERR' 'Esd_from_C_V_Luzzati_Plot' 2 4 2 29 0 0
+'REFERR' 'Esd_from_C_V_Sigmaa' 2 4 2 35 0 0
+'REFERR' 'Low_Resol_Cutoff_C_V' 2 4 2 39 0 0
+
+'REFESU' 'Section' 3 6 0 1 0 0
+'REFESU' 'ESU_R_Value' 2 6 2 9 0 0
+'REFESU' 'ESU_Free_R_Value' 2 6 2 16 0 0
+'REFESU' 'ESU_Maximum_Likelihood' 2 6 2 23 0 0
+'REFESU' 'ESU_BValue_Maximum_Likelihood' 2 6 2 30 0 0
+
+'FREERF' 'Section' 3 6 0 1 0 0
+'FREERF' 'Free_R_Value' 2 5 3 12 0 0
+'FREERF' 'Free_R_val_test_set_select' 3 6 2 18 0 0
+'FREERF' 'Free_R_val_test_set_size_perc' 2 6 3 25 0 0
+'FREERF' 'Free_R_val_test_set_size_ct' 1 6 0 32 0 0
+'FREERF' 'Free_R_val_estimated_error' 2 5 4 39 0 0
+'FREERF' 'Cross_valid_method' 5 25 0 45 0 0
+
+'BVALUE' 'Section' 3 6 0 1 0 0 
+'BVALUE' 'Mean_B_Value' 2 5 2 12 0 0
+'BVALUE' 'Mean_B_Values_Wilson_Plot' 2 5 2 18 0 0
+'BVALUE' 'Aniso_B11' 2 6 4 25 0 0
+'BVALUE' 'Aniso_B22' 2 6 4 32 0 0
+'BVALUE' 'Aniso_B33' 2 6 4 39 0 0
+'BVALUE' 'Aniso_B12' 2 6 4 46 0 0
+'BVALUE' 'Aniso_B13' 2 6 4 53 0 0
+'BVALUE' 'Aniso_B23' 2 6 4 60 0 0
+
+'RMSGEN' 'Section' 3 6 0 1 0 0
+'RMSGEN' 'RMSD_bond_dist' 2 5 3 12 0 0
+'RMSGEN' 'RMSD_bond_angle_degree' 2 5 2 24 0 0
+'RMSGEN' 'RMSD_bond_angle_dist' 2 5 3 36 0 0
+'RMSGEN' 'RMSD_dihedral_angle'  2 5 1 43 0 0
+'RMSGEN' 'RMSD_improper_angle' 2 5 2 50 0  0
+'RMSGEN' 'Isotropic_Thermal_Model' 5 25 2 56 0  0
+
+'RMSGE1' 'Section' 3 6 0 1 0 0
+'RMSGE1' 'RMSD_bond_dist_prot' 2 5 3 12 0 0
+'RMSGE1' 'RMSD_bond_dist_na' 2 5 3 18 0 0
+'RMSGE1' 'RMSD_bond_angle_degree_prot' 2 5 2 24 0 0  
+'RMSGE1' 'RMSD_bond_angle_degree_na' 2 5 2 30 0 0 
+'RMSGE1' 'RMSD_bond_angle_dist_prot' 2 5 3 36 0 0
+'RMSGE1' 'RMSD_bond_angle_dist_na'  2 5 3 42 0 0
+'RMSGE1' 'RMSD_dihedral_angle_prot'  2 5 1 48 0 0
+'RMSGE1' 'RMSD_dihedral_angle_na'  2 5 1 54 0 0
+'RMSGE1' 'RMSD_improper_angle_prot' 2 5 2 60 0  0
+'RMSGE1' 'RMSD_improper_angle_na' 2 5 2 66 0  0
+
+'SHELXL' 'Section' 3 6 0 1 0 0
+'SHELXL' 'RMSD_similar_dist' 2 5 3 12 0 0
+'SHELXL' 'RMSD_from_restr_planes' 2 5 3 18 0 0
+'SHELXL' 'RMSD_zero_chiral_vol' 2 5 3 25 0 0
+'SHELXL' 'RMSD_non_zero_chiral_vol' 2 5 3 32 0 0
+'SHELXL' 'RMSD_anti_bump_dis_restr'  2 5 3 39 0 0
+'SHELXL' 'RMSD_rigid_bond_adp_cmpnt'  2 5 3 46 0 0
+'SHELXL' 'RMSD_similar_adp_cmpnt' 2 5 3 53 0 0
+'SHELXL' 'RMSD_approx_iso_adps'  2 5 3 60 0 0
+
+'SOLMOD' 'Section' 3 6 0 1 0 0
+'SOLMOD' 'Bulk_Solvent_Modeling_Method' 5 45 0 12 0 0
+'SOLMOD' 'KSOL_tnt' 2 5 3 58 0 0
+'SOLMOD' 'BSOL_tnt' 2 5 3 64 0 0
+'SOLMOD' 'VDW_radius' 2 5 2 70 0 0
+'SOLMOD' 'ION_radius' 2 5 2 76 0 0
+'SOLMOD' 'Shrinkage_radius' 2 5 2 82 0 0
+
+'COFOFC' 'Section' 3 6 0 1 0 0
+'COFOFC' 'correlation_co_fo_fc' 2 6 3 8 0 0
+'COFOFC' 'correlation_co_fo_fc_free' 2 6 3 15 0 0
+
+'NCSTLS' 'Section' 3 6 0 1 0 0
+'NCSTLS' 'Ncs_group_number' 1 6 0 8 0 0
+'NCSTLS' 'Tls_group_number' 1 6 0 15 0 0
+
+'NCSGRO' 'Section' 3 6 0 1 0 0
+'NCSGRO' 'Group_number' 1 6 0 8 0 0
+'NCSGRO' 'Number_of_components' 1 6 0 15 0 0
+'NCSGRO' 'Chain_names' 5 50 0 22 0 0
+
+'RMSRF1' 'Section'                      3 6 0  1 0 0
+'RMSRF1' 'rmsd_refined_bond_dist_count' 1 6 0  8 0 0
+'RMSRF1' 'rmsd_refined_bond_dist'       2 6 3 15 0 0
+'RMSRF1' 'rmsd_refined_bond_dist_weight' 2 6 3 22 0 0
+'RMSRF1' 'rmsd_others_bond_dist_count' 1 6 0 29 0 0
+'RMSRF1' 'rmsd_others_bond_dist'       2 6 3 36 0 0
+'RMSRF1' 'rmsd_others_bond_dist_weight' 2 6 3 43 0 0
+'RMSRF1' 'rmsd_refined_angle_degree_count' 1 6 0 50 0 0
+'RMSRF1' 'rmsd_refined_angle_degree'       2 6 3 57 0 0
+'RMSRF1' 'rmsd_refined_angle_degree_weight' 2 6 3 64 0 0
+'RMSRF1' 'rmsd_others_angle_degree_count' 1 6 0 71 0 0
+'RMSRF1' 'rmsd_others_angle_degree'       2 6 3 78 0 0
+'RMSRF1' 'rmsd_others_angle_degree_weight' 2 6 3 85 0 0
+
+'RMSRF2' 'Section'                   3 6 0  1 0 0
+'RMSRF2' 'rmsd_torsion_angle_count'  1 6 0  8 0 0
+'RMSRF2' 'rmsd_torsion_angle'        2 6 3 15 0 0
+'RMSRF2' 'rmsd_torsion_angle_weight'  2 6 3 22 0 0
+'RMSRF2' 'rmsd_pseudorot_angle_count' 1 6 0 29 0 0
+'RMSRF2' 'rmsd_pseudorot_angle'       2 6 3 36 0 0
+'RMSRF2' 'rmsd_pseudorot_angle_weight' 2 6 3 43 0 0
+'RMSRF2' 'rmsd_chiral_centers_count' 1 6 0 50 0 0
+'RMSRF2' 'rmsd_chiral_centers'       2 6 3 57 0 0
+'RMSRF2' 'rmsd_chiral_centers_weight' 2 6 3 64 0 0
+'RMSRF2' 'rmsd_refined_general_planes_count' 1 6 0 71 0 0
+'RMSRF2' 'rmsd_refined_general_planes'       2 6 3 78 0 0
+'RMSRF2' 'rmsd_refined_general_planes_weight' 2 6 3 85 0 0
+
+'RMSRF3' 'Section'                          3 6 0  1 0 0
+'RMSRF3' 'rmsd_others_general_planes_count' 1 6 0  8 0 0
+'RMSRF3' 'rmsd_others_general_planes'       2 6 3 15 0 0
+'RMSRF3' 'rmsd_others_general_planes_weight' 2 6 3 22 0 0
+'RMSRF3' 'rmsd_refined_non_bonded_contacts_count' 1 6 0 29 0 0
+'RMSRF3' 'rmsd_refined_non_bonded_contacts'       2 6 3 36 0 0
+'RMSRF3' 'rmsd_refined_non_bonded_contacts_weight' 2 6 3 43 0 0
+'RMSRF3' 'rmsd_others_non_bonded_contacts_count' 1 6 0 50 0 0
+'RMSRF3' 'rmsd_others_non_bonded_contacts'       2 6 3 57 0 0
+'RMSRF3' 'rmsd_others_non_bonded_contacts_weight' 2 6 3 64 0 0
+'RMSRF3' 'rmsd_others_non_bonded_torsion_count' 1 6 0 71 0 0
+'RMSRF3' 'rmsd_others_non_bonded_torsion'       2 6 3 78 0 0
+'RMSRF3' 'rmsd_others_non_bonded_torsion_weight' 2 6 3 85 0 0
+
+'RMSRF4' 'Section'                   3 6 0  1 0 0
+'RMSRF4' 'rmsd_refined_hydrogen_bond_count'  1 6 0  8 0 0
+'RMSRF4' 'rmsd_refined_hydrogen_bond'        2 6 3 15 0 0
+'RMSRF4' 'rmsd_refined_hydrogen_bond_weight'  2 6 3 22 0 0
+'RMSRF4' 'rmsd_refined_vdw_count' 1 6 0 29 0 0
+'RMSRF4' 'rmsd_refined_vdw'       2 6 3 36 0 0
+'RMSRF4' 'rmsd_refined_vdw_weight' 2 6 3 43 0 0
+'RMSRF4' 'rmsd_others_vdw_count' 1 6 0 50 0 0
+'RMSRF4' 'rmsd_others_vdw'       2 6 3 57 0 0
+'RMSRF4' 'rmsd_others_vdw_weight' 2 6 3 64 0 0
+'RMSRF4' 'rmsd_refined_symm_hydrogen_bond_count' 1 6 0 71 0 0
+'RMSRF4' 'rmsd_refined_symm_hydrogen_bond'       2 6 3 78 0 0
+'RMSRF4' 'rmsd_refined_symm_hydrogen_bond_weight' 2 6 3 85 0 0
+
+'RMSRF5' 'Section'                          3 6 0  1 0 0
+'RMSRF5' 'rmsd_main_chain_bond_isotropic_count' 1 6 0  8 0 0
+'RMSRF5' 'rmsd_main_chain_bond_isotropic'       2 6 3 15 0 0
+'RMSRF5' 'rmsd_main_chain_bond_isotropic_weight' 2 6 3 22 0 0
+'RMSRF5' 'rmsd_main_chain_angle_isotropic_count' 1 6 0 29 0 0
+'RMSRF5' 'rmsd_main_chain_angle_isotropic'       2 6 3 36 0 0
+'RMSRF5' 'rmsd_main_chain_angle_isotropic_weight' 2 6 3 43 0 0
+'RMSRF5' 'rmsd_side_chain_bond_isotropic_count' 1 6 0 50 0 0
+'RMSRF5' 'rmsd_side_chain_bond_isotropic'       2 6 3 57 0 0
+'RMSRF5' 'rmsd_side_chain_bond_isotropic_weight' 2 6 3 64 0 0
+'RMSRF5' 'rmsd_side_chain_angle_isotropic_count' 1 6 0 71 0 0
+'RMSRF5' 'rmsd_side_chain_angle_isotropic'       2 6 3 78 0 0
+'RMSRF5' 'rmsd_side_chain_angle_isotropic_weight' 2 6 3 85 0 0
+
+'RMSRF6' 'Section'                   3 6 0  1 0 0
+'RMSRF6' 'rmsd_rigid_bond_restraint_count'  1 6 0  8 0 0
+'RMSRF6' 'rmsd_rigid_bond_restraint'        2 6 3 15 0 0
+'RMSRF6' 'rmsd_rigid_bond_restraint_weight'  2 6 3 22 0 0
+'RMSRF6' 'rmsd_sphericity_free_atom_count' 1 6 0 29 0 0
+'RMSRF6' 'rmsd_sphericity_free_atom'       2 6 3 36 0 0
+'RMSRF6' 'rmsd_sphericity_free_atom_weight' 2 6 3 43 0 0
+'RMSRF6' 'rmsd_sphericity_bonded_atom_count' 1 6 0 50 0 0
+'RMSRF6' 'rmsd_sphericity_bonded_atom'       2 6 3 57 0 0
+'RMSRF6' 'rmsd_sphericity_bonded_atom_weight' 2 6 3 64 0 0
+'RMSRF6' 'rmsd_other_hydrogen_bond_count' 1 6 0 71 0 0
+'RMSRF6' 'rmsd_other_hydrogen_bond'       2 6 3 78 0 0
+'RMSRF6' 'rmsd_other_hydrogen_bond_weight' 2 6 3 85 0 0
+
+'RMSRF7' 'Section'                              3 6 0  1 0 0
+'RMSRF7' 'rmsd_other_symm_hydrogen_bond_count'  1 6 0  8 0 0
+'RMSRF7' 'rmsd_other_symm_hydrogen_bond'        2 6 3 15 0 0
+'RMSRF7' 'rmsd_other_symm_hydrogen_bond_weight' 2 6 3 22 0 0
+'RMSRF7' 'rmsd_torsion_2_count'                 1 6 0 29 0 0
+'RMSRF7' 'rmsd_torsion_2'                       2 6 3 36 0 0
+'RMSRF7' 'rmsd_torsion_2_weight'                2 6 3 43 0 0
+'RMSRF7' 'rmsd_torsion_4_count'                 1 6 0 50 0 0
+'RMSRF7' 'rmsd_torsion_4'                       2 6 3 57 0 0
+'RMSRF7' 'rmsd_torsion_4_weight'                2 6 3 64 0 0
+
+'RMSRF8' 'Section'                                3 6 0  1 0 0
+'RMSRF8' 'rmsd_refined_non_bonded_torsion_count'  1 6 0  8 0 0
+'RMSRF8' 'rmsd_refined_non_bonded_torsion'        2 6 3 15 0 0
+'RMSRF8' 'rmsd_refined_non_bonded_torsion_weight' 2 6 3 22 0 0
+'RMSRF8' 'rmsd_refined_metal_ion_count'           1 6 0 29 0 0
+'RMSRF8' 'rmsd_refined_metal_ion'                 2 6 3 36 0 0
+'RMSRF8' 'rmsd_refined_metal_ion_weight'          2 6 3 43 0 0
+'RMSRF8' 'rmsd_other_metal_ion_count'             1 6 0 50 0 0
+'RMSRF8' 'rmsd_other_metal_ion'                   2 6 3 57 0 0
+'RMSRF8' 'rmsd_other_metal_ion_weight'            2 6 3 64 0 0
+'RMSRF8' 'rmsd_mcbond_other_isotropic_count'      1 6 0 71 0 0
+'RMSRF8' 'rmsd_mcbond_other_isotropic'            2 6 3 78 0 0
+'RMSRF8' 'rmsd_mcbond_other_isotropic_weight'     2 6 3 85 0 0
+
+'RFTPOS' 'Section' 3 6 0 1 0 0
+'RFTPOS' 'Group_number' 1 3 0 8 0 0
+'RFTPOS' 'Chain_id' 4 2 0 12 0 0
+'RFTPOS' 'Count' 1 6 0 15 0 0
+'RFTPOS' 'RMS' 2 6 2 22 0 0
+'RFTPOS' 'Weight' 2 6 2 29 0 0
+
+'RFMPOS' 'Section' 3 6 0 1 0 0
+'RFMPOS' 'Group_number' 1 3 0 8 0 0
+'RFMPOS' 'Chain_id' 4 2 0 12 0 0
+'RFMPOS' 'Count' 1 6 0 15 0 0
+'RFMPOS' 'RMS' 2 6 2 22 0 0
+'RFMPOS' 'Weight' 2 6 2 29 0 0
+
+'RFLPOS' 'Section' 3 6 0 1 0 0
+'RFLPOS' 'Group_number' 1 3 0 8 0 0
+'RFLPOS' 'Chain_id' 4 2 0 12 0 0
+'RFLPOS' 'Count' 1 6 0 15 0 0
+'RFLPOS' 'RMS' 2 6 2 22 0 0
+'RFLPOS' 'Weight' 2 6 2 29 0 0
+
+'RFTTHR' 'Section' 3 6 0 1 0 0
+'RFTTHR' 'Group_number' 1 3 0 8 0 0
+'RFTTHR' 'Chain_id' 4 2 0 12 0 0
+'RFTTHR' 'Count' 1 6 0 15 0 0
+'RFTTHR' 'RMS' 2 6 2 22 0 0
+'RFTTHR' 'Weight' 2 6 2 29 0 0
+
+'RFMTHR' 'Section' 3 6 0 1 0 0
+'RFMTHR' 'Group_number' 1 3 0 8 0 0
+'RFMTHR' 'Chain_id' 4 2 0 12 0 0
+'RFMTHR' 'Count' 1 6 0 15 0 0
+'RFMTHR' 'RMS' 2 6 2 22 0 0
+'RFMTHR' 'Weight' 2 6 2 29 0 0
+
+'RFLTHR' 'Section' 3 6 0 1 0 0
+'RFLTHR' 'Group_number' 1 3 0 8 0 0
+'RFLTHR' 'Chain_id' 4 2 0 12 0 0
+'RFLTHR' 'Count' 1 6 0 15 0 0
+'RFLTHR' 'RMS' 2 6 2 22 0 0
+'RFLTHR' 'Weight' 2 6 2 29 0 0
+
+'TMLPTL' 'Section' 3 6 0 1 0 0
+'TMLPTL' 'Group_number' 1 3 0 8 0 0
+'TMLPTL' 'Chain_id' 4 2 0 12 0 0
+'TMLPTL' 'Count' 1 6 0 15 0 0
+'TMLPTL' 'RMS' 2 6 2 22 0 0
+'TMLPTL' 'Weight' 2 6 2 29 0 0
+'TMLPTL' 'Type' 5 20 0 37 0 0
+
+'TLSGRO' 'Section' 3 6 0 1 0 0
+'TLSGRO' 'Group_number' 1 6 0 8 0 0
+'TLSGRO' 'Number_of_components' 1 6 0 15 0 0
+'TLSGRO' 'Origin_X' 2 8 4 22 0 0
+'TLSGRO' 'Origin_Y' 2 8 4 31 0 0
+'TLSGRO' 'Origin_Z' 2 8 4 40 0 0
+'TLSGRO' 'Method' 3 10 0 50 0 0
+
+'TLSRNG' 'Section' 3 6 0 1 0 0
+'TLSRNG' 'Group_number' 1 3 0 8 0 0
+'TLSRNG' 'Begin_Asym_ID' 4 2 0 12 0 0
+'TLSRNG' 'Begin_Res_Num' 1 5 0 15 0 0
+'TLSRNG' 'End_Asym_ID' 4 2 0 21 0 0
+'TLSRNG' 'End_Res_Num' 1 5 0 24 0 0
+'TLSRNG' 'Serial_No' 1 3 0 30 0 0
+
+'TTENSR' 'Section' 3 6 0 1 0 0
+'TTENSR' 'Group_number' 1 3 0 8 0 0
+'TTENSR' 'T11' 2 8 4 12 0 0
+'TTENSR' 'T22' 2 8 4 21 0 0
+'TTENSR' 'T33' 2 8 4 30 0 0
+'TTENSR' 'T12' 2 8 4 39 0 0
+'TTENSR' 'T13' 2 8 4 48 0 0
+'TTENSR' 'T23' 2 8 4 57 0 0
+
+'LTENSR' 'Section' 3 6 0 1 0 0
+'LTENSR' 'Group_number' 1 3 0 8 0 0
+'LTENSR' 'L11' 2 8 4 12 0 0
+'LTENSR' 'L22' 2 8 4 21 0 0
+'LTENSR' 'L33' 2 8 4 30 0 0
+'LTENSR' 'L12' 2 8 4 39 0 0
+'LTENSR' 'L13' 2 8 4 48 0 0
+'LTENSR' 'L23' 2 8 4 57 0 0
+
+'STENSR' 'Section' 3 6 0 1 0 0
+'STENSR' 'Group_number' 1 3 0 8 0 0
+'STENSR' 'S11' 2 8 4 12 0 0
+'STENSR' 'S12' 2 8 4 21 0 0
+'STENSR' 'S13' 2 8 4 30 0 0
+'STENSR' 'S21' 2 8 4 39 0 0
+'STENSR' 'S22' 2 8 4 48 0 0
+'STENSR' 'S23' 2 8 4 57 0 0
+'STENSR' 'S31' 2 8 4 66 0 0
+'STENSR' 'S32' 2 8 4 75 0 0
+'STENSR' 'S33' 2 8 4 84 0 0
+
+'CMRFMT' 'Section' 3 6 0 1 0 0
+'CMRFMT' 'Software_packages' 3 30 0 8 0 0
+'CMRFMT' 'Reconst_schema' 3 30 0 40 0 0
+
+'CEMFIT' 'Section' 3 6 0 1 0 0
+'CEMFIT' 'Atomic_models' 3 30 0 8 0 0
+'CEMFIT' 'Refinement_space' 3 10 0 40 0 0
+'CEMFIT' 'Refinement_protocol' 3 30 0 52 0 0
+'CEMFIT' 'Refinement_target' 3 15 0 84 0 0
+'CEMFIT' 'Overall_aniso_B_value' 2 7 3 101 0 0
+'CEMFIT' 'Fitting_procedure' 3 100 0 110 0 0
+
+'CMRNST' 'Section' 3 6 0 1 0 0
+'CMRNST' 'Nominal_pixel_size' 2 5 3 8 0 0
+'CMRNST' 'Actual_pixel_size' 2 5 3 15 0 0
+'CMRNST' 'Effective_resolution' 2 5 3 22 0 0
+'CMRNST' 'Number_of_particles' 1 5 0 29 0 0
+'CMRNST' 'CTF_corr_method' 3 30 0 36 0 0
+'CMRNST' 'EM_reconstruction' 3 100 0 68 0 0
+'CMRNST' 'Details' 3 100 0 170 0 0
+
+'EMSAMP' 'Section' 3 6 0 1 0 0
+'EMSAMP' 'Sample_aggr_state' 3 15 0 8 0 0
+'EMSAMP' 'Name_of_sample' 3 30 0 25 0 0
+'EMSAMP' 'Sample_conc' 2 5 2 57 0 0
+'EMSAMP' 'Sample_S_details' 3 30 0 64 0 0
+'EMSAMP' 'Sample_V_details' 3 30 0 96 0 0
+'EMSAMP' 'Sample_buffer' 3 30 0 128 0 0
+'EMSAMP' 'PH' 2 5 2 160 0 0
+'EMSAMP' 'Details' 3 100 0 167 0 0
+
+'EMDATA' 'Section' 3 6 0 1 0 0
+'EMDATA' 'Date' 7 16 0 8 0 0
+'EMDATA' 'Number_of_microg_i' 1 5 0 26 0 0
+'EMDATA' 'Temperature' 2 7 2 33 0 0
+'EMDATA' 'Microscope_model' 3 30 0 42 0 0
+'EMDATA' 'Detector_type' 3 20 0 74 0 0
+'EMDATA' 'Minimum_defocus' 2 9 2 96 0 0
+'EMDATA' 'Maximum_defocus' 2 9 2 107 0 0
+'EMDATA' 'Minimum_angle' 2 7 2 118 0 0
+'EMDATA' 'Maximum_angle' 2 7 2 127 0 0
+'EMDATA' 'Nominal_cs' 2 7 2 136 0 0
+'EMDATA' 'Imaging_mode' 3 15 0 145 0 0
+'EMDATA' 'Electron_dose' 2 9 2 162 0 0
+'EMDATA' 'Illum_mode' 3 15 0 173 0 0
+'EMDATA' 'Nominal_magnification' 1 6 0 190 0 0
+'EMDATA' 'Calibrat_magnification' 1 6 0 198 0 0
+'EMDATA' 'Source' 3 30 0 206 0 0
+'EMDATA' 'Accele_voltage' 1 6 0 238 0 0
+'EMDATA' 'Details' 3 100 0 246 0 0
+
+'ASSEMB' 'Section' 3 6 0 1 0 0
+'ASSEMB' 'Com_ID' 3 10 0 8 0 0
+'ASSEMB' 'Name' 3 30 0 20 0 0
+'ASSEMB' 'IPR_ID' 3 10 0 52 0 0
+'ASSEMB' 'GO_ID' 3 10 0 62 0 0
+'ASSEMB' 'Oligomeric_state' 3 20 0 74 0 0
+'ASSEMB' 'Details' 3 100 0 96 0 0
+
+'VIRPAR' 'Section' 3 6 0 1 0 0
+'VIRPAR' 'Com_ID' 3 10 0 8 0 0
+'VIRPAR' 'Virus_host_category' 3 20 0 20 0 0
+'VIRPAR' 'Virus_host_species' 3 20 0 42 0 0
+'VIRPAR' 'Virus_host_growth_cell' 3 20 0 64 0 0
+'VIRPAR' 'Virus_type' 3 20 0 86 0 0
+'VIRPAR' 'Virus_lsolate' 3 20 0 108 0 0
+'VIRPAR' 'ICTVDB_ID' 3 10 0 130 0 0
+
+'SOLEXP' 'Section' 3 6 0 1 0 0
+'SOLEXP' 'ID' 3 4 0 8 0 0
+'SOLEXP' 'Exp_type' 3 30 0 14 0 0
+'SOLEXP' 'Source_type' 3 20 0 46 0 0
+'SOLEXP' 'Source_class' 3 20 0 68 0 0
+'SOLEXP' 'Source_beam' 3 10 0 90 0 0
+'SOLEXP' 'source_instrument' 3 20 0 102 0 0
+'SOLEXP' 'Detector_type' 3 20 0 124 0 0
+'SOLEXP' 'Detector_specific' 3 20 0 146 0 0
+'SOLEXP' 'Temperature' 2 7 2 168 0 0
+'SOLEXP' 'PH' 2 5 2 177 0 0
+'SOLEXP' 'Num_time_frames' 1 5 0 190 0 0
+'SOLEXP' 'Concentraion_range' 3 15 0 197 0 0
+'SOLEXP' 'Buffer' 3 20 0 214 0 0
+'SOLEXP' 'Reduction_software' 3 20 0 326 0 0
+'SOLEXP' 'Analysis_software' 3 20 0 348 0 0
+'SOLEXP' 'Mean_guiner_radius' 2 5 2 370 0 0
+'SOLEXP' 'Mean_guiner_radius_esd' 2 5 2 377 0 0
+'SOLEXP' 'Min_radii_gyration' 2 5 2 384 0 0
+'SOLEXP' 'Min_radii_gyration_esd' 2 5 2 391 0 0
+'SOLEXP' 'Max_radii_gyration' 2 5 2 398 0 0
+'SOLEXP' 'Max_radii_gyration_esd' 2 5 2 405 0 0
+'SOLEXP' 'Length' 2 7 2 412 0 0
+
+'SOLMDL' 'Section' 3 6 0 1 0 0
+'SOLMDL' 'Method' 3 30 0 8 0 0
+'SOLMDL' 'Software_list' 3 30 0 40 0 0
+'SOLMDL' 'Software_ahthors' 3 30 0 72 0 0
+'SOLMDL' 'Start_model' 3 30 0 104 0 0
+'SOLMDL' 'Details' 3 50 0 136 0 0
+'SOLMDL' 'Num_calculated' 1 5 0 188 0 0
+'SOLMDL' 'Num_submitted' 1 4 0 195 0 0
+'SOLMDL' 'Slection_criteria' 3 50 0 201 0 0
+'SOLMDL' 'Scatter_ID' 3 5 0 253 0 0
+'SOLMDL' 'ID' 3 5 0 260 0 0
+
+'RMSTN1' 'Section' 3 6 0 1 0 0
+'RMSTN1' 'rmsd_bond_dist'  2 5 3 12 0 0
+'RMSTN1' 'rmsd_bond_dist_weight' 2 5 3 19 0 0
+'RMSTN1' 'rmsd_bond_dist_count' 1 6 0 27 0 0
+'RMSTN1' 'rmsd_angle_degree' 2 5 3 34 0 0
+'RMSTN1' 'rmsd_angle_degree_weight' 2 5 3 41 0 0
+'RMSTN1' 'rmsd_angle_degree_count' 1 6 0 49 0 0
+'RMSTN1' 'rmsd_torsion_angle' 2 5 3 56 0 0
+'RMSTN1' 'rmsd_torsion_angle_weight' 2 5 3 63 0 0
+'RMSTN1' 'rmsd_torsion_angle_count' 1 6 0 71 0 0
+'RMSTN1' 'rmsd_pseudorot_angle' 2 5 3 78 0 0
+'RMSTN1' 'rmsd_pseudorot_angle_weight' 2 5 3 85 0 0
+'RMSTN1' 'rmsd_pseudorot_angle_count' 1 6 0 93 0 0
+
+'RMSTN2' 'Section' 3 6 0 1 0 0
+'RMSTN2' 'rmsd_trigonal_c_planes' 2 5 3 12 0 0
+'RMSTN2' 'rmsd_trigonal_c_planes_weight' 2 5 3 19 0 0
+'RMSTN2' 'rmsd_trigonal_c_planes_count' 1 6 0 27 0 0
+'RMSTN2' 'rmsd_general_planes' 2 5 3 34 0 0
+'RMSTN2' 'rmsd_general_planes_weight' 2 5 3 41 0 0
+'RMSTN2' 'rmsd_general_planes_count' 1 6 0 49 0 0
+'RMSTN2' 'rmsd_iso_thermal_factors' 2 5 3 56 0 0
+'RMSTN2' 'rmsd_iso_thermal_factors_weight' 2 5 3 63 0 0
+'RMSTN2' 'rmsd_iso_thermal_factors_count'  1 6 0 71 0 0
+'RMSTN2' 'rmsd_non_bonded_contacts' 2 5 3 78 0 0
+'RMSTN2' 'rmsd_non_bonded_contacts_weight' 2 5 3 85 0 0
+'RMSTN2' 'rmsd_non_bonded_contacts_count'  1 6 0 93 0 0
+
+'RMSSUM' 'Section' 3 6 0 1 0 0
+'RMSSUM' 'Refinement_Program' 5 15 0 8 0 0
+'RMSSUM' 'Type' 3 25 0 24 0 0
+'RMSSUM' 'Dev_ideal' 2 5 3 50 0 0
+'RMSSUM' 'Dev_ideal_target' 2 5 3 56 0 0
+'RMSSUM' 'Weight' 2 5 3 62 0 0
+'RMSSUM' 'Param_Count' 1 6 0 68 0 0
+
+'ESDGEN' 'Section' 3 6 0 1 0 0
+'ESDGEN' 'ESD_bond_dist' 2 5 3 12 0 0
+'ESDGEN' 'ESD_bond_angle_degree' 2 5 3 24 0 0
+'ESDGEN' 'ESD_bond_angle_dist' 2 5 3 36 0 0
+
+'PERCOM' 'Section' 3 6 0 1 0 0
+'PERCOM' 'Completeness_Of_Data' 2 7 3 12 0 0
+'PERCOM' 'Range_Completion' 2 7 3 20 0 0
+
+'RMSDIS' 'Section' 3 6 0 1 0 0
+'RMSDIS' 'Bond_dist' 2 5 3 12 0 0
+'RMSDIS' 'Target_var_used_in_refinement' 2 5 3 18 0 0
+'RMSDIS' 'Angle_dist' 2 5 3 24 0 0
+'RMSDIS' 'Angle_dist_tar_var' 2 5 3 30 0 0
+'RMSDIS' 'Planar_1_4_dist' 2 5 3 36 0 0
+'RMSDIS' 'Planar_1_4_dist_tar_var' 2 5 3 42 0 0
+'RMSDIS' 'H_bond_or_Metal_coordination' 2 5 3 48 0 0
+'RMSDIS' 'H_bd_or_Metal_coord_tar_var' 2 5 3 55 0 0
+
+'RMSANG' 'Section' 3 6 0 1 0 0
+'RMSANG' 'bond_angle_restraints' 2 5 3 12 0 0
+'RMSANG' 'bond_angle_restraints_tar_var' 2 5 3 18 0 0
+'RMSANG' 'dihedral_angle_restraint' 2 5 3 24 0 0
+'RMSANG' 'dihedral_angle_restr_tar_var' 2 5 3 30 0 0
+'RMSANG' 'improper_tor_angle_restr' 2 5 3 36 0 0
+'RMSANG' 'impr_tor_angle_restr_tar_var' 2 5 3 42 0 0
+
+'RMSDIN' 'Section' 3 6 0 1 0 0
+'RMSDIN' 'Sugar_bond_dist' 2 5 3 12 0 0
+'RMSDIN' 'Sugar_bond_dist_tar_var' 2 5 3 18 0 0
+'RMSDIN' 'Sugar_bond_angle_dist' 2 5 3 24 0 0
+'RMSDIN' 'Sugar_bond_angle_dist_tar_var' 2 5 3 30 0 0
+'RMSDIN' 'Phosph_bond_dist' 2 5 3 36 0 0
+'RMSDIN' 'Phosph_bond_dist_tar_var' 2 5 3 42 0 0
+'RMSDIN' 'Phosph_bond_angle_dist' 2 5 3 48 0 0
+'RMSDIN' 'Phosph_bond_angle_dist_tar_var' 2 5 3 54 0 0
+
+'RMSPLA' 'Section' 3 6 0 1 0 0
+'RMSPLA' 'Plane_restraint' 2 5 3 12 0 0
+'RMSPLA' 'Plane_restraint_tar_var' 2 5 3 18 0 0
+
+'RMSVOL' 'Sectionr' 3 6 0 1 0 0
+'RMSVOL' 'Chiral_center_restraint' 2 5 3 12 0 0
+'RMSVOL' 'Chiral_center_restr_tar_var' 2 5 3 18 0 0
+'RMSVOL' 'Incorrect_chiral_centers_count' 1 5 0 25 0 0
+
+'RMSNBO' 'Section' 3 6 0 1 0 0
+'RMSNBO' 'Single_tor_non_bond_contacts' 2 5 3 12 0 0
+'RMSNBO' 'Single_tor_non_bond_tar_var' 2 5 3 18 0 0
+'RMSNBO' 'Mult_tor_non_bond_contacts' 2 5 3 24 0 0
+'RMSNBO' 'Mult_tor_non_bond_tar_var' 2 5 3 30 0 0
+'RMSNBO' 'Possible_hydrogen_bond' 2 5 3 36 0 0
+'RMSNBO' 'Possible_hydrbond_tar_var' 2 5 3 42 0 0
+'RMSNBO' 'Possible_X_Hydrogen_Bond' 2 5 3 48 0 0
+'RMSNBO' 'Possible_X_Hydrogen_tar_var' 2 5 3 54 0 0
+
+'RMSCON' 'Section' 3 6 0 1 0 0
+'RMSCON' 'Planar_degree' 2 5 3 12 0 0
+'RMSCON' 'Planar_tar_var_degree' 2 5 3 18 0 0
+'RMSCON' 'Staggered_degree' 2 5 3 24 0 0
+'RMSCON' 'Staggered_tar_var_degree' 2 5 3 30 0 0
+'RMSCON' 'Orthonormal' 2 5 3 36 0 0
+'RMSCON' 'Orthonormal_tar_var_degree' 2 5 3 42 0 0
+'RMSCON' 'Transverse_degree' 2 6 3 48 0 0
+'RMSCON' 'Transverse_tar_var_degree' 2 5 3 54 0 0
+'RMSCON' 'Specified_degree' 2 6 3 60 0 0
+'RMSCON' 'Specified_tar_var_degree' 2 5 3 66 0 0
+
+'RMSISO' 'Section' 3 6 0 1 0 0
+'RMSISO' 'Main_chain_bond' 2 5 3 12 0 0
+'RMSISO' 'Main_chain_bond_tar_var' 2 5 3 18 0 0
+'RMSISO' 'Main_chain_angle' 2 5 3 24 0 0
+'RMSISO' 'Main_chain_angle_tar_var' 2 5 3 30 0 0
+'RMSISO' 'Side_chain_bond' 2 5 3 36 0 0
+'RMSISO' 'Side_chain_bond_tar_var' 2 5 3 42 0 0
+'RMSISO' 'Side_chain_angle' 2 5 3 48 0 0
+'RMSISO' 'Side_chain_angle_tar_var' 2 5 3 54 0 0
+
+'RMSISN' 'Section' 3 6 0 1 0 0
+'RMSISN' 'Sugar_bond' 2 6 3 12 0 0
+'RMSISN' 'Sugar_bond_tar_var' 2 5 3 18 0 0
+'RMSISN' 'Sugar_angle' 2 6 3 24 0 0
+'RMSISN' 'Sugar_angle_tar_var' 2 5 3 30 0 0
+'RMSISN' 'Phosph_bond' 2 6 3 36 0 0
+'RMSISN' 'Phosph_bond_tar_var' 2 5 3 42 0 0
+'RMSISN' 'Phosph_angle' 2 6 3 48 0 0
+'RMSISN' 'Phosph_angle_tar_var' 2 5 3 54 0 0
+
+'NCSMOD' 'Section' 3 6 0 1 0 0
+'NCSMOD' 'Serial_No' 1 3 0 8 0 0
+'NCSMOD' 'Group_x_Positional_RMS' 2 5 3 33 0 0
+'NCSMOD' 'Group_x_Positional_Sigma' 2 5 3 39 0 0
+'NCSMOD' 'Group_x_B_factor_RMS' 2 5 3 45 0 0
+'NCSMOD' 'Group_x_B_factor_Sigma' 2 5 3 51 0 0
+
+
+'XFILES' 'Section' 3 6 0 1 0 0
+'XFILES' 'Serial_No' 1 3 0 8 0 0
+'XFILES' 'Parameter_File' 5 25 0 12 0 0
+'XFILES' 'Topology_File' 5 45 0 40 0 0
+'XFILES' 'ncs_model_xplor' 5 50 0 100 0 0
+
+'DIFPTL' 'Section' 3 6 0 1 0 0
+'DIFPTL' 'Continuation' 1 2 0 8 0 0
+'DIFPTL' 'Diffraction_Protocol' 5 60 0 11 0 0
+'DIFPTL' 'Data_Set_No' 1 4 0 73 0 0
+
+'XFILE1' 'Section' 3 6 0 1 0 0
+'XFILE1' 'Continuation' 1 2 0 8 0 0
+'XFILE1' 'Method_to_Determine_Struct' 5 60 0 23 0 0
+
+'XFILE2' 'Section' 3 6 0 1 0 0
+'XFILE2' 'Starting_Model' 5 60 0 12 0 0
+'XFILE2' 'Continuation' 1 2 0 75 0 0
+
+'XFILE3' 'Section' 3 6 0 1 0 0
+'XFILE3' 'Stereochem_target_values' 5 50 0 12 0 0
+'XFILE3' 'Stereochem_tar_val_spec_case' 5 60 0 74 0 0
+
+'SYMMA' 'Section' 3 6 0 1 0 0
+'SYMMA' 'Serial_No' 1 3 0 8 0 0
+'SYMMA' 'X' 2 10 6 11 0 0
+'SYMMA' 'Y' 2 10 6 21 0 0
+'SYMMA' 'Z' 2 10 6 31 0 0
+'SYMMA' 'U' 2 10 5 46 0 0
+'SYMMA' 'Strand_ID' 4 4 0 57 0 1
+
+'SSBOND' 'Section' 3 6 0 1 0 0
+'SSBOND' 'Serial_No' 1 3 0 8 0 0
+'SSBOND' 'NDB_Res_Name_CYS_1' 4 3 0 12 0 0
+'SSBOND' 'NDB_Strand_ID_CYS_1' 4 2 0 15 0 1
+'SSBOND' 'NDB_Res_No_CYS_1' 1 4 0 18 0 0
+'SSBOND' 'NDB_Ins_Code_CYS_1' 3 1 0 22 0 0
+'SSBOND' 'NDB_Res_Name_CYS_2' 4 3 0 26 0 0
+'SSBOND' 'NDB_Strand_ID_CYS_2' 4 2 0 29 0 1
+'SSBOND' 'NDB_Res_No_CYS_2' 1 4 0 32 0 0
+'SSBOND' 'NDB_Ins_Code_CYS_2' 3 1 0 36 0 0
+'SSBOND' 'Symmetry_Operator_1' 5 6 0 60 0 0
+'SSBOND' 'Symmetry_Operator_2' 5 6 0 67 0 0 
+#'SSBOND' 'Comment' 5 30 0 41 0 0
+
+'PSSBND' 'Section' 3 6 0 1 0 0
+'PSSBND' 'Serial_No' 1 3 0 8 0 0
+'PSSBND' 'Residue_Name_CYS_1' 4 3 0 12 0 0
+'PSSBND' 'Strand_ID_CYS_1' 4 2 0 15 0 1
+'PSSBND' 'Residue_No_CYS_1' 1 4 0 18 0 0
+'PSSBND' 'Ins_Code_CYS_1' 3 1 0 22 0 0
+'PSSBND' 'Residue_Name_CYS_2' 4 3 0 26 0 0
+'PSSBND' 'Strand_ID_CYS_2' 4 2 0 29 0 1
+'PSSBND' 'Residue_No_CYS_2' 1 4 0 32 0 0
+'PSSBND' 'Ins_Code_CYS_2' 3 1 0 36 0 0
+'PSSBND' 'Symmetry_Operator_1' 5 6 0 60 0 0
+'PSSBND' 'Symmetry_Operator_2' 5 6 0 67 0 0
+#'PSSBND' 'Comment' 5 30 0 41 0 0
+
+'LINK' 'Section' 3 6 0 1 0  0
+'LINK' 'Atom_Name_1' 3 4 0 13 0 0
+'LINK' 'Alt_Loc_1' 4 1 0 17 0 0
+'LINK' 'Residue_Name_1' 4 3 0 18 0 0
+'LINK' 'Strand_ID_1' 4 2 0 21 0 1
+'LINK' 'Residue_Number_1' 4 4 0 23 0 0
+'LINK' 'Ins_Code_1' 4 1 0 27 0 0
+'LINK' 'Atom_Name_2' 3 4 0 43 0 0
+'LINK' 'Alt_Loc_2' 4 1 0 47 0 0
+'LINK' 'Residue_Name_2' 4 3 0 48 0 0
+'LINK' 'Strand_ID_2' 4 2 0 51 0 1
+'LINK' 'Residue_Number_2' 4 4 0 53 0 0
+'LINK' 'Ins_Code_2' 4 1 0 57 0 0
+'LINK' 'Symmetry_Operator_1' 5 6 0 60 0 0
+'LINK' 'Symmetry_Operator_2' 5 6 0 67 0 0
+'LINK' 'Serial_No' 1 3 0 75 1 0
+'LINK' 'Details' 5 30 0 79 1 0
+
+'SCLINK' 'Section' 3 6 0 1 0  0
+'SCLINK' 'Atom_Name_1' 3 4 0 13 0 0
+'SCLINK' 'Alt_Loc_1' 4 1 0 17 0 0
+'SCLINK' 'Residue_Name_1' 4 3 0 18 0 0
+'SCLINK' 'Strand_ID_1' 4 2 0 21 0 1
+'SCLINK' 'Residue_Number_1' 4 4 0 23 0 0
+'SCLINK' 'Ins_Code_1' 4 1 0 27 0 0
+'SCLINK' 'Atom_Name_2' 3 4 0 43 0 0
+'SCLINK' 'Alt_Loc_2' 4 1 0 47 0 0
+'SCLINK' 'Residue_Name_2' 4 3 0 48 0 0
+'SCLINK' 'Strand_ID_2' 4 2 0 51 0 1
+'SCLINK' 'Residue_Number_2' 4 4 0 53 0 0
+'SCLINK' 'Ins_Code_2' 4 1 0 57 0 0
+'SCLINK' 'Symmetry_Operator_1' 5 6 0 60 0 0
+'SCLINK' 'Symmetry_Operator_2' 5 6 0 67 0 0
+'SCLINK' 'Serial_No' 1 3 0 75 0 0
+'SCLINK' 'Details' 5 30 0 79 0 0
+
+'HYDBND' 'Section' 3 6 0 1 0  0
+'HYDBND' 'Atom_Name_1' 3 4 0 13 0 0
+'HYDBND' 'Alt_Loc_1' 4 1 0 17 0 0
+'HYDBND' 'Residue_Name_1' 4 3 0 18 0 0
+'HYDBND' 'Strand_ID_1' 4 2 0 21 0 1
+'HYDBND' 'Residue_Number_1' 4 5 0 23 0 0
+'HYDBND' 'Ins_Code_1' 4 1 0 28 0 0
+'HYDBND' 'Atom_Name_H' 3 4 0 30 0 0
+'HYDBND' 'Alt_Loc_H' 4 1 0 34 0 0
+'HYDBND' 'Strand_ID_H' 4 2 0 35 0 1
+'HYDBND' 'Residue_Number_H' 5 4 0 37 0 0
+'HYDBND' 'Ins_Code_H' 4 1 0 42 0 0
+'HYDBND' 'Atom_Name_2' 3 4 0 44 0 0
+'HYDBND' 'Alt_Loc_2' 4 1 0 48 0 0
+'HYDBND' 'Residue_Name_2' 4 3 0 49 0 0
+'HYDBND' 'Strand_ID_2' 4 2 0 52 0 1
+'HYDBND' 'Residue_Number_2' 4 5 0 54 0 0
+'HYDBND' 'Ins_Code_2' 4 1 0 59 0 0
+'HYDBND' 'Symmetry_Operator_1' 5 6 0 60 0 0
+'HYDBND' 'Symmetry_Operator_2' 5 6 0 68 0 0
+'HYDBND' 'Serial_No' 1 3 0 75 1 0
+
+'SLTBRG' 'Section' 3 6 0 1 0  0
+'SLTBRG' 'Atom_Name_1' 3 4 0 13 0 0
+'SLTBRG' 'Alt_Loc_1' 4 1 0 17 0 0
+'SLTBRG' 'Residue_Name_1' 4 3 0 18 0 0
+'SLTBRG' 'Strand_ID_1' 4 2 0 21 0 1
+'SLTBRG' 'Residue_Number_1' 4 4 0 23 0 0
+'SLTBRG' 'Ins_Code_1' 4 1 0 27 0 0
+'SLTBRG' 'Atom_Name_2' 3 4 0 43 0 0
+'SLTBRG' 'Alt_Loc_2' 4 1 0 47 0 0
+'SLTBRG' 'Residue_Name_2' 4 3 0 48 0 0
+'SLTBRG' 'Strand_ID_2' 4 2 0 51 0 1
+'SLTBRG' 'Residue_Number_2' 4 4 0 53 0 0
+'SLTBRG' 'Ins_Code_2' 4 1 0 57 0 0
+'SLTBRG' 'Symmetry_Operator_1' 5 6 0 60 0 0
+'SLTBRG' 'Symmetry_Operator_2' 5 6 0 68 0 0
+'SLTBRG' 'Serial_No' 1 3 0 75 1 0
+
+'CISPEP' 'Section' 3 6 0 1 0 0
+'CISPEP' 'Serial_No' 1 3 0 8 0 0
+'CISPEP' 'Residue_Name_1' 4 3 0 12 0 0
+'CISPEP' 'Strand_ID_1' 4 2 0 15 0 1
+'CISPEP' 'Sequence_Number_1' 4 4 0 18 0 0
+'CISPEP' 'Ins_Code_1' 3 1 0 22 0 0
+'CISPEP' 'Residue_Name_2' 4 3 0 26 0 0
+'CISPEP' 'Strand_ID_2' 4 2 0 29 0 1
+'CISPEP' 'Sequence_Number_2' 4 4 0 32 0 0
+'CISPEP' 'Ins_Code_2' 3 1 0 36 0 0
+'CISPEP' 'Model_Num' 4 3 0 44 0 0
+'CISPEP' 'Angle' 2 6 2 54 0 0
+
+'CISPRO' 'Section' 3 6 0 1 0 0
+'CISPRO' 'Serial_No' 1 3 0 8 0 0
+'CISPRO' 'Strand_ID' 4 2 0 15 0 1
+'CISPRO' 'Sequence_Number' 4 4 0 18 0 0
+'CISPRO' 'Ins_Code' 3 1 0 22 0 0
+
+'SITE' 'Section' 3 6 0 1 0 0
+'SITE' 'Serial_No' 1 3 0 8 0 0
+'SITE' 'Site_ID' 4 3 0 12 0 0
+'SITE' 'Residue_No' 1 2 0 16 0 0
+'SITE' 'Residue_Name_1' 4 3 0 19 0 0
+'SITE' 'Strand_ID_1' 4 2 0 22 0 1
+'SITE' 'Seq_No_1' 1 4 0 24 0 0
+'SITE' 'Ins_Code_1' 3 1 0 28 0 0
+'SITE' 'Residue_Name_2' 4 3 0 30 0 0
+'SITE' 'Strand_ID_2' 4 2 0 33 0 1
+'SITE' 'Seq_No_2' 1 4 0 35 0 0
+'SITE' 'Ins_Code_2' 3 1 0 39 0 0
+'SITE' 'Residue_Name_3' 4 3 0 41 0 0
+'SITE' 'Strand_ID_3' 4 2 0 44 0 1
+'SITE' 'Seq_No_3' 1 4 0 46 0 0
+'SITE' 'Ins_Code_3' 3 1 0 50 0 0
+'SITE' 'Residue_Name_4' 4 3 0 52 0 0
+'SITE' 'Strand_ID_4' 4 2 0 55 0 1
+'SITE' 'Seq_No_4' 1 4 0 57 0 0
+'SITE' 'Ins_Code_4' 3 1 0 61 0 0
+
+'SITELS' 'Section' 3 6 0 1 0 0
+'SITELS' 'Continuation' 1 2 0 8 0 0
+'SITELS' 'Site_ID' 4 3 0 11 0 0
+'SITELS' 'Site_Details' 5 50 0 15 0 0
+
+'CRYST1' 'Section' 3 6 0 1 0 0
+'CRYST1' 'a' 2 9 3 7 0 0
+'CRYST1' 'b' 2 9 3 16 0 0
+'CRYST1' 'c' 2 9 3 25 0 0
+'CRYST1' 'Alpha' 2 7 2 34 0 0
+'CRYST1' 'Beta' 2 7 2 41 0 0
+'CRYST1' 'Gamma' 2 7 2 48 0 0
+'CRYST1' 'Space_Group' 5 11 0 56 0 0
+'CRYST1' 'Z' 1 4 0 67 0 0
+'CRYST1' 'Unique_Axis' 3 4 0 72 1 0
+'CRYST1' 'Full_Space_Group' 5 11 0 76 1 0
+'CRYST1' 'Cell_Setting' 5 14 0 87 1 0
+'CRYST1' 'Int_Tables_Number' 3 3 0 102 1 0
+
+'ORIGX' 'Section' 3 6 0 1 0 0
+'ORIGX' 'X' 2 10 6 11 0 0
+'ORIGX' 'Y' 2 10 6 21 0 0
+'ORIGX' 'Z' 2 10 6 31 0 0
+'ORIGX' 'T' 2 10 5 46 0 0
+
+'SCALE' 'Section' 3 6 0 1 0 0
+'SCALE' 'X' 2 10 6 11 0 0
+'SCALE' 'Y' 2 10 6 21 0 0
+'SCALE' 'Z' 2 10 6 31 0 0
+'SCALE' 'U' 2 10 5 46 0 0
+
+'MTRIX' 'Section' 3 6 0 1 0 0
+'MTRIX' 'SerialNo' 1 3 0 8 0 0
+'MTRIX' 'X' 2 10 6 11 0 0
+'MTRIX' 'Y' 2 10 6 21 0 0
+'MTRIX' 'Z' 2 10 6 31 0 0
+'MTRIX' 'V' 2 10 5 46 0 0
+'MTRIX' 'IGIVEN' 1 2 0 59 0 0
+
+'TVECT' 'Section' 3 6 0 1 0 0
+'TVECT' 'Serial_No' 1 3 0 8 0 0
+'TVECT' 'T1' 2 10 5 11 0 0
+'TVECT' 'T2' 2 10 5 21 0 0
+'TVECT' 'T3' 2 10 5 31 0 0
+'TVECT' 'Comment' 5 30 0 41 0 0
+
+'BIOMT' 'Section' 3 6 0 1 0 0
+'BIOMT' 'SerialNo' 1 3 0 8 0 0
+'BIOMT' 'X' 2 10 6 11 0 0
+'BIOMT' 'Y' 2 10 6 21 0 0
+'BIOMT' 'Z' 2 10 6 31 0 0
+'BIOMT' 'V' 2 10 5 46 0 0
+
+'NCSGEN' 'Section' 3 6 0 1 0 0
+'NCSGEN' 'SerialNo' 1 3 0 8 0 0
+'NCSGEN' 'Oper_ID' 1 3 0 12 0 0
+'NCSGEN' 'From_Asym_ID' 4 3 0 16 0 0
+'NCSGEN' 'From_PDB_ChnID' 4 3 0 20 0 0
+'NCSGEN' 'To_Asym_ID' 4 3 0 24 0 0
+'NCSGEN' 'To_PDB_ChnID' 4 3 0 28 0 0
+'NCSGEN' 'PDB_Order' 1 3 0 32 0 0
+
+'NCSRMK' 'Section' 3 6 0 1 0 0
+'NCSRMK' 'SerialNo' 1 3 0 8 0 0
+'NCSRMK' 'Oper_ID' 1 3 0 12 0 0
+'NCSRMK' 'Asym_ID' 4 3 0 16 0 0
+'NCSRMK' 'PDB_ChnID' 4 3 0 20 0 0
+
+'MODEL' 'Section' 3 6 0 1 0 0
+'MODEL' 'SerialNo' 1 4 0 11 0 0
+
+'ATOMN' 'Section' 3 6 0 1 0 0                        
+'ATOMN' 'Serial_No' 1 5 0 7 0 0                     
+'ATOMN' 'Atom_Name' 3 4 0 13 0 0                     
+'ATOMN' 'Alt_Loc' 3 1 0 17 0 0                        
+'ATOMN' 'Residue_Name' 4 3 0 18 0 0                  
+'ATOMN' 'Strand_ID' 4 2 0 21 0 1                     
+'ATOMN' 'Residue_No' 1 4 0 23 0 0                      
+'ATOMN' 'Ins_Code' 3 1 0 27 0 1                      
+'ATOMN' 'X' 2 8 3 31 0 0
+'ATOMN' 'Y' 2 8 3 39 0 0
+'ATOMN' 'Z' 2 8 3 47 0 0
+'ATOMN' 'Occupancy' 2 6 2 55 0 0
+'ATOMN' 'T_Factor' 2 6 2 61 0 0
+'ATOMN' 'Footnote' 1 3 0 68 1 0
+'ATOMN' 'Not_In_Asym' 3 1 0 72 1 0
+'ATOMN' 'PDB_Residue_No' 4 4 0 74 1 0
+'ATOMN' 'PDB_Residue_Name' 4 3 0 79 1 0
+'ATOMN' 'PDB_Strand_ID' 4 2 0 82 1  1
+'ATOMN' 'PDB_Atom_Name' 3 4 0 85 1 0
+'ATOMN' 'Pub_Residue_No' 4 4 0 90 1 0
+'ATOMN' 'Pub_Residue_Name' 4 3 0 95 1 0
+'ATOMN' 'Pub_Strand_ID' 4 2 0 98 1 0
+'ATOMN' 'Pub_Atom_Name' 3 4 0 101 1 0
+
+'ATOMP' 'Section' 3 6 0 1 0 0
+'ATOMP' 'Serial_No' 1 5 0 7 0 0
+'ATOMP' 'Atom_Name' 3 4 0 13 0 0
+'ATOMP' 'Alt_Loc' 3 1 0 17 0 0
+'ATOMP' 'Residue_Name' 4 3 0 18 0 0
+'ATOMP' 'Strand_ID' 4 2 0 21 0 1
+'ATOMP' 'Residue_No' 1 4 0 23 0 0
+'ATOMP' 'Ins_Code' 3 1 0 27 0 1
+'ATOMP' 'X' 2 8 3 31 0 0
+'ATOMP' 'Y' 2 8 3 39 0 0
+'ATOMP' 'Z' 2 8 3 47 0 0
+'ATOMP' 'Occupancy' 2 6 2 55 0 0
+'ATOMP' 'T_Factor' 2 6 2 61 0 0
+'ATOMP' 'Footnote' 1 3 0 68 1 0
+'ATOMP' 'Not_In_Asym' 3 1 0 72 1 0
+'ATOMP' 'PDB_Residue_No' 4 4 0 74 1 0
+'ATOMP' 'PDB_Residue_Name' 4 3 0 79 1 0
+'ATOMP' 'PDB_Strand_ID' 4 2 0 82 1  1
+'ATOMP' 'PDB_Atom_Name' 3 4 0 85 1 0
+'ATOMP' 'Pub_Residue_No' 4 4 0 90 1 0
+'ATOMP' 'Pub_Residue_Name' 4 3 0 95 1 0
+'ATOMP' 'Pub_Strand_ID' 4 2 0 98 1 0
+'ATOMP' 'Pub_Atom_Name' 3 4 0 101 1 0
+
+'ATOMS' 'Section' 3 6 0 1 0 0
+'ATOMS' 'Serial_No' 1 5 0 7 0 0
+'ATOMS' 'Atom_Name' 3 4 0 13 0 0
+'ATOMS' 'Alt_Loc' 3 1 0 17 0 0
+'ATOMS' 'Residue_Name' 4 3 0 18 0 0
+'ATOMS' 'Strand_ID' 4 2 0 21 0 1
+'ATOMS' 'Residue_No' 1 4 0 23 0 0
+'ATOMS' 'Ins_Code' 3 1 0 27 0 1
+'ATOMS' 'X' 2 8 3 31 0 0
+'ATOMS' 'Y' 2 8 3 39 0 0
+'ATOMS' 'Z' 2 8 3 47 0 0
+'ATOMS' 'Occupancy' 2 6 2 55 0 0
+'ATOMS' 'T_Factor' 2 6 2 61 0 0
+'ATOMS' 'Footnote' 1 3 0 68 1 0
+'ATOMS' 'Not_In_Asym' 3 1 0 72 1 0
+'ATOMS' 'PDB_Residue_No' 4 4 0 74 1 0
+'ATOMS' 'PDB_Residue_Name' 4 3 0 79 1 0
+'ATOMS' 'PDB_Strand_ID' 4 2 0 82 1  1
+'ATOMS' 'PDB_Atom_Name' 3 4 0 85 1 0
+'ATOMS' 'Pub_Residue_No' 4 4 0 90 1 0
+'ATOMS' 'Pub_Residue_Name' 4 3 0 95 1 0
+'ATOMS' 'Pub_Strand_ID' 4 2 0 98 1 0
+'ATOMS' 'Pub_Atom_Name' 3 4 0 101 1 0
+
+'ATOMMN' 'Section' 3 6 0 1 0 0
+'ATOMMN' 'Serial_No' 1 5 0 7 0 0
+'ATOMMN' 'Atom_Name' 3 4 0 13 0 0
+'ATOMMN' 'Alt_Loc' 3 1 0 17 0 0
+'ATOMMN' 'Residue_Name' 4 3 0 18 0 0
+'ATOMMN' 'Strand_ID' 4 2 0 21 0 1
+'ATOMMN' 'Residue_No' 1 4 0 23 0 0
+'ATOMMN' 'Ins_Code' 3 1 0 27 0 1
+'ATOMMN' 'X' 2 8 3 31 0 0
+'ATOMMN' 'Y' 2 8 3 39 0 0
+'ATOMMN' 'Z' 2 8 3 47 0 0
+'ATOMMN' 'Occupancy' 2 6 2 55 0 0
+'ATOMMN' 'T_Factor' 2 6 2 61 0 0
+'ATOMMN' 'Footnote' 1 3 0 68 1 0
+'ATOMMN' 'Not_In_Asym' 3 1 0 72 1 0
+'ATOMMN' 'PDB_Residue_No' 4 4 0 74 1 0
+'ATOMMN' 'PDB_Residue_Name' 4 3 0 79 1 0
+'ATOMMN' 'PDB_Strand_ID' 4 2 0 82 1  1
+'ATOMMN' 'PDB_Atom_Name' 3 4 0 85 1 0
+'ATOMMN' 'Pub_Residue_No' 4 4 0 90 1 0
+'ATOMMN' 'Pub_Residue_Name' 4 3 0 95 1 0
+'ATOMMN' 'Pub_Strand_ID' 4 2 0 98 1 0
+'ATOMMN' 'Pub_Atom_Name' 3 4 0 101 1 0
+
+'ATOMMP' 'Section' 3 6 0 1 0 0
+'ATOMMP' 'Serial_No' 1 5 0 7 0 0
+'ATOMMP' 'Atom_Name' 3 4 0 13 0 0
+'ATOMMP' 'Alt_Loc' 3 1 0 17 0 0
+'ATOMMP' 'Residue_Name' 4 3 0 18 0 0
+'ATOMMP' 'Strand_ID' 4 2 0 21 0 1
+'ATOMMP' 'Residue_No' 1 4 0 23 0 0
+'ATOMMP' 'Ins_Code' 3 1 0 27 0 1
+'ATOMMP' 'X' 2 8 3 31 0 0
+'ATOMMP' 'Y' 2 8 3 39 0 0
+'ATOMMP' 'Z' 2 8 3 47 0 0
+'ATOMMP' 'Occupancy' 2 6 2 55 0 0
+'ATOMMP' 'T_Factor' 2 6 2 61 0 0
+'ATOMMP' 'Footnote' 1 3 0 68 1 0
+'ATOMMP' 'Not_In_Asym' 3 1 0 72 1 0
+'ATOMMP' 'PDB_Residue_No' 4 4 0 74 1 0
+'ATOMMP' 'PDB_Residue_Name' 4 3 0 79 1 0
+'ATOMMP' 'PDB_Strand_ID' 4 2 0 82 1  1
+'ATOMMP' 'PDB_Atom_Name' 3 4 0 85 1 0
+'ATOMMP' 'Pub_Residue_No' 4 4 0 90 1 0
+'ATOMMP' 'Pub_Residue_Name' 4 3 0 95 1 0
+'ATOMMP' 'Pub_Strand_ID' 4 2 0 98 1 0
+'ATOMMP' 'Pub_Atom_Name' 3 4 0 101 1 0
+
+'HETAD' 'Section' 3 6 0 1 0 0
+'HETAD' 'Serial_No' 1 5 0 7 0 0
+'HETAD' 'Atom_Name' 3 4 0 13 0 0
+'HETAD' 'Alt_Loc' 3 1 0 17 0 0
+'HETAD' 'Residue_Name' 4 3 0 18 0 0
+'HETAD' 'Strand_ID' 4 2 0 21 0 1
+'HETAD' 'Residue_No' 1 4 0 23 0 0
+'HETAD' 'Ins_Code' 3 1 0 27 0 1
+'HETAD' 'X' 2 8 3 31 0 0
+'HETAD' 'Y' 2 8 3 39 0 0
+'HETAD' 'Z' 2 8 3 47 0 0
+'HETAD' 'Occupancy' 2 6 2 55 0 0
+'HETAD' 'T_Factor' 2 6 2 61 0 0
+'HETAD' 'Footnote' 1 3 0 68 1 0
+'HETAD' 'Not_In_Asym' 3 1 0 72 1 0
+'HETAD' 'PDB_Residue_No' 4 4 0 74 1 0
+'HETAD' 'PDB_Residue_Name' 4 3 0 79 1 0
+'HETAD' 'PDB_Strand_ID' 4 2 0 82 1  1
+'HETAD' 'PDB_Atom_Name' 3 4 0 85 1 0
+'HETAD' 'Pub_Residue_No' 4 4 0 90 1 0
+'HETAD' 'Pub_Residue_Name' 4 3 0 95 1 0
+'HETAD' 'Pub_Strand_ID' 4 2 0 98 1 0
+'HETAD' 'Pub_Atom_Name' 3 4 0 101 1 0
+
+'HETAI' 'Section' 3 6 0 1 0 0
+'HETAI' 'Serial_No' 1 5 0 7 0 0
+'HETAI' 'Atom_Name' 3 4 0 13 0 0
+'HETAI' 'Alt_Loc' 3 1 0 17 0 0
+'HETAI' 'Residue_Name' 4 3 0 18 0 0
+'HETAI' 'Strand_ID' 4 2 0 21 0 1
+'HETAI' 'Residue_No' 1 4 0 23 0 0
+'HETAI' 'Ins_Code' 3 1 0 27 0 1
+'HETAI' 'X' 2 8 3 31 0 0
+'HETAI' 'Y' 2 8 3 39 0 0
+'HETAI' 'Z' 2 8 3 47 0 0
+'HETAI' 'Occupancy' 2 6 2 55 0 0
+'HETAI' 'T_Factor' 2 6 2 61 0 0
+'HETAI' 'Footnote' 1 3 0 68 1 0
+'HETAI' 'Not_In_Asym' 3 1 0 72 1 0
+'HETAI' 'PDB_Residue_No' 4 4 0 74 1 0
+'HETAI' 'PDB_Residue_Name' 4 3 0 79 1 0
+'HETAI' 'PDB_Strand_ID' 4 2 0 82 1  1
+'HETAI' 'PDB_Atom_Name' 3 4 0 85 1 0
+'HETAI' 'Pub_Residue_No' 4 4 0 90 1 0
+'HETAI' 'Pub_Residue_Name' 4 3 0 95 1 0
+'HETAI' 'Pub_Strand_ID' 4 2 0 98 1 0
+'HETAI' 'Pub_Atom_Name' 3 4 0 101 1 0
+
+'HETIC' 'Section' 3 6 0 1 0 0
+'HETIC' 'Serial_No' 1 5 0 7 0 0
+'HETIC' 'Atom_Name' 3 4 0 13 0 0
+'HETIC' 'Alt_Loc' 3 1 0 17 0 0
+'HETIC' 'Residue_Name' 4 3 0 18 0 0
+'HETIC' 'Strand_ID' 4 2 0 21 0 1
+'HETIC' 'Residue_No' 1 4 0 23 0 0
+'HETIC' 'Ins_Code' 3 1 0 27 0 1
+'HETIC' 'X' 2 8 3 31 0 0
+'HETIC' 'Y' 2 8 3 39 0 0
+'HETIC' 'Z' 2 8 3 47 0 0
+'HETIC' 'Occupancy' 2 6 2 55 0 0
+'HETIC' 'T_Factor' 2 6 2 61 0 0
+'HETIC' 'Footnote' 1 3 0 68 1 0
+'HETIC' 'Not_In_Asym' 3 1 0 72 1 0
+'HETIC' 'PDB_Residue_No' 4 4 0 74 1 0
+'HETIC' 'PDB_Residue_Name' 4 3 0 79 1 0
+'HETIC' 'PDB_Strand_ID' 4 2 0 82 1  1
+'HETIC' 'PDB_Atom_Name' 3 4 0 85 1 0
+'HETIC' 'Pub_Residue_No' 4 4 0 90 1 0
+'HETIC' 'Pub_Residue_Name' 4 3 0 95 1 0
+'HETIC' 'Pub_Strand_ID' 4 2 0 98 1 0
+'HETIC' 'Pub_Atom_Name' 3 4 0 101 1 0
+
+'HETAC' 'Section' 3 6 0 1 0 0
+'HETAC' 'Serial_No' 1 5 0 7 0 0
+'HETAC' 'Atom_Name' 3 4 0 13 0 0
+'HETAC' 'Alt_Loc' 3 1 0 17 0 0
+'HETAC' 'Residue_Name' 4 3 0 18 0 0
+'HETAC' 'Strand_ID' 4 2 0 21 0 1
+'HETAC' 'Residue_No' 1 4 0 23 0 0
+'HETAC' 'Ins_Code' 3 1 0 27 0 1
+'HETAC' 'X' 2 8 3 31 0 0
+'HETAC' 'Y' 2 8 3 39 0 0
+'HETAC' 'Z' 2 8 3 47 0 0
+'HETAC' 'Occupancy' 2 6 2 55 0 0
+'HETAC' 'T_Factor' 2 6 2 61 0 0
+'HETAC' 'Footnote' 1 3 0 68 1 0
+'HETAC' 'Not_In_Asym' 3 1 0 72 1 0
+'HETAC' 'PDB_Residue_No' 4 4 0 74 1 0
+'HETAC' 'PDB_Residue_Name' 4 3 0 79 1 0
+'HETAC' 'PDB_Strand_ID' 4 2 0 82 1  1
+'HETAC' 'PDB_Atom_Name' 3 4 0 85 1 0
+'HETAC' 'Pub_Residue_No' 4 4 0 90 1 0
+'HETAC' 'Pub_Residue_Name' 4 3 0 95 1 0
+'HETAC' 'Pub_Strand_ID' 4 2 0 98 1 0
+'HETAC' 'Pub_Atom_Name' 3 4 0 101 1 0
+
+'HETAS' 'Section' 3 6 0 1 0 0
+'HETAS' 'Serial_No' 1 5 0 7 0 0
+'HETAS' 'Atom_Name' 3 4 0 13 0 0
+'HETAS' 'Alt_Loc' 3 1 0 17 0 0
+'HETAS' 'Residue_Name' 4 3 0 18 0 0
+'HETAS' 'Strand_ID' 4 2 0 21 0 1
+'HETAS' 'Residue_No' 1 4 0 23 0 0
+'HETAS' 'Ins_Code' 3 1 0 27 0 1
+'HETAS' 'X' 2 8 3 31 0 0
+'HETAS' 'Y' 2 8 3 39 0 0
+'HETAS' 'Z' 2 8 3 47 0 0
+'HETAS' 'Occupancy' 2 6 2 55 0 0
+'HETAS' 'T_Factor' 2 6 2 61 0 0
+'HETAS' 'Footnote' 1 3 0 68 1 0
+'HETAS' 'Not_In_Asym' 3 1 0 72 1 0
+'HETAS' 'PDB_Residue_No' 4 4 0 74 1 0
+'HETAS' 'PDB_Residue_Name' 4 3 0 79 1 0
+'HETAS' 'PDB_Strand_ID' 4 2 0 82 1  1
+'HETAS' 'PDB_Atom_Name' 3 4 0 85 1 0
+'HETAS' 'Pub_Residue_No' 4 4 0 90 1 0
+'HETAS' 'Pub_Residue_Name' 4 3 0 95 1 0
+'HETAS' 'Pub_Strand_ID' 4 2 0 98 1 0
+'HETAS' 'Pub_Atom_Name' 3 4 0 101 1 0
+
+'HETAIN' 'Section' 3 6 0 1 0 0
+'HETAIN' 'Serial_No' 1 5 0 7 0 0
+'HETAIN' 'Atom_Name' 3 4 0 13 0 0
+'HETAIN' 'Alt_Loc' 3 1 0 17 0 0
+'HETAIN' 'Residue_Name' 4 3 0 18 0 0
+'HETAIN' 'Strand_ID' 4 2 0 21 0 1
+'HETAIN' 'Residue_No' 1 4 0 23 0 0
+'HETAIN' 'Ins_Code' 3 1 0 27 0 1
+'HETAIN' 'X' 2 8 3 31 0 0
+'HETAIN' 'Y' 2 8 3 39 0 0
+'HETAIN' 'Z' 2 8 3 47 0 0
+'HETAIN' 'Occupancy' 2 6 2 55 0 0
+'HETAIN' 'T_Factor' 2 6 2 61 0 0
+'HETAIN' 'Footnote' 1 3 0 68 1 0
+'HETAIN' 'Not_In_Asym' 3 1 0 72 1 0
+'HETAIN' 'PDB_Residue_No' 4 4 0 74 1 0
+'HETAIN' 'PDB_Residue_Name' 4 3 0 79 1 0
+'HETAIN' 'PDB_Strand_ID' 4 2 0 82 1  1
+'HETAIN' 'PDB_Atom_Name' 3 4 0 85 1 0
+'HETAIN' 'Pub_Residue_No' 4 4 0 90 1 0
+'HETAIN' 'Pub_Residue_Name' 4 3 0 95 1 0
+'HETAIN' 'Pub_Strand_ID' 4 2 0 98 1 0
+'HETAIN' 'Pub_Atom_Name' 3 4 0 101 1 0
+
+'SIGATM' 'Section' 3 6 0 1 0 0
+'SIGATM' 'Serial_No' 1 5 0 7 0 0
+'SIGATM' 'Atom_Name' 3 4 0 13 0 0
+'SIGATM' 'Alt_Loc' 3 1 0 17 0 0
+'SIGATM' 'Residue_Name' 4 3 0 18 0 0
+'SIGATM' 'Strand_ID' 4 2 0 21 0 1
+'SIGATM' 'Residue_No' 1 4 0 23 0 0
+'SIGATM' 'Ins_Code' 3 1 0 27 0 1
+'SIGATM' 'Sigma_X' 2 8 3 31 0 0
+'SIGATM' 'Sigma_Y' 2 8 3 39 0 0
+'SIGATM' 'Sigma_Z' 2 8 3 47 0 0
+'SIGATM' 'Sigma_Occupancy' 2 6 2 55 0 0
+'SIGATM' 'Sigma_T_Factor' 2 6 2 61 0 0
+'SIGATM' 'Footnote' 1 3 0 68 1 0
+'SIGATM' 'Not_In_Asym' 3 1 0 72 1 0
+'SIGATM' 'PDB_Residue_No' 4 4 0 74 1 0
+'SIGATM' 'PDB_Residue_Name' 4 3 0 79 1 0
+'SIGATM' 'PDB_Strand_ID' 4 2 0 82 1  1
+'SIGATM' 'PDB_Atom_Name' 3 4 0 85 1 0
+'SIGATM' 'Alias_Residue_No' 4 4 0 90 1 0
+'SIGATM' 'Alias_Residue_Name' 4 3 0 95 1 0
+'SIGATM' 'Alias_Strand_ID' 4 2 0 98 1 0
+'SIGATM' 'Alias_Atom_Name' 3 4 0 101 1 0
+
+'ANISOU' 'Section' 3 6 0 1 0 0
+'ANISOU' 'Serial_No' 1 5 0 7 0 0
+'ANISOU' 'Atom_Name' 3 4 0 13 0 0
+'ANISOU' 'Alt_Loc' 3 1 0 17 0 0
+'ANISOU' 'Residue_Name' 4 3 0 18 0 0
+'ANISOU' 'Strand_ID' 4 2 0 21 0 1
+'ANISOU' 'Residue_No' 1 4 0 23 0 0
+'ANISOU' 'Ins_Code' 3 1 0 27 0 1
+'ANISOU' 'U11' 1 7 0 29 0 0
+'ANISOU' 'U22' 1 7 0 36 0 0
+'ANISOU' 'U33' 1 7 0 43 0 0
+'ANISOU' 'U12' 1 7 0 50 0 0
+'ANISOU' 'U13' 1 7 0 57 0 0
+'ANISOU' 'U23' 1 7 0 64 0 0
+'ANISOU' 'Not_In_Asym' 3 1 0 72 1 0
+'ANISOU' 'PDB_Residue_No' 4 4 0 74 1 0
+'ANISOU' 'PDB_Residue_Name' 4 3 0 79 1 0
+'ANISOU' 'PDB_Strand_ID' 4 2 0 82 1  1
+'ANISOU' 'PDB_Atom_Name' 3 4 0 85 1 0
+'ANISOU' 'Alias_Residue_No' 4 4 0 90 1 0
+'ANISOU' 'Alias_Residue_Name' 4 3 0 95 1 0
+'ANISOU' 'Alias_Strand_ID' 4 2 0 98 1 0
+'ANISOU' 'Alias_Atom_Name' 3 4 0 101 1 0
+
+'SIGUIJ' 'Section' 3 6 0 1 0 0
+'SIGUIJ' 'Serial_No' 1 5 0 7 0 0
+'SIGUIJ' 'Atom_Name' 3 4 0 13 0 0
+'SIGUIJ' 'Alt_Loc' 3 1 0 17 0 0
+'SIGUIJ' 'Residue_Name' 4 3 0 18 0 0
+'SIGUIJ' 'Strand_ID' 4 2 0 21 0 1
+'SIGUIJ' 'Residue_No' 1 4 0 23 0 0
+'SIGUIJ' 'Ins_Code' 3 1 0 27 0 1
+'SIGUIJ' 'Sigma_U11' 1 7 0 29 0 0
+'SIGUIJ' 'Sigma_U22' 1 7 0 36 0 0
+'SIGUIJ' 'Sigma_U33' 1 7 0 43 0 0
+'SIGUIJ' 'Sigma_U12' 1 7 0 50 0 0
+'SIGUIJ' 'Sigma_U13' 1 7 0 57 0 0
+'SIGUIJ' 'Sigma_U23' 1 7 0 64 0 0
+'SIGUIJ' 'Not_In_Asym' 3 1 0 72 1 0
+'SIGUIJ' 'PDB_Residue_No' 4 4 0 74 1 0
+'SIGUIJ' 'PDB_Residue_Name' 4 3 0 79 1 0
+'SIGUIJ' 'PDB_Strand_ID' 4 2 0 82 1  1
+'SIGUIJ' 'PDB_Atom_Name' 3 4 0 85 1 0
+'SIGUIJ' 'Alias_Residue_No' 4 4 0 90 1 0
+'SIGUIJ' 'Alias_Residue_Name' 4 3 0 95 1 0
+'SIGUIJ' 'Alias_Strand_ID' 4 2 0 98 1 0
+'SIGUIJ' 'Alias_Atom_Name' 3 4 0 101 1 0
+
+'STRFAC' 'Section' 3 6 0 1 0 0
+'STRFAC' 'Index_h' 1 3 0 14 0 0
+'STRFAC' 'Index_k'  1 3 0 18 0 0
+'STRFAC' 'Index_l'  1 3 0 22 0 0
+'STRFAC' 'F_meas_au' 2 7 0 26 0 0
+'STRFAC' 'F_calc_au' 2 7 0 34 0 0
+'STRFAC' 'phase_calc' 2 7 0 42 0 0
+'STRFAC' 'F_meas_sigma_au' 2 6 0 50 0 0
+'STRFAC' 'Status' 3 1 0 57 0 0
+'STRFAC' 'intensity_meas' 2 7 0 60 0 0
+'STRFAC' 'intensity_calc' 2 7 0 67 0 0
+'STRFAC' 'intensity_sigma' 2 7 0 74 0 0
+'STRFAC' 'ndb_anomalous_diff' 2 7 0 81 0 0
+'STRFAC' 'ndb_anomalous_diff_sigma' 2 7 0 88 0 0
+
+'TER' 'Section' 3 6 0 1 0 0
+'TER' 'Serial_No' 1 5 0 7 0 0
+'TER' 'Residue_Name' 4 3 0 18 0 0
+'TER' 'Strand_ID' 4 2 0 21 0 1
+'TER' 'Residue_No' 1 4 0 23 0 0
+'TER' 'Ins_Code' 3 1 0 27 0 0
+
+'ENDMDL' 'Section' 3 6 0 1 0 0
+
+'CONECT' 'Section' 3 6 0 1 0 0
+'CONECT' 'Serial_No' 1 5 0 7 0 0
+'CONECT' 'Bonded_Atom_1' 1 5 0 12 0 0
+'CONECT' 'Bonded_Atom_2' 1 5 0 17 0 0
+'CONECT' 'Bonded_Atom_3' 1 5 0 22 0 0
+'CONECT' 'Bonded_Atom_4' 1 5 0 27 0 0
+'CONECT' 'H_Bond_Donor_1' 1 5 0 32 0 0
+'CONECT' 'H_Bond_Donor_2' 1 5 0 37 0 0
+'CONECT' 'Salt_Bridge_1' 1 5 0 42 0 0
+'CONECT' 'H_Bond_Acceptor_1' 1 5 0 47 0 0
+'CONECT' 'H_Bond_Acceptor_2' 1 5 0 52 0 0
+'CONECT' 'Salt_Bridge_2' 1 5 0 57 0 0
+
+'MASTER' 'Section' 3 6 0 1 0 0
+'MASTER' 'Remark_No' 1 5 0 11 0 0
+'MASTER' 'Ftnote_No' 1 5 0 16 0 0
+'MASTER' 'Het_No' 1 5 0 21 0 0
+'MASTER' 'Helix_No' 1 5 0 26 0 0
+'MASTER' 'Sheet_No' 1 5 0 31 0 0
+'MASTER' 'Turn_No' 1 5 0 36 0 0
+'MASTER' 'Site_No' 1 5 0 41 0 0
+'MASTER' 'Trans_No' 1 5 0 46 0 0
+'MASTER' 'Atom_No' 1 5 0 51 0 0
+'MASTER' 'Ter_No' 1 5 0 56 0 0
+'MASTER' 'Conect_No' 1 5 0 61 0 0
+'MASTER' 'Seqres_No' 1 5 0 66 0 0
+
+'END' 'Section' 3 6 0 1 0 0
+
+loop_
+_jrnl_token.name
+_jrnl_token.serial_no
+_jrnl_token.continuation_no
+_jrnl_token.continuation
+_jrnl_token.matrix_field
+_jrnl_token.ndb_only
+_jrnl_token.pdb_continued_no_field
+'AUTH' 2 4 5 0 0 0
+'TITL' 2 4 5 0 0 0
+'EDIT' 2 4 5 0 0 0
+'REF' 2 4 5 0 0 0
+'PUBL' 2 4 5 0 0 0
+'REFN' 2 0 0 0 0 0
+
+loop_
+_jrnl_field.token_name
+_jrnl_field.name
+_jrnl_field.type
+_jrnl_field.width
+_jrnl_field.precision
+_jrnl_field.start_column
+_jrnl_field.ndb_only
+_jrnl_field.mixed_cases
+'AUTH' 'Section' 3 6 0 1 0 0
+'AUTH' 'Serial_No' 1 2 0 9 0 0
+'AUTH' 'Subsection' 3 4 0 13 0 0
+'AUTH' 'Continuation' 1 2 0 17 0 0
+'AUTH' 'Authors' 5 51 0 20 0 1
+
+'TITL' 'Section' 3 6 0 1 0 0
+'TITL' 'Serial_No' 1 2 0 9 0 0
+'TITL' 'Subsection' 3 4 0 13 0 0
+'TITL' 'Continuation' 1 2 0 17 0 0
+'TITL' 'Title' 5 51 0 20 0 1
+
+'EDIT' 'Section' 3 6 0 1 0 0
+'EDIT' 'Serial_No' 1 2 0 9 0 0
+'EDIT' 'Subsection' 3 4 0 13 0 0
+'EDIT' 'Continuation' 1 2 0 17 0 0
+'EDIT' 'Editor' 5 51 0 20 0 1
+
+'REF' 'Section' 3 6 0 1 0 0
+'REF' 'Serial_No' 1 2 0 9 0 0
+'REF' 'Subsection' 3 4 0 13 0 0
+'REF' 'Continuation' 1 2 0 17 0 0
+'REF' 'Publication' 5 28 0 20 0 1
+'REF' 'V.' 4 2 0 50 0 0
+'REF' 'Volume_No' 4 4 0 52 0 0
+'REF' 'First_Page' 4 5 0 57 0 0
+'REF' 'Year' 1 4 0 63 0 0
+'REF' 'Last_Page' 4 5 0 68 1 1
+
+'PUBL' 'Section' 3 6 0 1 0 0
+'PUBL' 'Serial_No' 1 2 0 9 0 0
+'PUBL' 'Subsection' 3 4 0 13 0 0
+'PUBL' 'Continuation' 1 2 0 17 0 0
+'PUBL' 'Publisher' 5 51 0 20 0 1
+
+'REFN' 'Section' 3 6 0 1 0 0
+'REFN' 'Serial_No' 1 2 0 9 0 0
+'REFN' 'Subsection' 3 4 0 13 0 0
+'REFN' 'ASTM' 3 4 0 20 0 0
+'REFN' 'ASTM_List' 5 6 0 25 0 0
+'REFN' 'Country' 3 2 0 33 0 0
+'REFN' 'ISBN_ISSN' 3 4 0 36 0 0
+'REFN' 'ISSN_ISBN_No' 3 25 0 41 0 0
+'REFN' 'CODEN_List' 4 4 0 67 1 0
+'REFN' 'PubMed_ID' 3 15 0 73 1 0
+'REFN' 'DOI' 5 30 0 90 1 0
+
+#
+#  NDBATOMTOKENS FORMAT
+#  number of coordinate tokens
+#  token_name regular_or_aux_atom serial_number_should_added token_title_in_pdb
+#
+
+loop_
+_atom_token.token_name
+_atom_token.regular_or_aux
+_atom_token.esd
+_atom_token.serial_atom
+_atom_token.pdb_token_name
+_atom_token.table_name
+'ATOMN' 1 0 1 'ATOM'    'nucleic_acid_atom_coordinates'
+'ATOMP' 1 0 1 'ATOM'    'protein_atom_coordinates'
+'ATOMS' 1 0 1 'HETATM'    'inhibitor_coordinates'
+'ATOMMN' 1 0 1 'HETATM' 'nucleic_acid_modifier_coord'
+'ATOMMP' 1 0 1 'HETATM' 'protein_modifier_coordinates'
+'HETAD' 1 0 1 'HETATM'  'drug_molecule_coordinates'
+'HETAI' 1 0 1 'HETATM'  'ion_coordinates'
+'HETIC' 1 0 1 'HETATM'  'solvent_complex_coordinates'
+'HETAC' 1 0 1 'HETATM'  'coenzyme_coordinates'
+'HETAIN' 1 0 1 'HETATM' 'inhibitor_coordinates'
+'HETAS' 1 0 1 'HETATM'  'solvent_coordinates'
+'SIGATM' 0 1 0 'SIGATM' 'atomic_standard_deviations'
+'ANISOU' 0 0 0 'ANISOU' 'anisotrop_temp_factor'
+'SIGUIJ' 0 1 0 'SIGUIJ' 'anisotrop_standard_deviation'
+'TER' 0 0 1  'TER' 'ter'
+
+

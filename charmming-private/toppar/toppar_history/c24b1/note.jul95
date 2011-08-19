@@ -1,0 +1,77 @@
+
+[5] CHARMM22 Standard Topology and Parameter Files
+
+(A) Topology files
+    (1) top_all22_lipid.inp      all hydrogen RTF for lipids
+    (2) top_all22_prot.inp       all hydrogen RTF for proteins
+    (3) top_all22_na.inp         all hydrogen RTF for nucleic acids
+    (4) top_all22_prot_na.inp    all hydrogen RTF for proteins and nucleic acids
+    (5) top_all22_model.inp      all hydrogen RTF for protein model cmpds
+    (6) toph19.inp               extended atom RTF for proteins
+    (7) toprna10r_22.inp         extended atom RTF for nucleic acids
+
+(B) Parameter files
+    (1) par_all22_lipid.inp      all hydrogen parameters for lipids
+    (2) par_all22_prot.inp       all hydrogen parameters for proteins
+    (3) par_all22_na.inp         all hydrogen parameters for nucleic acids
+    (5) par_all22_prot_na.inp    all hydrogen parameters for proteins and nucleic acids
+    (6) param19.inp              extended atom parameters for proteins
+    (7) pardna10_22.inp          extended atom parameters for nucleic acids
+
+    The charmm22 all-hydrogen topology and parameter sets may be
+considered to be stable, however, further changes cannot be excluded.
+The bulk of the changes are expected to be additions leading to an
+expanding set of parameters which are compatible across proteins,
+nucleic acids, lipids, and, ultimately, carbohydrates.  The
+carbohydrate parameter work is still in progress by John Brady and
+coworkers.  See the file toppar_all.history for a listing changes in
+the files over time.  top_all22_model.inp includes the majority of
+model compounds used in the protein parameterization and is to be used
+in conjunction with par_all22_prot.inp.  top_all22_prot_na.inp and
+par_all22_prot_na.inp contain both the protein and nucleic acid
+parameters allowing for calculations on protein-nucleic acid
+complexes.  The lipid parameters may be combined in a similar fashion,
+although it hasn't been performed at present.  The extended atom
+parameters for proteins are the same as those included with CHARMM20
+which are based on Wally Reiher's thesis.  For the extended atom
+nucleic acid parameters those of Nilsson and Karplus, J. Comp.  Chem.
+7:591-616, 1986 are used which were also included in the CHARMM20
+release and are the only set to include explicit hydrogen bonding
+terms.  Some alterations of the extended atom nucleic acid topology
+and parameter files have been made in order to maintain compatibility
+with the multiple dihedral scheme in CHARMM22.  Please send all
+remarks and suggestions to alex@mmiris.ab.umd.edu. ADM Jr., July, 1995
+
+Suggested references for the CHARMM22 all-hydrogen sets.  Please
+contact ADM Jr., for updates.
+
+For the proteins
+
+MacKerell Jr., A.D. and Karplus, M. All-hydrogen empirical potential
+for molecular modeling and dynamics studies of proteins using the
+CHARMM22 force field, Manuscript in preparation.
+
+and
+
+MacKerell Jr., A.D., Bashford, D., Bellott, M., Dunbrack Jr., R.L.,
+Field, M.J., Fischer, S., Gao, J., Guo, H., Ha, S., Joseph, D.,
+Kuchnir, L., Kuczera, K., Lau, F.T.K., Mattos, C., Michnick, S., Ngo,
+T., Nguyen, D.T., Prodhom, B., Roux, B., Schlenkrich, M., Smith.,
+J.C., Stote, R., Straub, J. Wiorkiewicz-Kuczera, J. and Karplus, M.,
+Self-consistent parameterization of biomolecules for molecular
+modeling and condensed phase simulations. FASEB Journal 1992, 6:A143.
+
+For the nucleic acids
+
+MacKerell Jr., A.D., Wiorkiewicz-Kuczera, J. and Karplus, M. An
+all-atom empirical energy function for the simulation of nucleic
+acids, In Press.
+
+for the lipids
+
+Schlenkrich, M., Brickmann, J., MacKerell, A.D., Jr., and Karplus, M.
+Empirical Potential Energy Function for Phospholipids: Criteria for
+Parameter Optimization and Applications, in "Membrane Structure and
+Dynamics," K.M. Merz and B. Roux, Eds. Birkhauser, Boston, To be
+published for the 1996 Biophysical Society Meeting.
+

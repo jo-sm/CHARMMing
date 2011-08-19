@@ -1,0 +1,162 @@
+data_NDB_MATCH_PDB_CIF
+
+loop_
+_pdb_to_cif_match_category.id
+_pdb_to_cif_match_category.from_category
+_pdb_to_cif_match_category.to_category
+1  ndb_poly_seq_scheme	atom_site
+2  ndb_poly_seq_scheme 	struct_sheet_range	#beg_label 
+3  ndb_poly_seq_scheme 	struct_sheet_range 	#end_label
+4  ndb_poly_seq_scheme 	struct_sheet_hbond	#beg_label 
+5  ndb_poly_seq_scheme 	struct_sheet_hbond 	#end_label
+6  ndb_poly_seq_scheme	struct_conn    		#ptnr1_label hydrog
+7  ndb_poly_seq_scheme	struct_conn		#prnr2_label hydrog
+8  ndb_poly_seq_scheme	struct_conn    		#ptnr1_label mismat
+9  ndb_poly_seq_scheme	struct_conn		#prnr2_label mismat
+10 ndb_poly_seq_scheme	struct_conn    		#ptnr1_label covale_base
+11 ndb_poly_seq_scheme	struct_conn		#prnr2_label covale_base
+12 ndb_poly_seq_scheme	struct_conn    		#ptnr1_label covale_sugar
+13 ndb_poly_seq_scheme	struct_conn		#prnr2_label covale_sugar
+14 ndb_poly_seq_scheme	struct_conn    		#ptnr1_label covale_phosphate
+15 ndb_poly_seq_scheme	struct_conn		#prnr2_label covale_phosphate
+16 ndb_poly_seq_scheme	struct_conn		#ptnr1_label disulf
+17 ndb_poly_seq_scheme	struct_conn		#ptnr2_label disulf
+18 ndb_poly_seq_scheme	struct_conf		# TURN_P beg_label
+19 ndb_poly_seq_scheme	struct_conf		# TURN_P end_label
+20 ndb_poly_seq_scheme	struct_conf		# HELX_P beg_label
+21 ndb_poly_seq_scheme	struct_conf		# HELX_P end_label
+22 ndb_poly_seq_scheme	struct_conf		# HELX_N beg_label
+23 ndb_poly_seq_scheme	struct_conf		# HELX_N end_label
+#24 atom_site            ndb_nonstandard_list    # HET
+#25 atom_site            struct_site_gen         # SITE
+
+loop_
+_pdb_to_cif_match.id
+_pdb_to_cif_match.from_keyword
+_pdb_to_cif_match.to_keyword
+1  entity_id	label_entity_id		  # ndb_stryct_asym_poly_seq -> atom_site
+1  seq_id	label_seq_id
+2  seq_id	beg_label_seq_id          #ndb_stryct_asym_poly_seq -> struct_sheet_range
+3  seq_id	end_label_seq_id
+4  seq_id	range_1_beg_label_seq_id  # ndb_stryct_asym_poly_seq -> struct_sheet_hbond
+5  seq_id	range_1_end_label_seq_id
+6  seq_id	ptnr1_label_seq_id        # ndb_stryct_asym_poly_seq -> struct_conn (hydrog)
+7  seq_id	ptnr2_label_seq_id
+8  seq_id	ptnr1_label_seq_id        # ndb_stryct_asym_poly_seq -> struct_conn (mismat)
+9  seq_id	ptnr2_label_seq_id
+10 seq_id	ptnr1_label_seq_id        # ndb_stryct_asym_poly_seq -> struct_conn (covale_base)
+11 seq_id	ptnr2_label_seq_id
+12 seq_id	ptnr1_label_seq_id        # ndb_stryct_asym_poly_seq -> struct_conn (covale_sugar)
+13 seq_id	ptnr2_label_seq_id
+14 seq_id	ptnr1_label_seq_id        # ndb_stryct_asym_poly_seq -> struct_conn (covale_phosphate)
+15 seq_id	ptnr2_label_seq_id
+16 seq_id	ptnr1_label_seq_id        # ndb_stryct_asym_poly_seq -> struct_conn (disulf)
+17 seq_id	ptnr2_label_seq_id
+18 seq_id	beg_label_seq_id          # ndb_stryct_asym_poly_seq -> struct_conf TURN_P
+19 seq_id	end_label_seq_id
+20 seq_id	beg_label_seq_id          # ndb_stryct_asym_poly_seq -> struct_conf HELX_P
+21 seq_id	end_label_seq_id
+22 seq_id	beg_label_seq_id          # ndb_stryct_asym_poly_seq -> struct_conf HELX_N
+23 seq_id	end_label_seq_id
+24 label_seq_id  label_seq_id
+24 label_asym_id label_asym_id
+25 label_seq_id  label_seq_id
+25 label_asym_id label_asym_id
+
+loop_
+_pdb_to_cif_match_key.id
+_pdb_to_cif_match_key.from_key
+_pdb_to_cif_match_key.from_constant
+_pdb_to_cif_match_key.to_key
+_pdb_to_cif_match_key.to_constant
+1  id    	?	label_asym_id           ?	# ndb_stryct_asym_poly_seq -> atom_site
+1  ndb_num	?	ndb_label_seq_num       ?
+2  id    	?	beg_label_asym_id	?	# ndb_stryct_asym_poly_seq -> struct_sheet_range
+2  mon_id    	?	beg_label_comp_id	?	
+2  ndb_num	?	beg_label_seq_id	?	
+3  id    	?	end_label_asym_id	?	
+3  mon_id    	?	end_label_comp_id	?	
+3  ndb_num	?	end_label_seq_id	?	
+4  id    	?	ndb_range_1_beg_label_asym_id  ?	# ndb_stryct_asym_poly_seq -> struct_sheet_hbond
+4  mon_id    	?	ndb_range_1_beg_label_comp_id  ?	
+4  ndb_num	?	range_1_beg_label_seq_id	?	
+5  id    	?	ndb_range_1_end_label_asym_id  ?	
+5  mon_id    	?	ndb_range_1_end_label_comp_id  ?	
+5  ndb_num	?	range_1_end_label_seq_id	?	
+6  id	 	?	ptnr1_label_asym_id	?	  # ndb_stryct_asym_poly_seq -> struct_conn (hydrog)	
+6  mon_id	?	ptnr1_label_comp_id	?	  
+6  ndb_num	?	ptnr1_label_seq_id	?
+6  ?		?	conn_type_id		hydrog
+7  id		?	ptnr2_label_asym_id	?
+7  mon_id	?	ptnr2_label_comp_id	?
+7  ndb_num	?	ptnr2_label_seq_id	?
+7  ?		?	conn_type_id		hydrog
+8  id	 	?	ptnr1_label_asym_id	?	  # ndb_stryct_asym_poly_seq -> struct_conn (mismat)
+8  mon_id	?	ptnr1_label_comp_id	?	  
+8  ndb_num	?	ptnr1_label_seq_id	?
+8  ?		?	conn_type_id		mismat
+9  id		?	ptnr2_label_asym_id	?
+9  mon_id	?	ptnr2_label_comp_id	?
+9  ndb_num	?	ptnr2_label_seq_id	?
+9  ?		?	conn_type_id		mismat
+10 id	 	?	ptnr1_label_asym_id	?	  # ndb_stryct_asym_poly_seq -> struct_conn (covale_base)
+10 mon_id	?	ptnr1_label_comp_id	?	  
+10 ndb_num	?	ptnr1_label_seq_id	?
+10 ?		?	conn_type_id		covale_base
+11 id		?	ptnr2_label_asym_id	?
+11 mon_id	?	ptnr2_label_comp_id	?
+11 ndb_num	?	ptnr2_label_seq_id	?
+11 ?		?	conn_type_id		covale_base
+12 id	 	?	ptnr1_label_asym_id	?	  # ndb_stryct_asym_poly_seq -> struct_conn (covale_sugar)
+12 mon_id	?	ptnr1_label_comp_id	?	  
+12 ndb_num	?	ptnr1_label_seq_id	?
+12 ?		?	conn_type_id		covale_sugar
+13 id		?	ptnr2_label_asym_id	?
+13 mon_id	?	ptnr2_label_comp_id	?
+13 ndb_num	?	ptnr2_label_seq_id	?
+13 ?		?	conn_type_id		covale_sugar
+14 id	 	?	ptnr1_label_asym_id	?	  # ndb_stryct_asym_poly_seq -> struct_conn (covale_phosphate)
+14 mon_id	?	ptnr1_label_comp_id	?	  
+14 ndb_num	?	ptnr1_label_seq_id	?
+14 ?		?	conn_type_id		covale_phosphate
+15 id		?	ptnr2_label_asym_id	?
+15 mon_id	?	ptnr2_label_comp_id	?
+15 ndb_num	?	ptnr2_label_seq_id	?
+15 ?		?	conn_type_id		covale_phosphate
+16 id    	?	ptnr1_label_asym_id	?		# ndb_stryct_asym_poly_seq -> struct_conn (disulf)
+16 mon_id    	?	ptnr1_label_comp_id	?
+16 ndb_num	?	ptnr1_label_seq_id	?
+16 ?		?	conn_type_id		disulf
+17 id    	?	ptnr2_label_asym_id	? 		
+17 mon_id    	?	ptnr2_label_comp_id	? 
+17 ndb_num	?	ptnr2_label_seq_id	?
+17 ?		?	conn_type_id		disulf
+18 id    	?	beg_label_asym_id	?		# ndb_poly_seq_scheme -> struct_conf
+18 mon_id    	?	beg_label_comp_id	?
+18 ndb_num	?	beg_label_seq_id	?
+18 ?		?	conf_type_id		TURN_P
+19 id    	?	end_label_asym_id	?	
+19 mon_id    	?	end_label_comp_id	?
+19 ndb_num	?	end_label_seq_id	?
+19 ?		?	conf_type_id		TURN_P
+20 id    	?	beg_label_asym_id	?		# ndb_poly_seq_scheme -> struct_conf
+20 mon_id    	?	beg_label_comp_id	?
+20 ndb_num	?	beg_label_seq_id	?
+20 ?		?	conf_type_id		HELX_P
+21 id    	?	end_label_asym_id	?	
+21 mon_id    	?	end_label_comp_id	?
+21 ndb_num	?	end_label_seq_id	?
+21 ?		?	conf_type_id		HELX_P
+22 id		?	beg_label_asym_id	?		# ndb_poly_seq_scheme -> struct_conf
+22 mon_id	?	beg_label_comp_id	?
+22 ndb_num	?	beg_label_seq_id	?
+22 ?		?	conf_type_id		HELX_N
+23 id		?	end_label_asym_id	?	
+23 mon_id	?	end_label_comp_id	?
+23 ndb_num	?	end_label_seq_id	?
+23 ?		?	conf_type_id		HELX_N
+#24 label_asym_id ?      label_asym_id           ?
+#24 ndb_label_seq_num ?  label_seq_id            ?
+#25 label_asym_id ?      label_asym_id           ?
+#25 ndb_label_seq_num ?  label_seq_id            ?
+

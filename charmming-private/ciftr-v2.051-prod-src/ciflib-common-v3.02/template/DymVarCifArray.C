@@ -1,0 +1,62 @@
+/* ***************************************************************
+   DymVarCifArray.c: Variable-length dynamically allocated
+                  array class methods.
+ 
+       Adapted and modified from rvarray.mth 
+          Practical Data Structures in C++
+          Bryan Flamig, Azarona Software/John Wiley & Sons, Inc
+ * ***************************************************************/
+
+
+
+template<class TYPE> DymVarCifArray<TYPE>::DymVarCifArray(const DymVarCifArray<TYPE> &s)
+: VarCifArray<TYPE>((TYPE *)new char[s.DimLength()*sizeof(TYPE)], 
+// ---------------------------------------------------------------
+// Copy constructor. Note that we first allocate an
+// array of unconstructed bits. Using concatenate
+// here effectively does the element-by-element copy
+// construction for us.
+// ---------------------------------------------------------------
+               s.DimLength())
+{
+  memset(this->data, 0, s.DimLength()* sizeof(TYPE));
+  Concatenate(s);
+}
+
+template<class TYPE>
+DymVarCifArray<TYPE>::DymVarCifArray(const CifArray<TYPE> &s)
+: VarCifArray<TYPE>((TYPE *)new char[s.DimLength()*sizeof(TYPE)], 
+               s.DimLength())
+// ---------------------------------------------------------------
+// Constructor to make a dynamically allocated, variable
+// length copy of another type of array. See comments to
+// copy constructor.
+// ---------------------------------------------------------------
+{
+  memset(this->data,0, s.DimLength()* sizeof(TYPE));
+  Concatenate(s);
+}
+
+template<class TYPE>
+DymVarCifArray<TYPE>::DymVarCifArray(const TYPE *s, unsigned n)
+// ---------------------------------------------------------------
+// Constructor to make a dynamically allocated, variable
+// length copy of some low-level memory. See comments to
+// copy constructor.
+// ---------------------------------------------------------------
+: VarCifArray<TYPE>((TYPE *)new char[n*sizeof(TYPE)], n)
+{
+  memset(this->data, 0, n*sizeof(TYPE));
+  Concatenate(s, n);
+}
+
+template<class TYPE> DymVarCifArray<TYPE>::~DymVarCifArray()
+// ---------------------------------------------------------------
+//  Destructor
+// ---------------------------------------------------------------
+{
+  // Clean up after all constructed members
+  CleanUpElements(0, this->len);
+  // Delete the storage
+  delete[] (char *)(this->data);
+}

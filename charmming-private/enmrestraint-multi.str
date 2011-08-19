@@ -1,0 +1,82 @@
+* Stream file to add ENM restraints for coarse grained for ENM multi-scale
+*
+! by B. Brooks - NIH - October 2006
+! TM: set nearest neighbor distance to 45
+
+! prior to invoking, define atom selection keynames (via DEFIne command):
+! CGATS - CG centers to add restraints to
+! prior to invoking, set value WMAIN values to 1 or 0 for elements of CGATS
+! pairs with both WMAIN values set to 0 will not be added.
+! prior to invoking, set value @RCUT to the max distance for restraints.
+! prior to invoking, set value @KSHORT to the near-neighbor force constant.
+! prior to invoking, set value @KLONG to the long-range force constant.
+! prior to invoking, set value @ADDB to nonzero to add bonds for graphics (destroys rtf file)
+
+! This stream file uses the variables: @i @j @ncgats @fconst @atiname @atjname
+
+define junk sele cgats end
+if ?nsel .lt. 2 then stop ! Error: too few centers
+set ncgats ?nsel
+
+set i 1
+label loopi
+define ati sele cgats .subset. @i end
+set atiname ?SELSEGI ?SELRESI ?SELTYPE
+set atiresi ?SELSEGI ?SELRESI
+set atitype ?SELTYPE
+
+set j @i
+incr j by 1
+set fconst @kshort
+
+define atj sele cgats .subset. @j end
+set atjname ?SELSEGI ?SELRESI ?SELTYPE
+set atjresi ?SELSEGI ?SELRESI
+set atjtype ?SELTYPE
+
+! if distance is more than 4.5 use the long range
+! cutoff (non-adjacent bond -- probably a screwup
+! in the crystallography somewhere).
+quick @atiname @atjname
+if ?dist .ge. @rcut then goto exitj
+if ?dist .gt. 4.5 then set fconst @klong
+
+scalar wmain stat sele ati .or. atj end
+if ?stot .eq. 0 then goto exitj
+
+resd kval @fconst rval ?dist 1.0 @atiname @atjname
+
+if @ADDB .eq. 0 then goto exitj
+read rtf card
+* rtf file
+*
+31 1
+pres cgab
+bond 1@atitype 2@atjtype
+end
+patch cgab @atiresi @atjresi
+
+goto exitj
+
+label loopj
+define ati sele cgats .subset. @j end
+set atjname ?SELSEGI ?SELRESI ?SELTYPE
+
+quick @atiname @atjname
+if ?dist .ge. @rcut then goto exitj
+
+scalar wmain stat sele ati .or. atj end
+if ?stot .eq. 0 then goto exit j
+
+resd kval @fconst rval ?dist 1.0 @atiname @atjname
+
+label exitj
+
+set fconst @klong
+incr j by 1
+if j .le. @ncgats then goto loopj
+
+incr i by 1
+if i .lt. @ncgats then goto loopi
+return 
+
