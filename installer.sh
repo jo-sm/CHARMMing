@@ -271,10 +271,12 @@ function start_schedd {
   if [[ "$answer" == "Y" || "$answer" == "y" || "$answer" = "" || "$answer" = "yes" || "$answer" = "Yes" || "$answer" = "YES" ]];
   then
     sudo sed -i "s/passwd\=\"charmming\"/passwd\=\"$charmming_passwd\"/"    $charmming_path/scheduler/schedd.py
-#   sudo su schedd -c "PYTHONPATH=/var/www/charmming                        $charmming_path/scheduler/schedd.py"
-    echo -e "\n You are almost done, one last thing... Please execute the following commands: \n" 
-    echo -e "  sudo su - schedd" 
-    echo -e "  PYTHONPATH=/var/www/charmming $charmming_path/scheduler/schedd.py\n" 
+    sudo chown -R schedd.www-data /home/schedd/
+    sudo chmod -R g+w /home/schedd/
+    sudo su - schedd -c "PYTHONPATH=/var/www/charmming $charmming_path/scheduler/schedd.py"
+#   echo -e "\n You are almost done, one last thing... Please execute the following commands: \n" 
+#   echo -e "  sudo su - schedd" 
+#   echo -e "  PYTHONPATH=/var/www/charmming $charmming_path/scheduler/schedd.py\n" 
     echo -e "Congratulations! After this you should have a working version of CHARMMing! :-)\n" 
   else
     echo    "-----------------------"
@@ -350,6 +352,9 @@ then
     sudo rm -rf $charmming_path
     sudo rm -rf $charmming_utils
     sudo killall -9 schedd.py 
+    sudo /etc/init.d/torque-mom stop
+    sudo /etc/init.d/torque-scheduler stop
+    sudo /etc/init.d/torque-server stop
     sudo killall -9 pbs_server pbs_sched pbs_mom
     sudo userdel -r schedd 
     sudo cp /etc/apache2/sites-enabled/000-default.bak /etc/apache2/sites-enabled/000-default
