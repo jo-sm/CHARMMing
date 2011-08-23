@@ -33,55 +33,20 @@ function send_select_form(form) {
 
 <center>
 <form method="post" action=".">
-   {% if seg_list %}
-   <h2>Segment Setup files</h2>
-   <table class="sortable resizable" border="2" width="98%">
-   <tr><th>Filename</th><th>Timestamp</th><th>Description</th></tr>
-   {% for file in seg_list %}
-      <tr><td> <a href="javascript:AjaxTabs.OpenTab(getUniqueId('tab_page'),'{{ file.0 }}','/charmming/viewprocessfilescontainer/{{file.0}}',true,'')">{{ file.0 }}</a></td><td> {{ file.1 }} </td><td> {{ file.2 }} </td></tr>
+   {% for header in headers %}
+     <h2>{{ header }} files</h2>
+
+     <table class="sortable resizable" border="2" width="98%">
+       {% for file in files %}
+          {% ifequal file.0 header %}
+             <tr>
+               <td><a href="javascript:AjaxTabs.OpenTab(getUniqueId('tab_page'),'{{ file.1 }}','/charmming/viewprocessfilescontainer/{{file.1}}',true,'')">{{ file.1 }}</a></td>
+               <td>{{ file.2 }}</td>
+             </tr>
+          {% endifequal %}
+       {% endfor %}
+     </table>
    {% endfor %}
-   </table>
-   {% endif %}
-
-   {% if minsolv_list %}
-   <h2>Minimization/solvation files</h2>
-   <table class="sortable resizable" border="2" width="98%">
-   <tr><th>Filename</th><th>Timestamp</th><th>Description</th></tr>
-      {% for file in minsolv_list %}
-         <tr><td> <a href="javascript:AjaxTabs.OpenTab(getUniqueId('tab_page'),'{{ file.0 }}','/charmming/viewprocessfilescontainer/{{file.0}}',true,'')">{{ file.0 }}</a></td><td> {{ file.1 }} </td><td> {{ file.2 }} </td></tr>
-      {% endfor %}
-   </table>
-   {% endif %}
-
-   {% if nmodes_list %}
-   <h2>Normal Mode Analysis files</h2>
-   <table class="sortable resizable" border="2" width="98%">
-   <tr><th>Filename</th><th>Timestamp</th><th>Description</th></tr>
-      {% for file in nmodes_list %}
-         <tr><td> <a href="javascript:AjaxTabs.OpenTab(getUniqueId('tab_page'),'{{ file.0 }}','/charmming/viewprocessfilescontainer/{{file.0}}',true,'')">{{ file.0 }}</a></td><td> {{ file.1 }} </td><td> {{ file.2 }} </td></tr>
-      {% endfor %}
-   </table>
-   {% endif %}
-
-   {% if dyn_list %}
-   <h2>Dynamics files</h2>
-   <table class="sortable resizable" border="2" width="98%">
-   <tr><th>Filename</th><th>Timestamp</th><th>Description</th></tr>
-      {% for file in dyn_list %}
-         <tr><td> <a href="javascript:AjaxTabs.OpenTab(getUniqueId('tab_page'),'{{ file.0 }}','/charmming/viewprocessfilescontainer/{{file.0}}',true,'')">{{ file.0 }}</a></td><td> {{ file.1 }} </td><td> {{ file.2 }} </td></tr>
-      {% endfor %}
-   </table>
-   {% endif %}
-
-   {% if redox_list %}
-   <h2>Oxidation/reduction files</h2>
-   <table class="sortable resizable" border="2" width="98%">
-   <tr><th>Filename</th><th>Timestamp</th><th>Description</th></tr>
-      {% for file in redox_list %}
-         <tr><td> <a href="javascript:AjaxTabs.OpenTab(getUniqueId('tab_page'),'{{ file.0 }}','/charmming/viewprocessfilescontainer/{{file.0}}',true,'')">{{ file.0 }}</a></td><td> {{ file.1 }} </td><td> {{ file.2 }} </td></tr>
-      {% endfor %}
-   </table>
-   {% endif %}
 
 </form>
 </center>

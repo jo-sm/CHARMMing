@@ -128,7 +128,7 @@ def mddisplay(request):
 
         if ws.isBuilt != 't':
             isBuilt = False
-            pTask = ws.build(scriptlist)
+            pTask = ws.build(mdt)
             pTaskID = pTask.id
         else:
             isBuilt = True
@@ -288,10 +288,10 @@ def applymd_tpl(request,mdt,pTaskID):
     pTask = Task.objects.get(id=pTaskID)
     template_dict['input_file'] = mdt.workstruct.identifier + '-' + pTask.action
     template_dict['solvate_implicitly'] = mdt.scpism
-    mdp.inpStruct = pstruct
+    mdt.parent = pTask
 
-    orig_rst = mdt.workstruct.structure.location + "/" + pstruct.basename + "-md.res"
-    new_rst  = mdt.workstruct.structure.location + "/" + pstruct.basename + "-md-old.res"
+    orig_rst = mdt.workstruct.structure.location + "/" + pTask.action + "-md.res"
+    new_rst  = mdt.workstruct.structure.location + "/" + pTask.action + "-md-old.res"
     if postdata.has_key('dorestart'):
         template_dict['restartname'] = new_rst
         template_dict['strtword'] = "restart"
@@ -379,7 +379,7 @@ def applymd_tpl(request,mdt,pTaskID):
     t = get_template('%s/mytemplates/input_scripts/applymd_template.inp' % charmming_config.charmming_root)
 
     # write out the file and let it go...
-    md_filename = workstruct.structure.location + "/" + workstruct.identifier + "-md.inp"
+    md_filename = mdt.workstruct.structure.location + "/" + mdt.workstruct.identifier + "-md.inp"
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     inp_out = open(md_filename,'w')
     inp_out.write(charmm_inp)

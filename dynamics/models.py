@@ -17,7 +17,7 @@
 #  particular purpose.
 from django.db import models
 from django.contrib.auth.models import User
-import django.forms
+import django.forms, os
 import structure
 from structure.models import WorkingStructure, WorkingFile, Task
 
@@ -43,11 +43,14 @@ class dynamicsTask(Task):
     def finish(self):
         """test if the job suceeded, create entries for output"""
 
+        logfp = open('/tmp/finishdyn.txt', 'w')
+
         loc = self.workstruct.structure.location
         bnm = self.workstruct.identifier
 
         # There's always an input file, so create a WorkingFile
         # for it.
+        logfp.write('Create input WF\n')
         wfinp = WorkingFile()
         wfinp.task = self
         wfinp.path = loc + '/' + bnm + '-' + self.action + '.inp'
@@ -58,11 +61,16 @@ class dynamicsTask(Task):
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
+        logfp.write('Check output...\n')
         try:
             os.stat(loc + '/' + bnm + '-' + self.action + '.out')
         except:
+            logfp.write("Flunked on " + loc + '/' + bnm + '-' + self.action + '.out\n')
             self.status = 'F'
+            self.save()
             return
+        logfp.write('Done!\n')
+        logfp.close()
 
         wfout = WorkingFile()
         wfout.task = self
@@ -78,6 +86,7 @@ class dynamicsTask(Task):
             os.stat(loc + '/' + bnm + '-' + self.action + '.crd')
         except:
             self.status = 'F'
+            self.save()
             return
 
         wfcrd = WorkingFile()
@@ -87,7 +96,7 @@ class dynamicsTask(Task):
         wfcrd.type = 'crd'
         wfcrd.description = 'coordinates from ' + self.action.upper()
         wfcrd.save()
-        self.workstruct.addCRDToPickle(wf.path, self.action + '_' + self.workstruct.identifier)
+        self.workstruct.addCRDToPickle(wfcrd.path, self.action + '_' + self.workstruct.identifier)
 
         wfpsf = WorkingFile()
         wfpsf.task = self

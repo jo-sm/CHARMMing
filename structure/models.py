@@ -726,6 +726,8 @@ class WorkingStructure(models.Model):
                     t2 = t
 
                 t2.finish()
+                t2.finished = 'y'
+                t2.save()
     
         self.save()
 

@@ -18,6 +18,7 @@
 # Create your views here.
 from httplib import HTTPConnection
 from django import forms
+from django.db.models import Q
 from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
@@ -190,47 +191,18 @@ def downloadFilesPage(request,mimetype=None):
         filelst.append(('Segment setup', 'build-%s.out' % wseg.name, 'Output file from building segment %s' % wseg.name))
 
 
-    # now get all workingfiles associated with the structure
+    # now get all Tasks associated with the structure and get their workingFiles
     # hack alert: we only store CRDs now but we can extrapolate the PSFs, INPs, and OUTs
     # ToDo: store this info in the workingfile
-    wfiles = structure.models.WorkingFile.objects.filter(structure=ws)
-    for wf in wfiles:
-        basename = wf.canonPath.split('/')[-1]
-        if basename == "%s.crd" % ws.identifier:
-            headers.append('Structure setup')
-            filelst.append(('Structure setup', 'build-%s.inp' % ws.identifier, 'Input file used to build the structure'))
-            filelst.append(('Structure setup', 'build-%s.out' % ws.identifier, 'Output from building the structure'))
-            filelst.append(('Structure setup', basename.replace('.crd','.psf'), 'PSF of the built structure'))
-            filelst.append(('Structure setup', basename.replace('.crd','.pdb'), 'PDB of the built structure'))
-            filelst.append(('Structure setup', basename, 'CRD file of the built structure'))
+    tasks = structure.models.Task.objects.filter(workstruct=ws)
+    for task in tasks:
+        headers.append(task.action)
 
-        elif basename == 'mini-%s.crd' % ws.identifier:
-            headers.append('Minimization')
-            filelst.append(('Minimization', 'minimize-%s.inp' % ws.identifier, 'Input file for minimization'))
-            filelst.append(('Minimization', 'minimize-%s.out' % ws.identifier, 'Output file from minimization'))
-            filelst.append(('Minimization', basename.replace('.crd','.psf'), 'PSF of the built structure'))
-            filelst.append(('Minimization', basename.replace('.crd','.pdb'), 'PDB of the built structure'))
-            filelst.append(('Minimization', basename, 'CRD file of the built structure'))
-
-        elif basename == 'solv-%s.crd' % ws.identifier:
-            headers.append('Solvation')
-            filelst.append(('Solvation', 'solvate-%s.inp' % ws.identifier, 'Input file for solvation'))
-            filelst.append(('Solvation', 'solvate-%s.out' % ws.identifier, 'Output file from solvation'))
-            filelst.append(('Solvation', basename.replace('.crd','.psf'), 'PSF of the solvated structure'))
-            filelst.append(('Solvation', basename.replace('.crd','.pdb'), 'PDB of the solvated structure'))
-            filelst.append(('Solvation', basename, 'CRD file of the solvated structure'))
-
-        elif basename == 'neut-%s.crd' % ws.identifier:
-            headers.append('Neutralization')
-            filelst.append(('Neutralization', 'neutralize-%s.inp' % ws.identifier, 'Input file for neutralization'))
-            filelst.append(('Neutralization', 'neutralize-%s.out' % ws.identifier, 'Output file from neutralization'))
-            filelst.append(('Neutralization', basename.replace('.crd','.psf'), 'PSF of the neutralized structure'))
-            filelst.append(('Neutralization', basename.replace('.crd','.pdb'), 'PDB of the neutralized structure'))
-            filelst.append(('Neutralization', basename, 'CRD file of the neutralized structure'))
-
-    logfp = open('/tmp/dl.txt', 'w')
-    logfp.write('%s\n' % filelst)
-    logfp.close()
+        # get a list of all of the files associated with this task
+        files = structure.models.WorkingFile.objects.filter(task=task)
+        for file in files:
+            basename = file.canonPath.split('/')[-1]
+            filelst.append((task.action, basename, file.description))
 
     return render_to_response('html/downloadfiles.html', {'filelst': filelst, \
                                                           'headers': headers, \
@@ -385,59 +357,30 @@ def viewProcessFiles(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     try:
-        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please select a structure first.")
+    try:
+        ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        return HttpResponse('No structure uploaded')
 
-    seg_list = []
-    minsolv_list = []
-    nmodes_list = []
-    dyn_list = []
-    seg_list = []
-    redox_list = []
+    header_list = []
+    file_list   = []
+    tasks = structure.models.Task.objects.filter(workstruct=ws)
+    for task in tasks:
+        header_list.append(task.action)
 
-    for f in file.getInputList():
-        if f.endswith(".inp"):
-            descr = "Input for"
-        else:
-            descr = "Output of"
+        # get all input and output files associated with the task
+        wfiles = structure.models.WorkingFile.objects.filter( Q(task=task), \
+                   Q(type='inp') | Q(type='out'))
 
-        ftype = ""
-        try:
-           if "-min." in f:
-              descr += " minimization."
-              minsolv_list.append( (f,time.ctime(os.stat(file.location + '/' + f)[stat.ST_ATIME])[4:],descr) )
-           elif "-solv." in f:
-              descr += " solvation."
-              minsolv_list.append( (f,time.ctime(os.stat(file.location + '/' + f)[stat.ST_ATIME])[4:],descr) )
-           elif "-neutralize." in f:
-              descr += " neutralization."
-              minsolv_list.append( (f,time.ctime(os.stat(file.location + '/' + f)[stat.ST_ATIME])[4:],descr) )
-           elif "-nmodes." in f:
-              descr += " normal modes."
-              nmodes_list.append( (f,time.ctime(os.stat(file.location + '/' + f)[stat.ST_ATIME])[4:],descr) )
-           elif "-md." in f:
-              descr += " molecular dynamics (MD)." 
-              dyn_list.append( (f,time.ctime(os.stat(file.location + '/' + f)[stat.ST_ATIME])[4:],descr) )
-           elif "-sgld." in f:
-              descr += " self-guided Langevin dynamics (SGLD)."
-              dyn_list.append( (f,time.ctime(os.stat(file.location + '/' + f)[stat.ST_ATIME])[4:],descr) )
-           elif "-ld." in f:
-              descr += " Langevin dynamics (LD)."
-              dyn_list.append( (f,time.ctime(os.stat(file.location + '/' + f)[stat.ST_ATIME])[4:],descr) )
-           elif "-rmsd." in f:
-              descr += " RMSD calculation."
-              minsolv_list.append( (f,time.ctime(os.stat(file.location + '/' + f)[stat.ST_ATIME])[4:],descr) )
-           elif "redox-" in f:
-              descr += " oxidation/reduction calculations"
-              redox_list.append( (f,time.ctime(os.stat(file.location + '/' + f)[stat.ST_ATIME])[4:],descr) )
-           else:
-              descr += " segment setup and generation."
-              seg_list.append( (f,time.ctime(os.stat(file.location + '/' + f)[stat.ST_ATIME])[4:],descr) )
-        except:
-           pass
+        for wf in wfiles:
+            bn = wf.canonPath.split('/')[-1]
+            ds = wf.description
+            file_list.append((task.action,bn,ds))
 
-    return render_to_response('html/viewprocessfiles.html', {'minsolv_list': minsolv_list,'dyn_list': dyn_list,'seg_list': seg_list,'nmodes_list': nmodes_list,'username': request.user.username, 'redox_list': redox_list})
+    return render_to_response('html/viewprocessfiles.html', {'headers': header_list, 'files': file_list})
 
 def visualize(request,filename):
     """
@@ -464,23 +407,15 @@ def visualize(request,filename):
         filelst.append((wseg.builtCRD.replace('.crd','.pdb'), 'Segment %s' % wseg.name))
 
 
-    # now get all workingfiles associated with the structure
-    wfiles = structure.models.WorkingFile.objects.filter(structure=ws)
-    for wf in wfiles:
-        if wf.canonPath.endswith('.crd'):
-            s = wf.canonPath.split('/')[-1]
-            if s.startswith('mini-'):
-                op = 'minimization'
-            elif s.startswith(ws.identifier):
-                op = 'appending'
-            elif s.startswith('solv-'):
-                op = 'solvation'
-            elif s.startswith('md-'):
-                op = 'molecular dynamics'
-            else:
-                op = 'unknown operation'
+    # now get all tasks associated with the structure
+    tasks = structure.models.Task.objects.filter(workstruct=ws)
+    for task in tasks:
 
-            filelst.append((s.replace('.crd','.pdb'), 'Structure after %s' % op))
+        # check for PDB files associated with the task
+        wfiles = structure.models.WorkingFile.objects.filter(task=task,type='pdb')
+        for wfile in wfiles:
+            s = wfile.canonPath.split('/')[-1]
+            filelst.append((s, wfile.description))
 
     return render_to_response('html/visualize.html', {'filelst': filelst})
 
