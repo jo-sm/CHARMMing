@@ -22,14 +22,14 @@ from django.shortcuts import render_to_response
 from structure.models import Structure 
 from structure.qmmm import makeQChem, makeQChem_tpl, writeQMheader
 from normalmodes.aux import getNormalModeMovieNum
-from normalmodes.models import nmodeParams
+from normalmodes.models import nmodeTask
 from account.views import isUserTrustworthy
 from structure.aux import checkNterPatch
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
-from structure.models import Structure, WorkingStructure, WorkingFile
+from structure.models import Structure, WorkingStructure, WorkingFile, Task
 import input, output
 import re, copy, os, shutil
 import lessonaux, charmming_config
@@ -43,14 +43,12 @@ def normalmodesformdisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     input.checkRequestData(request)
-
-    #chooses the file based on if it is selected or not
     try:
         struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
     try:
-       ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+        ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
@@ -82,22 +80,35 @@ def normalmodesformdisplay(request):
         nmodefp.close()
 
     if request.POST.has_key('num_normalmodes'):
-        scriptlist = []
+        # if there is a previous solvation structure, deactivate it
+        try:
+            oldtsk = nmodeTask.objects.filter(workstruct=ws,active='y')[0]
+            oldtsk.active = 'n'
+            oldtsk.save()
+        except:
+            pass
+
+        nt = nmodeTask()
+        nt.setup(ws)
+        nt.active = 'y'
+        nt.action = 'nmode'
+        nt.save()
+
         if ws.isBuilt != 't':
             isBuilt = False
-            pstructID = pstruct.id
+            pTask = ws.build(st)
+            pTaskID = pTask.id
         else:
             isBuilt = True
-            pstructID = int(request.POST['pstruct'])
+            pTaskID = int(request.POST['ptask'])
 
-        return applynma_tpl(request,ws,pstructID,scriptlist)
+        return applynma_tpl(request,ws,pTaskID,nt)
     else:
-        # get all workingFiles associated with this struct
-        wfs = WorkingFile.objects.filter(structure=ws,type='crd')
-        return render_to_response('html/normalmodesform.html', {'ws_identifier': ws.identifier,'workfiles': wfs, 'nmode_lines': nmode_lines})
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+        return render_to_response('html/normalmodesform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'nmode_lines': nmode_lines})
 
 
-def applynma_tpl(request,workstruct,pstructID,scriptlist):
+def applynma_tpl(request,workstruct,pTaskID,nmTask):
     """
     Generates the Normal modes script and runs it
     """
@@ -115,44 +126,31 @@ def applynma_tpl(request,workstruct,pstructID,scriptlist):
         pass
         
     pfp.close()
-    pstruct = WorkingFile.objects.get(id=pstructID)
 
-    try:
-        oldparam = nmodeParams.objects.filter(structure=workstruct, selected='y')[0]
-        oldparam.selected = 'n'
-        oldparam.save()
-    except:
-        pass
-
-    nmm = nmodeParams()
-    nmm.structure = workstruct
-    nmm.statusHTML = "<font color=yellow>Processing</font>"
-    pstruct = WorkingFile.objects.get(id=pstructID)
-    nmm.inpStruct = pstruct
+    # get the parent task
+    pTask = Task.objects.get(id=pTaskID)
 
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['input_file'] = pstruct.basename
+    template_dict['input_file'] = workstruct.identifier + '-' + pTask.action
     template_dict['topology_list'] = workstruct.getTopologyList()
     template_dict['parameter_list'] = workstruct.getParameterList()
     template_dict['nma'] = request.POST['nma']
     # save model
-    nmm.inpStruct = pstruct
     if template_dict['nma'] == 'useenm':
-        nmm.type = 2
-        nmm.rcut = float(request.POST['rcut'])
-        nmm.kshort = float(request.POST['kshort'])
-        nmm.klong = float(request.POST['klong'])
-        template_dict['rcut'] = nmm.rcut
-        template_dict['kshort'] = nmm.kshort
-        template_dict['klong'] = nmm.klong
+        nmTask.type = 2
+        nmTask.rcut = float(request.POST['rcut'])
+        nmTask.kshort = float(request.POST['kshort'])
+        nmTask.klong = float(request.POST['klong'])
+        template_dict['rcut'] = nmTask.rcut
+        template_dict['kshort'] = nmTask.kshort
+        template_dict['klong'] = nmTask.klong
     else:
-        nmm.type = 1
-    nmm.nmodes = int(request.POST['num_normalmodes'])
-    nmm.selected = 'y'
+        nmTask.type = 1
+    nmTask.nmodes = int(request.POST['num_normalmodes'])
 
     template_dict['identifier'] = workstruct.identifier
-    template_dict['numnormalmodes'] = nmm.nmodes
+    template_dict['numnormalmodes'] = nmTask.nmodes
     template_dict['useqmmm'] = request.POST.has_key("useqmmm")
     if template_dict['nma'] == 'usevibran' and request.POST.has_key("useqmmm"):
         # we will deal with the QM/MM stuff later
@@ -184,29 +182,19 @@ def applynma_tpl(request,workstruct,pstructID,scriptlist):
     t = get_template('%s/mytemplates/input_scripts/applynma_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))    
 
-    nmm.save()
-    user_id = workstruct.structure.owner.id
-    os.chdir(workstruct.structure.location)
     nma_filename = "nmodes-" + workstruct.identifier + ".inp"
+    nmTask.scripts += ',%s' % nma_filename
+    nmTask.save()
+
     inp_out = open(workstruct.structure.location + '/' + nma_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
 
     #change the status of the file regarding minimization 
-    scriptlist.append(workstruct.structure.location + '/' + nma_filename)
     if request.POST.has_key("gen_trj") and request.POST.has_key("num_trjs"):
         return makeNmaMovie_tpl(workstruct,request.POST,pstructID,scriptlist,int(request.POST['num_trjs']),template_dict['nma'],nmm)
     else:
-        si = schedInterface()
-        newJobID = si.submitJob(user_id,workstruct.structure.location,scriptlist)
-
-        # lessons are, sadly, still broken
-        #if file.lesson_type:
-        #    lessonaux.doLessonAct(file,postdata,"onNMASubmit")
-
-        workstruct.nma_jobID = newJobID
-        sstring = si.checkStatus(newJobID)
-        nmm.statusHTML = statsDisplay(sstring,newJobID)
+        nmTask.start()
         
     workstruct.save()
     return HttpResponse("Done.")
@@ -257,7 +245,7 @@ def makeNmaMovie_tpl(workstruct,postdata,pstructID,scriptlist,num_trjs,typeoptio
 #jmol understands
 #type is nma
 def combineNmaPDBsForMovie(file):
-    nmm = nmodeParams.objects.filter(pdb = file, selected = 'y')[0]
+    nmm = nmodeTask.objects.filter(pdb=file, selected = 'y')[0]
     ter = re.compile('TER')
     remark = re.compile('REMARK')
     #movie_handle will be the final movie created

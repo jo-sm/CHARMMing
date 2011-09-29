@@ -63,7 +63,7 @@ from lessons.models import LessonProblem
 from solvation.models import solvationParams
 from minimization.models import minimizeTask
 from dynamics.models import mdTask, ldTask, sgldTask
-from normalmodes.models import nmodeParams
+from normalmodes.models import nmodeTask
 import os
 import pdbinfo
 import lessonaux

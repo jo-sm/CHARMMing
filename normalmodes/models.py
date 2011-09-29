@@ -19,17 +19,12 @@
 from django.db import models
 from django.contrib.auth.models import User
 from scheduler.schedInterface import schedInterface
-from structure.models import WorkingFile
-import structure
-import django.forms
+from structure.models import WorkingFile, Task
 
-class nmodeParams(models.Model):
-    structure = models.ForeignKey(structure.models.WorkingStructure,null=True)
-    inpStruct = models.ForeignKey(WorkingFile,null=True)
-
-    statusHTML = models.CharField(max_length=250)
+class nmodeTask(Task):
     # type 1 = all atom, 2 - ENM
     type = models.PositiveIntegerField(default=0)
+
     nmodes = models.PositiveIntegerField(default=0)
     rcut = models.FloatField(default=0.0)
     kshort = models.FloatField(default=0.0)
@@ -39,4 +34,3 @@ class nmodeParams(models.Model):
     make_nma_movie = models.BooleanField(default=False)
     nma_movie_req = models.BooleanField(default=False)
 
-# Create your models here.

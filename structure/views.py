@@ -29,7 +29,7 @@ from account.models import *
 from dynamics.views import combinePDBsForMovie
 from normalmodes.views import combineNmaPDBsForMovie
 from normalmodes.aux import getNormalModeMovieNum
-from normalmodes.models import nmodeParams
+from normalmodes.models import nmodeTask
 from apbs.models import redoxParams
 from structure.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
 from django.contrib.auth.models import User

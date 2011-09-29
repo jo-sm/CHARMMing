@@ -1,4 +1,4 @@
 from django.contrib import admin
-from normalmodes.models import nmodeParams
+from normalmodes.models import nmodeTask
 
-admin.site.register(nmodeParams)
+admin.site.register(nmodeTask)
