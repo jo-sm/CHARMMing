@@ -34,3 +34,44 @@ class nmodeTask(Task):
     make_nma_movie = models.BooleanField(default=False)
     nma_movie_req = models.BooleanField(default=False)
 
+    def finish(self):
+        """test if the job suceeded, create entries for output"""
+
+        loc = self.workstruct.structure.location
+        bnm = self.workstruct.identifier
+
+        # There's always an input file, so create a WorkingFile
+        # for it.
+        wfinp = WorkingFile()
+        wfinp.task = self
+        wfinp.path = loc + '/' + bnm + '-nmodes.inp'
+        wfinp.canonPath = wfinp.path
+        wfinp.type = 'inp'
+        wfinp.description = 'normal mode input script'
+        wfinp.save()
+
+
+        # Check if an output file was created and if so create
+        # a WorkingFile for it.
+        try:
+            os.stat(loc + '/' + bnm + '-nmodes.out')
+        except:
+            self.status = 'F'
+            return
+
+        wfout = WorkingFile()
+        wfout.task = self
+        wfout.path = loc + '/' + bnm + '-nmodes.out'
+        wfout.canonPath = wfout.path
+        wfout.type = 'out'
+        wfout.description = 'normal modes script output'
+        wfout.save()
+
+        if self.status == 'F':
+            return
+
+        # if there is a movie, get the trajectory
+        if self.make_nma_movie:
+            pass
+
+        self.status = 'C'

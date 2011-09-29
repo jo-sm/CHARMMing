@@ -722,6 +722,10 @@ class WorkingStructure(models.Model):
                     t2 = dynamics.models.ldTask.objects.get(id=t.id)
                 elif t.action == 'sgld':
                     t2 = dynamics.models.sgldTask.objects.get(id=t.id)
+                elif t.action == 'energy':
+                    t2 = energyTask.objects.get(id=t.id)
+                elif t.action == 'nmode':
+                    t2 = normalmodes.models.nmodeTask.objects.get(id=t.id)
                 else:
                     t2 = t
 
@@ -894,15 +898,49 @@ class ParseException(Exception):
     def __init__(self,reason):
         self.reason = reason
 
-class energyParams(models.Model):
-    struct = models.ForeignKey(WorkingStructure,null=True)
-    inpStruct = models.ForeignKey(WorkingFile,null=True)
-
+class energyTask(Task):
     finale = models.FloatField(null=True)
-    selected = models.CharField(max_length=1)
     usepbc = models.CharField(max_length=1)
     useqmmm = models.CharField(max_length=1)
     qmmmsel = models.CharField(max_length=250)
+
+    def finish(self):
+        """test if the job suceeded, create entries for output"""
+
+        loc = self.workstruct.structure.location
+        bnm = self.workstruct.identifier
+
+        # There's always an input file, so create a WorkingFile
+        # for it.
+        wfinp = WorkingFile()
+        wfinp.task = self
+        wfinp.path = loc + '/' + bnm + '-ener.inp'
+        wfinp.canonPath = wfinp.path
+        wfinp.type = 'inp'
+        wfinp.description = 'energy input script'
+        wfinp.save()
+
+
+        # Check if an output file was created and if so create
+        # a WorkingFile for it.
+        try:
+            os.stat(loc + '/' + bnm + '-ener.out')
+        except:
+            self.status = 'F'
+            return
+
+        wfout = WorkingFile()
+        wfout.task = self
+        wfout.path = loc + '/' + bnm + '-ener.out'
+        wfout.canonPath = wfout.path
+        wfout.type = 'out'
+        wfout.description = 'energy output'
+        wfout.save()
+
+        if self.status == 'F':
+            return
+
+        self.status = 'C'
 
 class goModel(models.Model):
     selected = models.CharField(max_length=1)

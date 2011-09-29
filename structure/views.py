@@ -32,6 +32,7 @@ from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeTask
 from apbs.models import redoxParams
 from structure.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
+from structure.models import Task, energyTask
 from django.contrib.auth.models import User
 from django.core.mail import mail_admins
 from django.template import *
@@ -536,6 +537,7 @@ def energyform(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     input.checkRequestData(request)
+
     #chooses the file based on if it is selected or not
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
@@ -557,46 +559,47 @@ def energyform(request):
         pass
 
     if request.POST.has_key('form_submit'):
-        scriptlist = []
-        if ws.isBuilt != 't':
-            isBuilt = False
-            pstruct = ws.build(scriptlist)
-            pstructID = pstruct.id
-        else:
-            isBuilt = True
-            pstructID = int(request.POST['pstruct'])
+        try:
+            oldtsk = energyTask.objects.filter(workstruct=workstruct,active='y')[0]
+            oldtsk.active = 'n'
+            oldtsk.save()
+        except:
+            pass
 
-        return calcEnergy_tpl(request,ws,pstructID,scriptlist)
+        et = energyTask()
+        et.setup(ws)
+        et.active = 'y'
+        et.action = 'energy'
+        et.save()
+
+        if ws.isBuilt != 't':
+            pTask = ws.build(et)
+            pTaskID = pTask.id
+        else:
+            pTaskID = int(request.POST['ptask'])
+
+        return calcEnergy_tpl(request,ws,pTaskID,et)
 
     else:
         # get all workingFiles associated with this struct
-        wfs = structure.models.WorkingFile.objects.filter(structure=ws,type='crd')
-        return render_to_response('html/energyform.html', {'ws_identifier': ws.identifier,'workfiles': wfs, 'energy_lines': energy_lines})
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+        return render_to_response('html/energyform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'energy_lines': energy_lines})
 
 
-def calcEnergy_tpl(request,workstruct,pstructID,scriptlist): 
+def calcEnergy_tpl(request,workstruct,pTaskID,eobj): 
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
-    pstruct = structure.models.WorkingFile.objects.filter(id=pstructID)[0]
+    pTask = Task.objects.get(id=pTaskID)
 
     postdata = request.POST
     # template dictionary passes the needed variables to the template
     template_dict = {}
     template_dict['topology_list'] = workstruct.getTopologyList()
     template_dict['parameter_list'] = workstruct.getParameterList()
-    template_dict['output_name'] = 'ener-' + workstruct.identifier
-    template_dict['input_file'] = pstruct.basename
+    template_dict['output_name'] = workstruct.identifier + '-ener'
+    template_dict['input_file'] = workstruct.identifier + '-' + pTask.action
 
-    try:
-        oldeo = structure.models.energyParams.objects.filter(struct='workstruct', selected='y')[0]
-        oldeo.selected = 'n'
-        oldeo.save()
-    except:
-        pass
-    eobj = structure.models.energyParams()
-    eobj.pdb = file
-    eobj.selected = 'y'
     eobj.finale = 0.0
 
     #If the user wants to solvate implicitly the scpism line is needed
@@ -646,7 +649,6 @@ def calcEnergy_tpl(request,workstruct,pstructID,scriptlist):
             return HttpResponse('Cannot do PBC on a sphere')
 
     template_dict['dopbc'] = dopbc
-    eobj.save()
 
     # lessons are still borked
     #if file.lesson_type:
@@ -655,27 +657,23 @@ def calcEnergy_tpl(request,workstruct,pstructID,scriptlist):
     t = get_template('%s/mytemplates/input_scripts/calcEnergy_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
-    user_id = workstruct.structure.owner.id
-    os.chdir(workstruct.structure.location)
-    energy_input = workstruct.structure.location + "/energy-" + workstruct.identifier + ".inp"
-    scriptlist.append(energy_input)
-    energy_output = "energy-" + workstruct.identifier + ".out"
+    energy_input = workstruct.structure.location + "/" + workstruct.identifier + "-ener.inp"
+    energy_output = workstruct.identifier + "-ener.out"
     inp_out = open(energy_input,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
+    eobj.scripts += ',%s' % energy_input    
+    eobj.save()
 
     # go ahead and submit
-    si = schedInterface()
-    enerjobID = si.submitJob(user_id,workstruct.structure.location,scriptlist)
-    sstring = si.checkStatus(enerjobID)
+    eobj.start()
 
     # loop until the energy calculation is finished
     while True:
-        sstring = si.checkStatus(enerjobID)
-        ss2 = statsDisplay(sstring,enerjobID)
-        if "Done" in ss2:
+        sstring = eobj.query()
+        if "complete" in sstring:
             break
-        if "Failed" in ss2:
+        if "failed" in sstring:
             return HttpResponse('Energy calculation failed. Please check output from appending the structure.')
 
     workstruct.save()
@@ -687,6 +685,10 @@ def calcEnergy_tpl(request,workstruct,pstructID,scriptlist):
 
 def parseEnergy(workstruct,output_filename,enerobj=None):
     time.sleep(2)
+
+    logfp = open('/tmp/parse_ene', 'w')
+    logfp.write('in parse\n')
+    logfp.close()
 
     outfp = open(workstruct.structure.location + '/' + output_filename,'r')
     ener = re.compile('ENER ENR')
