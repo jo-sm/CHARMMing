@@ -54,7 +54,7 @@ def normalmodesformdisplay(request):
 
     # check to see if we have prior normal modes to display to the user
     nmode_lines = []
-    nmode_fname = ws.structure.location + '/nmodes-' + ws.identifier + '.out'
+    nmode_fname = ws.structure.location + '/' + ws.identifier + '-nmodes.out'
     try:
         os.stat(nmode_fname)
     except:
@@ -177,12 +177,12 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
         template_dict['ntrjs'] = str(ntrjs) 
         template_dict['headstr'] = headstr
     else:
-        nmm.nma_movie_req = False
+        nmTask.nma_movie_req = False
 
     t = get_template('%s/mytemplates/input_scripts/applynma_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))    
 
-    nma_filename = "nmodes-" + workstruct.identifier + ".inp"
+    nma_filename = workstruct.identifier + "-nmodes.inp"
     nmTask.scripts += ',%s' % nma_filename
     nmTask.save()
 

@@ -471,7 +471,7 @@ def viewstatus(request):
     statuses = []
     if workingStruct:
         workingStruct.updateActionStatus()
-        t = structure.models.Task.objects.filter(workstruct=workingStruct)
+        t = structure.models.Task.objects.filter(workstruct=workingStruct,active='y')
         for task in t:
             statuses.append((task.action,task.get_status_display()))
 
@@ -552,7 +552,7 @@ def energyform(request):
 
     energy_lines = []
     try:
-        energyfp = open('energy-%s.txt' % ws.identifier,'r')
+        energyfp = open('%s-energy.txt' % ws.identifier,'r')
         energy_lines = energyfp.readlines()
         energyfp.close()
     except:
@@ -715,7 +715,7 @@ def parseEnergy(workstruct,output_filename,enerobj=None):
         if(dash.search(line) and initiate > 0):
             dash_occurance += 1
     outfp.close()
-    writefp = open(workstruct.structure.location + '/energy-' + workstruct.identifier + '.txt','w')
+    writefp = open(workstruct.structure.location + '/' + workstruct.identifier + '-energy.txt','w')
     writefp.write(energy_lines)
     writefp.close()
 

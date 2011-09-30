@@ -20,6 +20,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from scheduler.schedInterface import schedInterface
 from structure.models import WorkingFile, Task
+import os
 
 class nmodeTask(Task):
     # type 1 = all atom, 2 - ENM
@@ -53,11 +54,16 @@ class nmodeTask(Task):
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
+        logfp = open('/tmp/nmdone.txt', 'w')
+        logfp.write('looking for %s\n' % (loc + '/' + bnm + '-nmodes.out'))
         try:
             os.stat(loc + '/' + bnm + '-nmodes.out')
+            logfp.write('OK!\n')
         except:
+            logfp.write('Bad\n')
             self.status = 'F'
             return
+        logfp.close()
 
         wfout = WorkingFile()
         wfout.task = self
