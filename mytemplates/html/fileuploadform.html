@@ -188,51 +188,6 @@ function leavecheck()
          <option value="lesson4"> Lesson 4 </option>
         </select><br><br>
       {% endifequal %}
-       What kind of model would you like to create?<br />
-       <div style="font-size: small">
-       <input type="radio" name="modeltype" value="allatom" onclick="setCGDisplay('none');" checked> Standard all-atom model<br />
-       <input type="radio" name="modeltype" value="gomodel" onclick="setCGDisplay('go');"> Coarse grained Go-model
-       <input type="radio" name="modeltype" value="blnmodel" onclick="setCGDisplay('bln');"> Two-site BLN Model
-       </div>
-      <hr>
-
-      <div id="cg_params" style="display:none; font-size: small;">
-        <table>
-           <tr>
-              <td><b>Contact types</b><br />
-                  Which contact parameter set should be used.
-              </td>
-              <td>
-                <input type="radio" name="gm_contact_type" value="bt" checked> BT
-                <input type="radio" name="gm_contact_type" value="kgs"> KGS
-                <input type="radio" name="gm_contact_type" value="mj"> MJ
-              </td>
-           </tr>
-           <tr>
-             <td width="50%"><b>Domain mapping</b><br />
-                 Interaction between various domains are scaled by the domainScale parameter below. You can make each segment
-                 a separate domain, or you can provide your own domain. For example, if you give a mapping 10:20:30, then residues
-                 1-10 will be one domain, 11-20 another, and 21-30 yet another.
-             </td>
-             <td width="50%" valign="top">
-                <input type="radio" name="gm_dm_uploadtype" value="auto" checked> Each segment is its own domain <br /> 
-                <input type="radio" name="gm_dm_uploadtype" value="box"> Enter manually {{ form.gm_dm_string }}
-             </td>
-           </tr>
-           <tr>
-             <td colspan="2"><b>User-configurable paramerers:</b></td>
-           </tr>
-           <tr>
-             <td>nScale {{ form.gm_nScale }}</td>
-             <td>domainScale {{ form.gm_domainScale }}</td>
-           </tr>
-           <tr>
-             <td>kBond {{ form.gm_kBond }} </td>
-             <td>kAngle {{ form.gm_kAngle }} </td>  
-           </tr>
-        </table>
-        <hr>
-      </div>
 
       <div id="bln_params" style="display:none; font-size: small;">
         <table>

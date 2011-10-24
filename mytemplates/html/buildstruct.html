@@ -1,5 +1,6 @@
 <head>
   <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+  <script src="/charmming/js/custom.js" type="text/javascript"></script>
   <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
   <link href="/charmming/css/windows2/default.css" rel="stylesheet" type="text/css"/>
   <link href="/charmming/css/windows2/spread.css" rel="stylesheet" type="text/css"/>
@@ -15,7 +16,7 @@
 
   {% if haveworkingstruct %}
     <div id="swap_form">
-      <h3>Choose which built structure you wish to use.</h3>
+      <h2>Change Active Working Structure</h2>
       <form id="swap" method="post" action="/charmming/swapstruct/" onsubmit="return send_form_gener('swap_form','/charmming/swapstruct/',makeUniqueDiv('Edit Structure'));" >
         <select name="choosestruct">
           {% for str in built_list %}
@@ -28,89 +29,167 @@
   {% endif %}
 
   <div id="newbuild">
-     <h3>Configure patching and chemical properties of the structure</h3>
-     <hr />
+     <h2>Build A New Working Structure</h2>
+
      <form id="config_form" method="post" action="/charmming/modstruct/" onsubmit="return send_form_gener('config_form','/charmming/modstruct/',makeUniqueDiv('Edit Structure'));" >
-        <b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" />
-        <hr />
+        <b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" /><br />
         <b>Please choose which model you want this working structure based from:</b>
+
         <select name="basemodel">
            {% for modelname in model_list %}
              <option value="{{ modelname }}">{{ modelname }}</option>
            {% endfor %}
         </select>
-        <hr />
-        <h4>Choose Segments and Patching</h4>
+
+        <h3>What type of structure should be built?</h3>
+        <input type="radio" name="buildtype" value="aa" onclick="setCGDisplay('aa');" checked /> A &quot;traditional&quot; all-atom model using the CHARMM force field.<br />
+        <input type="radio" name="buildtype" value="go" onclick="setCGDisplay('go');" /> A Klimov-Thirumalai style Go model.<br />
+        <input type="radio" name="buildtype" value="bln" onclick="setCGDisplay('bln');" /> A two site BLN type model based on the work of Marrink and Bond & Sansom.
+
+        <div id="aa_display">
+           <h3>Configure patching and chemical properties of the structure</h3>
+           <hr />
+           <h4>Choose Segments and Patching</h4>
  
-        <table border align="center" cellspacing="2" cellpadding="2" width="70%">
-          <tr><td>Selected</td><td>Segment Name</td><td>Segment type</td><td>First patch</td><td>Last patch</td><td>Topology File and Parameter File</td></tr>
-          {% for seg in seg_list %}
+           <table border align="center" cellspacing="2" cellpadding="2" width="70%">
+             <tr><td>Selected</td><td>Segment Name</td><td>Segment type</td><td>First patch</td><td>Last patch</td><td>Topology File and Parameter File</td></tr>
+             {% for seg in seg_list %}
+                <tr>
+                  <td><input type="checkbox" name="select_{{ seg.name }}" value="y" /></td>
+                  <td>{{ seg.name }}</td><td>{{ seg.type }}</td>
+                  <td>
+                    <select name="{{ seg.name }}_firstpatch">
+                    {% for opt in seg.possible_firstpatches %}
+                      <option value="{{ opt }}" {% ifequal opt seg.default_patch_first %}selected{% endifequal %}>{{ opt }}</option>
+                    {% endfor %}
+                    </select>
+                  </td>
+                  <td>
+                    <select name="{{ seg.name }}_lastpatch">
+                    {% for opt in seg.possible_lastpatches %}
+                      <option value="{{ opt }}" {% ifequal opt seg.default_patch_last %}selected{% endifequal %}>{{ opt }}</option>
+                    {% endfor %}
+                    </select>
+                  </td>
+                  <td>
+                    {% ifequal seg.type "bad" %}
+                      Choose:
+                      <select name="toppar_{{ seg.name }}">
+                        <option value="upload">Upload my own topology/parameters</option>
+                        <option value="cgenff">Use CGenFF to determine</option>
+                        <option value="genrtf">Use GENRTF to determine</option>
+                        <option value="antechamber">Use Antechamber to determine</option>
+                      </select>
+                      <br />
+                      topology file: <input type="file" name="topology_{{ seg.name }}" /><br />
+                      parameter file: <input type="file" name="parameter_{{ seg.name }}" /><br />
+                    {% else %}
+                      Standard CHARMM27 topology/parameters will be used
+                      <input type="hidden" name="toppar_{{ seg.name }}" value="standard" />
+                    {% endifequal %}
+                  </td>
+                </tr>
+             {% endfor %}
+           </table>
+           <hr />
+
+           {% if proto_list %}
+             <h3>Choose Protonation State</h3>
+             <table align="center" cellspacing="2" cellpadding="2">
+             <tr><td>SEGID</td><td>Residue Number</td><td>Protonation State</td></tr>
+             {% for pproto in proto_list %}
+               <tr><td>{{ pproto.0 }}</td><td>{{ pproto.1 }}</td>
+                   <td>
+                     <select name="protostate_{{ pproto.0 }}_{{ pproto.1 }}" width="5">
+                        {% for alt in pproto.2 %}
+                           <option value="{{ alt.0 }}">{{ alt.0 }} ({{ alt.1 }})</option>
+                        {% endfor %}
+                     </select>
+                   </td>
+               </tr>
+             {% endfor %}
+             </table>
+           {% endif %}
+
+           {% if disulfide_list %}
+             <h3>Choose Disulfide Patching</h3>
+             <table align="center" cellspacing="2" cellpadding="2">
+               <tr><td>SEGID 1</td><td>RESID 1</td><td>SEGID 2</td><td>RESID 2</td><td>Selected</td></tr>
+               {% for disul in disulfide_list %}
+                 <tr><td>{{ disul.0 }}</td><td>{{ disul.2 }}</td><td>{{ disul.3 }}</td><td>{{ disul.5 }}</td><td><input type="checkbox" name="disul_{{ disul.0 }}_{{ disul.2 }}_{{ disul.3 }}_{{ disul.5 }}" checked /></td></tr>
+               {% endfor %}
+             </table>
+           {% endif %}
+
+        </div>
+
+        <div id="go_display" style="display:none;">
+           <table>
+              <tr>
+                 <td><b>Contact types</b><br />
+                    Which contact parameter set should be used.
+                 </td>
+                 <td>
+                   <input type="radio" name="gm_contact_type" value="bt" checked> BT
+                   <input type="radio" name="gm_contact_type" value="kgs"> KGS
+                   <input type="radio" name="gm_contact_type" value="mj"> MJ
+                 </td>
+              </tr>
+              <tr>
+                <td width="50%"><b>Domain mapping</b><br />
+                   Interaction between various domains are scaled by the domainScale parameter below. You can make each segment
+                   a separate domain, or you can provide your own domain. For example, if you give a mapping 10:20:30, then residues
+                   1-10 will be one domain, 11-20 another, and 21-30 yet another.
+                </td>
+                <td width="50%" valign="top">
+                   <input type="radio" name="gm_dm_uploadtype" value="auto" checked> Each segment is its own domain <br />
+                   <input type="radio" name="gm_dm_uploadtype" value="box"> Enter manually {{ form.gm_dm_string }}
+                 </td>
+              </tr>
+              <tr>
+                <td colspan="2"><b>User-configurable paramerers:</b></td>
+              </tr>
+              <tr>
+                <td>nScale <input type="text" name="gm_nscale" value="1.00" /></td>
+                <td>domainScale <input type="text" name="gm_domainscale" value="1.00" /></td>
+              </tr>
+              <tr>
+                <td>kBond <input type="text" name="gm_kbond" value="50.0" /> </td>
+                <td>kAngle <input type="text" name="gm_kangle" value="30.0" /> </td>
+              </tr>
+           </table>
+        </div>
+
+        <div id="bln_display" style="display:none;">
+           <table>
              <tr>
-               <td><input type="checkbox" name="select_{{ seg.name }}" value="y" /></td>
-               <td>{{ seg.name }}</td><td>{{ seg.type }}</td>
-               <td>
-                 <select name="{{ seg.name }}_firstpatch">
-                 {% for opt in seg.possible_firstpatches %}
-                   <option value="{{ opt }}" {% ifequal opt seg.default_patch_first %}selected{% endifequal %}>{{ opt }}</option>
-                 {% endfor %}
-                 </select>
-               </td>
-               <td>
-                 <select name="{{ seg.name }}_lastpatch">
-                 {% for opt in seg.possible_lastpatches %}
-                   <option value="{{ opt }}" {% ifequal opt seg.default_patch_last %}selected{% endifequal %}>{{ opt }}</option>
-                 {% endfor %}
-                 </select>
-               </td>
-               <td>
-                 {% ifequal seg.type "bad" %}
-                   Choose:
-                   <select name="toppar_{{ seg.name }}">
-                     <option value="upload">Upload my own topology/parameters</option>
-                     <option value="cgenff">Use CGenFF to determine</option>
-                     <option value="genrtf">Use GENRTF to determine</option>
-                     <option value="antechamber">Use Antechamber to determine</option>
-                   </select>
-                   <br />
-                   topology file: <input type="file" name="topology_{{ seg.name }}" /><br />
-                   parameter file: <input type="file" name="parameter_{{ seg.name }}" /><br />
-                 {% else %}
-                   Standard CHARMM27 topology/parameters will be used
-                   <input type="hidden" name="toppar_{{ seg.name }}" value="standard" />
-                 {% endifequal %}
-               </td>
+                <td widtth="50%" valign="top"><b>Domain Mapping</b><br />
+                   Interaction between various domains are scaled by the domainScale parameter below. You can make each segment
+                   a separate domain, or you can provide your own domain. For example, if you give a mapping 10:20:30, then residues
+                   1-10 will be one domain, 11-20 another, and 21-30 yet another.
+                </td>
+                <td width="50%" valign="top">
+                   <input type="radio" name="bln_dm_uploadtype" value="auto" checked> Each segment is its own domain <br />
+                   <input type="radio" name="bln_dm_uploadtype" value="box"> Enter manually {{ form.bln_dm_string }}
+                </td>
              </tr>
-          {% endfor %}
-        </table>
-        <hr />
-
-        {% if proto_list %}
-          <h3>Choose Protonation State</h3>
-          <table align="center" cellspacing="2" cellpadding="2">
-          <tr><td>SEGID</td><td>Residue Number</td><td>Protonation State</td></tr>
-          {% for pproto in proto_list %}
-            <tr><td>{{ pproto.0 }}</td><td>{{ pproto.1 }}</td>
-               <td>
-                 <select name="protostate_{{ pproto.0 }}_{{ pproto.1 }}" width="5">
-                   {% for alt in pproto.2 %}
-                     <option value="{{ alt.0 }}">{{ alt.0 }} ({{ alt.1 }})</option>
-                   {% endfor %}
-                 </select>
-               </td>
-            </tr>
-          {% endfor %}
-          </table>
-        {% endif %}
-
-        {% if disulfide_list %}
-          <h3>Choose Disulfide Patching</h3>
-          <table align="center" cellspacing="2" cellpadding="2">
-            <tr><td>SEGID 1</td><td>RESID 1</td><td>SEGID 2</td><td>RESID 2</td><td>Selected</td></tr>
-            {% for disul in disulfide_list %}
-              <tr><td>{{ disul.0 }}</td><td>{{ disul.2 }}</td><td>{{ disul.3 }}</td><td>{{ disul.5 }}</td><td><input type="checkbox" name="disul_{{ disul.0 }}_{{ disul.2 }}_{{ disul.3 }}_{{ disul.5 }}" checked /></td></tr>
-            {% endfor %}
-          </table>
-        {% endif %}
+             <tr>
+                <td width="50%">domainScale <input type="text" name="bln_domainscale" value="1.00" /></td>
+             </tr>
+             <tr>
+                <td width="33%">kBondHelix <input type="text" name="bln_kbondhelix" value="3.50" /></td>
+                <td width="33%">kAngleHelix <input type="text" name="bln_kanglehelix" value="8.37" /></td>
+             </tr>
+             <tr>
+                <td width="33%">kBondSheet <input type="text" name="bln_kbondsheet" value="3.50" /></td>
+                <td width="33%">kAngleSheet <input type="text" name="bln_kanglesheet" value="8.37" /></td>
+             </tr>
+             <tr>
+                <td width="33%">kBondCoil <input type="text" name="bln_kbondcoil" value="2.50" /></td>
+                <td width="33%">kAngleCoil <input type="text" name="bln_kanglehelix" value="5.98" /></td>
+             </tr>
+           </table>
+        </div>
 
 <!--
         <h3>Apply Restraints</h3>

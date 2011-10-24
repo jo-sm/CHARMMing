@@ -50,23 +50,33 @@ function displayFields(div_id)
 
 function setCGDisplay(id)
 {
-  if(id=='none') {
-    if(isVisible('cg_params')) {
-      setVisible('cg_params','none');
+  if(id=='aa') {
+    if(isVisible('go_display')) {
+      setVisible('go_display','none');
     }
-    if(isVisible('bln_params')) {
-      setVisible('bln_params','none');
+    if(isVisible('bln_display')) {
+      setVisible('bln_display','none');
     }
+    setVisible('aa_display','block');
+
   } else if(id=='go') {
-    if(isVisible('bln_params')) {
-      setVisible('bln_params','none');
+
+    if(isVisible('aa_display')) {
+      setVisible('aa_display','none');
     }
-    setVisible("cg_params","block");
+    if(isVisible('bln_display')) {
+      setVisible('bln_display','none');
+    }
+    setVisible("go_display","block");
+
   } else if(id=='bln') {
-    if(isVisible('cg_params')) {
-      setVisible('cg_params','none');
+    if(isVisible('aa_display')) {
+      setVisible('aa_display','none');
     }
-    setVisible("bln_params","block");
+    if(isVisible('go_display')) {
+      setVisible('go_display','none');
+    }
+    setVisible("bln_display","block");
   }
 }
 
