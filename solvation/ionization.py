@@ -57,7 +57,7 @@ def neutralize_tpl(solvTask,postdata):
     template_dict = {}
     template_dict['topology_list'] = workingstruct.getTopologyList()
     template_dict['parameter_list'] = workingstruct.getParameterList()
-    template_dict['infile'] = 'solv-' + workingstruct.identifier
+    template_dict['infile'] = workingstruct.identifier + '-solvation'
     template_dict['cation'] = cation
     template_dict['concentration'] = concentration
     template_dict['ntrials'] = ntrials
@@ -67,7 +67,7 @@ def neutralize_tpl(solvTask,postdata):
     t = get_template('%s/mytemplates/input_scripts/neutralize_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
-    neut_filename = workingstruct.structure.location + "/neutralize-" + workingstruct.identifier + ".inp"
+    neut_filename = workingstruct.structure.location + "/" + workingstruct.identifier + "-neutralize.inp"
     inp_out = open(neut_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()

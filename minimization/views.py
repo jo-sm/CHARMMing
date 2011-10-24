@@ -52,7 +52,7 @@ def minimizeformdisplay(request):
     if request.POST.has_key('sdsteps') or request.POST.has_key('abnrsteps'):
         #deals with changing the selected minimize_params
         try:
-            oldtsk = minimizeTask.objects.filter(workstruct=workstruct,active='y')[0]
+            oldtsk = minimizeTask.objects.filter(ws=workstruct,active='y')[0]
 	    oldtsk.active = 'n'
 	    oldtsk.save()
         except:

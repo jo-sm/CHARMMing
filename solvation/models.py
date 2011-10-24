@@ -19,7 +19,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from scheduler.schedInterface import schedInterface
 from structure.models import WorkingFile, Task
-import math
+import math, os
 
 class solvationTask(Task):
     # these contain the shape of the unit cell and its dimensions
@@ -61,8 +61,10 @@ class solvationTask(Task):
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
+        fn = loc + '/' + bnm + '-solvate.out'
+
         try:
-            os.stat(loc + '/' + bnm + '-solvate.out')
+            os.stat(fn)
         except:
             self.status = 'F'
             return
@@ -85,8 +87,9 @@ class solvationTask(Task):
             wfnout.save()
 
         # now check if all the expected psf/crd/pdb files exist
+        fn = loc + '/' + bnm + '-solvation.crd'
         try:
-            os.stat(loc + '/' + bnm + '-solvated.crd')
+            os.stat(fn)
         except:
             self.status = 'F'
             self.save()
@@ -94,17 +97,17 @@ class solvationTask(Task):
 
         wf = WorkingFile()
         wf.task = self
-        wf.path = loc + '/' + bnm + '-solvated.crd'
+        wf.path = loc + '/' + bnm + '-solvation.crd'
         wf.canonPath = wf.path
         wf.type = 'crd'
         wf.description = 'solvated structure'
         wf.pdbkey = 'solv_' + self.workstruct.identifier
         wf.save()
-        self.workstruct.addCRDToPickle(wf.path,'solv_' + self.workstruct.identifier)
+        self.workstruct.addCRDToPickle(wf.path,self.workstruct.identifier + '-solvation.crd')
 
         wfpsf = WorkingFile()
         wfpsf.task = self
-        wfpsf.path = loc + '/' + bnm + '-solvated.psf'
+        wfpsf.path = loc + '/' + bnm + '-solvation.psf'
         wfpsf.canonPath = wfpsf.path
         wfpsf.type = 'psf'
         wfpsf.description = 'solvated structure'
@@ -112,7 +115,7 @@ class solvationTask(Task):
 
         wfpdb = WorkingFile()
         wfpdb.task = self
-        wfpdb.path = loc + '/' + bnm + '-solvated.pdb'
+        wfpdb.path = loc + '/' + bnm + '-solvation.pdb'
         wfpdb.canonPath = wfpdb.path
         wfpdb.type = 'pdb'
         wfpdb.description = 'solvated structure'
@@ -125,6 +128,7 @@ class solvationTask(Task):
                 self.status = 'F'
                 self.save()
                 return
+
 
             wfn = WorkingFile()
             wfn.task = self

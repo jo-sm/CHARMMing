@@ -48,7 +48,7 @@ def solvationformdisplay(request):
     if request.POST.has_key('solvation_structure'):
         # if there is a previous solvation structure, deactivate it
         try:
-            oldtsk = solvationTask.objects.filter(workstruct=workstruct,active='y')[0]
+            oldtsk = solvationTask.objects.filter(workstruct=ws,active='y')[0]
             oldtsk.active = 'n'
             oldtsk.save()
         except:

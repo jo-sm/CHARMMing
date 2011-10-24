@@ -55,7 +55,7 @@ def lddisplay(request):
 
         if request.POST.has_key('usesgld'):
             try:
-                oldtsk = sgldTask.objects.filter(workstruct=workstruct,active='y')[0]
+                oldtsk = sgldTask.objects.filter(workstruct=ws,active='y')[0]
                 oldtsk.active = 'n'
                 oldtsk.save()
             except:
@@ -114,7 +114,7 @@ def mddisplay(request):
 
     if request.POST.has_key('mdtype'):
         try:
-            oldtsk = mdTask.objects.filter(workstruct=workstruct,active='y')[0]
+            oldtsk = mdTask.objects.filter(workstruct=ws,active='y')[0]
             oldtsk.active = 'n'
             oldtsk.save()
         except:
