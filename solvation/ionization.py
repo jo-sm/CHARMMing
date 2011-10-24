@@ -61,7 +61,7 @@ def neutralize_tpl(solvTask,postdata):
     template_dict['cation'] = cation
     template_dict['concentration'] = concentration
     template_dict['ntrials'] = ntrials
-    template_dict['solvation_structure'] = sp.solvation_structure
+    template_dict['solvation_structure'] = solvTask.solvation_structure
     template_dict['fname'] = workingstruct.identifier
 	
     t = get_template('%s/mytemplates/input_scripts/neutralize_template.inp' % charmming_config.charmming_root)
@@ -72,14 +72,22 @@ def neutralize_tpl(solvTask,postdata):
     inp_out.write(charmm_inp)
     inp_out.close()
  
-    if sp.solvation_structure != 'sphere':
+    if solvTask.solvation_structure != 'sphere':
         # set up the crystal file
         t2_dict = {}
-        t2_dict['shape'] = sp.solvation_structure
-        t2_dict['dim_x'] = sp.xtl_x
-        t2_dict['dim_y'] = sp.xtl_y
-        t2_dict['dim_z'] = sp.xtl_z
-        t2_dict['angles'] = "%10.6f %10.6f %10.6f" % (sp.angles[0],sp.angles[1],sp.angles[2])
+        t2_dict['shape'] = solvTask.solvation_structure
+        t2_dict['dim_x'] = solvTask.xtl_x
+        t2_dict['dim_y'] = solvTask.xtl_y
+        t2_dict['dim_z'] = solvTask.xtl_z
+
+        if solvTask.solvation_structure == 'rhdo':
+            t2_dict['angles'] = "60.0 90.0 60.0"
+        elif solvTask.solvation_structure == 'hexa':
+            t2_dict['angles'] = "90.0 90.0 120.0"
+        elif solvTask.solvation_structure in ['cube','tetr']:
+            t2_dict['angles'] = "90.0 90.0 90.0"
+        else:
+            raise AssertionError("Unknown XTL type %s" % solvTask.solvation_structure)
 
         t = get_template('%s/mytemplates/input_scripts/cryst_template.inp' % charmming_config.charmming_root)
         cryst_inp = output.tidyInp(t.render(Context(t2_dict)))
@@ -93,19 +101,14 @@ def neutralize_tpl(solvTask,postdata):
     # copy the addions stream file
     copy("%s/addions.str" % charmming_config.data_home, "%s/%s-addions.str" % (workingstruct.structure.location,workingstruct.identifier))
 
-    # OK, let's let 'er rip...
-    user_id = workingstruct.structure.owner.id
-
-    scriptlist.append(neut_filename)
-    si = schedInterface()
-    newJobID = si.submitJob(user_id,workingstruct.structure.location,scriptlist)    
+    # start job
+    solvTask.scripts += ',%s' % neut_filename
+    solvTask.save()
 
     # lessons are still borked
     #if file.lesson_type:
     #    lessonaux.doLessonAct(file,"onSolvationSubmit",postdata,None)
 
-    workingstruct.solvation_jobID = newJobID
-    sstring = si.checkStatus(newJobID)
-    sp.statusHTML = statsDisplay(sstring,newJobID)
-    sp.save()
+    solvTask.start()
+    solvTask.save()
     workingstruct.save()
