@@ -1,6 +1,5 @@
 <head>
   <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
-  <script src="/charmming/js/custom.js" type="text/javascript"></script>
   <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
   <link href="/charmming/css/windows2/default.css" rel="stylesheet" type="text/css"/>
   <link href="/charmming/css/windows2/spread.css" rel="stylesheet" type="text/css"/>
@@ -42,9 +41,11 @@
         </select>
 
         <h3>What type of structure should be built?</h3>
-        <input type="radio" name="buildtype" value="aa" onclick="setCGDisplay('aa');" checked /> A &quot;traditional&quot; all-atom model using the CHARMM force field.<br />
-        <input type="radio" name="buildtype" value="go" onclick="setCGDisplay('go');" /> A Klimov-Thirumalai style Go model.<br />
-        <input type="radio" name="buildtype" value="bln" onclick="setCGDisplay('bln');" /> A two site BLN type model based on the work of Marrink and Bond & Sansom.
+        <table align="center" width="65%">
+          <tr><td><input type="radio" name="buildtype" value="aa" onclick="setCGDisplay('aa');" checked /></td><td align="left">A &quot;traditional&quot; all-atom model using the CHARMM force field.</td></tr>
+          <tr><td><input type="radio" name="buildtype" value="go" onclick="setCGDisplay('go');" /></td><td align="left">A Klimov-Thirumalai style Go model.</td></tr>
+          <tr><td><input type="radio" name="buildtype" value="bln" onclick="setCGDisplay('bln');" /></td><td align="left">A two site BLN type model based on the work of Marrink and Bond & Sansom.</td></tr>
+        </table>
 
         <div id="aa_display">
            <h3>Configure patching and chemical properties of the structure</h3>
@@ -124,6 +125,16 @@
         </div>
 
         <div id="go_display" style="display:none;">
+           <h3 align="center">Select segments for the Go model</h3>
+           <table border align="center" cellspacing="2" cellpadding="2" width="70%">
+           {% for seg in seg_list %}
+              {% ifequal seg.type "pro" %}
+                 <tr><td><input type="checkbox" name="go_select_{{ seg.name }}" value="1" /></td><td>{{ seg.name }}</td></tr>
+              {% endifequal %}
+           {% endfor %}
+           </table>
+ 
+           <h3 align="center">Go model parameters</h3>
            <table>
               <tr>
                  <td><b>Contact types</b><br />
@@ -161,6 +172,16 @@
         </div>
 
         <div id="bln_display" style="display:none;">
+           <h3 align="center">Select segments for the BLN model</h3>
+           <table border align="center" cellspacing="2" cellpadding="2" width="70%">
+           {% for seg in seg_list %}
+              {% ifequal seg.type "pro" %}
+                 <tr><td><input type="checkbox" name="go_select_{{ seg.name }}" value="1" /></td><td>{{ seg.name }}</td></tr>
+              {% endifequal %}
+           {% endfor %}
+           </table>
+
+           <h3 align="center">BLN Model Parameters</h3>
            <table>
              <tr>
                 <td widtth="50%" valign="top"><b>Domain Mapping</b><br />
