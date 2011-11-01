@@ -596,14 +596,20 @@ class WorkingStructure(models.Model):
         tdict['output_name'] = self.identifier + '-build'
         tdict['blncharge'] = False # we're not handling BLN models for now
 
+        logfp = open('/tmp/test.txt', 'w')
+        logfp.write('My id = %d\n' % self.id)
+
         # check if we're a CG model.
         try:
-            cgws = CGWorkStruct.objects.get(workstruct_ptr_id=self.id)
+            cgws = CGWorkingStructure.objects.get(workingstructure_ptr=self.id)
+            logfp.write("Got a CG working struct\n")
         except:
+            logfp.write("No CG working struct here\n")
             cgws = None
+        logfp.close()
 
         if cgws:
-            tdict['input_pdb'] = cgws.pdb_name
+            tdict['input_pdb'] = cgws.pdbname
             tdict['finalname'] = cgws.cg_type
         else:
             # We are not a CG structure... go ahead and build up the seg_list
