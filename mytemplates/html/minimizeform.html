@@ -31,8 +31,8 @@
          <hr noshade width="80%" size=3%>
          <h2 align="center">Minimization Parameters</h2>
          <table>
-           <tr><td><p><label for="id_sdsteps"> SDSteps</td><td></label> <input type="text" name="sdsteps" id="sdsteps" value=100 size=5 onChange="getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');"> </P></td></tr><br />
-           <tr><td><p><label for="id_abnr"> ABNR</td><td></label> <input type="text" name="abnrsteps" id="abnr" value=1000 size=5 onChange="getTimeEstimate(makeUniqueDiv('run_time_minestimate'),[{%for item in filename_list%} '{{item}}',{% endfor %}],'min');">  </P></td></tr><br />
+           <tr><td><p><label for="id_sdsteps"> SDSteps</td><td></label> <input type="text" name="sdsteps" id="sdsteps" value=100 size=5> </P></td></tr><br />
+           <tr><td><p><label for="id_abnr"> ABNR</td><td></label> <input type="text" name="abnrsteps" id="abnr" value=1000 size=5>  </P></td></tr><br />
            <tr><td><p><label for="id_tolg"> Gradient tolerance</td><td></label> <input type="text" name="tolg" id="tolg" value=0.05 size=5> </P></td></tr>
          </table>
          <hr noshade width="80%" size=3%>
