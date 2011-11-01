@@ -129,7 +129,7 @@
            <table border align="center" cellspacing="2" cellpadding="2" width="70%">
            {% for seg in seg_list %}
               {% ifequal seg.type "pro" %}
-                 <tr><td><input type="checkbox" name="go_select_{{ seg.name }}" value="1" /></td><td>{{ seg.name }}</td></tr>
+                 <tr><td><input type="checkbox" name="go_select_{{ seg.name }}" value="y" /></td><td>{{ seg.name }}</td></tr>
               {% endifequal %}
            {% endfor %}
            </table>

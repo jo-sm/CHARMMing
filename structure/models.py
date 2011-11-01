@@ -31,7 +31,7 @@ import solvation, lessons.models, apbs
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
 import cPickle, copy
-import pychm.io, pychm.lib
+import pychm.io, pychm.lib, pychm.cg
 
 class Structure(models.Model):
 
@@ -501,6 +501,10 @@ class WorkingStructure(models.Model):
 
     # lesson
     lesson = models.ForeignKey(lessons.models.Lesson,null=True)
+
+    # extra setup stream files that are needed (useful for BLN model
+    # and possibly elsewhere)
+    extraStreams = models.CharField(max_length=120,null=True)
     
 
     def associate(self,structref,segids,tpdict):
@@ -515,7 +519,7 @@ class WorkingStructure(models.Model):
             segobj = Segment.objects.filter(name=sid,structure=structref)[0]
 
             # right now I can't think of any better way to copy all the data
-            # from the segment pbject to the working segment object, so we just
+            # from the segment object to the working segment object, so we just
             # do it by hand.
             wseg = WorkingSegment()
             wseg.is_working = 'y'
@@ -591,14 +595,27 @@ class WorkingStructure(models.Model):
         tdict['seg_list'] = []
         tdict['output_name'] = self.identifier + '-build'
         tdict['blncharge'] = False # we're not handling BLN models for now
-        for segobj in self.segments.all():
-            if segobj.isBuilt != 't':
-                newScript = segobj.build(self.modelName,self)
-                if inTask.scripts:
-                    inTask.scripts += ',' + newScript
-                else:
-                    inTask.scripts = newScript
-            tdict['seg_list'].append(segobj)
+
+        # check if we're a CG model.
+        try:
+            cgws = CGWorkStruct.objects.get(workstruct_ptr_id=self.id)
+        except:
+            cgws = None
+
+        if cgws:
+            tdict['input_pdb'] = cgws.pdb_name
+            tdict['finalname'] = cgws.cg_type
+        else:
+            # We are not a CG structure... go ahead and build up the seg_list
+            # as normal.
+            for segobj in self.segments.all():
+                if segobj.isBuilt != 't':
+                    newScript = segobj.build(self.modelName,self)
+                    if inTask.scripts:
+                        inTask.scripts += ',' + newScript
+                    else:
+                        inTask.scripts = newScript
+                tdict['seg_list'].append(segobj)
 
         tdict['topology_list'] = self.getTopologyList()
         tdict['parameter_list'] = self.getParameterList()
@@ -606,7 +623,6 @@ class WorkingStructure(models.Model):
         t = get_template('%s/mytemplates/input_scripts/append.inp' % charmming_config.charmming_root)
         charmm_inp = output.tidyInp(t.render(Context(tdict)))
 
-        user_id = self.structure.owner.id
         os.chdir(self.structure.location)
         charmm_inp_filename = self.structure.location + "/"  + self.identifier + "-build.inp"
         charmm_inp_file = open(charmm_inp_filename, 'w')
@@ -734,6 +750,136 @@ class WorkingStructure(models.Model):
                 t2.save()
     
         self.save()
+
+class CGWorkingStructure(WorkingStructure):
+    """
+    This is a special WorkingStructure type that is designed for coarse
+    grained models. The main difference is how the associate routine
+    works (since CG models are simple, we don't worry about patching).
+    """
+    pdbname = models.CharField(max_length=120) # holds the CG-ified PDB
+    cg_type = models.CharField(max_length=10)
+
+    def associate(self,structref,segids,**kwargs):
+        """
+        This method builds the CG model from the AA coordinates. Note
+        that the kwargs is designed to hold CG-model specific parameters,
+        e.g. nscale etc. These get passed directly to the pychm
+        constructor of the CG model.
+        """
+
+        self.structure = structref
+        self.save()
+
+        for sid in segids:
+            segobj = Segment.objects.filter(name=sid,structure=structref)[0]
+
+            # here is where there are some changes from the parent associate
+            # routine ... WorkingSegments need to have their type set to
+            # modelType and no patch_first or patch_last.
+            wseg = WorkingSegment()
+            wseg.is_working = 'y'
+            wseg.structure = segobj.structure
+            wseg.name = segobj.name.replace('-pro','-%s' % self.cg_type)
+            wseg.type = self.cg_type
+            wseg.default_patch_first = 'None'
+            wseg.default_patch_last = 'None'
+            wseg.tpMethod = 'standard'
+
+            wseg.save()
+
+            self.segments.add(wseg)
+            self.save()
+
+            # We could actually go ahead and call wseg.build() here, but I
+            # don't think that it is necessary. XXX Right now the segment
+            # holds the RTF and PRM lists, which aren't set right for a CG
+            # model segment. Fortunately, we can just build in a per cgWorkStruct,
+            # and not a per segment basis, but this will need to be re-done
+            # at some point.
+
+        # because of the way the Go model works, we need to actually build
+        # the AA structure first, then build the CG model.
+        if self.cg_type == 'go' or self.cg_type == 'bln':
+
+            logfp = open('/tmp/cgassoc.txt', 'w')
+            logfp.write("In CG associate: segids = %s\n" % segids)
+
+            pdbfname = structref.location + '/cgbase-' + str(self.id) + '.pdb'
+
+            fp = open(structref.pickle, 'r')
+            mol = (cPickle.load(fp))[self.modelName]
+            sct = 0
+            for s in mol.iter_seg():
+                logfp.write("Checking %s ... " % s.segid)
+                if s.segid in segids:
+                    logfp.write("OK!\n")
+                    sct += 1
+                    s.write(pdbfname, outformat='charmm',append=True,ter=True,end=False)
+                else:
+                    logfp.write("No.\n")
+            logfp.close()
+            fp.close()
+
+            if sct == 0:
+                return HttpResponse("No segments selected")
+
+            fp = open(pdbfname, 'a')
+            fp.write('\nEND\n')
+            fp.close()
+
+            # AA PDB file is built, now turn it into a CG model
+            pdbfile = pychm.io.pdb.PDBFile(pdbfname)[0]
+
+            # decide how this model is going to be stored on disk.
+            basefname = self.identifier + '-' + self.cg_type
+
+            if self.cg_type == 'go':
+                # need to set strideBin via kwargs
+                cgm = pychm.cg.ktgo.KTGo(pdbfile, strideBin=charmming_config.stride_bin)
+                if kwargs.has_key('nScale'):
+                    cgm.nScale = float(kwargs['nScale'])
+                if kwargs.has_key('domainScale'):
+                    cgm.domainScale = float(kwargs['domainScale'])
+                if kwargs.has_key('contactSet'):
+                    cgm.contactSet = kwargs['contactSet']
+                if kwargs.has_key('kBond'):
+                    cgm.kBond = float(kwargs['kBond'])
+                if kwargs.has_key('kAngle'):
+                    cgm.kAngle = float(kwargs['kAngle'])
+
+            elif self.cg_type == 'bln':
+                # kwargs can be hbondstream
+                cgm = pychm.cg.sansombln(pdbfile, **kwargs)
+                ## ToDo, fill in
+
+            # write out 
+            cgm.write_pdb(self.structure.location + '/' + basefname + '.pdb')
+            cgm.write_rtf(self.structure.location + '/' + basefname + '.rtf')
+            cgm.write_prm(self.structure.location + '/' + basefname + '.prm')
+
+            # add the topology and parameter to each segment ... since we
+            # never want to build CG model segments individually, we just
+            # set these all to built
+            for wseg in self.segments.all():
+                wseg.isBuilt = 't'
+                wseg.rtf_list = self.structure.location + '/' + basefname + '.rtf'
+                wseg.prm_list = self.structure.location + '/' + basefname + '.prm'
+                wseg.save()
+
+            self.pdbname = self.structure.location + '/' + basefname + '.pdb'
+            self.save()
+            
+        else:
+            raise AssertionError('Unknown CG model')
+
+    def getAppendPatches():
+        """
+        This method is overwritten because we don't do any post-appending
+        patches on the Go or BLN models, so we want to make sure that we
+        return an empty string
+        """
+        return ''
 
 class Patch(models.Model):
     structure   = models.ForeignKey(WorkingStructure)

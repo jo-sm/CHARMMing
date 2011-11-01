@@ -1027,80 +1027,108 @@ def modstruct(request):
     except:
         return HttpResponse("Please submit a structure")
 
-    segs = structure.models.Segment.objects.filter(structure=struct,is_working='n')
-    seglist = []
-    for s in segs:
-        ulkey = 'select_' + s.name
-        if request.POST.has_key(ulkey) and request.POST[ulkey] == 'y':
-            seglist.append(s.name)
-    if len(seglist) < 1:
-        return HttpResponse("You must choose at least one segment!")
+
     if not request.POST.has_key('wsidentifier'):
         return HttpResponse("You must give this working structure an identifier")
     if not request.POST['wsidentifier']:
         return HttpResponse("You must give this working structure an identifier")
+
+    if not request.POST.has_key('buildtype'):
+        return HttpRespone("No build type specified")
+
+    if request.POST['buildtype'] == 'aa':
+        segs = structure.models.Segment.objects.filter(structure=struct,is_working='n')
+        seglist = []
+        for s in segs:
+            ulkey = 'select_' + s.name
+            if request.POST.has_key(ulkey) and request.POST[ulkey] == 'y':
+               seglist.append(s.name)
+        if len(seglist) < 1:
+            return HttpResponse("You must choose at least one segment!")
     
-    tpdict = {}
-    for seg in seglist:
-        if request.POST.has_key('toppar_' + seg):
-            tpdict[seg] = request.POST['toppar_' + seg]
-            if tpdict[seg] not in ['standard','upload','cgenff','genrtf','antechamber']:
-                tpdict[seg] = standard
+        tpdict = {}
+        for seg in seglist:
+            if request.POST.has_key('toppar_' + seg):
+                tpdict[seg] = request.POST['toppar_' + seg]
+                if tpdict[seg] not in ['standard','upload','cgenff','genrtf','antechamber']:
+                    tpdict[seg] = 'standard'
 
-            if tpdict[seg] == 'upload':
-                try:
-                    uptop = request.FILES['topology_' + seg].name
-                    uppar = request.FILES['parameter_' + seg].name
-                except:
-                    return HttpResponse("Topology/parameter files not uploaded")
+                if tpdict[seg] == 'upload':
+                    try:
+                        uptop = request.FILES['topology_' + seg].name
+                        uppar = request.FILES['parameter_' + seg].name
+                    except:
+                        return HttpResponse("Topology/parameter files not uploaded")
 
-                os.copy(uptop,struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.rtf')
-                os.copy(upprm,struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.prm')
-        else:
-            tpdict[seg] = 'standard'
+                    os.copy(uptop,struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.rtf')
+                    os.copy(upprm,struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.prm')
+            else:
+                tpdict[seg] = 'standard'
 
-    new_ws = structure.models.WorkingStructure()
-    new_ws.modelName = request.POST['basemodel']
-    new_ws.associate(struct,seglist,tpdict)
+        new_ws = structure.models.WorkingStructure()
+        new_ws.modelName = request.POST['basemodel']
+        new_ws.associate(struct,seglist,tpdict)
 
-    # to do, make this not contain spaces
-    new_ws.identifier = request.POST['wsidentifier']
-    new_ws.save()
+        # to do, make this not contain spaces
+        new_ws.identifier = request.POST['wsidentifier']
+        new_ws.save()
 
-    # Figure out terminal patching
-    for segobj in new_ws.segments.all():
-        fpvar = segobj.name + '_firstpatch'
-        lpvar = segobj.name + '_lastpatch'
+        # Figure out terminal patching
+        for segobj in new_ws.segments.all():
+            fpvar = segobj.name + '_firstpatch'
+            lpvar = segobj.name + '_lastpatch'
 
-        if request.POST.has_key(fpvar):
-            segobj.patch_first = request.POST[fpvar]
-            segobj.save()
-        if request.POST.has_key(lpvar):
-            segobj.patch_last = request.POST[lpvar]
-            segobj.save()
+            if request.POST.has_key(fpvar):
+                segobj.patch_first = request.POST[fpvar]
+                segobj.save()
+            if request.POST.has_key(lpvar):
+                segobj.patch_last = request.POST[lpvar]
+                segobj.save()
 
-    # Figure out protonation and disulfide patching
-    for pkey in request.POST.keys():
-        if pkey.startswith('protostate_'):
-            (junk,segid,resid) = pkey.split('_')
+        # Figure out protonation and disulfide patching
+        for pkey in request.POST.keys():
+            if pkey.startswith('protostate_'):
+                (junk,segid,resid) = pkey.split('_')
 
-            if not segid in seglist: continue # not in the segments selected
-            if request.POST[pkey] in ['hsd','lys','glu','asp']: continue # these are defaults, no need for a patch
-            p = structure.models.Patch()
-            p.structure = new_ws
-            p.patch_segid = structure.models.Segment.objects.get(structure=struct,is_working='n',name=segid)
-            p.patch_name = request.POST[pkey]
-            p.patch_segres = "%s %s" % (segid,resid)
-            p.save()
+                if not segid in seglist: continue # not in the segments selected
+                if request.POST[pkey] in ['hsd','lys','glu','asp']: continue # these are defaults, no need for a patch
+                p = structure.models.Patch()
+                p.structure = new_ws
+                p.patch_segid = structure.models.Segment.objects.get(structure=struct,is_working='n',name=segid)
+                p.patch_name = request.POST[pkey]
+                p.patch_segres = "%s %s" % (segid,resid)
+                p.save()
 
-        if pkey.startswith('disul_'):
-            (junk,segid1,resid1,segid2,resid2) = pkey.split('_')
-            if not (segid1 in seglist and segid2 in seglist): continue # patch not valid for segments selected
-            p = structure.models.Patch()
-            p.structure = new_ws
-            p.patch_name = 'disul'
-            p.patch_segres = "%s %s %s %s" % (segid1,resid1,segid2,resid2)
-            p.save()
+            if pkey.startswith('disul_'):
+                (junk,segid1,resid1,segid2,resid2) = pkey.split('_')
+                if not (segid1 in seglist and segid2 in seglist): continue # patch not valid for segments selected
+                p = structure.models.Patch()
+                p.structure = new_ws
+                p.patch_name = 'disul'
+                p.patch_segres = "%s %s %s %s" % (segid1,resid1,segid2,resid2)
+                p.save()
+
+    elif request.POST['buildtype'] == 'go':
+        seglist = []
+
+        segs = structure.models.Segment.objects.filter(structure=struct,is_working='n')
+        for s in segs:
+            ulkey = 'go_select_' + s.name
+            if request.POST.has_key(ulkey) and request.POST[ulkey] == 'y':
+                seglist.append(s.name)
+
+        new_ws = structure.models.CGWorkingStructure()
+        new_ws.identifier = request.POST['wsidentifier']
+        new_ws.modelName = request.POST['basemodel']
+        new_ws.cg_type = 'go'
+        new_ws.associate(struct,seglist,contactSet=request.POST['gm_contact_type'], nScale=request.POST['gm_nscale'], \
+                         domainScale=request.POST['gm_domainscale'], kBond=request.POST['gm_kbond'], kAngle=request.POST['gm_kangle'])
+        new_ws.save()
+
+    elif request.POST['buildtype'] == 'bln':
+        return HttpResponse("Foo")
+    else:
+        return HttpResponse("Bad builttype specified!")
 
     # ToDo: Figure out restraints
 
