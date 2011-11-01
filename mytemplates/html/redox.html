@@ -40,18 +40,13 @@
     <center>
        <!-- We only care about protein segments for now -->
        <form id="redox_form" method="post"  action="." onsubmit="return send_form_oxired(this,'/charmming/analysis/redox/',makeUniqueDiv('change_redox'),'status_redox',[{%for item in redox_list%}'{{item}}',{% endfor%}]);">
-       <table>
-        {% for item in filename_list %}
-          {% for pdb in redox_list %}
-            {% ifequal item pdb %}
-              <tr><td>Protein Segment</td><td>{{ pdb }}</td><td> <input id="id_{{ pdb }}" type="checkbox" name="{{item}}" /> </td>
-              </tr>
-              <tr><td colspan=3><hr width="100%"></td></tr>
-            {% endifequal %}
-          {% endfor %}
-        {% endfor %}
+       <center>
 
-       </table>
+        <h2>Working structure: {{ ws_identifier }}</h2>
+
+        {% include "html/taskfiles.html" %}
+       </center>
+
 		       
        <hr noshade width="80%" size=3%>
        <h2 align="center">Select Oxidation/Reduction Site (Unselected sites will be left unchanged)</h2>

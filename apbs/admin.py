@@ -1,5 +1,5 @@
 from django.contrib import admin
-from apbs.models import apbsParams, redoxParams
+from apbs.models import apbsParams, redoxTask
 
-admin.site.register(redoxParams)
+admin.site.register(redoxTask)
 admin.site.register(apbsParams)

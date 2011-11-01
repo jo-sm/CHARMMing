@@ -16,154 +16,166 @@
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
 
-import re, os
+import re, os, cPickle
 import django.shortcuts, django.http, django.template.loader, django.template
-import structure.models
-import minimization.views
-import apbs.models
+import minimization.views, input
 import charmming_config, output, scheduler
+from django.http import HttpResponse
+from structure.models import Structure, WorkingStructure, Task
+from apbs.models import redoxTask
+from apbs import redox_mod
 
 def redoxformdisplay(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    structure.models.Structure.checkRequestData(request)
+
+    input.checkRequestData(request)
 
     #chooses the file based on if it is selected or not
     try:
-        file = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+         struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return django.http.HttpResponse("Please submit a structure first.")
+         return HttpResponse("Please submit a structure first.")
+    try:
+         ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
-    seg2_list = file.getProteinSegPDBList()
-    protein_list = [x for x in seg2_list if x.endswith("-pro.pdb") or x.endswith("-pro-final.pdb")]
-    het_list = [x for x in seg2_list if x.endswith("-het.pdb") or x.endswith("-het-final.pdb")]
-    filename_list = file.getLimitedFileList('foo')
-    scriptlist = []
 
-    for i in range(len(filename_list)):
-        try:
-            tempid = request.POST[filename_list[i]]
-            filename = request.POST[filename_list[i]]
-        except:
-            try:
-                tempid = request.POST['solv']
-                filename = request.POST['solv']
-            except:
-                tempid = "null"
-
+    if request.POST.has_key('picksite'):
         # This code path is taken if the form IS filled in
-        if tempid != "null":
-            minimization.views.append_tpl(request.POST,filename_list,file,scriptlist)
-            return django.http.HttpResponse(redox_tpl(request,file,scriptlist))
-
-    # Figure out which segments can make an FeS4 complex...
-    redox_list = []
-    redox_segs = []
-    redox_nums = {}
-    redox_nums['A'] = []
-    redox_nums['B'] = []
-    redox_nums['C'] = []
-    redox_nums['D'] = []
-    redox_nums['E'] = []
-    redox_nums['F'] = []
-    redox_nums['G'] = []
-    if not file.fes4list:
-        noredox = True
-    else:
-        noredox = False
-        for elt in file.fes4list.split(','):
-            segment,numfes = elt.split(':')
-            numfes = int(numfes)
-            seglet = segment.split('-')[0]
-            redox_segs.append(seglet.upper())
-            redox_nums[seglet.upper()] = range(1,numfes+1)
-            pattern = re.compile('%s(-pro|-het)?(-final)?\.pdb' % seglet)
-            for fname in filename_list:
-                fname = fname.strip()
-                if pattern.search(fname): redox_list.append(fname) 
-
-    # This code path is taken if the form is NOT filled in
-
-    # Check and see if we have any results to print out
-    print_result = False
-    calc_final = True
-    redpot = 'N/A'
-    redpotref = 'N/A'
-    modpot = 'N/A'
-    modpotref = 'N/A'
-    delg = "N/A"
-    delgnf = "N/A"
-    finres = "N/A"
-
-    try:
-        os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpot.txt')
-    except:
-        calc_final = False
-    else:
-        print_result = True
-        fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpot.txt', 'r')
         try:
-            redpot = float(fp.readline())
+            oldtsk = redoxTask.objects.filter(workstruct=ws,active='y')[0]
+            oldtsk.active = 'n'
+            oldtsk.save()
         except:
             pass
-        fp.close()
-    try:
-        os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpotref.txt')
-    except: 
-        calc_final = False
-    else:
-        print_result = True
-        fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpotref.txt', 'r')
-        try:
-            redpotref = float(fp.readline())
-        except:
-            pass
-        fp.close()
-    try:
-        os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpot.txt')
-    except: 
-        calc_final = False
-    else:
-        print_result = True
-        fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpot.txt', 'r')
-        try:
-            modpot = float(fp.readline())
-        except:
-            pass
-        fp.close()
-    try:
-        os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpotref.txt')
-    except:
-        calc_final = False
-    else:
-        print_result = True
-        fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpotref.txt', 'r')
-        try:
-            modpotref = float(fp.readline())
-        except:
-            pass
-        fp.close()
+        rdxtsk = redoxTask()
+        rdxtsk.setup(ws)
+        rdxtsk.action = 'redox'
+        rdxtsk.save()
 
-    if calc_final:
-        # figure out the correct ade value
-        rp = apbs.models.redoxParams.objects.filter(pdb = file, selected = 'y')[0]
-        ade = 0.0
-        delg = 0.0
-        if rp.redoxsite == 'couple_oxi':
-            delg = redpot - redpotref - modpot + modpotref
-            ade = 0.273
-        elif rp.redoxsite == 'couple_red':
-            delg = modpot - modpotref - redpot + redpotref
-            ade = -3.543
+        if ws.isBuilt != 't':
+            isBuilt = False
+            pTask = ws.build(rdxtask)
+            pTaskID = pTask.id
+        else:
+            isBuilt = True
+            pTaskID = int(request.POST['ptask'])
 
-        delgnf = delg * (-4.184/96.485)
-        finres = delgnf - 4.43 + ade 
+        return django.http.HttpResponse(redox_tpl(request,file,scriptlist))
+
+    else:
+        # This code path is taken if the form IS NOT filled in. We need
+        # to decide which REDOX sites are present in our working structure.
+        
+        # use charmminglib to decide if there is a valid FeS compound in
+        # this structure.
+
+        pfp = open(struct.pickle, 'r')
+        pdb = cPickle.load(pfp)
+        pfp.close()
+        # ToDo: fix so that the user does not have to build their WorkingStructure
+        # before they can use redox.
+        try:
+            myMol = pdb['append_' + ws.identifier]
+        except:
+            return HttpResponse('Your working structure must be built before you perform a redox calculation')
+
+        redox_segs = set()
+        redox_nums = {}
+
+        het = list(myMol.iter_res(segtypes = ['bad'],resName = ['fs4','sf4']))
+        if len(het) < 1:
+            noredox = True
+        else:
+            noredox = False
+            for res in het:
+                redox_segs.add(res.chainid.upper())
+                if redox_nums.has_key(res.chainid.upper()):
+                    redox_nums[res.chainid.upper()] += 1
+                else:
+                    redox_nums[res.chainid.upper()] = 1
+
+        # Check and see if we have any results to print out
+        print_result = False
+        calc_final = True
+        redpot = 'N/A'
+        redpotref = 'N/A'
+        modpot = 'N/A'
+        modpotref = 'N/A'
+        delg = "N/A"
+        delgnf = "N/A"
+        finres = "N/A"
+
+        try:
+            os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpot.txt')
+        except:
+            calc_final = False
+        else:
+            print_result = True
+            fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpot.txt', 'r')
+            try:
+                redpot = float(fp.readline())
+            except:
+                pass
+            fp.close()
+        try:
+            os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpotref.txt')
+        except: 
+            calc_final = False
+        else:
+            print_result = True
+            fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpotref.txt', 'r')
+            try:
+                redpotref = float(fp.readline())
+            except:
+                pass
+            fp.close()
+        try:
+            os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpot.txt')
+        except: 
+            calc_final = False
+        else:
+            print_result = True
+            fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpot.txt', 'r')
+            try:
+                modpot = float(fp.readline())
+            except:
+                pass
+            fp.close()
+        try:
+            os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpotref.txt')
+        except:
+            calc_final = False
+        else:
+            print_result = True
+            fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpotref.txt', 'r')
+            try:
+                modpotref = float(fp.readline())
+            except:
+                pass
+            fp.close()
+
+        if calc_final:
+            # figure out the correct ade value
+            rp = apbs.models.redoxParams.objects.filter(pdb = file, selected = 'y')[0]
+            ade = 0.0
+            delg = 0.0
+            if rp.redoxsite == 'couple_oxi':
+                delg = redpot - redpotref - modpot + modpotref
+                ade = 0.273
+            elif rp.redoxsite == 'couple_red':
+                delg = modpot - modpotref - redpot + redpotref
+                ade = -3.543
+
+            delgnf = delg * (-4.184/96.485)
+            finres = delgnf - 4.43 + ade 
     
-    return django.shortcuts.render_to_response('html/redox.html', {'filename_list': filename_list, 'redox_list': redox_list, \
-                                                                   'noredox': noredox, 'redox_segs': redox_segs, 'print_result': print_result, \
-                                                                   'redpot': redpot, 'redpotref': redpotref, 'modpot': modpot, \
-                                                                   'modpotref': modpotref, 'delg': delg, 'delgnf': delgnf, 'finres': finres, \
-                                                                   'redox_nums': redox_nums })
+        return django.shortcuts.render_to_response('html/redox.html', {'redox_segs': list(redox_segs), 'noredox': noredox, 'print_result': print_result, \
+                                                                       'redpot': redpot, 'redpotref': redpotref, 'modpot': modpot, 'modpotref': modpotref, \
+                                                                       'delg': delg, 'delgnf': delgnf, 'finres': finres, \
+                                                                       'redox_nums': redox_nums })
 
 def genstruct_tpl(request,file,scriptlist):
     selectedlist = []

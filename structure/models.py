@@ -51,7 +51,6 @@ class Structure(models.Model):
     journal = models.CharField(max_length=250)
     pub_date = models.DateTimeField(default=datetime.datetime.now)
     domains = models.CharField(max_length=250,default='')
-    fes4list = models.CharField(max_length=250,default='')
     
     #Returns a list of files not specifically associated with the structure
     def getNonStructureFiles(self):

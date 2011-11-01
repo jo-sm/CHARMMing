@@ -17,8 +17,7 @@
 #  particular purpose.
 from django.db import models
 from django.contrib.auth.models import User
-import django.forms
-import structure
+from structure.models import Task, WorkingFile
 
 class apbsParams(models.Model):
     gdim_x = models.PositiveIntegerField(default=0)
@@ -28,10 +27,12 @@ class apbsParams(models.Model):
     npoint_y = models.PositiveIntegerField(default=0)
     npoint_z = models.PositiveIntegerField(default=0)
 
-class redoxParams(models.Model):
-    selected = models.CharField(max_length=1)
-    pdb = models.ForeignKey(structure.models.Structure,null=True)
-    statusHTML = models.CharField(max_length=250)
-    segments = models.CharField(max_length=250)
+class redoxTask(Task):
     redoxsite = models.CharField(max_length=250) # segid + 1-/2- or 2-/3-
     apbsparams = models.ForeignKey(apbsParams,null=True)
+
+    def finish(self):
+        # This is a pain, since we need to get all of the input, output, and
+        # PDB files from the REDOX calculation.
+
+        self.status = 'C'
