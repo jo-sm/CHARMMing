@@ -15,13 +15,13 @@
 
 
 function set_install_config {
-  charmming_path="/var/www/charmming" 
-  charmming_utils="/usr/local/charmming" 
-  charmm="/usr/local/charmm/charmm" 
-  schedd_user="schedd" 
-  charmming_admin="admin" 
-  charmming_passwd="qwerty" 
-  database_passwd="qwerty" 
+  charmming_path="/var/www/charmming"       # Location of the main CHARMMing installation 
+  charmming_utils="/usr/local/charmming"    # Location of CHARMMing util installation 
+  charmm="/usr/local/charmm/charmm"         # Location of the CHARMM binary  
+  schedd_user="schedd"                      # CHARMMing scheduler (DO NOT MODIFY)!!!  
+  charmming_admin="admin"                   # The username for the charmming administrator 
+  charmming_passwd="qwerty"                 # The administrator password for charmming 
+  database_passwd="qwerty"                  # The mysql password for the charmming database 
 }
 
 function dependencies { 
@@ -52,7 +52,7 @@ function download_charmming {
     fi 
     
     if [ -d "charmminglib" ]; then
-	    mv charmminglib charmminglib-'date +%Y-%m-%d-%a-%I.%M%p'
+	    mv charmminglib charmminglib-`date +%Y-%m-%d-%a-%I.%M%p`
     fi
     
 # checkout charmming and charmminglib from svn 
@@ -301,6 +301,14 @@ ARGV=( $@ )
 if [ $# -ne $EXPECTED_ARGS ]
 then
   echo "Usage: `basename $0` -install | -uninstall "
+  echo "" 
+  echo "Before installing please edit installer.sh and set the "
+  echo "following preferences in the set_install_config function :" 
+  echo "" 
+  echo -e "\t charmming_admin" 
+  echo -e "\t charmming_passwd" 
+  echo -e "\t database_passwd" 
+  echo "" 
   exit $E_BADARGS
 fi
 
@@ -348,6 +356,7 @@ then
 # set config options 
     set_install_config
 
+    mkdir -p /tmp/charmming/ 
     sudo /etc/init.d/apache2 stop 
     sudo rm -rf $charmming_path
     sudo rm -rf $charmming_utils
