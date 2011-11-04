@@ -1,0 +1,25 @@
+<html>
+  <head>
+    <!-- this is for ChemDoodle -->
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link rel="stylesheet" href="/charmming/css/ChemDoodleWeb.css" type="text/css">
+    <script type="text/javascript" src="/charmming/js/ChemDoodleWeb-libs.js"></script>
+    <script type="text/javascript" src="/charmming/js/ChemDoodleWeb.js"></script>
+  </head>
+
+<body>
+  <div>
+     <h2 align="center">ChemDoodle toy</h2>
+
+     <script>
+       function alertMolecule(mol){
+          var message = 'This molecule contains '+mol.atoms.length+' atoms and '+mol.bonds.length+' bonds.';
+          alert(message);
+       }
+
+       var PDBFile  = "{{ content }}";
+       var Molecule = ChemDoodle.readPDB(PDBFile);
+       alertMolecule(Molecule);
+     </script>
+  </div>
+</body>

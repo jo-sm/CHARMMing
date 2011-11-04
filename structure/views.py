@@ -420,6 +420,30 @@ def visualize(request,filename):
 
     return render_to_response('html/visualize.html', {'filelst': filelst})
 
+
+#Let's user view PDB through ChemDoodle
+def chemdoodle(request,filename):
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+
+    try:
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return HttpResponse('No structure')
+    filename = struct.location + '/' + filename
+    mycontent = ''
+    logfp = open('/tmp/happy', 'w')
+    fp = open(filename, 'r')
+    for line in fp:
+        line = line.strip() + '\\n'
+        logfp.write(line)
+        mycontent += line
+    fp.close()
+    logfp.close()
+
+    return render_to_response('html/chemdoodle.html', {'content': mycontent})
+
+
 #Let's user view PDB through jmol
 def jmol(request,filename):
     if not request.user.is_authenticated():
