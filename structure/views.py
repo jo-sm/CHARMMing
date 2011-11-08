@@ -430,17 +430,24 @@ def chemdoodle(request,filename):
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse('No structure')
-    filename = struct.location + '/' + filename
+    orgfname = struct.location + '/' + filename
+    newfname = struct.location + '/tmp-' + filename
+    pdb = pychm.io.pdb.PDBFile(orgfname)
+    pdb[0].write(newfname,outformat="pdborg",ter=True,end=True)
+
     mycontent = ''
     logfp = open('/tmp/happy', 'w')
-    fp = open(filename, 'r')
+    fp = open(newfname, 'r')
     for line in fp:
         line = line.strip() + '\\n'
+        if line.startswith('REMARK') or line.startswith('Remark') or line.startswith('remark'): 
+            continue
         logfp.write(line)
         mycontent += line
     fp.close()
     logfp.close()
 
+    os.unlink(newfname)
     return render_to_response('html/chemdoodle.html', {'content': mycontent})
 
 

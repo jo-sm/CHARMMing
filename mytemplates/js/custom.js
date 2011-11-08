@@ -340,12 +340,19 @@ function setSolvSize()
 
 
 //allows user to choose jmol or chemaxon
-function chooseViewProgram(filename,segid,resid)
+function chooseViewProgram(filename,program,segid,resid)
 {
-  if(arguments.length == 3) {
+  //alert("Program is " + program);
+  if(arguments.length == 4) {
     openWin('spread', filename, 200, 300, 800, 600, '/charmming/jmolviewhl/' + filename + '/' + segid + '/' + resid + '/', 'jmolVisual');
+  } else if(arguments.length == 2) {
+    if(program == 'jmol') {
+      openWin('spread', filename, 200, 300, 800, 600, '/charmming/jmolview/' + filename,'jmolVisual');
+    } else if(program == 'chemdoodle') {
+      openWin('spread', filename, 200, 300, 800, 600, '/charmming/chemdoodleview/' + filename,'jmolVisual');
+    }
   } else {
-    openWin('spread', filename, 200, 300, 800, 600, '/charmming/jmolview/' + filename,'jmolVisual');
+    alert("Wrong number of arguments");
   }
 }
 

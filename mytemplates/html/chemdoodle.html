@@ -9,17 +9,28 @@
 
 <body>
   <div>
-     <h2 align="center">ChemDoodle toy</h2>
+     <h3 align="center">ChemDoodle Visualizer</h3>
+     <center>
+       <script>
 
-     <script>
-       function alertMolecule(mol){
-          var message = 'This molecule contains '+mol.atoms.length+' atoms and '+mol.bonds.length+' bonds.';
-          alert(message);
-       }
+         // BTM -- this function can be called for debugging to ensure ChemDoodle reads
+         // the molecule correctly.         
+         function alertMolecule(mol) {
+           var message = 'This molecule contains '+mol.atoms.length+' atoms and '+mol.bonds.length+' bonds.';
+           alert(message);
+         }
 
-       var PDBFile  = "{{ content }}";
-       var Molecule = ChemDoodle.readPDB(PDBFile);
-       alertMolecule(Molecule);
-     </script>
+         var v = new ChemDoodle.TransformCanvas3D('transformBallAndStick',520,520);
+         v.specs.set3DRepresentation('Ball and Stick');
+         v.specs.atoms_useJMOLColors = true;
+         v.specs.backgroundColor = 'black';
+
+         var PDBFile  = "{{ content }}";
+         var molecule = ChemDoodle.readPDB(PDBFile);
+
+         v.loadMolecule(molecule);
+       </script>
+    </center>
   </div>
 </body>
+</html>
