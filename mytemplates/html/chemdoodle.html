@@ -20,15 +20,18 @@
            alert(message);
          }
 
-         var v = new ChemDoodle.TransformCanvas3D('transformBallAndStick',520,520);
-         v.specs.set3DRepresentation('Ball and Stick');
-         v.specs.atoms_useJMOLColors = true;
-         v.specs.backgroundColor = 'black';
+         var transformBallAndStick = new ChemDoodle.TransformCanvas3D('transformBallAndStick',520,520);
+         transformBallAndStick.specs.set3DRepresentation('Stick');
+         //tranbsformBallAndStick.specs.atoms_useJMOLColors = true;
+         transformBallAndStick.specs.backgroundColor = 'black';
+         //transformBallAndStick.specs.projectionPerspectiveWidthHeightRatio_3D = 1.5;
+         //transformBallAndStick.specs.projectionPerspective_3D = false;
 
          var PDBFile  = "{{ content }}";
          var molecule = ChemDoodle.readPDB(PDBFile);
 
-         v.loadMolecule(molecule);
+         transformBallAndStick.loadMolecule(molecule);
+         transformBallAndStick.repaint();
        </script>
     </center>
   </div>
