@@ -80,6 +80,9 @@
                         <option value="cgenff">Use CGenFF to determine</option>
                         <option value="genrtf">Use GENRTF to determine</option>
                         <option value="antechamber">Use Antechamber to determine</option>
+                        {% if seg.fes4 %}
+                           <option value="redox">Use only for REDOX calculations</option>
+                        {% endif %}
                       </select>
                       <br />
                       topology file: <input type="file" name="topology_{{ seg.name }}" /><br />

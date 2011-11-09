@@ -772,6 +772,24 @@ def getSegs(Molecule,Struct,auto_append=False):
             newSeg.rtf_list = charmming_config.data_home + '/toppar/top_all27_prot_na.rtf'
             newSeg.prm_list = charmming_config.data_home + '/toppar/par_all27_prot_na.prm'
 
+        # get list of potential REDOX only segments. These segments will only
+        # be used for REDOX calculations and otherwise aren't part of the final
+        # constructed model. NB, we're going to assume that the first model is
+        # canonical for these.
+        if seg.segType == 'bad':
+            logfp = open('/tmp/redoxsegs.txt', 'a+')
+            ok = True
+            for res in seg.iter_res():
+                if res.resName not in ['fs4','sf4']:
+                   ok = False
+                   logfp.write('%s has bad res %s\n' % (seg.segid,res.resName))
+                   break
+            if ok:
+                newSeg.fes4 = True
+                logfp.write('%s is OK!\n' % seg.segid)
+
+            logfp.close()
+
         # set default patching type
         newSeg.set_default_patches(firstres)        
         newSeg.save()
@@ -1081,7 +1099,7 @@ def modstruct(request):
         for seg in seglist:
             if request.POST.has_key('toppar_' + seg):
                 tpdict[seg] = request.POST['toppar_' + seg]
-                if tpdict[seg] not in ['standard','upload','cgenff','genrtf','antechamber']:
+                if tpdict[seg] not in ['standard','upload','cgenff','genrtf','antechamber','redox']:
                     tpdict[seg] = 'standard'
 
                 if tpdict[seg] == 'upload':

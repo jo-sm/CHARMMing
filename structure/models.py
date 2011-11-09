@@ -177,6 +177,7 @@ class Segment(models.Model):
     rtf_list    = models.CharField(max_length=500)
     prm_list    = models.CharField(max_length=500)
     is_working  = models.CharField(max_length=1,default='n')
+    fes4        = models.BooleanField(default=False) # a bit of a hack, but it makes the views code easier
 
     def set_default_patches(self,firstres):
         if self.type == 'pro':
@@ -267,6 +268,7 @@ class WorkingSegment(Segment):
     builtPSF    = models.CharField(max_length=100)
     builtCRD    = models.CharField(max_length=100)
     tpMethod    = models.CharField(max_length=20,default="standard")
+    redox       = models.BooleanField(default=False)
 
     def set_terminal_patches(self,postdata):
         if postdata.has_key('first_patch' + self.name):
@@ -535,6 +537,12 @@ class WorkingStructure(models.Model):
             elif wseg.tpMethod == 'upload':
                 wseg.rtf_list = self.structure.location + '/' + self.identifier + '-' + wseg.name + '.rtf'
                 wseg.prm_list = self.structure.location + '/' + self.identifier + '-' + wseg.name + '.prm'
+            elif wseg.tpMethod == 'redox':
+                # structure will be used ONLY for oxi/reduce calculations so doesn't need
+                # top/par (redox script provides these when needed).
+                wseg.rtf_list = ''
+                wseg.prm_list = ''
+                wseg.redox = True
             else:
                 # custom built topology/parameter files will be handled at build time
                 wseg.rtf_list = '' 
@@ -552,6 +560,7 @@ class WorkingStructure(models.Model):
         """
         rlist = set()
         for segobj in self.segments.all():
+            if segobj.redox: continue
             for rtf in segobj.rtf_list.split(' '):
                 rlist.add(rtf)
         return rlist
@@ -563,6 +572,7 @@ class WorkingStructure(models.Model):
         """
         rlist = set()
         for segobj in self.segments.all():
+            if segobj.redox: continue
             for prm in segobj.prm_list.split(' '):
                 rlist.add(prm)
         return rlist
@@ -614,13 +624,16 @@ class WorkingStructure(models.Model):
             # We are not a CG structure... go ahead and build up the seg_list
             # as normal.
             for segobj in self.segments.all():
-                if segobj.isBuilt != 't':
+                # segment to be used solely for redox calculations get
+                # handled differently
+                if segobj.isBuilt != 't' and not segobj.redox:
                     newScript = segobj.build(self.modelName,self)
                     if inTask.scripts:
                         inTask.scripts += ',' + newScript
                     else:
                         inTask.scripts = newScript
-                tdict['seg_list'].append(segobj)
+                if not segobj.redox:
+                    tdict['seg_list'].append(segobj)
 
         tdict['topology_list'] = self.getTopologyList()
         tdict['parameter_list'] = self.getParameterList()

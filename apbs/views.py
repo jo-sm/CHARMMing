@@ -78,7 +78,7 @@ def redoxformdisplay(request):
         # ToDo: fix so that the user does not have to build their WorkingStructure
         # before they can use redox.
         try:
-            myMol = pdb['append_' + ws.identifier]
+            myMol = pdb['build_' + ws.identifier]
         except:
             return HttpResponse('Your working structure must be built before you perform a redox calculation')
 
