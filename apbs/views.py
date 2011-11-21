@@ -41,6 +41,9 @@ def redoxformdisplay(request):
     except:
         return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
+    tmpfp = open(struct.pickle, 'r')
+    pdb = cPickle.load(tmpfp)
+    tmpfp.close()
 
     if request.POST.has_key('picksite'):
         # This code path is taken if the form IS filled in
@@ -71,31 +74,47 @@ def redoxformdisplay(request):
         
         # use charmminglib to decide if there is a valid FeS compound in
         # this structure.
+        try:
+            myMol = pdb['append_%s' % ws.identifier]
+        except:
+            return HttpResponse('Your working structure must be built before you perform a redox calculation')
+
 
         pfp = open(struct.pickle, 'r')
         pdb = cPickle.load(pfp)
         pfp.close()
         # ToDo: fix so that the user does not have to build their WorkingStructure
         # before they can use redox.
-        try:
-            myMol = pdb['build_' + ws.identifier]
-        except:
-            return HttpResponse('Your working structure must be built before you perform a redox calculation')
-
-        redox_segs = set()
+        redox_segs = []
         redox_nums = {}
 
         het = list(myMol.iter_res(segtypes = ['bad'],resName = ['fs4','sf4']))
-        if len(het) < 1:
+        for res in het:
+            if redox_nums.has_key(res.chainid.upper()):
+                redox_nums[res.chainid.upper()] += 1
+            else:
+                redox_segs.append(res.chainid.upper())
+                redox_nums[res.chainid.upper()] = 1
+
+
+        # if we have any segments that are marked as redox only, we need to take
+        # them into consideration ... this is a bit of a hack.
+        parsedMdl = pdb[0]
+        for seg in ws.segments.all():
+            if seg.redox:
+                for res in parsedMdl.iter_res():
+                    if res.segid == seg.name:
+                        if redox_nums.has_key(res.chainid.upper()):
+                            redox_nums[res.chainid.upper()] += 1
+                        else:
+                            redox_segs.append(res.chainid.upper())
+                            redox_nums[res.chainid.upper()] = 1
+
+
+        if len(redox_segs) < 1:
             noredox = True
         else:
             noredox = False
-            for res in het:
-                redox_segs.add(res.chainid.upper())
-                if redox_nums.has_key(res.chainid.upper()):
-                    redox_nums[res.chainid.upper()] += 1
-                else:
-                    redox_nums[res.chainid.upper()] = 1
 
         # Check and see if we have any results to print out
         print_result = False
@@ -172,10 +191,15 @@ def redoxformdisplay(request):
             delgnf = delg * (-4.184/96.485)
             finres = delgnf - 4.43 + ade 
     
-        return django.shortcuts.render_to_response('html/redox.html', {'redox_segs': list(redox_segs), 'noredox': noredox, 'print_result': print_result, \
+        # Django's template language doesn't handle ranges well, so this is a hack to display
+        # the correct number of redox sites for each segment.
+        rn = {}
+        for k in redox_nums.keys():
+             rn[k] = range(1,redox_nums[k]+1)
+        return django.shortcuts.render_to_response('html/redox.html', {'redox_segs': redox_segs, 'noredox': noredox, 'print_result': print_result, \
                                                                        'redpot': redpot, 'redpotref': redpotref, 'modpot': modpot, 'modpotref': modpotref, \
                                                                        'delg': delg, 'delgnf': delgnf, 'finres': finres, \
-                                                                       'redox_nums': redox_nums })
+                                                                       'redox_nums': rn, 'ws_identifier': ws.identifier})
 
 def genstruct_tpl(request,file,scriptlist):
     selectedlist = []

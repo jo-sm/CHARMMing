@@ -33,24 +33,13 @@
   {% endif %}
 
   <hr noshade width="80%" size=3%>
-  <h2 align="center">Select Structure</h3>
-  <br />
-
-
     <center>
        <!-- We only care about protein segments for now -->
        <form id="redox_form" method="post"  action="." onsubmit="return send_form_oxired(this,'/charmming/analysis/redox/',makeUniqueDiv('change_redox'),'status_redox',[{%for item in redox_list%}'{{item}}',{% endfor%}]);">
-       <center>
-
-        <h2>Working structure: {{ ws_identifier }}</h2>
-
-        {% include "html/taskfiles.html" %}
-       </center>
-
+       <h2>Working structure: {{ ws_identifier }}</h2>
 		       
        <hr noshade width="80%" size=3%>
        <h2 align="center">Select Oxidation/Reduction Site (Unselected sites will be left unchanged)</h2>
-       <p><b>Note:</b> You must select both the protein and hetero-atom structures for a given segment from the list above. Otherwise, that segment will not be used.</p> 
 
        <table cellspacing="10">
        {% for item in redox_segs %}
