@@ -16,14 +16,17 @@
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
 
-import re, os, cPickle
+import re, os, cPickle, copy
 import django.shortcuts, django.http, django.template.loader, django.template
 import minimization.views, input
 import charmming_config, output, scheduler
+from  apbs import redox_mod
 from django.http import HttpResponse
 from structure.models import Structure, WorkingStructure, Task
 from apbs.models import redoxTask
 from apbs import redox_mod
+from pychm.lib.mol import Mol
+from pychm.io.rtf import RTFFile
 
 def redoxformdisplay(request):
     if not request.user.is_authenticated():
@@ -43,6 +46,7 @@ def redoxformdisplay(request):
 
     tmpfp = open(struct.pickle, 'r')
     pdb = cPickle.load(tmpfp)
+    pdb_metadata = pdb.get_metaData()
     tmpfp.close()
 
     if request.POST.has_key('picksite'):
@@ -59,14 +63,12 @@ def redoxformdisplay(request):
         rdxtsk.save()
 
         if ws.isBuilt != 't':
-            isBuilt = False
-            pTask = ws.build(rdxtask)
-            pTaskID = pTask.id
-        else:
-            isBuilt = True
-            pTaskID = int(request.POST['ptask'])
+            raise AssertionError('Structures have to be built before REDOX may be run')
 
-        return django.http.HttpResponse(redox_tpl(request,file,scriptlist))
+        isBuilt = True
+        pTaskID = Task.objects.get(workstruct=ws,action='build').id
+        pdb = createFinalPDB(request,ws)
+        return django.http.HttpResponse(redox_tpl(request,rdxtsk,ws,pdb,pdb_metadata))
 
     else:
         # This code path is taken if the form IS NOT filled in. We need
@@ -589,58 +591,74 @@ def getdelg_tpl(request,file,scriptlist,redox_segs):
     fp.close()
     scriptlist.append(file.location + inp_filename)
 
-def redox_tpl(request,file,scriptlist):
+def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
 
-    try:
-        oldparam = apbs.models.redoxParams.objects.filter(pdb = file, selected = 'y')[0]
-        oldparam.selected = 'n'
-        oldparam.save()
-    except:
-        pass
+    if not request.POST.has_key('couple'):
+        raise AssertionError('No coupling found')
 
-    # preliminaries, set up the model
-    rp = apbs.models.redoxParams(selected='y')
-    rp.pdb = file
-    rp.statusHTML = "<font color=yellow>Processing</font>"
-    rp.save()
+    if not request.POST.has_key('picksite'):
+        raise AssertionError('Got to redox_tpl without picksite. How did that happen??!')
 
-    # step 1: make reduced CRD & PSF and oxidized/superreduced CRD & PSF for protein and reference
-    redox_segs = genstruct_tpl(request,file,scriptlist)
+    m = re.search('site_([A-Z])_([1-9])', request.POST['picksite'])
+    if not m:
+        raise AssertionError('picksite is not in the correct format')
+
+    if request.POST['couple'] == 'oxi':
+        clusnameo = '4fso'
+        redoxTask.redoxsite = 'couple_oxi'
+    else:
+        # assume we want a reduction
+        clusnameo = '4fsr'
+        redoxTask.redoxsite = 'couple_red' 
+
+    rtf = RTFFile('%s/toppar/top_all22_4fe4s_esp_090209.inp' % charmming_config.data_home)
+
+    # Step 1: generate the patched structures of the redox site ... a call to Scott's
+    # code replaces the old genstruct_tpl call.
+    redox_mod.fesSetup(pdb,clusnameo,rtf,int(m.group(2)),0,workstruct.structure.location,workstruct.identifier,pdb_metadata)
 
     # step 2: make dielectric grids (1. protein + SF4 2. just SF4 + hanging -CH2)
     # This script will also include a system call to dxmath to make the grids
     gengrid_tpl(request,file,scriptlist)
 
-    # step 3: Get combined grids, then change reduced to oxidized or superreduced structure
-    redox_sites = modstruct_tpl(request,file,scriptlist,redox_segs)
-    rp.segments = "%s" % redox_segs
-    rp.redoxsite = ""
-    if request.POST['couple'] == 'oxi':
-        rp.redoxsite = 'couple_oxi'
-    elif request.POST['couple'] == 'red':
-        rp.redoxsite = 'couple_red' 
-    rp.save()
+    # step 3: Get combined grids: we don't need modtruct_tpl any more because fesSetup
+    # already generated the reduced grid.
+    redoxTask.redoxsite = ""
+    redoxTask.save()
 
     # step 4: Get the four free energy values for redpot, redpotref, modpot, modpotref where mod = oxi or sr
     getdelg_tpl(request,file,scriptlist,redox_segs)
 
     # all scripts generated, submit to the scheduler
-    user_id = file.owner.id
-    si = scheduler.schedInterface.schedInterface()
-    newJobID = si.submitJob(user_id,file.location,scriptlist)
-    # NB: we'll need to add lesson hooks here
-    #if file.lesson_type:
-    #    lessonaux.doLessonAct(file,"onMinimizeSubmit",postdata,final_pdb_name)
-
-    if newJobID < 0:
-       rp.statusHTML = "<font color=red>Failed</font>"
-       rp.save()
-    else:
-       file.redox_jobID = newJobID
-       sstring = si.checkStatus(newJobID)
-       rp.statusHTML = scheduler.statsDisplay.statsDisplay(sstring,newJobID)
-       rp.save()
-       file.save()
-
+    redoxTask.run()
+    redoxTask.save()
 
     return "foo"
+
+def createFinalPDB(request,workstruct):
+    if not request.POST.has_key('picksite'):
+        raise AssertionError('Variable picksite must be specified')
+
+    pfp = open(workstruct.structure.pickle, 'r')
+    pdb = cPickle.load(pfp)
+    pfp.close()
+    ormdl = pdb[0] # first model has all of the segments
+    mymdl = pdb['append_%s' % workstruct.identifier]
+    numdl = copy.deepcopy(mymdl)
+
+    for seg in workstruct.segments.all():
+        if seg.redox:
+            for mdlseg in ormdl.iter_seg():
+                if mdlseg.segid == seg.name:
+                    # add this segment to the model
+                    numdl = numdl + Mol(mdlseg)
+
+    numdl = Mol(numdl)
+    pdb['redox_%s' % workstruct.identifier] = numdl
+
+    os.unlink(workstruct.structure.pickle) # to be safe
+    pfp = open(workstruct.structure.pickle, 'w')
+    cPickle.dump(pdb,pfp)
+    pfp.close()
+
+    return numdl

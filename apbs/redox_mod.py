@@ -1,4 +1,23 @@
 #! /opt/epd/epd-6.2-2-rh3-x86_64/bin/python
+
+#
+#                            PUBLIC DOMAIN NOTICE
+#
+#  This software/database is a "United States Government Work" under the
+#  terms of the United States Copyright Act.  It was written as part of
+#  the authors' official duties as a United States Government employee and
+#  thus cannot be copyrighted.  This software is freely available
+#  to the public for use.  There is no restriction on its use or
+#  reproduction.
+#
+#  Although all reasonable efforts have been taken to ensure the accuracy
+#  and reliability of the software and data, NIH and the U.S.
+#  Government do not and cannot warrant the performance or results that
+#  may be obtained by using this software or data. NIH, NHLBI, and the U.S.
+#  Government disclaim all warranties, express or implied, including
+#  warranties of performance, merchantability or fitness for any
+#  particular purpose.
+
 """
 PDB parser for [4Fe-4S] proteins
 
@@ -25,7 +44,7 @@ from pychm.io.pdb import PDBFile
 from pychm.io.rtf import RTFFile
 import pychm
 
-def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, **kwargs):
+def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, location, identifier, pdb_metadata, **kwargs):
     """
     Parse a *.pdb* plain text file into its constituent chains and segments with consideration
     of iron-sulfur redox sites. Print one CHARMM formatted *.pdb* file per chain/segment 
@@ -46,7 +65,7 @@ def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, **kwargs):
     het = list(thisMol.iter_res(segtypes = ['bad'],resName = ['fs4','sf4']))
     #het = list(thisMol.find(segtypes=['bad']))
     renameFeS(thisMol,het,clusnameo,numS,numFe)
-    renameLigands(pdb,thisMol,het,clusnameo,numFe)
+    renameLigands(pdb_metadata,thisMol,het,clusnameo,numFe)
     chargeFeS(rtf,thisMol,clusnameo) # NEW #
     segDict = {'nuc':'nuc', 'pro':'pro', 'good':'goodhet', 'bad':'het',
                  'dna':'dna', 'rna':'rna'}
@@ -56,7 +75,7 @@ def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, **kwargs):
     # Write out structure
     for seg in thisMol.iter_seg():
         stdoutList.append('%s-%s' % (seg.chainid, segDict[seg.segType]))
-        name = 'new_%s-%s-%s_o.pdb' % (thisMol.code, seg.chainid,segDict[seg.segType])
+        name = '%s/redox-%s-%s-%s_o.pdb' % (location, identifier, seg.chainid, segDict[seg.segType])
         seg.write(filename = name)
         RTFFile.write(filename = 'test.rtf')
     # Select Reduced Residue Name
@@ -69,7 +88,7 @@ def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, **kwargs):
     # Write out structure
     for seg in thisMol.iter_seg():
         stdoutList.append('%s-%s' % (seg.chainid, segDict[seg.segType]))
-        name = 'new_%s-%s-%s_r.pdb' % (thisMol.code, seg.chainid,segDict[seg.segType])
+        name = '%s/redox-%s-%s-%s_r.pdb' % (location, identifier, seg.chainid, segDict[seg.segType])
         seg.write(filename = name)
 
 
@@ -134,7 +153,7 @@ def renameFeS(thisMol,het,clusname,numS,numFe):
 
 from copy import deepcopy
 
-def renameLigands(pdb,thisMol,het,clusname,numFe):
+def renameLigands(pdb_metadata,thisMol,het,clusname,numFe):
     """
     Cysteine residues ligated to Fe atoms of the redox site are selected
     based on the LINK statement in the PDB. The CB, SG, and their bound
@@ -168,7 +187,7 @@ def renameLigands(pdb,thisMol,het,clusname,numFe):
     # ar[l][2/6] = metal/ligand chain id
     # ar[l][3/7] = metal/ligand resid
     try:
-        ar = [ line.split() for line in pdb.get_metaData()['link'] ]
+        ar = [ line.split() for line in pdb_metadata['link'] ]
     except KeyError:
         raise NotImplementedError('No LINK statements in PDB. Tell Scott to make a fix.')
     # For each fe in res in het, select bound residue
