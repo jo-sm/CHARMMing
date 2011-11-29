@@ -261,7 +261,7 @@ def genstruct_tpl(request,file,scriptlist):
         
     return finalseglist
 
-def gengrid_tpl(request,file,scriptlist):
+def gengrid_tpl(request,workstruct,redoxTask):
     td = {}
     try:
         td['srad'] = request.POST['srad']
@@ -269,8 +269,7 @@ def gengrid_tpl(request,file,scriptlist):
         td['srad'] = 1.4
 
     # step 1: get the grid for the full structure
-    td['filebase'] = file.stripDotPDB(file.filename)
-    td['input_file'] = "reduced_" + file.stripDotPDB(file.filename) + "-final"
+    td['prot_grid'] = True
     td['grid_name'] = "pro"
     td['data_home'] = charmming_config.data_home
     try:
@@ -281,17 +280,16 @@ def gengrid_tpl(request,file,scriptlist):
         td['sdie'] = 78
     td['sizegrid'] = True
 
-    inp_filename = "redox-" + file.stripDotPDB(file.filename) + "-mkgrid1.inp"
+    inp_filename = "redox-%s-mkgrid1.inp" % workstruct.identifier
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_mkgrid.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(file.location + inp_filename, 'w')
+    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
-    scriptlist.append(file.location + inp_filename)
+    redoxTask.scripts += ',%s' % inp_filename
 
     # step 2: get the grid for only the cluster site
-    td['sizegrid'] = False
-    td['input_file'] = "reduced_" + file.stripDotPDB(file.filename) + "-reference"
+    td['prot_grid'] = False
     td['grid_name'] = "ref"
     try:
         td['pdie'] = float(request.POST['redx_diel'])
@@ -300,296 +298,195 @@ def gengrid_tpl(request,file,scriptlist):
         td['pdie'] = 1
         td['sdie'] = 4
 
-    inp_filename = "redox-" + file.stripDotPDB(file.filename) + "-mkgrid2.inp"
+    inp_filename = "redox-%s-mkgrid2.inp" % workstruct.identifier
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_mkgrid.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(file.location + inp_filename, 'w')
+    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
-    scriptlist.append(file.location + inp_filename)
+    redoxTask.scripts += ',%s' % inp_filename
 
-
-def modstruct_tpl(request,file,scriptlist,redox_segs):
-    td = {}
-    changes = {}
-    patches = {}
-    newtype = {}
-    redox_nums = {}
-    retarr = [] # returns the redox sites as a flat list
-
-    for elt in file.fes4list.split(','):
-        segment,numfes = elt.split(':')
-        segid  = segment.split('-')[0]
-        numfes = int(numfes)
-        redox_nums[segid] = numfes
-
-
-    td['redox_segs'] = redox_segs
-    for segid in redox_segs:
-        changes[segid] = [] 
-        for sitenum in range(1,redox_nums[segid]+1):
-            kval = "site_%s_%s" % (segid.upper(),sitenum)
-            if request.POST['picksite'] == kval:
-                if request.POST['couple'] == 'oxi':
-                    changes[segid].append(1)
-                    retarr.append(1)
-                elif request.POST['couple'] == 'red':
-                    changes[segid].append(2)
-                    retarr.append(2)
-                else:
-                    raise "need couple_oxi or couple_red!!!"
-            else:
-                changes[segid].append(0)
-                retarr.append(0)
-
-    sitestochange = []
-    for segid in redox_segs:
-        for sitenum in range(redox_nums[segid]):
-            tdict = {}
-            tdict['segid'] = segid
-            tdict['sitenum'] = sitenum + 1
-            if changes[segid][sitenum] == 0:
-                tdict['newres'] = '4FSR'
-            elif changes[segid][sitenum] == 1:
-                tdict['newres'] = '4FSO'
-                tdict['FEAR'] = 226
-                tdict['FEBR'] = 227
-                tdict['SAR']  = 232
-                tdict['SBR']  = 233
-                tdict['SR']   = 236
-                # update charges
-                tdict['CFE1'] = 0.3040
-                tdict['CFE2'] = 0.3040
-                tdict['CFE3'] = 0.3210
-                tdict['CFE4'] = 0.3210
-                tdict['CS1'] = -0.2330 
-                tdict['CS2'] = -0.2330 
-                tdict['CS3'] = -0.2380
-                tdict['CS4'] = -0.2380
-                tdict['CSG1'] = -0.3980
-                tdict['CCB1'] = -0.0935
-                tdict['CSG2'] = -0.3980
-                tdict['CCB2'] = -0.0935
-                tdict['CSG3'] = -0.4290
-                tdict['CCB3'] = -0.0935
-                tdict['CSG4'] = -0.4290
-                tdict['CCB4'] = -0.0935
-            elif changes[segid][sitenum] == 2:
-                tdict['newres'] = '4FSS'
-                tdict['FEAR'] = 222
-                tdict['FEBR'] = 223
-                tdict['SAR']  = 228
-                tdict['SBR']  = 229
-                tdict['SR']   = 234
-                # update charges
-                tdict['CFE1'] = 0.4810
-                tdict['CFE2'] = 0.4810
-                tdict['CFE3'] = 0.4840
-                tdict['CFE4'] = 0.4840
-                tdict['CS1'] = -0.5230
-                tdict['CS2'] = -0.5230
-                tdict['CS3'] = -0.5420
-                tdict['CS4'] = -0.5420
-                tdict['CSG1'] = -0.7240
-                tdict['CCB1'] = -0.1660
-                tdict['CSG2'] = -0.7240
-                tdict['CCB2'] = -0.1660
-                tdict['CSG3'] = -0.7100
-                tdict['CCB3'] = -0.1600
-                tdict['CSG4'] = -0.7100
-                tdict['CCB4'] = -0.1600
-            sitestochange.append(tdict)
-    td['sitestochange'] = sitestochange
-    td['input_file'] = "reduced_" + file.stripDotPDB(file.filename) + "-final"
-    td['filebase'] = file.stripDotPDB(file.filename)
-    td['dxmath'] = "/usr/local/charmming/apbs-1.1.0/share/tools/mesh/dxmath"
-    td['redox_segs'] = redox_segs
-    td['topology_list'] = ['%s/toppar/top_all27_prot_na.rtf' % charmming_config.data_home, \
-                           '%s/toppar/top_4fsr.rtf' % charmming_config.data_home]
-    td['parameter_list'] = ['%s/toppar/par_all27_prot_na.prm' % charmming_config.data_home,
-                            '%s/toppar/par_4fsr.prm' % charmming_config.data_home]
-
-    # create inputs to dxmath
-    try:
-        dielectric = float(request.POST['prot_diel'])
-    except:
-        dielectric = 4.0
-    td['dxmath_inp'] = []
-    for axis in ["x", "y", "z"]:
-        dxmath_scr = "combo.%s" % axis
-        fp = open(file.location + dxmath_scr, 'w')
-        fp.write("# combine mesh for %s\n" % axis)
-        fp.write("%s/ref.%s %4.3f - %s/pro.%s + %s/iapbs-diel%s.dx =\n" % (file.location,axis,dielectric,file.location,axis,file.location,axis))
-        fp.close()
-        td['dxmath_inp'].append(dxmath_scr)
-
-    inp_filename = "redox-" + file.stripDotPDB(file.filename) + "-modstruct.inp"
-    t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_modstruct.inp' % charmming_config.charmming_root)
-    charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(file.location + inp_filename, 'w')
-    fp.write(charmm_inp)
-    fp.close()
-
-    scriptlist.append(file.location + inp_filename)
-    return retarr
-
-def getdelg_tpl(request,file,scriptlist,redox_segs):
+def getdelg_tpl(request,workstruct,redoxTask):
     td = {}
     try:
         td['srad'] = float(request.POST['srad'])
     except:
         td['srad'] = 1.4
    
-    td['topology_list'] = ['%s/toppar/top_all27_prot_na.rtf' % charmming_config.data_home, \
-                           '%s/toppar/top_4fsr.rtf' % charmming_config.data_home]
-    td['parameter_list'] = ['%s/toppar/par_all27_prot_na.prm' % charmming_config.data_home,
-                            '%s/toppar/par_4fsr.prm' % charmming_config.data_home]
-    td['filebase'] = file.stripDotPDB(file.filename)
+    td['rtf'] = '%s/toppar/top_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
+    td['prm'] = '%s/toppar/par_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
+    td['id'] = workstruct.identifier
+
+    # step 1: generate final grids for full system and redox site
+    # a. full sys
+    td['psf'] = 'redox-%s-oxiall.psf' % workstruct.identifier
+    td['crd'] = 'redox-%s-oxiall.crd' % workstruct.identifier
+    td['grid_name'] = 'pro'
+    try:
+        td['pdie'] = float(request.POST['prot_diel'])
+        td['sdie'] = float(request.POST['solv_diel'])
+    except: 
+        td['pdie'] = 4
+        td['sdie'] = 78
+    t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_mkgrid.inp' % charmming_config.charmming_root)
+    charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
+    inp_name = 'redox-%s-mkgrid-full.inp' % workstruct.identifier
+    fp = open('%s/%s' % (workstruct.structure.location,inp_name), 'w')
+    fp.write(charmm_inp)
+    fp.close()
+    redoxTask.scripts += ',%s' % inp_name
+
+    # b. redox site
+    td['psf'] = 'redox-%s-oxisite.psf' % workstruct.identifier
+    td['crd'] = 'redox-%s-oxisite.crd' % workstruct.identifier
+    td['grid_name'] = 'ref'
+    try:
+        td['pdie'] = float(request.POST['prot_diel'])
+        td['sdie'] = float(request.POST['solv_diel'])
+    except:
+        td['pdie'] = 1
+        td['sdie'] = 4
+    t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_mkgrid.inp' % charmming_config.charmming_root)
+    charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
+    inp_name = 'redox-%s-mkgrid-site.inp' % workstruct.identifier
+    fp = open('%s/%s' % (workstruct.structure.location,inp_name), 'w')
+    fp.write(charmm_inp)
+    fp.close()
+    redoxTask.scripts += ',%s' % inp_name
+
+    # step 2: use dxmath to generate the final grids
+    td['dxmath_inp'] = []
+    for axis in ["x", "y", "z"]:
+        dxmath_scr = "combo.%s" % axis
+        fp = open(workstruct.structure.location + '/' + dxmath_scr, 'w')
+        fp.write("# combine mesh for %s\n" % axis)
+        fp.write("%s/ref.%s 4.0 - %s/pro.%s + %s/iapbs-diel%s.dx =\n" % (workstruct.structure.location,axis,workstruct.structure.location,axis,workstruct.structure.location,axis))
+        fp.close()
+        td['dxmath_inp'].append(dxmath_scr)
+    t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_combinegrid.inp' % charmming_config.charmming_root)
+    charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
+    inp_name = 'redox-%s-combinegrid-site.inp' % workstruct.identifier
+    fp = open('%s/%s' % (workstruct.structure.location,inp_name), 'w')
+    fp.write(charmm_inp)  
+    fp.close()
+    redoxTask.scripts += ',%s' % inp_name
+
+    # step 3: for each of redpot, redpotref, modpot, and modpotref generate the 
+    # delta G via APBS
+
     td['data_home'] = charmming_config.data_home
-    td['redox_segs'] = redox_segs
-    td['do_resdel'] = False
-    td['resdel_list'] = []
 
-    redox_nums = {}
-
-    for elt in file.fes4list.split(','):
-        segment,numfes = elt.split(':')
-        segid  = segment.split('-')[0]
-        numfes = int(numfes) 
-        redox_nums[segid] = numfes
-
-    changes = {}
-    for segid in redox_segs:
-        changes[segid] = []
-        for sitenum in range(1,redox_nums[segid]+1):
-            kval = "site_%s_%s" % (segid.upper(),sitenum)
-            if request.POST['picksite'] == kval:
-                if request.POST['couple'] == 'oxi':
-                    changes[segid].append(1)
-                elif request.POST['couple'] == 'red':
-                    changes[segid].append(2)
-                else:
-                    raise "need couple_oxi or couple_red!!!"
-            else:
-                td['resdel_list'].append(sitenum)
-                changes[segid].append(0)
-
-    # for each of redpot, redpotref, modpot, and modpotref generate the delta G via APBS
-
-    # redpot
-    redox_seglist = []
-    for segid in redox_segs:
-        tdict = {}
-        tdict['segid'] = segid
-        tdict['resname'] = 'resname 4FSR' # reduced structure
-        redox_seglist.append(tdict)
-    td['redox_seglist'] = redox_seglist
-
-    td['redox_selectall'] = False
-    td['resid'] = '4FSR'
-    td['input_file'] = 'reduced_' + file.stripDotPDB(file.filename) + '-final'
+    # oxipot
+    td['input_file'] = 'redox-%s-oxiall' % workstruct.identifier
     td['rdiel'] = 'rdiel'
     td['pdie'] = 4
     td['sdie'] = 78
-    td['enefile'] = 'redox-' + file.stripDotPDB(file.filename) + '-redpot.txt'
-    inp_filename = 'redox-' + file.stripDotPDB(file.filename) + '-redpot.inp'
+    td['enefile'] = 'redox-%s-oxipot.txt' % workstruct.identifier
+    inp_filename = 'redox-%s-oxipot.inp' % workstruct.identifier
 
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_delg.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(file.location + inp_filename, 'w')
+    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
-    scriptlist.append(file.location + inp_filename)
+    redoxTask.scripts += ',%s' % inp_filename
 
-    # redpotref
-    redox_seglist = []
-    for segid in redox_segs:
-        for i in range(len(changes[segid])):
-            if changes[segid][i] != 0:
-                tdict = {}
-                tdict['segid'] = segid
-                tdict['resname'] = 'resname 4FSR'
-                tdict['resname'] += ' .and. resid %d' % (i+1)
-                redox_seglist.append(tdict)
-    td['redox_seglist'] = redox_seglist
-    if len(td['resdel_list']) > 0:
-        td['do_resdel'] = True
-
-    td['redox_selectall'] = False
-    td['input_file'] = 'reduced_' + file.stripDotPDB(file.filename) + '-reference'
+    # oxipotref
+    td['input_file'] = 'redox-%s-oxisite' % workstruct.identifier
     td['rdiel'] = ''
     td['pdie'] = 1
     td['sdie'] = 1
-    td['enefile'] = 'redox-' + file.stripDotPDB(file.filename) + '-redpotref.txt'
-    inp_filename = 'redox-' + file.stripDotPDB(file.filename) + '-redpotref.inp'
+    td['enefile'] = 'redox-%s-oxipotref.txt' % workstruct.identifier
+    inp_filename = 'redox-%s-oxipotref.inp' % workstruct.identifier
 
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_delg.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(file.location + inp_filename, 'w')
+    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
-    scriptlist.append(file.location + inp_filename)
-
-    # figure out new resids
-    redox_seglist = []
-
-    for segid in redox_segs:
-        tdict = {}
-        tdict['segid'] = segid
-        tdict['resname'] = ''
-
-        myiter = 0
-        for codenum in changes[segid]:
-            myiter += 1
-            if codenum == 1:
-                if len(tdict['resname']) > 0:
-                    tdict['resname'] += ' .or. ( resname 4FSO .and. resid %d )' % myiter
-                else:
-                    tdict['resname'] += '( resname 4FSO .and. resid %d )' % myiter
-            elif codenum == 2:
-                if len(tdict['resname']) > 0:
-                    tdict['resname'] += ' .or. ( resname 4FSS .and. resid %d )' % myiter
-                else:
-                    tdict['resname'] += '( resname 4FSS .and. resid %d )' % myiter
-        redox_seglist.append(tdict)
-
-    td['redox_seglist'] = redox_seglist
+    redoxTask.scripts += ',%s' % inp_filename
 
     # modpot
-    td['do_resdel'] = False
-    td['redox_selectall'] = True
-    td['input_file'] = 'modified_' + file.stripDotPDB(file.filename) + '-final'
+    td['input_file'] = 'redox-%s-redall' % workstruct.identifier
     td['rdiel'] = 'rdiel'
     td['pdie'] = 4
     td['sdie'] = 78
-    td['enefile'] = 'redox-' + file.stripDotPDB(file.filename) + '-modpot.txt'
-    inp_filename = 'redox-' + file.stripDotPDB(file.filename) + '-modpot.inp'
+    td['enefile'] = 'redox-%s-modpot.txt' % workstruct.identifier
+    inp_filename = 'redox-%s-modpot.inp' % workstruct.identifier
 
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_delg.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(file.location + inp_filename, 'w')
+    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
-    scriptlist.append(file.location + inp_filename)
+    redoxTask.scripts += ',%s' % inp_filename
 
     # modpotref
-    td['redox_selectall'] = False
-    td['input_file'] = 'modified_' + file.stripDotPDB(file.filename) + '-reference'
+    td['input_file'] = 'redox-%s-redsite' % workstruct.identifier
     td['rdiel'] = ''
     td['pdie'] = 1
     td['sdie'] = 1
-    if len(td['resdel_list']) > 0:
-        td['do_resdel'] = True
-
-    td['enefile'] = 'redox-' + file.stripDotPDB(file.filename) + '-modpotref.txt'
-    inp_filename = 'redox-' + file.stripDotPDB(file.filename) + '-modpotref.inp'
+    td['enefile'] = 'redox-%s-modpotref.txt' % workstruct.identifier
+    inp_filename = 'redox-%s-modpotref.inp' % workstruct.identifier
 
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_delg.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(file.location + inp_filename, 'w')
+    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
-    scriptlist.append(file.location + inp_filename)
+    redoxTask.scripts += ',%s' % inp_filename
+
+def genstruct_tpl(workstruct,redoxTask,rsite_chain):
+    td = {}
+    td['rtf'] = '%s/toppar/top_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
+    td['prm'] = '%s/toppar/par_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
+    td['id'] = workstruct.identifier
+
+    # step 1: oxidized all
+    td['segs'] = [seg.name for seg in workstruct.segments.all()]
+    td['suffix'] = '_o'
+    td['outname'] = 'redox-%s-oxiall' % workstruct.identifier
+    t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
+    charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
+    inp_filename = 'redox-%s-build-oxiall.inp' % workstruct.identifier
+    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    fp.write(charmm_inp)
+    fp.close()
+    redoxTask.scripts += ',%s' % inp_filename
+
+    # step 2: oxidized redox site only
+    td['segs'] = [ '%s-bad' % workstruct.identifier ]   
+    td['outname'] = 'redox-%s-oxisite' % workstruct.identifier
+    t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
+    charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
+    inp_filename = 'redox-%s-build-oxisite.inp' % workstruct.identifier
+    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    fp.write(charmm_inp)
+    fp.close()
+    redoxTask.scripts += ',%s' % inp_filename
+
+    # step 3: reduced all
+    td['segs'] = [seg.name for seg in workstruct.segments.all()]
+    td['suffix'] = '_r'
+    td['outname'] = 'redox-%s-redall' % workstruct.identifier
+    t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
+    inp_filename = 'redox-%s-build-redall.inp' % workstruct.identifier
+    charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
+    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    fp.write(charmm_inp)
+    fp.close()
+    redoxTask.scripts += ',%s' % inp_filename
+
+    # step 4: reduced redox site only
+    td['segs'] = [ '%s-bad' % workstruct.identifier ]
+    td['outname'] = 'redox-%s-redsite' % workstruct.identifier
+    t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
+    charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
+    inp_filename = 'redox-%s-build-redsite.inp' % workstruct.identifier
+    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    fp.write(charmm_inp)
+    fp.close()
+    redoxTask.scripts += ',%s' % inp_filename
 
 def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
 
@@ -617,20 +514,19 @@ def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
     # code replaces the old genstruct_tpl call.
     redox_mod.fesSetup(pdb,clusnameo,rtf,int(m.group(2)),0,workstruct.structure.location,workstruct.identifier,pdb_metadata)
 
-    # step 2: make dielectric grids (1. protein + SF4 2. just SF4 + hanging -CH2)
-    # This script will also include a system call to dxmath to make the grids
-    gengrid_tpl(request,file,scriptlist)
+    # step 2: make final PSF and CRD of the oxidized and reduced structures
+    genstruct_tpl(workstruct,redoxTask,m.group(1))
 
-    # step 3: Get combined grids: we don't need modtruct_tpl any more because fesSetup
-    # already generated the reduced grid.
-    redoxTask.redoxsite = ""
-    redoxTask.save()
+    # step 3: make dielectric grids (1. protein + SF4 2. just SF4 + hanging -CH2)
+    # This script will include a system call to dxmath to make the grids and combine
+    # them.
+    gengrid_tpl(request,workstruct,redoxTask)
 
     # step 4: Get the four free energy values for redpot, redpotref, modpot, modpotref where mod = oxi or sr
-    getdelg_tpl(request,file,scriptlist,redox_segs)
+    getdelg_tpl(request,workstruct,redoxTask)
 
     # all scripts generated, submit to the scheduler
-    redoxTask.run()
+    redoxTask.start()
     redoxTask.save()
 
     return "foo"

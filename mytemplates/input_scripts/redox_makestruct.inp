@@ -1,0 +1,35 @@
+* this is for redox calculations only
+*
+
+read rtf card name {{rtf}}
+read param card name {{prm}}
+
+{% for seg in segs %} blankme
+  open unit 20 read card name redox-{{id}}-{{seg}}{{suffix}}.pdb
+  {% if forloop.first %} blankme
+    read sequ pdb unit 20
+  {% else %} blankme
+    read sequ pdb append unit 20
+  {% endif %} blankme
+  generate {{seg}} setup
+
+  rewind unit 20
+
+  {% if forloop.first %} blankme
+    read coor pdb unit 20
+  {% else %} blankme
+    read coor pdb append unit 20
+  {% endif %} blankme
+
+  close unit 20
+{% endfor %} blankme
+
+write psf card name {{outname}}.psf
+* PSF
+*
+
+write coor card name {{outname}}.crd
+* CRD
+*
+
+stop

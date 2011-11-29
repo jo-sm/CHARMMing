@@ -1,40 +1,31 @@
-{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+* get delta G
+* for REDOX calc
+*
 
-{% block title %}Get the delta-G using APBS{% endblock %}
-
-{% block body %} blankme
+read rtf card name {{rtf}}
+read param card name {{prm}}
+read psf card name {{input_file}}.psf
+read coor card name {{input_file}}.crd
 
 open unit 50 write card name {{ enefile }}
 
 stream {{ filebase }}-griddim.str
 
-{% if do_resdel %} blankme
-  ! delete any FeS4 residues not contributing to the calculation
-  {% for item in resdel_list %} blankme
-    delete atom select segid 4FSR .and. resid {{ item }} end
-  {% endfor %} blankme
-{% endif %} blankme
-
 PBEQ
-  stream {{ data_home }}/apbs_radii.str
+stream {{ data_home }}/apbs_radii.str
 
-  APBS mgmanual lpbe {{ rdiel }} dimx @grddim dimy @grddim dimz @grddim -
-  grdx 0.4 grdy 0.4 grdz 0.4 -
-  cmet 0 cntx 0.0 cnty 0.0 cntz 0.0 -
-  bcfl 2 pdie {{ pdie }} sdie {{ sdie }} srfm 1 chgm 1 -
-  sdens 10 srad {{ srad }} swin 0.3 temp 289.15 -
-  calcene 1 -
-  {% if redox_selectall %} blankme
-  sele all end
-  {% else %} blankme
-  sele {% for seg in redox_seglist %}{% if not forloop.first %} .or. {% endif %} ( segid 4FSR .and. {{ seg.resname }} ) {%endfor %} END
-  {% endif %} blankme
+APBS mgmanual lpbe {{ rdiel }} dimx @grddim dimy @grddim dimz @grddim -
+ grdx 0.4 grdy 0.4 grdz 0.4 -
+ cmet 0 cntx 0.0 cnty 0.0 cntz 0.0 -
+ bcfl 2 pdie {{ pdie }} sdie {{ sdie }} srfm 1 chgm 1 -
+ sdens 10 srad {{ srad }} swin 0.3 temp 289.15 -
+ calcene 1 sele all end
 
 END
 
 write title unit 50
 * ?enpb
 *
-{% endblock %} blankme
 
+stop
 

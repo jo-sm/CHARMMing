@@ -1,0 +1,10 @@
+* template for combining grids
+*
+
+! invoke dxmath to combine the grids. We only do this
+! as a system call in CHARMM for convenience.
+{% for inp in dxmath_inp %} blankme
+   system "{{ dxmath }} {{ inp }}"
+{% endfor %} blankme
+
+stop

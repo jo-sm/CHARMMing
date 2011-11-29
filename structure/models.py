@@ -760,6 +760,8 @@ class WorkingStructure(models.Model):
                     t2 = energyTask.objects.get(id=t.id)
                 elif t.action == 'nmode':
                     t2 = normalmodes.models.nmodeTask.objects.get(id=t.id)
+                elif t.action == 'redox':
+                    t2 = apbs.models.redoxTask.objects.get(id=t.id)
                 else:
                     t2 = t
 
@@ -926,7 +928,7 @@ class Task(models.Model):
     parent      = models.ForeignKey('self',null=True)
     status      = models.CharField(max_length=1, choices=STATUS_CHOICES)
     jobID       = models.PositiveIntegerField()
-    scripts     = models.CharField(max_length=250,null=True)
+    scripts     = models.CharField(max_length=500,null=True)
     active      = models.CharField(max_length=1)
     finished    = models.CharField(max_length=1)
 

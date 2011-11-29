@@ -1,8 +1,11 @@
-{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+* make the grid for the system using APBS -- is used for the
+* redox calculations.
+*
 
-{% block title %}Make a grid using APBS{% endblock %}
-
-{% block body %} blankme
+read rtf card name {{rtf}}
+read param card name {{prm}}
+read psf card name {{psf}}
+read coor card name {{crd}}
 
 ! zero out and reset WMAIN array
 scalar wmain set 0
@@ -59,6 +62,5 @@ system "mv iapbs-dielx.dx {{ grid_name }}.x"
 system "mv iapbs-diely.dx {{ grid_name }}.y"
 system "mv iapbs-dielz.dx {{ grid_name }}.z"
 
-{% endblock %} blankme
-
+stop
 

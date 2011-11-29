@@ -77,7 +77,7 @@ def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, location, identifier, pdb_me
         stdoutList.append('%s-%s' % (seg.chainid, segDict[seg.segType]))
         name = '%s/redox-%s-%s-%s_o.pdb' % (location, identifier, seg.chainid, segDict[seg.segType])
         seg.write(filename = name)
-        RTFFile.write(filename = 'test.rtf')
+        #RTFFile.write(filename = 'test.rtf')
     # Select Reduced Residue Name
     if clusnameo == '4fso': clusnamer = '4fsr'
     if clusnameo == '4fsr': clusnamer = '4fss'
