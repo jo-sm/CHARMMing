@@ -67,16 +67,16 @@ def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, location, identifier, pdb_me
     renameFeS(thisMol,het,clusnameo,numS,numFe)
     renameLigands(pdb_metadata,thisMol,het,clusnameo,numFe)
     chargeFeS(rtf,thisMol,clusnameo) # NEW #
-    segDict = {'nuc':'nuc', 'pro':'pro', 'good':'goodhet', 'bad':'het',
-                 'dna':'dna', 'rna':'rna'}
+    #segDict = {'nuc':'nuc', 'pro':'pro', 'good':'goodhet', 'bad':'het',
+    #             'dna':'dna', 'rna':'rna'}
     stdoutList = []
     # Mutate Residue if Exist
     if mutid != 0: turnOffChgs(rtf,thisMol,mutid)
     # Write out structure
     for seg in thisMol.iter_seg():
-        stdoutList.append('%s-%s' % (seg.chainid, segDict[seg.segType]))
-        name = '%s/redox-%s-%s-%s_o.pdb' % (location, identifier, seg.chainid, segDict[seg.segType])
-        seg.write(filename = name)
+        stdoutList.append('%s-%s' % (seg.chainid, seg.segType))
+        name = '%s/redox-%s-%s-%s_o.pdb' % (location, identifier, seg.chainid, seg.segType)
+        seg.write(filename = name, outformat='charmm')
         #RTFFile.write(filename = 'test.rtf')
     # Select Reduced Residue Name
     if clusnameo == '4fso': clusnamer = '4fsr'
@@ -87,9 +87,9 @@ def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, location, identifier, pdb_me
     if mutid != 0: turnOffChgs(rtf,thisMol,mutid)
     # Write out structure
     for seg in thisMol.iter_seg():
-        stdoutList.append('%s-%s' % (seg.chainid, segDict[seg.segType]))
-        name = '%s/redox-%s-%s-%s_r.pdb' % (location, identifier, seg.chainid, segDict[seg.segType])
-        seg.write(filename = name)
+        stdoutList.append('%s-%s' % (seg.chainid, seg.segType))
+        name = '%s/redox-%s-%s-%s_r.pdb' % (location, identifier, seg.chainid, seg.segType)
+        seg.write(filename = name, outformat='charmm')
 
 
 def renameFeS(thisMol,het,clusname,numS,numFe):
@@ -148,7 +148,7 @@ def renameFeS(thisMol,het,clusname,numS,numFe):
         # Rename inorgaic atoms
         for j in range(0,8):
             new[j].atomType = atype[j]
-        res.resName = clusname
+        res.resName = ' ' + clusname
 
 
 from copy import deepcopy

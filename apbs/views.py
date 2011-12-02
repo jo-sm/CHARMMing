@@ -443,7 +443,7 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain):
     td['id'] = workstruct.identifier
 
     # step 1: oxidized all
-    td['segs'] = [seg.name for seg in workstruct.segments.all()]
+    td['segs'] = [ seg.name for seg in workstruct.segments.all()]
     td['suffix'] = '_o'
     td['outname'] = 'redox-%s-oxiall' % workstruct.identifier
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
@@ -455,7 +455,7 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain):
     redoxTask.scripts += ',%s' % inp_filename
 
     # step 2: oxidized redox site only
-    td['segs'] = [ '%s-bad' % workstruct.identifier ]   
+    td['segs'] = [ '%s-bad' % rsite_chain.lower() ]   
     td['outname'] = 'redox-%s-oxisite' % workstruct.identifier
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
@@ -478,7 +478,7 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain):
     redoxTask.scripts += ',%s' % inp_filename
 
     # step 4: reduced redox site only
-    td['segs'] = [ '%s-bad' % workstruct.identifier ]
+    td['segs'] = [ '%s-bad' % rsite_chain.lower() ]
     td['outname'] = 'redox-%s-redsite' % workstruct.identifier
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
