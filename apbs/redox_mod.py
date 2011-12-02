@@ -44,7 +44,7 @@ from pychm.io.pdb import PDBFile
 from pychm.io.rtf import RTFFile
 import pychm
 
-def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, location, identifier, pdb_metadata, **kwargs):
+def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, location, identifier, pdb_metadata, cysDict, **kwargs):
     """
     Parse a *.pdb* plain text file into its constituent chains and segments with consideration
     of iron-sulfur redox sites. Print one CHARMM formatted *.pdb* file per chain/segment 
