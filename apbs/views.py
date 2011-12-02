@@ -203,7 +203,7 @@ def redoxformdisplay(request):
                                                                        'delg': delg, 'delgnf': delgnf, 'finres': finres, \
                                                                        'redox_nums': rn, 'ws_identifier': ws.identifier})
 
-def genstruct_tpl(request,file,scriptlist):
+def genstruct_old_tpl(request,file,scriptlist):
     selectedlist = []
     selectedres  = {}
     filenamelist = file.getLimitedFileList('foo')
@@ -316,6 +316,7 @@ def getdelg_tpl(request,workstruct,redoxTask):
     td['rtf'] = '%s/toppar/top_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
     td['prm'] = '%s/toppar/par_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
     td['id'] = workstruct.identifier
+    td['data_home'] = charmming_config.data_home
 
     # step 1: generate final grids for full system and redox site
     # a. full sys
@@ -436,16 +437,32 @@ def getdelg_tpl(request,workstruct,redoxTask):
     fp.close()
     redoxTask.scripts += ',%s' % inp_filename
 
-def genstruct_tpl(workstruct,redoxTask,rsite_chain):
+def genstruct_tpl(workstruct,redoxTask,rsite_chain,cysResList):
     td = {}
     td['rtf'] = '%s/toppar/top_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
     td['prm'] = '%s/toppar/par_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
     td['id'] = workstruct.identifier
 
+    td['segresid'] = ''
+    resnums = cysResList.split(',')
+    if len(resnums) != 4:
+        raise AssertionError('wrong number of elements is cysResList')
+    for rnum in resnums:
+        td['segresid'] += '%s %s ' % (rsite_chain,rnum)
+
+    if redoxTask.redoxsite == 'couple_oxi':
+        oxipatch = 'PFSO'
+        redpatch = 'PFSR'
+    else:
+        oxipatch = 'PFSR'
+        redpatch = 'PFSS' 
+
     # step 1: oxidized all
     td['segs'] = [ seg.name for seg in workstruct.segments.all()]
     td['suffix'] = '_o'
     td['outname'] = 'redox-%s-oxiall' % workstruct.identifier
+    td['needpatch'] = True
+    td['segresid'] = oxipatch
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
     inp_filename = 'redox-%s-build-oxiall.inp' % workstruct.identifier
@@ -457,6 +474,7 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain):
     # step 2: oxidized redox site only
     td['segs'] = [ '%s-bad' % rsite_chain.lower() ]   
     td['outname'] = 'redox-%s-oxisite' % workstruct.identifier
+    td['needpatch'] = False
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
     inp_filename = 'redox-%s-build-oxisite.inp' % workstruct.identifier
@@ -469,6 +487,8 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain):
     td['segs'] = [seg.name for seg in workstruct.segments.all()]
     td['suffix'] = '_r'
     td['outname'] = 'redox-%s-redall' % workstruct.identifier
+    td['needpatch'] = True
+    td['segresid'] = redpatch
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     inp_filename = 'redox-%s-build-redall.inp' % workstruct.identifier
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
@@ -480,6 +500,7 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain):
     # step 4: reduced redox site only
     td['segs'] = [ '%s-bad' % rsite_chain.lower() ]
     td['outname'] = 'redox-%s-redsite' % workstruct.identifier
+    td['needpatch'] = False
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
     inp_filename = 'redox-%s-build-redsite.inp' % workstruct.identifier
@@ -512,15 +533,23 @@ def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
 
     # Step 1: generate the patched structures of the redox site ... a call to Scott's
     # code replaces the old genstruct_tpl call.
-    redox_mod.fesSetup(pdb,clusnameo,rtf,int(m.group(2)),0,workstruct.structure.location,workstruct.identifier,pdb_metadata)
+    cysDict = {}
+    redox_mod.fesSetup(pdb,clusnameo,rtf,int(m.group(2)),0,workstruct.structure.location,workstruct.identifier,pdb_metadata,cysDict)
+
+    dictkey = '%s-%s' % (m.group(1).lower(),m.group(2))
+    try:
+        cysResList = cysDict[dictkey]
+    except:
+        raise AssertionError('key %s not found in cysDict -- bad Scott!' % dictkey)
 
     # step 2: make final PSF and CRD of the oxidized and reduced structures
-    genstruct_tpl(workstruct,redoxTask,m.group(1))
+    genstruct_tpl(workstruct,redoxTask,m.group(1),cysResList)
 
     # step 3: make dielectric grids (1. protein + SF4 2. just SF4 + hanging -CH2)
     # This script will include a system call to dxmath to make the grids and combine
     # them.
-    gengrid_tpl(request,workstruct,redoxTask)
+    ##NB: This functionality has been moved into gendelg_tpl -- schedule for removal
+    ##gengrid_tpl(request,workstruct,redoxTask)
 
     # step 4: Get the four free energy values for redpot, redpotref, modpot, modpotref where mod = oxi or sr
     getdelg_tpl(request,workstruct,redoxTask)

@@ -567,18 +567,9 @@ function send_form_energy(form,divupdate,filenames)
 function send_form_oxired(form,link,divchange,divupdate,filenames)
 {
 
-    var ifsegchecked = 0;
     var rdxchecked = 0;
     var rbut;  
  
-    for(i=0;i<filenames.length;i++)
-    {
-     if(document.getElementById('id_' + filenames[i]).checked)
-     {
-      ifsegchecked = 1;
-     }
-    }
-
     rbut = document.getElementsByName("picksite");
     for(i=0; i < rbut.length; i++) {
       if(rbut[i].checked) {
@@ -586,11 +577,6 @@ function send_form_oxired(form,link,divchange,divupdate,filenames)
       }
     }
 
-    if(ifsegchecked == 0)
-    {
-     Dialog.alert("<center>Please select a PDB segment to continue.</center>", {width:300, height:100, okLabel: "close"});
-     return false;
-    }
     if(rdxchecked == 0)
     {
      Dialog.alert("<center>Please select an oxidation/reduction site.</center>", {width:300, height:100, okLabel: "close"});

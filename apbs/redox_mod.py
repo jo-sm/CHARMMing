@@ -22,7 +22,7 @@
 PDB parser for [4Fe-4S] proteins
 
 :Author: bsp
-:Date: 11/09/2011
+:Date: 12/01/2011
 
 :Usage:
         ``setup_4fsr.py --help`` will give you a help message explaining the various
@@ -65,7 +65,7 @@ def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, location, identifier, pdb_me
     het = list(thisMol.iter_res(segtypes = ['bad'],resName = ['fs4','sf4']))
     #het = list(thisMol.find(segtypes=['bad']))
     renameFeS(thisMol,het,clusnameo,numS,numFe)
-    renameLigands(pdb_metadata,thisMol,het,clusnameo,numFe)
+    renameLigands(pdb_metadata,thisMol,het,clusnameo,numFe,cysDict)
     chargeFeS(rtf,thisMol,clusnameo) # NEW #
     #segDict = {'nuc':'nuc', 'pro':'pro', 'good':'goodhet', 'bad':'het',
     #             'dna':'dna', 'rna':'rna'}
@@ -153,7 +153,7 @@ def renameFeS(thisMol,het,clusname,numS,numFe):
 
 from copy import deepcopy
 
-def renameLigands(pdb_metadata,thisMol,het,clusname,numFe):
+def renameLigands(pdb_metadata,thisMol,het,clusname,numFe,cysDict):
     """
     Cysteine residues ligated to Fe atoms of the redox site are selected
     based on the LINK statement in the PDB. The CB, SG, and their bound
@@ -229,6 +229,7 @@ def renameLigands(pdb_metadata,thisMol,het,clusname,numFe):
                     temp.resid = res.resid
                     thisMol.append(temp)
                     s=s+1
+        cysDict[res.chainid + "_" + res.resid] = cysid[0] + "," + cystid[1] + "," + cysid[2] + "," + cysid[3]
 
 
 from pychm.io.rtf import RTFFile
@@ -302,7 +303,7 @@ if __name__ == '__main__':
     thisMol = pdb.iter_models().next()
     thisMol.parse()
     # RTF File
-    rtf = RTFFile('top_all22_4fe4s_esp_090209.dat')
+    rtf = RTFFile('top_all22_4fe4s_esp_090209.inp')
     options.redox_site_id=1
     mutid=0
     # Do Work
