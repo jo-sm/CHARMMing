@@ -317,11 +317,13 @@ def getdelg_tpl(request,workstruct,redoxTask):
     td['prm'] = '%s/toppar/par_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
     td['id'] = workstruct.identifier
     td['data_home'] = charmming_config.data_home
+    td['filebase'] = 'redox-%s' % workstruct.identifier
 
     # step 1: generate final grids for full system and redox site
     # a. full sys
     td['psf'] = 'redox-%s-oxiall.psf' % workstruct.identifier
     td['crd'] = 'redox-%s-oxiall.crd' % workstruct.identifier
+    td['sizegrid'] = True
     td['grid_name'] = 'pro'
     try:
         td['pdie'] = float(request.POST['prot_diel'])
@@ -357,6 +359,7 @@ def getdelg_tpl(request,workstruct,redoxTask):
 
     # step 2: use dxmath to generate the final grids
     td['dxmath_inp'] = []
+    td['dxmath'] = '%s/apbs-1.1.0/tools/mesh/dxmath' % charmming_config.data_home
     for axis in ["x", "y", "z"]:
         dxmath_scr = "combo.%s" % axis
         fp = open(workstruct.structure.location + '/' + dxmath_scr, 'w')
@@ -371,6 +374,8 @@ def getdelg_tpl(request,workstruct,redoxTask):
     fp.write(charmm_inp)  
     fp.close()
     redoxTask.scripts += ',%s' % inp_name
+
+    td['sizegrid'] = True
 
     # step 3: for each of redpot, redpotref, modpot, and modpotref generate the 
     # delta G via APBS
@@ -443,12 +448,19 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,cysResList):
     td['prm'] = '%s/toppar/par_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
     td['id'] = workstruct.identifier
 
+    logfp = open('/tmp/cysres,txt', 'w')
+    logfp.write('cysResList = %s\n' % cysResList)
+
     td['segresid'] = ''
     resnums = cysResList.split(',')
     if len(resnums) != 4:
         raise AssertionError('wrong number of elements is cysResList')
     for rnum in resnums:
-        td['segresid'] += '%s %s ' % (rsite_chain,rnum)
+        td['segresid'] += '%s-pro %s ' % (rsite_chain,rnum)
+    td['segresid'] += '%s-bad 1' % rsite_chain # FixMe: we hope for now that the REDOX site is the only residue in the bad chain
+
+    logfp.write('segresid = %s\n' % td['segresid'])
+    logfp.close()
 
     if redoxTask.redoxsite == 'couple_oxi':
         oxipatch = 'PFSO'
@@ -462,7 +474,7 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,cysResList):
     td['suffix'] = '_o'
     td['outname'] = 'redox-%s-oxiall' % workstruct.identifier
     td['needpatch'] = True
-    td['segresid'] = oxipatch
+    td['presname'] = oxipatch
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
     inp_filename = 'redox-%s-build-oxiall.inp' % workstruct.identifier
@@ -488,7 +500,7 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,cysResList):
     td['suffix'] = '_r'
     td['outname'] = 'redox-%s-redall' % workstruct.identifier
     td['needpatch'] = True
-    td['segresid'] = redpatch
+    td['presname'] = redpatch
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     inp_filename = 'redox-%s-build-redall.inp' % workstruct.identifier
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))

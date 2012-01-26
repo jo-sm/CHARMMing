@@ -229,7 +229,7 @@ def renameLigands(pdb_metadata,thisMol,het,clusname,numFe,cysDict):
                     temp.resid = res.resid
                     thisMol.append(temp)
                     s=s+1
-        cysDict[res.chainid + "_" + res.resid] = cysid[0] + "," + cystid[1] + "," + cysid[2] + "," + cysid[3]
+        cysDict[res.chainid + "-" + str(res.resid)] = str(cysid[0]) + "," + str(cysid[1]) + "," + str(cysid[2]) + "," + str(cysid[3])
 
 
 from pychm.io.rtf import RTFFile

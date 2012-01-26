@@ -13,7 +13,7 @@ read param card name {{prm}}
 {% endfor %} blankme
 
 {% if needpatch %}
-   patch {{presname}} {{segresid}}
+   patch {{presname}} {{segresid}} setup
 {% endif %}
 
 {% for seg in segs %} blankme
@@ -27,6 +27,10 @@ read param card name {{prm}}
 
   close unit 20
 {% endfor %} blankme
+
+ic param
+ic fill preserve
+ic build
 
 hbuild
 
