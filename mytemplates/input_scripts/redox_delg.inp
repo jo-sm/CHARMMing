@@ -11,6 +11,8 @@ open unit 50 write card name {{ enefile }}
 
 stream {{ filebase }}-griddim.str
 
+{% if knockout %}scalar charge set 0.0 sele {{knockout}} end{% endif %}
+
 PBEQ
 stream {{ data_home }}/apbs_radii.str
 

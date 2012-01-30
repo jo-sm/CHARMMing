@@ -46,7 +46,9 @@
   {% endif %} blankme
 
   ! orient structure
-  coor orient
+  !! BTM, don't do this, it might muck with re-assembling the
+  !! structure for redox calculations
+  !coor orient
 
   ! calculate energy
   energy

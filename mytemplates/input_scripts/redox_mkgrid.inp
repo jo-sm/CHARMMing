@@ -43,6 +43,8 @@ close unit 50
 stream {{ filebase }}-griddim.str
 {% endif %}
 
+{% if knockout %}scalar charge set 0.0 sele {{knockout}} end{% endif %}
+
 pbeq
 
 APBS mgmanual lpbe dimx @grddim dimy @grddim dimz @grddim -

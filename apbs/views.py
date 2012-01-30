@@ -261,52 +261,7 @@ def genstruct_old_tpl(request,file,scriptlist):
         
     return finalseglist
 
-def gengrid_tpl(request,workstruct,redoxTask):
-    td = {}
-    try:
-        td['srad'] = request.POST['srad']
-    except:
-        td['srad'] = 1.4
-
-    # step 1: get the grid for the full structure
-    td['prot_grid'] = True
-    td['grid_name'] = "pro"
-    td['data_home'] = charmming_config.data_home
-    try:
-        td['pdie'] = float(request.POST['prot_diel'])
-        td['sdie'] = float(request.POST['solv_diel'])
-    except:
-        td['pdie'] = 4
-        td['sdie'] = 78
-    td['sizegrid'] = True
-
-    inp_filename = "redox-%s-mkgrid1.inp" % workstruct.identifier
-    t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_mkgrid.inp' % charmming_config.charmming_root)
-    charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
-    fp.write(charmm_inp)
-    fp.close()
-    redoxTask.scripts += ',%s' % inp_filename
-
-    # step 2: get the grid for only the cluster site
-    td['prot_grid'] = False
-    td['grid_name'] = "ref"
-    try:
-        td['pdie'] = float(request.POST['redx_diel'])
-        td['sdie'] = float(request.POST['prot_diel'])
-    except:
-        td['pdie'] = 1
-        td['sdie'] = 4
-
-    inp_filename = "redox-%s-mkgrid2.inp" % workstruct.identifier
-    t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_mkgrid.inp' % charmming_config.charmming_root)
-    charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
-    fp.write(charmm_inp)
-    fp.close()
-    redoxTask.scripts += ',%s' % inp_filename
-
-def getdelg_tpl(request,workstruct,redoxTask):
+def getdelg_tpl(request,workstruct,redoxTask,knockout):
     td = {}
     try:
         td['srad'] = float(request.POST['srad'])
@@ -318,6 +273,7 @@ def getdelg_tpl(request,workstruct,redoxTask):
     td['id'] = workstruct.identifier
     td['data_home'] = charmming_config.data_home
     td['filebase'] = 'redox-%s' % workstruct.identifier
+    td['knockout'] = knockout
 
     # step 1: generate final grids for full system and redox site
     # a. full sys
@@ -343,6 +299,7 @@ def getdelg_tpl(request,workstruct,redoxTask):
     td['psf'] = 'redox-%s-oxisite.psf' % workstruct.identifier
     td['crd'] = 'redox-%s-oxisite.crd' % workstruct.identifier
     td['grid_name'] = 'ref'
+    td['sizegrid'] = False
     try:
         td['pdie'] = float(request.POST['prot_diel'])
         td['sdie'] = float(request.POST['solv_diel'])
@@ -475,6 +432,7 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,cysResList):
     td['outname'] = 'redox-%s-oxiall' % workstruct.identifier
     td['needpatch'] = True
     td['presname'] = oxipatch
+
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
     inp_filename = 'redox-%s-build-oxiall.inp' % workstruct.identifier
@@ -529,6 +487,13 @@ def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
     if not request.POST.has_key('picksite'):
         raise AssertionError('Got to redox_tpl without picksite. How did that happen??!')
 
+    doKnockout = ''
+    if request.POST.has_key('chrgknockout'):
+        #input.checkForMaliciousCode(request.POST['chrgknockout'])
+        if len(request.POST['chrgknockout']) > 0:
+            doKnockout = request.POST['chrgknockout']
+    
+
     m = re.search('site_([A-Z])_([1-9])', request.POST['picksite'])
     if not m:
         raise AssertionError('picksite is not in the correct format')
@@ -564,7 +529,7 @@ def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
     ##gengrid_tpl(request,workstruct,redoxTask)
 
     # step 4: Get the four free energy values for redpot, redpotref, modpot, modpotref where mod = oxi or sr
-    getdelg_tpl(request,workstruct,redoxTask)
+    getdelg_tpl(request,workstruct,redoxTask,doKnockout)
 
     # all scripts generated, submit to the scheduler
     redoxTask.start()
