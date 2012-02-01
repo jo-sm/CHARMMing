@@ -18,7 +18,7 @@ stream {{ data_home }}/apbs_radii.str
 
 APBS mgmanual lpbe {{ rdiel }} dimx @grddim dimy @grddim dimz @grddim -
  grdx 0.4 grdy 0.4 grdz 0.4 -
- cmet 0 cntx 0.0 cnty 0.0 cntz 0.0 -
+ cmet 0 cntx @centrx cnty @centry cntz @centrz -
  bcfl 2 pdie {{ pdie }} sdie {{ sdie }} srfm 1 chgm 1 -
  sdens 10 srad {{ srad }} swin 0.3 temp 289.15 -
  calcene 1 sele all end

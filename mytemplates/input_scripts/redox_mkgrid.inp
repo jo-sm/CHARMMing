@@ -14,6 +14,9 @@ stream {{ data_home }}/apbs_radii.str
 ! get grid dimensions, assuming a 0.4 A grid spacing
 {% if sizegrid %}
 coor stat
+set centrx = ?XAVE
+set centry = ?YAVE
+set centrz = ?ZAVE
 calc xlen = ?xmax - ?xmin
 calc ylen = ?ymax - ?ymin
 calc zlen = ?zmax - ?zmin
@@ -36,6 +39,9 @@ write title unit 50
 
 write title unit 50
 * set grddim = @grddim
+* set centrx = @centrx
+* set centry = @centry
+* set centrz = @centrz
 * return
 *
 close unit 50
@@ -49,8 +55,7 @@ pbeq
 
 APBS mgmanual lpbe dimx @grddim dimy @grddim dimz @grddim -
   grdx 0.4 grdy 0.4 grdz 0.4 -
-  cglx 64 cgly 64 cglz 64 -
-  cmet 0 cntx 0.0 cnty 0.0 cntz 0.0 -
+  cmet 0 cntx @centrx cnty @centry cntz @centrz -
   bcfl 2 pdie {{ pdie }} sdie {{ sdie }} srfm 1 chgm 1 -
   sdens 10 srad {{ srad }} swin 0.3 temp 289.15 -
   calcene 1 -
