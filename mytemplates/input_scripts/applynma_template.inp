@@ -20,6 +20,10 @@
 
 {% block body %} blankme
    {% ifequal nma 'useenm' %}
+      ! set bomlev to -2 ONLY to avoid "missing parameter" errors
+      ! that do not apply to this model.
+      bomlev -2
+
       ! Waters do not work with ENM, delete them
       delete atom select resname TIP3 end
 

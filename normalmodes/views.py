@@ -96,7 +96,7 @@ def normalmodesformdisplay(request):
 
         if ws.isBuilt != 't':
             isBuilt = False
-            pTask = ws.build(st)
+            pTask = ws.build(nt)
             pTaskID = pTask.id
         else:
             isBuilt = True
