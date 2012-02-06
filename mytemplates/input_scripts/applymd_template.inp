@@ -13,8 +13,8 @@
    {% ifequal strtword "restart" %}
        open unit 40 read card name {{restartname}} ! restart file that will be read
    {% endifequal %}
-   open unit 41 write card name {{outname}}-md.res !restart file that will be written
-   open unit 31 write file name {{outname}}-md.dcd !trajectory file name
+   open unit 41 write card name {{output_name}}.res !restart file that will be written
+   open unit 31 write file name {{output_name}}.dcd !trajectory file name
 
    ! we may need masses for the temperature and pressure pistons
    scalar mass stat
@@ -47,9 +47,9 @@
    {% include 'input_scripts/write_out_struct.inp'%}
 
    {% if genavg_struct %}
-      CHARMM-scripts open unit 31 read file name {{outname}}-md.dcd
+      CHARMM-scripts open unit 31 read file name {{output_name}}-md.dcd
       CHARMM-scripts coor dyna firstu 31 nunit 1 sele .not. segid bwat end orient sele .not. segid bwat end
-      CHARMM-scripts write coor card name {{outname}}-mdavg.crd
+      CHARMM-scripts write coor card name {{output_name}}-mdavg.crd
       CHARMM-scripts * Average coordinates from MD
       CHARMM-scripts *
    {% endif %}

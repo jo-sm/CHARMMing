@@ -356,6 +356,7 @@ def applymd_tpl(request,mdt,pTaskID):
     elif template_dict['mdtype'] == 'usenve':
         mdt.ensemble = 'nve'
         template_dict['nstep'] = postdata['nstepnve']
+        template_dict['nvetemp'] = postdata['tstruct']
         template_dict['ieqfrq'] = postdata['ieqfrq']
     elif template_dict['mdtype'] == 'usenvt':
         mdt.ensemble = 'nvt'
@@ -392,9 +393,9 @@ def applymd_tpl(request,mdt,pTaskID):
     #if file.lesson_type:
     #    lessonaux.doLessonAct(file,"onMDSubmit",postdata,min_pdb)
 
-    make_movie = postdata.has_key('make_movie')
-    if make_movie:
-        return makeJmolMovie(workstruct,postdata,scriptlist,'md')
+    if postdata.has_key('make_movie'):
+        mdt.make_movie = 't'
+        return makeJmolMovie(mdt,postdata,'md')
     else:
         mdt.start()
 
@@ -405,22 +406,20 @@ def applymd_tpl(request,mdt,pTaskID):
 #pre: Requires a file object, and the name of the psf/crd file to read in
 #Jmol requires the PDB to be outputted a certain a certain way for a movie to be displayed
 #it does not take DCD files
-def makeJmolMovie(workstruct,postdata,scriptlist,type):
-    file.md_movie_status = ""
+def makeJmolMovie(task,postdata,type):
+    task.movie_status = ""
     charmm_inp = """* Movie making
 *
 
-open read unit 2 card name """ + file.stripDotPDB(psf_filename) + """.psf
-read psf card unit 2
-close unit 2
+read psf card name """ + task.workstruct.identifier + """-""" + type + """.psf
 
-open read unit 10 file name new_""" + file.stripDotPDB(file.filename) + """-""" + type + """.dcd
+open read unit 10 file name """ + task.workstruct.identifier + """-""" + type + """.dcd
 traj firstu 10 skip 10
 
 set i 1
 label loop
  traj read
- open unit 1 card write name new_""" + file.stripDotPDB(file.filename) + """-movie@i.pdb
+ open unit 1 card write name """ + task.workstruct.identifier + """-""" + type + """-movie@i.pdb
  write coor pdb unit 1
  **Cords
  *
@@ -436,95 +435,43 @@ stop"""
     #2. In the status method, check to see if movie_status is done
     #3. If it is done, call the method combinePDBsForMovie(...): right below the following code.
     if(type == 'md'):
-        movie_filename = 'charmm-' + file.stripDotPDB(file.filename) + '-mdmovie.inp'
+        movie_filename = task.workstruct.identifier + '-mdmovie.inp'
     elif(type == 'ld'):
-        movie_filename = 'charmm-' + file.stripDotPDB(file.filename) + '-ldmovie.inp'
+        movie_filename = task.workstruct.identifier + '-ldmovie.inp'
     elif(type == 'sgld'):
-        movie_filename = 'charmm-' + file.stripDotPDB(file.filename) + '-sgldmovie.inp'
-    movie_handle = open(file.location + movie_filename,'w')
+        movie_filename = task.workstruct.identifier + '-sgldmovie.inp'
+    movie_handle = open(task.workstruct.structure.location + '/' + movie_filename,'w')
     movie_handle.write(charmm_inp)
     movie_handle.close()
-    user_id = file.owner.id
-    scriptlist.append(file.location + movie_filename)
+    task.scripts += ",%s/%s" % (task.workstruct.structure.location,movie_filename)
 
-    si = schedInterface()
-    if(type == 'md'):
-        if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
-            file.save()
-	else:
-            newJobID = si.submitJob(user_id,file.location,scriptlist,{},{})
-            file.md_jobID = newJobID
-            sstring = si.checkStatus(newJobID)
+    task.start()
+    task.save()
+    return HttpResponse("Done")
 
-            mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
-            mdp.statusHTML = statsDisplay(sstring,newJobID)
-            mdp.md_movie_status = None
-            mdp.save()
-    elif(type == 'ld'):
-        if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
-            file.save()
-	else:
-            newJobID = si.submitJob(user_id,file.location,scriptlist,{},{})
-            file.ld_jobID = newJobID
-            sstring = si.checkStatus(newJobID)
-            file.ld_movie_status = None
-            
-            ldp = ldTask.objects.filter(pdb=file,selected='y')[0]
-            ldp.statusHTML = statsDisplay(sstring,newJobID)
-            ldp.ld_movie_status = None
-            ldp.save()
-    elif(type == 'sgld'):
-        if postdata.has_key('edit_script') and isUserTrustworthy(request.user):
-            file.save()
-	else:
-            newJobID = si.submitJob(user_id,file.location,scriptlist,{},{})
-            file.sgld_jobID = newJobID
-            sstring = si.checkStatus(newJobID)
-            file.sgld_movie_status = None
-            
-            ldp = sgldTask.objects.filter(pdb=file,selected='y')[0]
-            ldp.statusHTML = statsDisplay(sstring,newJobID)
-            ldp.save()
-    file.save()
 #    combinePDBsForMovie(file)
  
 #pre: Requires a Structure object
 #Combines all the smaller PDBs make in the above method into one large PDB that
 #jmol understands
 #type is md,ld,or sgld
-def combinePDBsForMovie(file,type):
+def combinePDBsForMovie(task,type):
     ter = re.compile('TER')
     remark = re.compile('REMARK')
+
     #movie_handle will be the final movie created
-    #mini movie is the PDBs which each time step sepearated into a new PDB
-    if(type == 'md'): 
-        movie_handle = open(file.location + 'new_' + file.stripDotPDB(file.filename) + "-md-mainmovie.pdb",'a')
-    elif(type == 'ld'): 
-        movie_handle = open(file.location + 'new_' + file.stripDotPDB(file.filename) + "-ld-mainmovie.pdb",'a')
-    elif(type == 'sgld'): 
-        movie_handle = open(file.location + 'new_' + file.stripDotPDB(file.filename) + "-sgld-mainmovie.pdb",'a')
-    for i in range(10):
-        i = i+1
-	minimovie_handle = open(file.location +  "new_" + file.stripDotPDB(file.filename) + "-movie" + `i` + ".pdb",'r')
-	movie_handle.write('MODEL ' + `i` + "\n")
-	for line in minimovie_handle:
-	    if(not remark.search(line) and not ter.search(line)):
-	        movie_handle.write(line)
+    #frame movie is the PDBs which each time step sepearated into a new PDB
+    movie_handle = open(task.workingstruct.structure.location + '/' + workstruct.identifier + "-" + type + '-' + 'mainmovie.pdb','a')
+    for i in range(1,11):
+        frame_handle = open(task.workingstruct.structure.location +  "/" + task.workstruct.identifier + "-" + type + "-movie" + str(i) + ".pdb",'r')
+        movie_handle.write('MODEL ' + str(i) + "\n")
+        for line in frame_handle:
+	    if(not remark.search(line) and not ter.search(line)): movie_handle.write(line)
 	movie_handle.write('ENDMDL\n')
 	minimovie_handle.close()
 	#os.remove(file.location +  "new_" + file.stripDotPDB(file.filename) + "-movie" + `i` + ".pdb")
-	if(type == 'md'):
-            mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
-	    mdp.md_movie_status = "<font color=33CC00>Done</font>"
-            mdp.save()
-	elif(type == 'ld'):
-            ldp = ldTask.objects.filter(pdb=file,selected='y')[0]
-	    ldp.ld_movie_status = "<font color=33CC00>Done</font>"
-            ldp.save()
-	elif(type == 'sgld'):
-            sgldp = sgldTask.objects.filter(pdb=file,selected='y')[0]
-	    sgldp.sgld_movie_status = "<font color=33CC00>Done</font>"
-            sgldp.save()
-	file.save()
+
+    task.movie_status = 'Done'
+    task.save()
     return "Done."
 	    

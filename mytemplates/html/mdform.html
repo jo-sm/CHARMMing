@@ -75,6 +75,7 @@
         <hr width="60%" align="left">
         <table>
           <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepnve" id="nstepnve" value="1000" onChange="getTimeEstimate(makeUniqueDiv('run_time_mdestimate'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'md');"></td></tr>
+          <tr><td>Initital temperature (TSTRUCT)</td><td><input type="text" name="tstruct" value="300"></td></tr>
           <tr><td>Equilibration (IEQFRQ)</td><td><input type="text" name="ieqfrq" value="-1"></td></tr>
         </table>
       </div>

@@ -29,8 +29,8 @@
 
       <p class="fontmed">Choose one of the following types of Normal Mode Analysis to run.</p>
       <table>
-        <tr><td>All atoms</td><td><input type="radio" id="usevibran" value="usevibran" name="nma" onclick="checkUncheckNMA('vibran','enm','block');getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');showHideQMMM();"></td></tr>
-        <tr><td>ENM (Elastic Network Model)</td><td><input type="radio" id="useenm" value="useenm" name="nma" onclick="checkUncheckNMA('enm','vibran','block');getAtomNumber(makeUniqueDiv('atomnumbernma'),[{% for item in filename_list%}'{{item}}',{%endfor%}],'nma');showHideQMMM();"></td></tr>
+        <tr><td>All atoms</td><td><input type="radio" id="usevibran" value="usevibran" name="nma" onclick="checkUncheckNMA('vibran','enm','block');showHideQMMM();"></td></tr>
+        <tr><td>ENM (Elastic Network Model)</td><td><input type="radio" id="useenm" value="useenm" name="nma" onclick="checkUncheckNMA('enm','vibran','block');showHideQMMM();"></td></tr>
         <tr><td>Number of normal modes to generate:</td><td> <input type="text" id="num_normalmodes" name="num_normalmodes" value="100" /></td></tr>
         <tr><td>Generate trajectories of normal modes</td><td><input type="checkbox" id="gen_trj" name="gen_trj" value="gen_trj" onclick="checkPatch('gen_trj','num_trjstable');"></td></tr>
         <tr><td>How many of the lowest modes should trajectories be generated for?</td>
@@ -42,8 +42,23 @@
              </select>
             </td>
         </tr>
-        <tr><td><p class="fonrmed">Use QM/MM calculations</td><td><input id="useqmmm" type="checkbox" name="useqmmm" onclick="checkPatch(makeUniqueDiv('useqmmm'),makeUniqueDiv('qmmm_parameters'));"></td></tr>
       </table>
+
+      <div id="vibran" style="display:none;">
+        <h3 align="center">All atom vibrational analysis parameters</h3>
+        <table style="padding-left:10%;">
+           <tr><td>Use QM/MM calculations:</td><td><input id="useqmmm" type="checkbox" name="useqmmm" onclick="checkPatch(makeUniqueDiv('useqmmm'),makeUniqueDiv('qmmm_parameters'));"></td></tr>
+        </table>
+      </div>
+
+      <div id="enm" style="display:none;">
+        <h3 align="center">ENM parameters</h3>
+        <table style="padding-left:10%;">
+          <tr><td>RCUT:</td><td><input type="text" name="rcut" id="rcut" value="10"></td><td><a href="#" title="Maximum distance at which there can be a spring force constant.">?</a></td></tr>
+          <tr><td>KSHORT:</td><td><input type="text" name="kshort" id="rcut" value="10.000"></td><td><a href="#" title="Near range force constant.">?</a></td></tr>
+          <tr><td>KLONG:</td><td><input type="text" name="klong" id="rcut" value="1.000"></td><td><a href="#" title="Long range force constant.">?</a></td></tr>
+        </table> 
+      </div>
 
       <input type="submit" value="Start Normal Mode Analysis" />   
 
