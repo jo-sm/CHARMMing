@@ -549,16 +549,28 @@ def viewpdbs(request):
 #This is for changing the currently selected PDB
 #on the SELECT/EDIT PDBs page
 def switchpdbs(request,switch_id):
+    logfp = open('/tmp/switch.txt', 'w')
+    logfp.write('in switchpdbs\n')
+
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
+    logfp.write("going to set the old PDB to unselected!\n")
     try:
         oldfile = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
         oldfile.selected = ''
         oldfile.save()
     except:
         pass
-    newfile = structure.models.Structure.objects.filter(owner=request.user,filename=switch_id)[0] 
+    logfp.write("Looking for new file: %s\n" % switch_id)
+    try:
+        newfile = structure.models.Structure.objects.filter(owner=request.user,name=switch_id)[0] 
+        logfp.write("Got it!\n")
+    except:
+        logfp.write("oh foo ... it is not there\n")
+        logfp.close()
+
+    logfp.close()
     newfile.selected = 'y'
     newfile.save()
     return render_to_response('html/switchpdb.html',{'oldfile':oldfile,'newfile':newfile})

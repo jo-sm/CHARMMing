@@ -36,3 +36,4 @@ class redoxTask(Task):
         # PDB files from the REDOX calculation.
 
         self.status = 'C'
+        self.finished = 'y'

@@ -18,7 +18,7 @@
 
 import re, os, cPickle, copy
 import django.shortcuts, django.http, django.template.loader, django.template
-import minimization.views, input
+import minimization.views, input, apbs
 import charmming_config, output, scheduler
 from  apbs import redox_mod
 from django.http import HttpResponse
@@ -60,6 +60,7 @@ def redoxformdisplay(request):
         rdxtsk = redoxTask()
         rdxtsk.setup(ws)
         rdxtsk.action = 'redox'
+        rdxtsk.active = 'y'
         rdxtsk.save()
 
         if ws.isBuilt != 't':
@@ -121,73 +122,70 @@ def redoxformdisplay(request):
         # Check and see if we have any results to print out
         print_result = False
         calc_final = True
-        redpot = 'N/A'
-        redpotref = 'N/A'
+        oxipot = 'N/A'
+        oxipotref = 'N/A'
         modpot = 'N/A'
         modpotref = 'N/A'
         delg = "N/A"
         delgnf = "N/A"
         finres = "N/A"
 
+        logfp = open('/tmp/happytim.txt', 'w')
+
         try:
-            os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpot.txt')
+            logfp.write("looking for " + struct.location + '/redox-' + ws.identifier + '-mopot.txt\n')
+            os.stat(struct.location + '/redox-' + ws.identifier + '-modpot.txt')
+        except OSError, oe:
+            logfp.write("OSError\n")
+            calc_final = False
+        else:
+            logfp.write("OK\n")
+            print_result = True
+            fp = open(struct.location + '/redox-' + ws.identifier + '-modpot.txt', 'r')
+            modpot = float(fp.readline())
+            fp.close()
+
+        logfp.write('modpot = %s\n' % modpot)
+        logfp.close()
+
+        try:
+            os.stat(struct.location + '/redox-' + ws.identifier + '-modpotref.txt')
+        except OSError, oe: 
+            calc_final = False
+        else:
+            print_result = True
+            fp = open(struct.location + '/redox-' + ws.identifier + '-modpotref.txt', 'r')
+            modpotref = float(fp.readline())
+            fp.close()
+        try:
+            os.stat(struct.location + '/redox-' + ws.identifier + '-oxipot.txt')
+        except OSError, oe: 
+            calc_final = False
+        else:
+            print_result = True
+            fp = open(struct.location + '/redox-' + ws.identifier + '-oxipot.txt', 'r')
+            oxipot = float(fp.readline())
+            fp.close()
+        try:
+            os.stat(struct.location + '/redox-' + ws.identifier + '-oxipotref.txt')
         except:
             calc_final = False
         else:
             print_result = True
-            fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpot.txt', 'r')
-            try:
-                redpot = float(fp.readline())
-            except:
-                pass
-            fp.close()
-        try:
-            os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpotref.txt')
-        except: 
-            calc_final = False
-        else:
-            print_result = True
-            fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-redpotref.txt', 'r')
-            try:
-                redpotref = float(fp.readline())
-            except:
-                pass
-            fp.close()
-        try:
-            os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpot.txt')
-        except: 
-            calc_final = False
-        else:
-            print_result = True
-            fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpot.txt', 'r')
-            try:
-                modpot = float(fp.readline())
-            except:
-                pass
-            fp.close()
-        try:
-            os.stat(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpotref.txt')
-        except:
-            calc_final = False
-        else:
-            print_result = True
-            fp = open(file.location + 'redox-' + file.stripDotPDB(file.filename) + '-modpotref.txt', 'r')
-            try:
-                modpotref = float(fp.readline())
-            except:
-                pass
+            fp = open(struct.location + '/redox-' + ws.identifier + '-oxipotref.txt', 'r')
+            oxipotref = float(fp.readline())
             fp.close()
 
         if calc_final:
             # figure out the correct ade value
-            rp = apbs.models.redoxParams.objects.filter(pdb = file, selected = 'y')[0]
+            rp = apbs.models.redoxTask.objects.filter(workstruct=ws, action='redox', active='y', finished='y')[0]
             ade = 0.0
             delg = 0.0
             if rp.redoxsite == 'couple_oxi':
-                delg = redpot - redpotref - modpot + modpotref
+                delg = modpot - modpotref - oxipot + oxipotref
                 ade = 0.273
             elif rp.redoxsite == 'couple_red':
-                delg = modpot - modpotref - redpot + redpotref
+                delg = oxipot - oxipotref - modpot + modpotref
                 ade = -3.543
 
             delgnf = delg * (-4.184/96.485)
@@ -199,7 +197,7 @@ def redoxformdisplay(request):
         for k in redox_nums.keys():
              rn[k] = range(1,redox_nums[k]+1)
         return django.shortcuts.render_to_response('html/redox.html', {'redox_segs': redox_segs, 'noredox': noredox, 'print_result': print_result, \
-                                                                       'redpot': redpot, 'redpotref': redpotref, 'modpot': modpot, 'modpotref': modpotref, \
+                                                                       'oxipot': oxipot, 'oxipotref': oxipotref, 'modpot': modpot, 'modpotref': modpotref, \
                                                                        'delg': delg, 'delgnf': delgnf, 'finres': finres, \
                                                                        'redox_nums': rn, 'ws_identifier': ws.identifier})
 
@@ -301,8 +299,11 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout):
     td['grid_name'] = 'ref'
     td['sizegrid'] = False
     try:
-        td['pdie'] = float(request.POST['prot_diel'])
-        td['sdie'] = float(request.POST['solv_diel'])
+    # THE FOLLOWING TWO LINES WERE IN CORRECT - BSP
+    #   td['pdie'] = float(request.POST['prot_diel'])
+    #   td['sdie'] = float(request.POST['solv_diel'])
+        td['pdie'] = float(request.POST['redx_diel'])
+        td['sdie'] = float(request.POST['prot_diel'])
     except:
         td['pdie'] = 1
         td['sdie'] = 4
