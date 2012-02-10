@@ -77,9 +77,7 @@
                       Choose:
                       <select name="toppar_{{ seg.name }}">
                         <option value="upload">Upload my own topology/parameters</option>
-                        <option value="cgenff">Use CGenFF to determine</option>
-                        <option value="genrtf">Use GENRTF to determine</option>
-                        <option value="antechamber">Use Antechamber to determine</option>
+                        <option value="autogen">Attempt to automatically generate parameters</option>
                         {% if seg.fes4 %}
                            <option value="redox">Use only for REDOX calculations</option>
                         {% endif %}

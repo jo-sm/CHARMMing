@@ -26,7 +26,6 @@ from minimization.models import minimizeTask
 from dynamics.models import mdTask, ldTask, sgldTask
 from solvation.models import solvationTask
 from account.models import *
-from dynamics.views import combinePDBsForMovie
 from normalmodes.views import combineNmaPDBsForMovie
 from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeTask
@@ -1111,7 +1110,7 @@ def modstruct(request):
         for seg in seglist:
             if request.POST.has_key('toppar_' + seg):
                 tpdict[seg] = request.POST['toppar_' + seg]
-                if tpdict[seg] not in ['standard','upload','cgenff','genrtf','antechamber','redox']:
+                if tpdict[seg] not in ['standard','upload','autogen','redox']:
                     tpdict[seg] = 'standard'
 
                 if tpdict[seg] == 'upload':

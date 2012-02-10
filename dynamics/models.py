@@ -17,7 +17,7 @@
 #  particular purpose.
 from django.db import models
 from django.contrib.auth.models import User
-import django.forms, os
+import django.forms, os, re
 import structure
 from structure.models import WorkingStructure, WorkingFile, Task
 
@@ -39,6 +39,30 @@ class dynamicsTask(Task):
     movie_status = models.CharField(max_length=250,null=True)
     replica_exchange = models.ForeignKey(rexParams,null=True)
     scpism = models.BooleanField(default=False)
+
+    #pre: Requires a Structure object
+    #Combines all the smaller PDBs make in the above method into one large PDB that
+    #jmol understands
+    #type is md,ld,or sgld 
+    def combinePDBsForMovie(self):
+        ter = re.compile('TER') 
+        remark = re.compile('REMARK')
+
+        #movie_handle will be the final movie created
+        #frame movie is the PDBs which each time step sepearated into a new PDB
+        movie_handle = open(self.workstruct.structure.location + '/' + self.workstruct.identifier + "-" + self.action + '-movie.pdb','a')
+        for i in range(1,11):
+            frame_handle = open(self.workstruct.structure.location +  "/" + self.workstruct.identifier + "-" + self.action + "-movie" + str(i) + ".pdb",'r')
+            movie_handle.write('MODEL ' + str(i) + "\n")
+            for line in frame_handle:
+                if not remark.search(line) and not ter.search(line): movie_handle.write(line)
+            movie_handle.write('ENDMDL\n')
+        movie_handle.close()
+
+        self.movie_status = 'Done'
+        self.save()
+        return "Done."
+
 
     def finish(self):
         """test if the job suceeded, create entries for output"""
@@ -113,6 +137,16 @@ class dynamicsTask(Task):
         wfpdb.type = 'pdb'
         wfpdb.description = 'PDB coordinates from ' + self.action.upper()
         wfpdb.save()
+
+        if self.make_movie:
+            # go to hollywood
+            self.combinePDBsForMovie()
+            wfmoviePDB = WorkingFile()
+            wfmoviePDB.path = loc + '/' + bnm + '-' + self.action + '-movie.pdb'
+            wfmoviePDB.canonPath = wfmoviePDB.path
+            wfmoviePDB.type = 'pdb'
+            wfmoviePDB.description = 'Movie PDB for ' + self.action.upper()
+            wfmoviePDB.save()
 
 class mdTask(dynamicsTask):
 

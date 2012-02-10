@@ -260,6 +260,8 @@ def applyld_tpl(request,ldt,pTaskID):
 
     if make_movie:
         # NB, fix me up...
+        ldt.make_movie = True
+        ldy.save()
         if usesgld:
             return makeJmolMovie(file,postdata,min_pdb,scriptlist,'sgld')
         else:
@@ -448,30 +450,3 @@ stop"""
     task.start()
     task.save()
     return HttpResponse("Done")
-
-#    combinePDBsForMovie(file)
- 
-#pre: Requires a Structure object
-#Combines all the smaller PDBs make in the above method into one large PDB that
-#jmol understands
-#type is md,ld,or sgld
-def combinePDBsForMovie(task,type):
-    ter = re.compile('TER')
-    remark = re.compile('REMARK')
-
-    #movie_handle will be the final movie created
-    #frame movie is the PDBs which each time step sepearated into a new PDB
-    movie_handle = open(task.workingstruct.structure.location + '/' + workstruct.identifier + "-" + type + '-' + 'mainmovie.pdb','a')
-    for i in range(1,11):
-        frame_handle = open(task.workingstruct.structure.location +  "/" + task.workstruct.identifier + "-" + type + "-movie" + str(i) + ".pdb",'r')
-        movie_handle.write('MODEL ' + str(i) + "\n")
-        for line in frame_handle:
-	    if(not remark.search(line) and not ter.search(line)): movie_handle.write(line)
-	movie_handle.write('ENDMDL\n')
-	minimovie_handle.close()
-	#os.remove(file.location +  "new_" + file.stripDotPDB(file.filename) + "-movie" + `i` + ".pdb")
-
-    task.movie_status = 'Done'
-    task.save()
-    return "Done."
-	    

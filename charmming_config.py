@@ -32,11 +32,20 @@ user_home = "/home/pdb_uploads"
 # place where executables etc. are kept
 data_home = "/usr/local/charmming"
 
+# methods to use to try to generate topology/parameters for BADHET
+# atoms. These methods will be tried in order until one succeeds 
+# (or they all fail).
+toppar_generators = 'match,antechamber,genrtf'
+
 # path to the single threaded CHARMM executable
-charmm_exe = "/usr/local/charmming/gfortran-xxlg-qc.one"
+#charmm_exe = "/usr/local/charmming/gfortran-xxlg-qc.one"
+charmm_exe = "/usr/local/charmming/c35b4-apbs-qc.one"
 
 # path to the MPI-enabled CHARMM executable
 charmm_mpi_exe = "/usr/local/charmming/gfortran-xxlg-qc.ompi"
 
 # path to mpirun (not used by default -- testing parallel)
 mpirun_exe = "/bin/false"
+
+# path to stride (needed for CG stuff)
+stride_bin = "/usr/local/bin/stride"

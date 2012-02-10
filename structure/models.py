@@ -294,12 +294,30 @@ class WorkingSegment(Segment):
         fp.close()
 
         # see if we need to build any topology or param files
-        if self.tpMethod == 'genrtf':
-            self.makeGenRTF()
-        elif self.tpMethod == 'antechamber':
-            self.makeAntechamber()
-        elif self.tpMethod == 'cgenff':
-            self.makeCGenFF()
+        if self.tpMethod == 'autogen':
+            logfp = open('/tmp/autogen.txt', 'w')
+
+            success = False
+            for tpmeth in charmming_config.toppar_generators.split(','):
+                logfp.write('trying method: %s\n' % tpmeth)
+                if tpmeth == 'genrtf':
+                    rval = self.makeGenRTF()
+                elif tpmeth == 'antechamber':
+                    rval = self.makeAntechamber()
+                elif tpmeth == 'cgenff':
+                    rval = self.makeCGenFF()
+                elif tpmeth == 'match':
+                    rval = self.makeMatch()
+
+                logfp.write('got rval = %d\n' % rval)
+                if rval == 0:
+                    success = True
+                    break
+     
+            logfp.close()
+            if not success:
+               raise AssertionError('Unable to build topology/parameters')
+        # done top/par file building
 
         # template dictionary passes the needed variables to the template
         template_dict['topology_list'] = self.rtf_list.split(' ')
@@ -368,7 +386,16 @@ class WorkingSegment(Segment):
         Connects to dogmans.umaryland.edu to build topology and
         parameter files using CGenFF
         """
-        pass
+        return -1
+
+    def makeMatch(self):
+        """
+        Uses the match program from the Charlie Brooks group to
+        try to build topology and parameter files.
+        """
+        os.putenv("PerlChemistry","%s/MATCH_RELEASE/PerlChemistry" % charmming_config.data_home)
+        os.putenv("MATCH","%s/MATCH_RELEASE/MATCH" % charmming_config.data_home)
+        return -1
 
     # Tim Miller, make hetid RTF/PRM using antechamber
     def makeAntechamber(self):
@@ -384,20 +411,22 @@ class WorkingSegment(Segment):
         status = os.system(cmd)
         if status != 0:
             # debug purposes only
-            raise("Antechamber screwed up!")
+            #raise("Antechamber screwed up!")
+            return -1
 
         try:
             # see if output file exists
             os.stat(acbase + '.ac')
         except:
-            raise("Antechamber screwed up!")
+            return -1
 
         cmd = "/usr/local/charmming/antechamber/exe/charmmgen -f ac -i " + \
               acbase + ".ac -o " + acbase + " -s " + self.name
         status = os.system(cmd)
         if status != 0:
             # also for debug purposes only
-            raise("Charmmgen screwed up!")
+            #raise("Charmmgen screwed up!")
+            return -1
         # run through CHARMM since Antechamber changes the residue IDs
         cmd = charmming_config.charmm_exe + " < " + acbase + ".inp > " + \
               acbase + ".out"
@@ -407,6 +436,7 @@ class WorkingSegment(Segment):
         self.rtf_list = acbase + ".rtf"
         self.prm_list = acbase + ".prm"
         self.save()
+        return 0
 
     #pre:requires a list of het segids
     #This will run genRTF through the non-compliant hetatms
@@ -480,6 +510,7 @@ class WorkingSegment(Segment):
 	    
         prm_handle.close()
         genrtf_handle.close()
+        return 0
 
 
 # The idea is that the WorkingStructure class will hold structures that
@@ -958,15 +989,10 @@ class Task(models.Model):
             self.status = 'K'
 
     def query(self):
-        logfp = open('/tmp/query.txt', 'a+')
-        logfp.write('In Task::query\n')
  
         si = schedInterface()
-
-        logfp.write('jobID = %d\n' % self.jobID)
         if self.jobID > 0:
             sstring = si.checkStatus(self.jobID).split()[4]
-            logfp.write('Got status string = %s\n' % sstring)
 
             if sstring == 'submitted' or sstring == 'queued':
                 self.status = 'Q'
@@ -980,10 +1006,8 @@ class Task(models.Model):
                 raise AssertionError('Unknown status ' + sstring)
 
             self.save()
-            logfp.close()
             return sstring
         else:
-            logfp.close()
             return 'unknown'
 
     def finish(self):
