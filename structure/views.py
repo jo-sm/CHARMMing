@@ -63,9 +63,6 @@ def uploadError(request,problem):
 
 # Deletes user specified file from database and files relating to it
 def deleteFile(request):
-    logfp = open("/tmp/delfile.txt", "w")
-    logfp.write("In delfile\n")
-    logfp.flush()
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     #make sure request data isn't malicious
@@ -79,8 +76,6 @@ def deleteFile(request):
     remove_extension = re.compile('\.\S*')
     #If user wants to remove all files, visit /deletefile/all_files/
 
-    logfp.write("point a\n")
-    logfp.flush()
     if(delete_filename == "all_files"):
         deleteAll = 1
         total_files = structure.models.Structure.objects.filter(owner=request.user)
@@ -88,21 +83,11 @@ def deleteFile(request):
         file = structure.models.Structure.objects.filter(owner=request.user,name=delete_filename)[0]
         total_files = [file]
 
-    logfp.write("point b\n")
-    logfp.flush()
     for s in total_files[::-1]:
         os.chdir(charmming_config.user_home + '/' + request.user.username)
         os.system("rm -rf " + s.name)
 
-        logfp.write("point c\n")
-        logfp.flush()
-        logfp.write("point d\n")
-        logfp.flush()
-
         if s.selected == 'y' and deleteAll == 0:
-            logfp.write("point e1\n")
-            logfp.flush()
-
             s.selected = ''
             allFileList = structure.models.Structure.objects.filter(owner=request.user)
             if len(allFileList) >= 2:
@@ -114,18 +99,8 @@ def deleteFile(request):
                          candidateSwitch.save()
                          break
 
-            logfp.write("point e2\n")
-            logfp.flush()
+        s.delete()
 
-        try:
-            s.delete()
-        except:
-            logfp.write('Exception deleting s!!!!\n')
-            logfp.flush()
-            traceback.print_exc(file=logfp)
-
-    logfp.write("point e3\n")
-    logfp.close()
     return HttpResponse('Done')
 
 
@@ -409,16 +384,13 @@ def visualize(request,filename):
 
 
     # now get all tasks associated with the structure
-    logfp = open('/tmp/visualize.txt', 'w')
     tasks = structure.models.Task.objects.filter(workstruct=ws,active='y')
     for task in tasks:
         # check for PDB files associated with the task
         wfiles = structure.models.WorkingFile.objects.filter(task=task,type='pdb')
         for wfile in wfiles:
-            logfp.write('found %s\n' % wfile.canonPath)
             s = wfile.canonPath.split('/')[-1]
             filelst.append((s, wfile.description))
-    logfp.close()
 
     return render_to_response('html/visualize.html', {'filelst': filelst})
 
@@ -438,16 +410,13 @@ def chemdoodle(request,filename):
     pdb[0].write(newfname,outformat="pdborg",ter=True,end=True)
 
     mycontent = ''
-    logfp = open('/tmp/happy', 'w')
     fp = open(newfname, 'r')
     for line in fp:
         line = line.strip() + '\\n'
         if line.startswith('REMARK') or line.startswith('Remark') or line.startswith('remark'): 
             continue
-        logfp.write(line)
         mycontent += line
     fp.close()
-    logfp.close()
 
     os.unlink(newfname)
     return render_to_response('html/chemdoodle.html', {'content': mycontent})
@@ -481,17 +450,11 @@ def jmolHL(request,filename,segid,resid):
 
 #Allows the user to see what processes their PDBs are undergoing
 def viewstatus(request):
-    logfp = open('/tmp/foo', 'w')
-    logfp.write('in viewstatus\n')
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     try:
         file = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
-        logfp.write('got struct\n')
-        logfp.close()
     except:
-        logfp.write('got except\n')
-        logfp.close()
         return render_to_response('html/statusreport.html', {'structure': None })
 
     try:
@@ -551,28 +514,17 @@ def viewpdbs(request):
 #This is for changing the currently selected PDB
 #on the SELECT/EDIT PDBs page
 def switchpdbs(request,switch_id):
-    logfp = open('/tmp/switch.txt', 'w')
-    logfp.write('in switchpdbs\n')
-
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
-    logfp.write("going to set the old PDB to unselected!\n")
     try:
         oldfile = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
         oldfile.selected = ''
         oldfile.save()
     except:
         pass
-    logfp.write("Looking for new file: %s\n" % switch_id)
-    try:
-        newfile = structure.models.Structure.objects.filter(owner=request.user,name=switch_id)[0] 
-        logfp.write("Got it!\n")
-    except:
-        logfp.write("oh foo ... it is not there\n")
-        logfp.close()
+    newfile = structure.models.Structure.objects.filter(owner=request.user,name=switch_id)[0] 
 
-    logfp.close()
     newfile.selected = 'y'
     newfile.save()
     return render_to_response('html/switchpdb.html',{'oldfile':oldfile,'newfile':newfile})
@@ -731,10 +683,6 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
 def parseEnergy(workstruct,output_filename,enerobj=None):
     time.sleep(2)
 
-    logfp = open('/tmp/parse_ene', 'w')
-    logfp.write('in parse\n')
-    logfp.close()
-
     outfp = open(workstruct.structure.location + '/' + output_filename,'r')
     ener = re.compile('ENER ENR')
     dash = re.compile('----------')
@@ -791,18 +739,13 @@ def getSegs(Molecule,Struct,auto_append=False):
         # constructed model. NB, we're going to assume that the first model is
         # canonical for these.
         if seg.segType == 'bad':
-            logfp = open('/tmp/redoxsegs.txt', 'a+')
             ok = True
             for res in seg.iter_res():
                 if res.resName not in ['fs4','sf4']:
                    ok = False
-                   logfp.write('%s has bad res %s\n' % (seg.segid,res.resName))
                    break
             if ok:
                 newSeg.fes4 = True
-                logfp.write('%s is OK!\n' % seg.segid)
-
-            logfp.close()
 
         # set default patching type
         newSeg.set_default_patches(firstres)        
