@@ -14,11 +14,11 @@
    scalar fbeta set {{fbeta}}
 
    {% if usesgld %}
-     open write unit 41 card name sgld-{{identifier}}.res
-     open write unit 31 unfo name sgld-{{identifier}}.dcd
+     open write unit 41 card name {{identifier}}-sgld.res
+     open write unit 31 unfo name {{identifier}}-sgld.dcd
    {% else %}
-     open write unit 41 card name ld-{{identifier}}.res
-     open write unit 31 unfo name ld-{{identifier}}.dcd
+     open write unit 41 card name {{identifier}}-ld.res
+     open write unit 31 unfo name {{identifier}}-ld.dcd
    {% endif %}
 
    dyna lang leap strt -

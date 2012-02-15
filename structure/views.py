@@ -989,50 +989,49 @@ def buildstruct(request):
     input.checkRequestData(request)
 
     try:
-        str = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse("Please submit a structure first.")
 
     # pick out a proposed name for this working structure
-    proposedname = str.name
-    try:
-        existingWorkStructs = struct.model.WorkingStructure.object.filter(structure=str)
+    proposedname = struct.name
+    existingWorkStructs = structure.models.WorkingStructure.objects.filter(structure=struct)
+    if existingWorkStructs:
         usedNameList = [ews.identifier for ews in existingWorkStructs]
 
         while proposedname in usedNameList:
-           m = re.search("([^-]+\s)-ws([0-9]+)$", proposedname)
+           m = re.search("([^-\s]+)-ws([0-9]+)$", proposedname)
            if m:
                basename = m.group(1)
                numbah   = int(m.group(2))
                proposedname = basename + "-ws" + str(numbah+1)
            else:
                proposedname += "-ws1"
-    except:
-        pass
 
     tdict = {}
     tdict['proposedname'] = proposedname
     
     ws = []
-    wrkstruct = structure.models.WorkingStructure.objects.filter(structure=str)
-    if len(wrkstruct) > 0:
+    if len(existingWorkStructs) > 0:
         tdict['haveworkingstruct'] = True
-        ws.extend(wrkstruct)
+        ws.extend(existingWorkStructs)
+        ws.sort()
     else:
         tdict['haveworkingstruct'] = False
     tdict['built_list'] = ws
 
     # get list of all of the models that we can use
     st_models = []
-    fp = open(str.pickle, 'r')
+    fp = open(struct.pickle, 'r')
     pdb = cPickle.load(fp)
     fp.close()
     tdict['model_list'] = pdb.keys()
 
     sl = []
-    sl.extend(structure.models.Segment.objects.filter(structure=str,is_working='n'))
+    sl.extend(structure.models.Segment.objects.filter(structure=struct,is_working='n'))
+    sl.sort()
     tdict['seg_list'] = sl
-    tdict['disulfide_list'] = str.getDisulfideList()
+    tdict['disulfide_list'] = struct.getDisulfideList()
     tdict['proto_list'] = []
     for seg in sl:
         tdict['proto_list'].extend(seg.getProtonizableResidues())

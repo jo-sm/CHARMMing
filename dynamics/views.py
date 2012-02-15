@@ -247,27 +247,11 @@ def applyld_tpl(request,ldt,pTaskID):
     inp_out.close()  
     ldt.scripts += ',%s' % ld_filename
 
-    # change the status of the file regarding LD
-    ldt.save()
-
-
-    # lessons are borked at the moment
-    #if file.lesson_type:
-    #    if usesgld:
-    #        lessonaux.doLessonAct(file,"onSGLDSubmit",postdata,None)
-    #    else:
-    #        lessonaux.doLessonAct(file,"onLDSubmit",postdata,None)
-
-    if make_movie:
-        # NB, fix me up...
-        ldt.make_movie = True
-        ldy.save()
-        if usesgld:
-            return makeJmolMovie(file,postdata,min_pdb,scriptlist,'sgld')
-        else:
-            return makeJmolMovie(file,postdata,min_pdb,scriptlist,'ld')
+    if postdata.has_key('make_movie'):
+        ldt.make_movie = 't'
+        return makeJmolMovie(ldt,postdata,ldt.action)
     else:
-        ldt.start()
+        mdt.start()
         ldt.save()
 
     ldt.workstruct.save()
