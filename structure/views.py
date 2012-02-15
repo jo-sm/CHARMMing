@@ -41,6 +41,7 @@ from account.views import isUserTrustworthy
 from structure.aux import checkNterPatch
 import output, lesson1, lesson2, lesson3, lesson4, lessonaux
 import structure.models, input
+import re
 # import all created lessons by importing lesson_config
 # also there is a dictionary called 'file_type' in lesson_config.py specififying the file type of files uploaded by the lessons  
 from lesson_config import *
@@ -408,14 +409,16 @@ def visualize(request,filename):
 
 
     # now get all tasks associated with the structure
-    tasks = structure.models.Task.objects.filter(workstruct=ws)
+    logfp = open('/tmp/visualize.txt', 'w')
+    tasks = structure.models.Task.objects.filter(workstruct=ws,active='y')
     for task in tasks:
-
         # check for PDB files associated with the task
         wfiles = structure.models.WorkingFile.objects.filter(task=task,type='pdb')
         for wfile in wfiles:
+            logfp.write('found %s\n' % wfile.canonPath)
             s = wfile.canonPath.split('/')[-1]
             filelst.append((s, wfile.description))
+    logfp.close()
 
     return render_to_response('html/visualize.html', {'filelst': filelst})
 
@@ -906,7 +909,7 @@ def newupload(request, template="html/fileupload.html"):
         sequ = " ".join(sequ_residues)
         temp_sequ_handle.write(sequ)
         temp_sequ_handle.close()
-        file.title = "Custom Sequence"
+        file.title = "Sequence"
         file.author = file.owner.username
         file.journal = "None"
         # The newly uploaded PDB becomes selected by default
@@ -1047,7 +1050,25 @@ def buildstruct(request):
     except:
         return HttpResponse("Please submit a structure first.")
 
+    # pick out a proposed name for this working structure
+    proposedname = str.name
+    try:
+        existingWorkStructs = struct.model.WorkingStructure.object.filter(structure=str)
+        usedNameList = [ews.identifier for ews in existingWorkStructs]
+
+        while proposedname in usedNameList:
+           m = re.search("([^-]+\s)-ws([0-9]+)$", proposedname)
+           if m:
+               basename = m.group(1)
+               numbah   = int(m.group(2))
+               proposedname = basename + "-ws" + str(numbah+1)
+           else:
+               proposedname += "-ws1"
+    except:
+        pass
+
     tdict = {}
+    tdict['proposedname'] = proposedname
     
     ws = []
     wrkstruct = structure.models.WorkingStructure.objects.filter(structure=str)

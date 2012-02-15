@@ -142,6 +142,7 @@ class dynamicsTask(Task):
             # go to hollywood
             self.combinePDBsForMovie()
             wfmoviePDB = WorkingFile()
+            wfmoviePDB.task = self
             wfmoviePDB.path = loc + '/' + bnm + '-' + self.action + '-movie.pdb'
             wfmoviePDB.canonPath = wfmoviePDB.path
             wfmoviePDB.type = 'pdb'

@@ -196,6 +196,7 @@ def renameLigands(pdb_metadata,thisMol,het,clusname,numFe,cysDict):
     # Rename side chain atoms
     for res in het:
         cysid=[]
+        cystmp=[0]*4
         # Get resid for ligated cys
         for fe in res:
             for line in ar:
@@ -205,8 +206,12 @@ def renameLigands(pdb_metadata,thisMol,het,clusname,numFe,cysDict):
                 else:
                     t = 4
                     u = 0
-                if fe.atomType.strip() == line[t].strip() and fe.resid0 == int(line[t+3]) and res.chainid == line[t+2]:
-                    cysid.append(line[u+3])
+                if fe.atomType0.strip() == line[t].strip() and fe.resid0 == int(line[t+3]) and res.chainid == line[t+2]:
+                    if fe.atomType.strip() == 'fe1': cystmp[0] = line[u+3]
+                    if fe.atomType.strip() == 'fe2': cystmp[1] = line[u+3]
+                    if fe.atomType.strip() == 'fe3': cystmp[2] = line[u+3]
+                    if fe.atomType.strip() == 'fe4': cystmp[3] = line[u+3]
+        for cys in cystmp: cysid.append(cys)
         # Deepcopy side chains of listed residues
         s=1
         c=1
@@ -306,5 +311,12 @@ if __name__ == '__main__':
     rtf = RTFFile('top_all22_4fe4s_esp_090209.inp')
     options.redox_site_id=1
     mutid=0
+    ### FOLLOWING 6 LINES ADDED BY SCOTT
+    location='/home/pdb_uploads/demo/1hpi/'
+    identifier='aa'
+    pdb_metadata=pdb.get_metaData()
+    cysDict={}
     # Do Work
-    fesSetup(thisMol, options.redox_site_o, rtf, options.redox_site_id, mutid, **kwargs)
+    fesSetup(thisMol, options.redox_site_o, rtf, options.redox_site_id, mutid, location, identifier, pdb_metadata, cysDict, **kwargs)
+#    # Do Work
+#    fesSetup(thisMol, options.redox_site_o, rtf, options.redox_site_id, mutid, **kwargs)

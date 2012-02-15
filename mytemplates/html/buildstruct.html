@@ -31,7 +31,7 @@
      <h2>Build A New Working Structure</h2>
 
      <form id="config_form" method="post" action="/charmming/modstruct/" onsubmit="return send_form_gener('config_form','/charmming/modstruct/',makeUniqueDiv('Edit Structure'));" >
-        <b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" /><br />
+        <b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" value="{{ proposedname }}" /><br />
         <b>Please choose which model you want this working structure based from:</b>
 
         <select name="basemodel">
