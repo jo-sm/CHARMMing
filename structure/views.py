@@ -1167,7 +1167,7 @@ def modstruct(request):
     new_ws.selected = 'y'
     new_ws.save()
 
-    return HttpResponse('Cool')
+    return render_to_response('html/built.html')
 
 def swap(request):
     if not request.user.is_authenticated():
@@ -1202,3 +1202,6 @@ def swap(request):
 
 def protonate(file):
     return render_to_response('html/protonate.html')    
+
+def editstructurecontainer(request):
+    return render_to_response('html/editstructurecontainer.html')

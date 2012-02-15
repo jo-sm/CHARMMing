@@ -2,6 +2,13 @@
 <head>
     <title>{% block title %} CHARMMing Web interface, developed by the Laboratory of Computational Biology {% endblock %}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+
+    <!-- this is for ChemDoodle -->
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link rel="stylesheet" href="/css/ChemDoodleWeb.css" type="text/css">
+    <script type="text/javascript" src="/js/ChemDoodleWeb-libs.js"></script>
+    <script type="text/javascript" src="/js/ChemDoodleWeb.js"></script>
+
     <link href="/charmming/css/style.css" rel="stylesheet" type="text/css" />
     <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
     <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
@@ -122,14 +129,13 @@
             <span>Basic functions</span>
             <a title="Opens a new tab." href="javascript:openNewTab();">Open A New Tab</a>
             <a title="Closes all open tabs." href="javascript:closeAllTabs()">Close All Tabs</a>
-            <a title="Read the CHARMM tutorial." href="javascript:openWin('spread', 'Tutorial Doc', 200, 100, 1100, 600,'http://www.charmmtutorial.org','null');">View the tutorial</a>
             <a title="CHARMMing usage information and credits." href="javascript:openNewURL('/charmming/about/','About CHARMMing');timeoutWikipage('General');">About CHARMMing</a>
           </div>
           <div>
             <span>Structures</span>
             <a title="Submit a structure to manipulate." href="javascript:openNewURL('/charmming/fileupload/','Submit Structure');">Submit Structure</a>
             <a title="Work with a different structure or edit the structure information." href="javascript:openNewURL('/charmming/viewpdbscontainer/','Select PDB');">Change/Delete Structures</a>
-            <a title="Change the patching, protonation, and other chemical properties of the current structure." href="javascript:openNewURL('/charmming/buildstruct/','Build Steructure');">Build Structure</a>
+            <a title="Change the patching, protonation, and other chemical properties of the current structure." href="javascript:openNewURL('/charmming/editstructurecontainer/','Build Steructure');">Build Structure</a>
             <a title="Download all files associated with this structure." href="javascript:openNewURL('/charmming/downloadfilescontainer/','Download Files');">Download Files</a>
             <a title="View the 3D structure of your molecule." href="javascript:openNewURL('/charmming/visualize/','View PDBs');">View PDBs</a>
             <a title="View all the input/output scripts this site has generated for you." href="javascript:openNewURL('/charmming/viewprocessfiles/','Process Files');">View Process Files</a>
