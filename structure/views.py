@@ -129,13 +129,17 @@ def viewFiles(request,filename, mimetype = None):
     username = request.user.username
 
     try:
-       os.stat("%s/%s/%s" % (charmming_config.user_home,username,filename))
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return render_to_response('html/nopdbuploaded.html')
+    try:
+       os.stat("%s/%s" % (struct.location,filename))
     except:
        return HttpResponse("That file doesn't seem to exist. Maybe you deleted it?")
 
     mimetype = "Content-Type: text/richtext"
     response = HttpResponse(mimetype=mimetype)
-    response.write(file("%s/%s/%s" % (charmming_config.user_home,username,filename), "rb").read())
+    response.write(file("%s/%s" % (struct.location,filename), "rb").read())
     return response
 
 #Wraps all files associated with the PDB into a tar and deletes it
