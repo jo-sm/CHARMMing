@@ -73,6 +73,9 @@ def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, location, identifier, pdb_me
     # Mutate Residue if Exist
     if mutid != 0: turnOffChgs(rtf,thisMol,mutid)
     # Write out structure
+    #print het
+    #het.sorted(key=lambda tup: tup[1)
+    #print het
     for seg in thisMol.iter_seg():
         stdoutList.append('%s-%s' % (seg.chainid, seg.segType))
         name = '%s/redox-%s-%s-%s_o.pdb' % (location, identifier, seg.chainid, seg.segType)
