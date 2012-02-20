@@ -277,6 +277,35 @@ class WorkingSegment(Segment):
             self.patch_last = postdata['first_patch' + self.name]
         self.save()
 
+    def getUniqueResidues(self,mol):
+        """
+        This routine splits up the badhet segment into each of its unique residues, so
+        they can be run through CGenFF/MATCH one at a time. It also write out a MOL2 file
+        with added hydrogens for each residue.
+        """
+        logfp = open('/tmp/genUniqueResidues.txt', 'w')
+        logfp.write('my name is %s\n' % self.name)
+
+        badResList = []
+        found = False
+        for seg in mol.iter_seg():
+            logfp.write('comp with %s\n' % seg.segid)
+            if seg.segid == self.name:
+                found = True
+                break
+        logfp.close()
+        if not found:
+            raise AssertionError('Asked to operate on a nonexistent segment!')
+
+        for residue in seg.iter_res():
+            if residue.resName not in badResList:
+                badResList.append(residue.resName)
+                filename_noh = self.structure.location + '/' + self.name + '-badres-' + residue.resName + ".pdb"
+                filename_h = self.structure.location + '/' + self.name + '-badres-h-' + residue.resName + ".mol2"
+                residue.write(filename_noh, outformat='pdborg')
+                os.system("babel -h -ipdb %s -omol2 %s" % (filename_noh,filename_h))
+        return badResList
+
     # This method will handle the building of the segment, including
     # any terminal patching
     def build(self,mdlname,workstruct):
@@ -291,11 +320,11 @@ class WorkingSegment(Segment):
                 s.write(fname, outformat="charmm")
                 template_dict['pdb_in'] = fname
                 break
-        fp.close()
 
         # see if we need to build any topology or param files
         if self.tpMethod == 'autogen':
             logfp = open('/tmp/autogen.txt', 'w')
+            bhResList = self.getUniqueResidues(mol)
 
             success = False
             for tpmeth in charmming_config.toppar_generators.split(','):
@@ -305,9 +334,9 @@ class WorkingSegment(Segment):
                 elif tpmeth == 'antechamber':
                     rval = self.makeAntechamber()
                 elif tpmeth == 'cgenff':
-                    rval = self.makeCGenFF()
+                    rval = self.makeCGenFF(bhResList)
                 elif tpmeth == 'match':
-                    rval = self.makeMatch()
+                    rval = self.makeMatch(bhResList)
 
                 logfp.write('got rval = %d\n' % rval)
                 if rval == 0:
@@ -318,6 +347,7 @@ class WorkingSegment(Segment):
             if not success:
                raise AssertionError('Unable to build topology/parameters')
         # done top/par file building
+        fp.close()
 
         # template dictionary passes the needed variables to the template
         template_dict['topology_list'] = self.rtf_list.split(' ')
@@ -381,21 +411,40 @@ class WorkingSegment(Segment):
 
         return charmm_inp_filename
 
-    def makeCGenFF(self):
+    def makeCGenFF(self, badResList):
         """
         Connects to dogmans.umaryland.edu to build topology and
         parameter files using CGenFF
         """
         return -1
 
-    def makeMatch(self):
+    def makeMatch(self, badResList):
         """
         Uses the match program from the Charlie Brooks group to
         try to build topology and parameter files.
         """
+
+        logfp = open('/tmp/match.txt', 'w')
+
         os.putenv("PerlChemistry","%s/MATCH_RELEASE/PerlChemistry" % charmming_config.data_home)
         os.putenv("MATCH","%s/MATCH_RELEASE/MATCH" % charmming_config.data_home)
-        return -1
+        os.chdir(self.structure.location)
+       
+        for badRes in badResList:
+            exe_line = '%s/MATCH_RELEASE/MATCH/scripts/MATCH.pl %s-badres-h-%s.mol2' % (charmming_config.data_home,self.name,badRes)
+            logfp.write('Xcute: %s\n' % exe_line)
+            status, output = commands.getstatusoutput(exe_line)
+            if status != 0:
+                logfp.write("sorry ... nonzero status :-(\n")
+                logfp.close()
+                return -1
+
+            logfp.write("OK!\n")
+            logfp.close()
+
+            # ToDo: add the rtf/param files that have been generated to a master topology
+            # and parameter files for the entire segment.
+        return 0
 
     # Tim Miller, make hetid RTF/PRM using antechamber
     def makeAntechamber(self):
