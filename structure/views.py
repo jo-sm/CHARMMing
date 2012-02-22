@@ -804,81 +804,20 @@ def newupload(request, template="html/fileupload.html"):
 
     # begin gigantic if test
     if request.POST.has_key('sequ') and request.POST['sequ']:
-        file = structure.models.Structure()
-        file.owner = u
-        file.location = location
+        struct = structure.models.Structure()
+        struct.owner = request.user
 
-        if lesson_obj:
-            file.lesson_type = lessontype
-            file.lesson_id = lessonid
-            file.save()
-        sequ = request.POST['sequ']
-        sequ = sequ.upper()
-        file.filename = 'sequ-' + str(filepid) + "-1.pdb"
-        #check of parameter/topology files
-        file.getRtfPrm(request,makeGoModel,makeBLNModel)
-        file.segids = 'sequ-pro'
-        sequ_residues = sequ.split()
-        plines = []
-        resid = 0
+        dname = 'sequ'
+        version = -1
+        while os.path.exists(location + '/' + dname):
+            version += 1
+            dname = tmpdname + "-" + str(version)
 
-        for res in sequ_residues:
-            resid += 1
-            if res in ['ASPP','GLUP','LSN']:
-                try:
-                    plines.append("PATCH %s %s %d\n" % (res,'sequ',resid))
-                except:
-                    plines = []
-                    plines.append("PATCH %s %s %d\n" % (res,'sequ',resid))
-                # Standard CHARMM topology files do not understand ASPP,GLUP,
-                # or LSN so they must get changed to ASP, GLU, and LYS
-                # respectively. Afterwards the patches can be applied.
-                if res in ['ASPP']:
-                    sequ_residues[(resid-1)] = 'ASP'
-                elif res in ['GLUP']:
-                    sequ_residues[(resid-1)] = 'GLU'
-                elif res in ['LSN']:
-                    sequ_residues[(resid-1)] = 'LYS'
-        patchfp = open(file.location + "pproto_" + file.stripDotPDB(file.filename) + "-" + 'sequ' + ".str", "w+")
-        patchfp.write("* Patch user-specified residues to protonate in seg %s.\n" % 'sequ')
-        patchfp.write("* Note: histadine changes are done by editing the sequence directly.\n")
-        patchfp.write("*\n\n")
-        for pl in plines:
-            patchfp.write(pl)
-        patchfp.write("return\n")
-        patchfp.close()
+        struct.location = location + dname
 
-        #The written file for a sequence PDB should not match file.filename
-        #Doing this creates the best compatibility with other parts
-        #of the interface. The parser usually renames the PDB in the format
-        #below but the parser does not get called on custom sequencing
-        temp_sequ_handle = open(file.location + "new_" + 'sequ-' + str(file.pid) + "-1-sequ-pro.pdb",'w')
-        sequ = " ".join(sequ_residues)
-        temp_sequ_handle.write(sequ)
-        temp_sequ_handle.close()
-        file.title = "Sequence"
-        file.author = file.owner.username
-        file.journal = "None"
-        # The newly uploaded PDB becomes selected by default
-        # but first the previously selected PDB must become unselected
-        try:
-            test_select = structure.models.Structure.objects.filter(owner=file.owner,selected='y')[0]
-            test_select.selected=''
-            test_select.save()
-        except:
-            pass
-        file.selected='y'
-        file.save()
-        if lesson_obj:
-            file.lesson_type = lessontype
-            file.lesson_id = lessonid
-            file.save()
-            try:
-                lesson_obj.onFileUpload(request.POST)
-            except:
-                # TODO -- handle failures
-                pass
-	return HttpResponseRedirect('/charmming/editpdbinfo/'+file.filename)
+        struct.selected = 'y'
+        struct.save()
+        return HttpResponseRedirect('/charmming/buildstruct')
 
     elif file_uploaded or request.POST.has_key('pdbid'):
         if file_uploaded:
