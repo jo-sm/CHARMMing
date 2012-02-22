@@ -35,7 +35,11 @@ data_home = "/usr/local/charmming"
 # methods to use to try to generate topology/parameters for BADHET
 # atoms. These methods will be tried in order until one succeeds 
 # (or they all fail).
-toppar_generators = 'match,antechamber,genrtf'
+toppar_generators = 'cgenff,match,antechamber,genrtf'
+
+# CGenFF host & port
+cgenff_host = 'dogmans.umaryland.edu'
+cgenff_port = 32108
 
 # path to the single threaded CHARMM executable
 #charmm_exe = "/usr/local/charmming/gfortran-xxlg-qc.one"

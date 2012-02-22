@@ -30,7 +30,7 @@ import normalmodes, dynamics, minimization
 import solvation, lessons.models, apbs
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
-import cPickle, copy
+import cPickle, copy, traceback, socket
 import pychm.io, pychm.lib, pychm.cg
 
 class Structure(models.Model):
@@ -303,7 +303,7 @@ class WorkingSegment(Segment):
                 filename_noh = self.structure.location + '/' + self.name + '-badres-' + residue.resName + ".pdb"
                 filename_h = self.structure.location + '/' + self.name + '-badres-h-' + residue.resName + ".mol2"
                 residue.write(filename_noh, outformat='pdborg')
-                os.system("babel -h -ipdb %s -omol2 %s" % (filename_noh,filename_h))
+                os.system("babel -h --title %s -ipdb %s -omol2 %s" % (residue.resName,filename_noh,filename_h))
         return badResList
 
     # This method will handle the building of the segment, including
@@ -416,7 +416,46 @@ class WorkingSegment(Segment):
         Connects to dogmans.umaryland.edu to build topology and
         parameter files using CGenFF
         """
+        logfp = open('/tmp/makecgenff.txt', 'w')
+        logfp.write('Try to use CGenFF\n')
+
+        header = '# USER_IP 165.112.184.52 USER_LOGIN %s\n\n' % self.structure.owner.username
+        for badRes in badResList:
+            fp = open('%s/%s-badres-h-%s.mol2' % (self.structure.location,self.name,badRes), 'r')
+            payload = fp.read()
+            content = header + payload
+            fp.close()
+
+            recvbuff = ''
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect((charmming_config.cgenff_host, charmming_config.cgenff_port))
+                s.sendall(content)
+                s.shutdown(socket.SHUT_WR)
+                while True:
+                    data = s.recv(1024)
+                    if not data:
+                        break
+                    recvbuff += repr(data)
+
+            except Exception, e:
+                logfp.write('crap something went wrong::\n')
+                traceback.print_exc(file=logfp)
+                logfp.close()
+                return -1
+
+            # ToDo, we need to parse out the topology and parameter file from the
+            # stream that dogmans gave us. For now, though, let's just dump this
+            # to a file swo we can look at it for debugging.
+            fp = open('%s/%s-%s-dogmans.txt' % (self.structure.location,self.name,badRes), 'w') 
+            fp.write(recvbuff)
+            fp.close()
+            logfp.write('Dumped CGenFF result for analysis.\n')
+        
+        logfp.close()
         return -1
+
+
 
     def makeMatch(self, badResList):
         """
@@ -440,10 +479,13 @@ class WorkingSegment(Segment):
                 return -1
 
             logfp.write("OK!\n")
-            logfp.close()
 
             # ToDo: add the rtf/param files that have been generated to a master topology
             # and parameter files for the entire segment.
+            self.rtf_list += ' %s-badres-h-%s.psf' % (self.name,badRes)
+            self.prm_list += ' %s-badres-h-%s.psf' % (self.name,badRes)
+
+        logfp.close()
         return 0
 
     # Tim Miller, make hetid RTF/PRM using antechamber
