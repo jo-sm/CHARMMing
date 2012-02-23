@@ -94,7 +94,7 @@ def deleteFile(request):
                 # We need to change the selection to another file, arbitrarilty we choose
                 # the first one.
                 for candidateSwitch in allFileList:
-                     if candidateSwitch.filename != file.filename:
+                     if candidateSwitch.name != delete_filename:
                          candidateSwitch.selected = 'y'
                          candidateSwitch.save()
                          break
