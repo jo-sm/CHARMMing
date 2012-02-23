@@ -203,6 +203,8 @@ def applyld_tpl(request,ldt,pTaskID):
     # determine whether periodic boundary conditions should be applied, and if
     # so pass the necessary crystal and image parameters
     dopbc = False
+    logfp = open('/tmp/ldsolv.txt', 'w')
+    logfp.write('About to tickle the PBC code.\n')
     if request.POST.has_key('usepbc'):
         if request.POST.has_key('solvate_inplicitly'):
             return HttpResponse('Invalid options')
@@ -211,7 +213,8 @@ def applyld_tpl(request,ldt,pTaskID):
         # been solvated.
         solvated = False
         wfc = pTask
-        while True:  
+        while True:
+            logfp.write('ancestor task action: %s\n' % wfc.action)
             if wfc.action == 'solvation':
                 solvated = True
                 break
@@ -224,7 +227,7 @@ def applyld_tpl(request,ldt,pTaskID):
 
         dopbc = True
         try:
-            sp = solvationTask.objects.filter(structure=workstruct,active='y')[0]
+            sp = solvationTask.objects.filter(workstruct=ldt.workstruct,active='y')[0]
         except:
             return HttpResponse("Err ... couldn't find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x
@@ -235,6 +238,8 @@ def applyld_tpl(request,ldt,pTaskID):
         template_dict['ewalddim'] = sp.calcEwaldDim()
 
     template_dict['dopbc'] = dopbc
+    logfp.write('PBC code tickling complete.\n')
+    logfp.close()
 
     template_dict['output_name'] = ldt.workstruct.identifier + '-' + ldt.action
     user_id = ldt.workstruct.structure.owner.id
@@ -295,12 +300,15 @@ def applymd_tpl(request,mdt,pTaskID):
         if request.POST.has_key('solvate_inplicitly'):
             return HttpResponse('Invalid options')
         
+        logfp = open('/tmp/mdsolv.txt', 'w')
+        logfp.write('About to tickle PBC code.\n')
         # decide if the structure we're dealing with has
         # been solvated.
         solvated = False
         wfc = pTask
         while True:
-            if wfc.action == 'solvate':
+            logfp.write('ancestor action: %s\n' % wfc.action)
+            if wfc.action == 'solvation':
                 solvated = True
                 break
             if wfc.parent:
@@ -310,9 +318,10 @@ def applymd_tpl(request,mdt,pTaskID):
         if not solvated:
             return HttpResponse('Requested PBC on unsolvated structure')
 
+        logfp.close()
         dopbc = True
         try:
-            sp = solvationTask.objects.filter(structure=workstruct,active='y')[0]
+            sp = solvationTask.objects.filter(workstruct=mdt.workstruct,active='y')[0]
         except:
             return HttpResponse("Err ... couldn't find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x
