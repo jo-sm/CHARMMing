@@ -351,7 +351,7 @@ def applymd_tpl(request,mdt,pTaskID):
         template_dict['hoovertemp'] = postdata['hoovertemp']
     elif template_dict['mdtype'] == 'usenpt':
         mdt.ensemble = 'npt'
-        mdp.temp = postdata['hoovertemp']
+        mdt.temp = postdata['hoovertemp']
         template_dict['nstep'] = postdata['nstepnpt']
         template_dict['hoovertemp'] = postdata['hoovertemp']
         template_dict['pgamma'] = postdata['pgamma']
