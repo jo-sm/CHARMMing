@@ -32,7 +32,7 @@ from solvation.models import solvationTask
 import charmming_config, input, output, lessonaux
 import re, copy
 import os, shutil
-import commands
+import commands, traceback
 
 #processes form data for minimization
 def minimizeformdisplay(request):
@@ -53,8 +53,8 @@ def minimizeformdisplay(request):
         #deals with changing the selected minimize_params
         try:
             oldtsk = minimizeTask.objects.filter(ws=workstruct,active='y')[0]
-	    oldtsk.active = 'n'
-	    oldtsk.save()
+            oldtsk.active = 'n'
+            oldtsk.save()
         except:
             pass
 
@@ -180,7 +180,7 @@ def minimize_tpl(request,mp,pTaskID):
 
         dopbc = True
         try:
-            sp = solvationTask.objects.filter(structure=mp.workstruct,active='y')[0]
+            sp = solvationTask.objects.get(workstruct=mp.workstruct,active='y')
         except:
             return HttpResponse("Err ... couldn't find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x
