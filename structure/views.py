@@ -806,14 +806,41 @@ def newupload(request, template="html/fileupload.html"):
     if request.POST.has_key('sequ') and request.POST['sequ']:
         struct = structure.models.Structure()
         struct.owner = request.user
+        struct.title = 'Custom amino acid sequence'
 
         dname = 'sequ'
+        tmpdname = dname
         version = -1
         while os.path.exists(location + '/' + dname):
             version += 1
             dname = tmpdname + "-" + str(version)
 
+        struct.name = dname
         struct.location = location + dname
+        os.mkdir(struct.location)
+        os.chmod(struct.location, 0775)
+        fullpath = struct.location + '/sequ.pdb'
+        struct.putSeqOnDisk(request.POST['sequ'], fullpath)
+
+        pdb = pychm.io.pdb.PDBFile(fullpath)
+        mol = pdb[0]
+        mol.parse()
+        getSegs(mol,struct)
+
+        # store the pickle file containing the structure
+        pfname = location + dname + '/' + 'pdbpickle.dat'
+        pickleFile = open(pfname,'w')
+        cPickle.dump(pdb,pickleFile)
+        pickleFile.close()
+        struct.pickle = pfname
+
+        # unselect the existing structure
+        try:
+            oldfile = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+            oldfile.selected = ''
+            oldfile.save()
+        except:
+            pass
 
         struct.selected = 'y'
         struct.save()

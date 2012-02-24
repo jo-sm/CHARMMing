@@ -1,0 +1,26 @@
+* make a PDB file out of a sequence
+*
+
+read rtf card name {{ topology }}
+read param card name {{ parameter }}
+
+read sequ card
+* sequence uploaded by user {{ name }}
+*
+{{ nres }}
+{{ sequence }}
+
+gene a setup
+
+ic param
+ic seed 1 N 1 CA 1 C
+ic build
+
+hbuild
+coor orient
+
+write coor pdb name {{ outname }}
+* PDB file of custom sequence.
+*
+
+stop

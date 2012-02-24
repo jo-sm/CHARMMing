@@ -168,6 +168,42 @@ class Structure(models.Model):
         """
         return [x for x in structure.models.StructureFile.objects.filter(structure=self) if x.endswith(".inp") or x.endswith(".out")]
 
+
+    def putSeqOnDisk(self, sequence, path):
+        """Special method used with custom sequences; writes out a PDB from a sequence.
+        """
+
+        # ToDo: check and make sure that the residues in the sequence are valid
+        sequence = sequence.strip()
+        x = sequence.split()
+        seqrdup  = ' '.join(x)
+
+        if len(x) > 50:
+            raise AssertionError('Custom sequence is to long!')
+
+        td = {}
+        td['nres'] = len(x)
+        td['sequence'] = seqrdup
+        td['topology'] = '%s/toppar/top_all27_prot_na.rtf' % charmming_config.data_home
+        td['parameter'] = '%s/toppar/par_all27_prot_na.prm' % charmming_config.data_home
+        td['outname'] = path
+        td['name'] = self.owner.username
+        
+        # this needs to be run directly through CHARMM
+        t = get_template('%s/mytemplates/input_scripts/seqtopdb.inp' % charmming_config.charmming_root)
+        charmm_inp = output.tidyInp(t.render(Context(td)))
+
+        os.chdir(self.location)
+        fp = open('seq2pdb.inp', 'w')
+        fp.write(charmm_inp)
+        fp.close()
+
+        logfp = open('/tmp/seqtopdb.txt', 'w')
+        logfp.write('Running %s < seq2pdb.inp > seq2pdb.out\n' % charmming_config.charmm_exe)
+        os.system("LD_LIBRARY_PATH=%s %s < seq2pdb.inp > seq2pdb.out" % (charmming_config.lib_path,charmming_config.charmm_exe))
+        logfp.write('Done\n')
+        logfp.close()
+
 class Segment(models.Model):
     structure   = models.ForeignKey(Structure)
     name        = models.CharField(max_length=6)
@@ -453,7 +489,7 @@ class WorkingSegment(Segment):
             logfp.write('Dumped CGenFF result for analysis.\n')
         
         logfp.close()
-        return -1
+        return 0
 
 
 
