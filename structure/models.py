@@ -454,6 +454,8 @@ class WorkingSegment(Segment):
         """
         logfp = open('/tmp/makecgenff.txt', 'w')
         logfp.write('Try to use CGenFF\n')
+        self.rtf_list = '%s/toppar/top_all36_cgenff.rtf' % charmming_config.data_home
+        self.prm_list = '%s/toppar/par_all36_cgenff.prm' % charmming_config.data_home
 
         header = '# USER_IP 165.112.184.52 USER_LOGIN %s\n\n' % self.structure.owner.username
         for badRes in badResList:
@@ -472,7 +474,7 @@ class WorkingSegment(Segment):
                     data = s.recv(1024)
                     if not data:
                         break
-                    recvbuff += repr(data)
+                    recvbuff += data
 
             except Exception, e:
                 logfp.write('crap something went wrong::\n')
@@ -480,14 +482,48 @@ class WorkingSegment(Segment):
                 logfp.close()
                 return -1
 
-            # ToDo, we need to parse out the topology and parameter file from the
-            # stream that dogmans gave us. For now, though, let's just dump this
-            # to a file swo we can look at it for debugging.
             fp = open('%s/%s-%s-dogmans.txt' % (self.structure.location,self.name,badRes), 'w') 
             fp.write(recvbuff)
             fp.close()
             logfp.write('Dumped CGenFF result for analysis.\n')
+
+            # parse file returned from dogmans, and make sure that it has both topology and
+            # parameters.
+            rtffound = False
+            prmfound = False
+            inrtf = False
+            inprm = False
+            rtffp = open('%s/%s-%s-dogmans.rtf' % (self.structure.location,self.name,badRes), 'w')
+            prmfp = open('%s/%s-%s-dogmans.prm' % (self.structure.location,self.name,badRes), 'w')
+            for line in recvbuff.split('\n'):
+                if inrtf:
+                    rtffp.write(line + '\n')
+                if inprm:
+                    prmfp.write(line + '\n')
+
+                line = line.strip()
+                if line == 'end' or line == 'END':
+                    inrtf = False
+                    inprm = False
+                if line.startswith('read rtf'):
+                    rtffound = True
+                    inrtf = True
+                if line.startswith('read param'):
+                    prmfound = True
+                    inprm = True
+            
+            rtffp.close()
+            prmfp.close()
+            if not (rtffound and prmfound):
+                logfp.write('Aw crap ... did not find both topology and parameters.\n')
+                logfp.close()
+                return -1
+
+            self.rtf_list += ' %s-%s-dogmans.rtf' % (self.name,badRes)
+            self.prm_list += ' %s-%s-dogmans.prm' % (self.name,badRes)
         
+        
+        logfp.write('All looks OK\n')
         logfp.close()
         return 0
 
@@ -505,6 +541,8 @@ class WorkingSegment(Segment):
         os.putenv("MATCH","%s/MATCH_RELEASE/MATCH" % charmming_config.data_home)
         os.chdir(self.structure.location)
        
+        self.rtf_list = '%s/top_all27_prot_na.rtf' % charmming_config.data_home
+        self.prm_list = '%s/par_all27_prot_na.prm' % charmming_config.data_home
         for badRes in badResList:
             exe_line = '%s/MATCH_RELEASE/MATCH/scripts/MATCH.pl %s-badres-h-%s.mol2' % (charmming_config.data_home,self.name,badRes)
             logfp.write('Xcute: %s\n' % exe_line)
@@ -518,8 +556,8 @@ class WorkingSegment(Segment):
 
             # ToDo: add the rtf/param files that have been generated to a master topology
             # and parameter files for the entire segment.
-            self.rtf_list += ' %s-badres-h-%s.psf' % (self.name,badRes)
-            self.prm_list += ' %s-badres-h-%s.psf' % (self.name,badRes)
+            self.rtf_list += ' %s-badres-h-%s.rtf' % (self.name,badRes)
+            self.prm_list += ' %s-badres-h-%s.prm' % (self.name,badRes)
 
         logfp.close()
         return 0
