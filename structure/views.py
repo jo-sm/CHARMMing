@@ -469,13 +469,55 @@ def viewstatus(request):
         workingStruct = None
 
     statuses = []
+    logfp = open('/tmp/viewstatus.txt', 'w')
+    logfp.write('in viewstatus\n')
     if workingStruct:
+        logfp.write('in ifworkingstruct\n')
         workingStruct.updateActionStatus()
         t = structure.models.Task.objects.filter(workstruct=workingStruct,active='y')
         for task in t:
-            statuses.append((task.action,task.get_status_display()))
+            cankill = 0
+            if task.status == 'R':
+               cankill = 1
+            statuses.append((task.action,task.get_status_display(),cankill,task.id))
 
+    logfp.write('status = %s\n' % statuses)
+    logfp.close()
     return render_to_response('html/statusreport.html', {'structure': file, 'haveWorkingStruct': True, 'statuses': statuses})
+
+# kill a task
+def killTask(request,taskid):
+    logfp = open('/tmp/killTask.txt', 'w')
+    logfp.write('In killTask\n')
+
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+    input.checkRequestData(request)
+
+    logfp.write('Got task ID = %s\n' % taskid)
+    try:
+        tid = int(taskid)
+        t = Task.objects.get(id=tid)
+    except:
+        logfp.write('No such task.\n')
+        logfp.close()
+        return HttpResponse('No such task')
+
+    logfp.write('Found task, status = %s!\n' % t.status)
+    if t.workstruct.structure.owner != request.user:
+        logfp.write('No permission\n')
+        logfp.close()
+        return HttpResponse('No permission')
+    if t.status != 'R':
+        logfp.write('Task not running!\n')
+        logfp.close()
+        return HttpResponse('Job not running')
+
+    logfp.write('Calling task kill method.\n')
+    logfp.close()
+    t.kill()
+    return HttpResponse("OK")
+
 
 #Used to report an error. Used in calling problem.html
 def reportError(request):

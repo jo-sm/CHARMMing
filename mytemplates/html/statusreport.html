@@ -14,7 +14,7 @@
        <tr class="status"><td class="status">Operations:</td></tr>
        {% for s in statuses %}
          {% ifnotequal s.1 "Inactive" %}
-           <tr class="status"><td class="status"> {{ s.0 }}: {{ s.1 }}</td></tr>
+           <tr class="status"><td class="status"> {{ s.0 }}: {{ s.1 }} {% ifequal s.2 1 %}<a href="javascript:killJob({{ s.3 }});">X</a>{% endifequal %}</td></tr>
          {% endifnotequal %}
        {% endfor %}
      {% else %}

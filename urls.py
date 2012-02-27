@@ -99,7 +99,7 @@ urlpatterns = patterns('',
      (r'^charmming/editstructurecontainer/$', 'structure.views.editstructurecontainer'),
 
      # job killing
-     (r'^charmming/killjob/(?P<jobid>.*)$', 'scheduler.schedInterface.killJob'),
+     (r'^charmming/killjob/(?P<taskid>.*)/$', 'structure.views.killTask'),
 
      # Uncomment this for admin:
      (r'^charmming/admin/unapproved/', 'account.admin_views.showUnapproved'),
