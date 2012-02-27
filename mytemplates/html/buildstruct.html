@@ -1,3 +1,4 @@
+<script type="text/javascript" src="/charmming/js/custom.js"> </script>
 <div id="Edit Structure" style="text-align: center;">
  <center>
 
@@ -168,7 +169,7 @@
            <table border align="center" cellspacing="2" cellpadding="2" width="70%">
            {% for seg in seg_list %}
               {% ifequal seg.type "pro" %}
-                 <tr><td><input type="checkbox" name="go_select_{{ seg.name }}" value="1" /></td><td>{{ seg.name }}</td></tr>
+                 <tr><td><input type="checkbox" name="bln_select_{{ seg.name }}" value="y" /></td><td>{{ seg.name }}</td></tr>
               {% endifequal %}
            {% endfor %}
            </table>
@@ -199,7 +200,7 @@
              </tr>
              <tr>
                 <td width="33%">kBondCoil <input type="text" name="bln_kbondcoil" value="2.50" /></td>
-                <td width="33%">kAngleCoil <input type="text" name="bln_kanglehelix" value="5.98" /></td>
+                <td width="33%">kAngleCoil <input type="text" name="bln_kanglecoil" value="5.98" /></td>
              </tr>
            </table>
         </div>

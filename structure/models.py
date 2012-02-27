@@ -16,6 +16,7 @@
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
 from django.template import *
+from django.http import HttpResponseRedirect, HttpResponse
 from django.template.loader import get_template
 from django.db import models
 from django import forms
@@ -24,6 +25,7 @@ from django.core.mail import mail_admins
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from normalmodes.aux import parseNormalModes, getNormalModeMovieNum
+from pychm.cg.sansombln import SansomBLN
 import charmming_config, input
 import commands, datetime, sys, re, os, glob, smtplib
 import normalmodes, dynamics, minimization
@@ -1020,6 +1022,7 @@ class CGWorkingStructure(WorkingStructure):
 
             logfp = open('/tmp/cgassoc.txt', 'w')
             logfp.write("In CG associate: segids = %s\n" % segids)
+            logfp.write("In CG associate: cg_type = %s\n" % self.cg_type)
 
             pdbfname = structref.location + '/cgbase-' + str(self.id) + '.pdb'
 
@@ -1034,7 +1037,6 @@ class CGWorkingStructure(WorkingStructure):
                     s.write(pdbfname, outformat='charmm',append=True,ter=True,end=False)
                 else:
                     logfp.write("No.\n")
-            logfp.close()
             fp.close()
 
             if sct == 0:
@@ -1050,6 +1052,7 @@ class CGWorkingStructure(WorkingStructure):
             # decide how this model is going to be stored on disk.
             basefname = self.identifier + '-' + self.cg_type
 
+            logfp.write("Point OSCAR self.cg_type = '%s'\n" % self.cg_type)
             if self.cg_type == 'go':
                 # need to set strideBin via kwargs
                 cgm = pychm.cg.ktgo.KTGo(pdbfile, strideBin=charmming_config.stride_bin)
@@ -1066,10 +1069,23 @@ class CGWorkingStructure(WorkingStructure):
 
             elif self.cg_type == 'bln':
                 # kwargs can be hbondstream
-                cgm = pychm.cg.sansombln(pdbfile, **kwargs)
-                ## ToDo, fill in
+                logfp.write('Do BLN code.\n')
+                cgm = SansomBLN(pdbfile, **kwargs)
+                if kwargs.has_key('kBondHelix'):
+                    cgm.kBondHelix = float(kwargs['kBondHelix'])
+                if kwargs.has_key('kBondSheet'):
+                    cgm.kBondHelix = float(kwargs['kBondSheet'])
+                if kwargs.has_key('kBondCoil'):
+                    cgm.kBondHelix = float(kwargs['kBondCoil'])
+                if kwargs.has_key('kAngleHelix'):
+                    cgm.kAngleHelix = float(kwargs['kAngleHelix'])
+                if kwargs.has_key('kAngleSheet'):
+                    cgm.kAngleSheet = float(kwargs['kAngleSheet'])
+                if kwargs.has_key('kAngleCoil'):
+                    cgm.kAngleCoil = float(kwargs['kAngleCoil'])
 
             # write out 
+            logfp.write('Writing out model.\n')
             cgm.write_pdb(self.structure.location + '/' + basefname + '.pdb')
             cgm.write_rtf(self.structure.location + '/' + basefname + '.rtf')
             cgm.write_prm(self.structure.location + '/' + basefname + '.prm')
@@ -1086,6 +1102,7 @@ class CGWorkingStructure(WorkingStructure):
             self.pdbname = self.structure.location + '/' + basefname + '.pdb'
             self.save()
             
+            logfp.close()
         else:
             raise AssertionError('Unknown CG model')
 

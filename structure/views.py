@@ -1161,7 +1161,22 @@ def modstruct(request):
         new_ws.save()
 
     elif request.POST['buildtype'] == 'bln':
-        return HttpResponse("Foo")
+        seglist = []
+
+        segs = structure.models.Segment.objects.filter(structure=struct,is_working='n')
+        for s in segs:
+            ulkey = 'bln_select_' + s.name
+            if request.POST.has_key(ulkey) and request.POST[ulkey] == 'y':
+                seglist.append(s.name)
+
+        new_ws = structure.models.CGWorkingStructure()
+        new_ws.identifier = request.POST['wsidentifier']
+        new_ws.modelName = request.POST['basemodel']
+        new_ws.cg_type = 'bln'
+        new_ws.associate(struct,seglist,domainScale=request.POST['bln_domainscale'],kBondHelix=request.POST['bln_kbondhelix'],\
+                         kAngleHelix=request.POST['bln_kanglehelix'],kBondSheet=request.POST['bln_kbondsheet'],kAngleSheet=request.POST['bln_kanglesheet'], \
+                         kBondCoil=request.POST['bln_kbondcoil'],kAngleCoil=request.POST['bln_kanglecoil'])
+        new_ws.save()
     else:
         return HttpResponse("Bad builttype specified!")
 
