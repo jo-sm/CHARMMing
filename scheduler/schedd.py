@@ -18,13 +18,16 @@
 #  particular purpose.
 
 import sys, os, time, string, select, getopt, signal, MySQLdb
-import commands
-import errno
+import commands, errno
+import settings
 from socket import *
 from pbs_sched import jobScheduler
 
 ## Global variables
-port = 9995
+port = 9995 # the port that we listen on ... *not* the MySQL port.
+db_user = settings.DATABASE_USER
+db_passwd = settings.DATABASE_PASSWORD
+db_name = settings.DATABASE_NAME
 
 ## classes
 class logger:
@@ -60,7 +63,7 @@ class tracker:
    def updateStatus(self):
       # initialize MySQL
       try:
-         dba = MySQLdb.connect("localhost", user="charmming", passwd="charmming", db="charmming")
+         dba = MySQLdb.connect("localhost", user=db_user, passwd=db_passwd, db=db_name)
       except:
          self.logif.write_log(0, "Authentication to MySQL db failed!")
          return None
@@ -152,7 +155,7 @@ class tracker:
    def lookupJobStatus(self,jid):
       # initialize MySQL
       try:
-         dbc = MySQLdb.connect("localhost", user="charmming", passwd="charmming", db="charmming")
+         dbc = MySQLdb.connect("localhost", user=db_user, passwd=db_passwd, db=db_name)
          crc = dbc.cursor()
       except:
          self.logif.write_log(0, "Authentication to MySQL db failed!")
@@ -202,7 +205,7 @@ class tracker:
 
       # initialize MySQL
       try:
-         dbc = MySQLdb.connect("localhost", user="charmming", passwd="charmming", db="charmming")
+         dbc = MySQLdb.connect("localhost", user=db_user, passwd=db_passwd, db=db_name)
          crc = dbc.cursor()
       except:
          self.logif.write_log(0, "Authentication to MySQL db failed!")
@@ -278,7 +281,7 @@ class tracker:
 
       # initialize MySQL
       try:
-         dbc = MySQLdb.connect("localhost", user="charmming", passwd="charmming", db="charmming")
+         dbc = MySQLdb.connect("localhost", user=db_user, passwd=db_passwd, db=db_name)
          crc = dbc.cursor()
       except:
          self.logif.write_log(0, "Authentication to MySQL db failed!")
