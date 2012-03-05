@@ -22,6 +22,8 @@ function set_install_config {
   charmming_admin="admin"                   # The username for the charmming administrator 
   charmming_passwd="qwerty"                 # The administrator password for charmming 
   database_passwd="qwerty"                  # The mysql password for the charmming database 
+  database_root_passwd="qwerty"             # The root password for the MySQL database
+  apache_group="www-data"                   # The group that Apache runs under
 }
 
 function dependencies { 
@@ -31,7 +33,7 @@ read answer
 
 if [[ "$answer" == "Y" || "$answer" == "y" || "$answer" = "" || "$answer" = "yes" || "$answer" = "Yes" || "$answer" = "YES" ]];
 then
-  sudo apt-get install subversion python-django openbabel torque-server torque-scheduler torque-client torque-common torque-mom apache2 mysql-server mysql-client mysql-common libapache2-mod-python python-mysqldb python-numpy
+  sudo apt-get install bc subversion python-django openbabel torque-server torque-scheduler torque-client torque-common torque-mom apache2 mysql-server mysql-client mysql-common libapache2-mod-python python-mysqldb python-numpy
 else
   echo    "-----------------------"
   echo -e "Ok, I will skip this..." 
@@ -87,7 +89,7 @@ function mysql_config {
 
 # call mysql to create database and set permissions...
     echo " Creating charmming database:" 
-    mysql -u root --password="$database_passwd" < /tmp/charmming/create_db.sql
+    mysql -u root --password="$database_root_passwd" < /tmp/charmming/create_db.sql
 
     echo "CREATE TABLE \`job_scheduler\` ("                       >  scheduler.sql
     echo "  \`sched_id\` varchar(64) default NULL,"               >> scheduler.sql
@@ -106,6 +108,12 @@ function mysql_config {
 # call mysql to create database and set permissions...
     echo -e " Creating charmming tables:\n" 
     mysql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/scheduler.sql
+    
+    echo -e " Creating initial groups...\n"
+    echo "INSERT INTO auth_group (id,name) VALUES (1,'preapprove');" > groups.sql
+    echo "INSERT INTO auth_group (id,name) VALUES (2,'student');" >> groups.sql
+    echo "INSERT INTO auth_group (id,name) VALUES (3,'lesson');" >> groups.sql
+    musql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/groups.sql
   else
     echo    "-----------------------"
     echo -e "Ok, I will skip this..." 
@@ -118,7 +126,8 @@ function schedd_config {
   read answer
   if [[ "$answer" == "Y" || "$answer" == "y" || "$answer" = "" || "$answer" = "yes" || "$answer" = "Yes" || "$answer" = "YES" ]];
   then
-    sudo useradd schedd -s /bin/bash -m
+    sudo useradd schedd -c "CHARMMing scheduler daemon" -s /bin/bash -m
+    sudo usermod -a -G "$apache_group" schedd
     sudo mkdir -p /home/schedd/$charmming_admin
     sudo chown -R schedd.www-data /home/schedd/ 
     sudo chmod -R g+w /home/schedd/ 
@@ -344,6 +353,8 @@ then
 
 # Start scheduler (i.e. schedd.py) 
   start_schedd
+  
+  echo "Installation is complete ... please review charmming_config.py to make sure that everything is set up correctly."
 
 elif [ "${ARGV[0]}" == "-uninstall" ]
 then 
