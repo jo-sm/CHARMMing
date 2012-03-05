@@ -24,23 +24,45 @@
 
           <hr noshade width="80%" size="3%" />
           <h2>Solvation Parameters</h2>
-          
-          <table width="80%">
-            <tr><td>Choose a unit cell shape for solvation</td>
-            <td><select name="solvation_structure" id="solv_struc" onchange="resetBoxDim({{dim_x}},{{dim_y}},{{dim_z}});">
+
+          <h3 align="center">Choose What Sort of Solvation You Want</h3>
+          <table width="70%">
+            <tr><td>Calculate dimensions based on structure size + a buffer</td><td><input type="radio" name="solvtype" value="determine_dimensions" onclick="setVisible('pick_sphere','none');setVisible('pick_shape','block');setVisible('set_buffer','block');setVisible('set_dimensions','none');" checked /></td></tr>          
+            <tr><td>Set the exact dimensions of the solvation cell</td><td><input type="radio" name="solvtype" value="set_dimensions" onclick="setVisible('pick_sphere','none');setVisible('pick_shape','block');setVisible('set_buffer','none');setVisible('set_dimensions','block');"  /></td></tr>          
+            <tr><td>Spherical water shell (cannot be used for PBC)</td><td><input type="radio" name="solvtype" value="sphere_solvation" onclick="setVisible('pick_sphere','block');setVisible('pick_shape','none');setVisible('set_buffer','none');setVisible('set_dimensions','none');" /></td></tr>
+          </table>
+
+          <div id="pick_sphere" style="display:none">
+               <center>Radius of the sphere (in angstroms) = <input type="text" width="12" name="spradius" value="0.0" /></center>
+          </div>
+          <div id="pick_shape">
+            <h3 align="center">Choose the shape of the solvation structure.</h3>
+            <center>
+               <select name="solvation_structure" id="solv_struc" onchange="resetBoxDim({{dim_x}},{{dim_y}},{{dim_z}});">
                   <label><option id="id_solvation_structure_0" value="cubic"/>cubic (X=Y=Z, 90 degree angles)</label>
                   <label><option id="id_solvation_structure_1" value="tetra"/>tetragonal (X=Y, 90 degree angles)</label>
                   <label><option id="id_solvation_structure_2" value="rhdo" selected />Rhombic Dodecahedron (X=Y=Z)</label>
                   <label><option id="id_solvation_structure_3" value="hexa" />Hexagonal Prism (X=Y)</label>
-                  <label><option id="id_solvation_structure_4" value="sphere"/>sphere (not a space-filling geometry; cannot be used with PBC)</label>
-                </select></td></tr>
-            <tr><td>Choose Box dimensions (Your structure's dimensions are X={{dim_x}}, Y={{dim_y}}, Z={{dim_z}})</td>
-                <td>
-                  X = <input type="text" name="set_x" value="0.0" /><br />
-                  Y = <input type="text" name="set_y" value="0.0" /><br />
-                  Z = <input type="text" name="set_z" value="0.0" /><br />
-                  SPHERE RADIUS = <input type="text" name="spradius" value="0.0" />
-                </td></tr>
+               </select>
+            </center>
+          </div>
+
+          <div id="set_buffer">
+             <h3 align="center">Set the buffer size</h3>
+             <center>Buffer Size = <input type="text" name="buffer" value="5.0" width="8" /> Angstroms</center>
+          </div>
+
+          <div id="set_dimensions" style="display:none">
+             <h3 align="center">Manually set solvation structure dimensions</h3>
+             <center>
+                X DIMENSION = <input type="text" name="set_x" value="0.0" /><br />
+                Y DIMENSION = <input type="text" name="set_y" value="0.0" /><br />
+                Z DIMENSION = <input type="text" name="set_z" value="0.0" /><br />
+             </center>
+          </div>
+          
+          <hr />
+          <table>
             <tr><td>Neutralize the structure (current charge {{charge}})</td>
                 <td>
                    Select salt:&nbsp;
@@ -52,12 +74,14 @@
                      <option value="cacl2">Calcium Chloride (CaCl<sub>2</sub>)</option>
                      <option value="mgcl2">Magnesium Chloride (MgCl<sub>2</sub>)</option>
                    </select>
-                   <br />
-                   Select Concentration:&nbsp;<input type="text" name="concentration" value="0.15" /> molar<br />
-                   Number of trials:&nbsp;<input type="text" name="ntrials" value="3" />
-                </td></tr>
+                </td>
+            </tr>
           </table>
-          <input type="submit" value="Submit" />
+          <br />
+          Select Concentration:&nbsp;<input type="text" name="concentration" value="0.15" /> molar<br />
+          Number of trials:&nbsp;<input type="text" name="ntrials" value="3" />
+
+          <br /><input type="submit" value="Submit" />
 
         </center>
       </form>

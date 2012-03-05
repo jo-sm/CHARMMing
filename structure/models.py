@@ -704,7 +704,38 @@ class WorkingStructure(models.Model):
     # extra setup stream files that are needed (useful for BLN model
     # and possibly elsewhere)
     extraStreams = models.CharField(max_length=120,null=True)
-    
+
+    @property
+    def dimension(self):
+        xmax = 9999.
+        ymax = 9999.
+        zmax = 9999.
+        xmin = -9999.
+        ymin = -9999.
+        zmin = -9999.
+
+        # get the names of all segments that are part of this working structure
+        segnamelist = []
+        for wseg in self.segments:
+            segnamelist.append(wseg.name)
+
+        pickle = open(self.structure,pickle,'r')
+        pdb = cPickle.load(pickleFile)
+        pickle.close()
+
+        mol = pdb[0] # potentially dangerous: assume we're dealing with model 0
+        for seg in mol.iter_segs():
+            if seg.segid in segnamelist:
+                for atom in seg:
+                    x, y, z = atom.cart
+                    if x < xmax: xmax = x
+                    if y < xmax: ymax = y
+                    if z < xmax: zmax = z
+                    if x > xmin: xmin = x
+                    if y > xmin: ymin = y
+                    if z > xmin: zmin = z
+
+        return((xmax-xmin,ymax-ymin,zmax-zmin))
 
     def associate(self,structref,segids,tpdict):
         """

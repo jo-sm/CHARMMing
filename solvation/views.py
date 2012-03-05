@@ -81,18 +81,37 @@ def solvate_tpl(request,solvTask,pTaskID):
     workingstruct = solvTask.workstruct
     os.chdir(workingstruct.structure.location)
 
-    #file.solvation_status = "<font color=yellow>Processing</font>"
     solvTask.solvation_structure = postdata['solvation_structure']
     solvTask.concentration = '0.0' # needs to be set here, will be set to proper value in ionization.py
     solvTask.structure = workingstruct
 
     # set a, b, c, alpha, beta, gamma for run
-    if solvTask.solvation_structure == 'sphere':
+    if postdata.solvtype == 'sphere_solvation':
         solvTask.spradius = postdata.sphere_radius
-    else:
+    elif postdata.solvtype == 'set_dimensions':
         solvTask.xtl_x = postdata['set_x']
         solvTask.xtl_y = postdata['set_y']
         solvTask.xtl_z = postdata['set_z']
+    elif postdata.solvtype == 'determine_dimensions':
+        dimensions = wrokingstruct.dimension
+        ldim = list(dimensions)
+        ldim.sort()
+        buffer = float(postdata['buffer'])
+
+        if solvTask.structure in ['cubic','rhdo']:
+            solvTask.xtl_x = ldim[2] + (2*buffer)
+            solvTask.xtl_y = ldim[2] + (2*buffer)
+            solvTask.xtl_z = ldim[2] + (2*buffer)
+        elif solvTask.structure in ['tetra','hexa']:
+            # the solvation input template does a coor orient, so it's safe to
+            # assume that the X edge is the longest and the Y edge is the second
+            # longest.
+            solvTask.xtl_x = ldim[2] + (2*buffer)
+            solvTask.xtl_y = ldim[2] + (2*buffer)
+            solvTask.xtl_z = ldim[0] + (2*buffer)
+        else:
+            raise AssertionError('Unknown crystal structure')
+
     solvTask.save()
 
     if not solvTask.check_valid():
