@@ -25,5 +25,5 @@ urlpatterns = patterns('normalmodes.views',
      (r'^$', 'normalmodesformdisplay'),
 
     # Uncomment this for admin:
-    (r'^admin/(.*)', admin.site.root),
+    (r'^admin/(.*)', include(admin.site.urls)),
 )
