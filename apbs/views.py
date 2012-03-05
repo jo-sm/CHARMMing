@@ -142,7 +142,10 @@ def redoxformdisplay(request):
             logfp.write("OK\n")
             print_result = True
             fp = open(struct.location + '/redox-' + ws.identifier + '-modpot.txt', 'r')
-            modpot = float(fp.readline())
+            try:
+                modpot = float(fp.readline())
+            except:
+                print_result = False
             fp.close()
 
         logfp.write('modpot = %s\n' % modpot)
@@ -155,7 +158,10 @@ def redoxformdisplay(request):
         else:
             print_result = True
             fp = open(struct.location + '/redox-' + ws.identifier + '-modpotref.txt', 'r')
-            modpotref = float(fp.readline())
+            try:
+                modpotref = float(fp.readline())
+            except:
+                print_result = False
             fp.close()
         try:
             os.stat(struct.location + '/redox-' + ws.identifier + '-oxipot.txt')
@@ -173,7 +179,10 @@ def redoxformdisplay(request):
         else:
             print_result = True
             fp = open(struct.location + '/redox-' + ws.identifier + '-oxipotref.txt', 'r')
-            oxipotref = float(fp.readline())
+            try:
+                oxipotref = float(fp.readline())
+            except:
+                print_result = False
             fp.close()
 
         if calc_final:
@@ -533,7 +542,7 @@ def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
     getdelg_tpl(request,workstruct,redoxTask,doKnockout)
 
     # all scripts generated, submit to the scheduler
-    redoxTask.start()
+    redoxTask.start(altexe=charmming_config.charmm_apbs_exe)
     redoxTask.save()
 
     return "foo"
