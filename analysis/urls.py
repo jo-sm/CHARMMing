@@ -26,5 +26,5 @@ urlpatterns = patterns('analysis.views',
      (r'^domdprop/$', 'domdprop'),
 
     # Uncomment this for admin:
-    (r'^admin/(.*)', admin.site.root),
+    (r'^admin/(.*)', include(admin.site.urls)),
 )

@@ -106,7 +106,6 @@ INSTALLED_APPS = (
     'dynamics',
     'solvation',
     'minimization',
-    'wiki',
     'normalmodes',
     'lessons',
     'analysis',

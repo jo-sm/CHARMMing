@@ -1152,11 +1152,24 @@ class Task(models.Model):
             self.save()
         return self.scripts.split(',')
 
-    def start(self):
+    def start(self,**kwargs):
         st = self.workstruct.structure
 
+        logfp = open('/tmp/startjob.txt', 'w')
+        logfp.write('In job start routine.\n')
+
         si = schedInterface()
-        self.jobID = si.submitJob(st.owner.id,st.location,self.scriptList)
+        if kwargs.has_key('altexe'):
+            logfp.write('Got alt exe.\n')
+            exedict = {}
+            for inpscript in self.scriptList:
+                exedict[inpscript] = kwargs['altexe']
+            logfp.write('exedict = %s\n' % exedict)
+            self.jobID = si.submitJob(st.owner.id,st.location,self.scriptList,exedict=exedict)
+        else:
+            logfp.write('No alt exe.\n')
+            self.jobID = si.submitJob(st.owner.id,st.location,self.scriptList)
+        logfp.close()
         if self.jobID > 0:
             self.save()
             self.query()
@@ -1209,7 +1222,7 @@ class Task(models.Model):
         self.scripts = ''
         self.workstruct = ws
 
-class WorkingFile(models.Model,file):
+class WorkingFile(models.Model):
     path        = models.CharField(max_length=160)
     canonPath   = models.CharField(max_length=160) # added so we can do file versioning
     version     = models.PositiveIntegerField(default=1)

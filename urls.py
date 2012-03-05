@@ -31,7 +31,6 @@ urlpatterns = patterns('',
      (r'^charmming/analysis/', include('analysis.urls')),
      (r'^charmming/solvate/', include('solvation.urls')),
      (r'^charmming/dynamics/', include('dynamics.urls')),
-     (r'^charmming/wiki/', include('wiki.urls')),
      (r'^charmming/lessons/', include('lessons.urls')),
      (r'^charmming/normalmodes/', include('normalmodes.urls')),
      (r'^charmming/images/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '%s/mytemplates/images/' % charmming_config.charmming_root}),
@@ -103,6 +102,6 @@ urlpatterns = patterns('',
 
      # Uncomment this for admin:
      (r'^charmming/admin/unapproved/', 'account.admin_views.showUnapproved'),
-     (r'^charmming/admin/(.*)', admin.site.root),
+     (r'^charmming/admin/(.*)', include(admin.site.urls)),
      (r'^charmming/admin-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/usr/share/pyshared/django/contrib/admin/media'}),
 )
