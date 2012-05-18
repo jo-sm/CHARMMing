@@ -97,15 +97,6 @@ function leavecheck()
             <td><a href="" title="You can define your own sequence by typing in the amino acids you want. Use the three letter abbreviation followed by a space (e.g. ALA GLY TYR).">?</a></td>
          </tr>
          <tr><td colspan=3><hr width="100%"></td></tr>
-         <tr>
-            <td><p class="fontlarge">Add my own topology file</p></td><td> <input type="checkbox" name="upload_rtf" id="upload_rtf" onclick="displayFields('rtf_upload');"></td>
-	    <td><a href="" title="Topology files contain residue information. Residues in CHARMM are subunits, such as amino acids or nucleic acids.">?</a></td>
-         </tr>
-         <tr><td colspan=3><hr width="100%"></td></tr>
-         <tr>
-            <td><p class="fontlarge">Add my own parameter file </p></td><td><input type="checkbox" name="upload_prm" id="upload_prm" onclick="displayFields('prm_upload');"></td><td><a href="" title="Parameter files store bond/nonbond information along with atom parameters.">?</a></td>
-         </tr>
-         <tr><td colspan=3><hr width="100%"></td></tr>
       </table>
    </form>
 
@@ -162,19 +153,6 @@ function leavecheck()
                      <p>* = alternate protonation state</p>
      	           </div>
                  </fieldset>
-            </div>
-            <div id="rtf_upload" style="display:none"><p><label for="id_pdb"> Topology File </label> {{ form.rtf_file }} {{ form.rtf_file_file }}</p>
-              <div style="font-size:small;">
-                Append this to the default CHARMMing topology file <input type="radio" name="rtf_append_or_replace" id="rtf_append_or_replace" value="append"><br>
-                Replace the default CHARMMing topology file with this topology file <input type="radio" name="rtf_append_or_replace" id="rtf_append_or_replace" value="replace" checked>
-              </div>
-            </div>
-
-            <div id="prm_upload" style="display:none"><p><label for="id_pdb"> Parameter File </label> {{ form.prm_file }} {{ form.prm_file_file }}</p>
-              <div style="font-size:small;">
-                Append this to the default CHARMMing parameter file<input type="radio" name="prm_append_or_replace" id="prm_append_or_replace" value="append"><br>
-                Replace the default CHARMMing parameter file with this parameter file<input type="radio" name="prm_append_or_replace" id="prm_append_or_replace" value="replace" checked>
-              </div>
             </div>
       </fieldset>
       <br />
