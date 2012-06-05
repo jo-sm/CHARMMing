@@ -167,7 +167,7 @@ def minimize_tpl(request,mp,pTaskID):
         solvated = False
         wfc = pTask
         while True:
-            if wfc.action == 'solvation':
+            if wfc.action == 'solvation' or wfc.action == 'neutralization':
                 solvated = True
                 break
             if wfc.parent:

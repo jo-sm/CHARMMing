@@ -164,7 +164,7 @@ mini abnr nstep 25 nprint 5
 if @emin .lt. ?ENER goto test
 
 ! WRITE THE LATEST MINIMUM ENERGY RESULT; CONFIG ACCEPTED
-write psf card name {{ fname }}-neutralized.psf
+write psf card name {{ fname }}-neutralization.psf
 * Neutralized structure
 *
 
@@ -173,7 +173,12 @@ update
 
 ioformat extended
 
-write coor card name {{ fname }}-neutralized.crd
+write coor card name {{ fname }}-neutralization.crd
+* Neutralized structure.
+* SEED 314159 MC @NCFG edge ?XTLA E ?ENER PREV @EMIN
+*
+
+write coor pdb name {{ fname }}-neutralization.pdb
 * Neutralized structure.
 * SEED 314159 MC @NCFG edge ?XTLA E ?ENER PREV @EMIN
 *

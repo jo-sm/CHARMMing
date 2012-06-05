@@ -133,8 +133,7 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
     # template dictionary passes the needed variables to the template
     template_dict = {}
     template_dict['input_file'] = workstruct.identifier + '-' + pTask.action
-    template_dict['topology_list'] = workstruct.getTopologyList()
-    template_dict['parameter_list'] = workstruct.getParameterList()
+    template_dict['topology_list'], template_dict['parameter_list'], junk = workstruct.getTopparList()
     template_dict['nma'] = request.POST['nma']
     # save model
     if template_dict['nma'] == 'useenm':
@@ -204,8 +203,7 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
 def makeNmaMovie_tpl(workstruct,postdata,pstructID,scriptlist,num_trjs,typeoption,nmm):
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'] = file.getTopologyList()
-    template_dict['parameter_list'] = file.getParameterList()
+    template_dict['topology_list'], template_dict['parameter_list'], junk = file.getTopparList()
     template_dict['filebase'] = file.stripDotPDB(file.filename)
     template_dict['typeoption'] = typeoption
     template_dict['num_trjs'] = str(num_trjs)

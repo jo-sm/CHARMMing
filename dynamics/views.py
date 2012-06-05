@@ -214,7 +214,7 @@ def applyld_tpl(request,ldt,pTaskID):
         wfc = pTask
         while True:
             logfp.write('ancestor task action: %s\n' % wfc.action)
-            if wfc.action == 'solvation':
+            if wfc.action == 'solvation' or wfc.action == 'neutralization':
                 solvated = True
                 break
             if wfc.parent:
@@ -321,7 +321,7 @@ def applymd_tpl(request,mdt,pTaskID):
         wfc = pTask
         while True:
             logfp.write('ancestor action: %s\n' % wfc.action)
-            if wfc.action == 'solvation':
+            if wfc.action == 'solvation' or wfc.action == 'neutralization':
                 solvated = True
                 break
             if wfc.parent:

@@ -1078,6 +1078,7 @@ class WorkingStructure(models.Model):
         except:
             lesson_obj=None
         #YP
+
         for t in tasks:
             t.query()
 
@@ -1085,7 +1086,7 @@ class WorkingStructure(models.Model):
                 if t.action == 'minimization':
                     t2 = minimization.models.minimizeTask.objects.get(id=t.id)
                     if lesson_obj: lessonaux.doLessonAct(self.structure,"onMinimizeDone",t)
-                elif t.action == 'solvation':
+                elif t.action == 'solvation' or t.action == 'neutralization':
                     t2 = solvation.models.solvationTask.objects.get(id=t.id)
                     if lesson_obj:lessonaux.doLessonAct(self.structure,"onSolvationDone",t)
                 elif t.action == 'md':

@@ -470,10 +470,7 @@ def viewstatus(request):
         workingStruct = None
 
     statuses = []
-    logfp = open('/tmp/viewstatus.txt', 'w')
-    logfp.write('in viewstatus\n')
     if workingStruct:
-        logfp.write('in ifworkingstruct\n')
         workingStruct.updateActionStatus()
         t = structure.models.Task.objects.filter(workstruct=workingStruct,active='y')
         for task in t:
@@ -482,8 +479,6 @@ def viewstatus(request):
                cankill = 1
             statuses.append((task.action,task.get_status_display(),cankill,task.id))
 
-    logfp.write('status = %s\n' % statuses)
-    logfp.close()
     return render_to_response('html/statusreport.html', {'structure': file, 'haveWorkingStruct': True, 'statuses': statuses})
 
 # kill a task

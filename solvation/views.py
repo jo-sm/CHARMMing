@@ -160,6 +160,7 @@ def solvate_tpl(request,solvTask,pTaskID):
 
     doneut = postdata.has_key('salt') and postdata['salt'] != 'none'
     if doneut:
+        solvTask.action = 'neutralization'
         neutralize_tpl(solvTask,postdata)
     else:
         # Lessons are borked at the moment...

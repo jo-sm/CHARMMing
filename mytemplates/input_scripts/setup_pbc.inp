@@ -3,8 +3,8 @@ crystal build noper 0
 
 {% include 'input_scripts/zero_charge.inp' %}
 
-define selvent sele resid BWAT .or. resid SOD .or. resid CLA .or. resid POT - 
-CHARMM-scripts   .or. resid CES .or. resid CAL .or. resid MG end
+define solvent sele segid BWAT .or. segid SOD .or. segid CL .or. segid POT - 
+CHARMM-scripts   .or. segid CES .or. segid CAL .or. segid MG end
 
 image byres sele solvent end
 image byseg sele .not. solvent end

@@ -123,7 +123,7 @@ class solvationTask(Task):
 
         if self.concentration > 0.0001:
             try:
-                os.stat(loc + '/' + bnm + '-neutralized.crd')
+                os.stat(loc + '/' + bnm + '-neutralization.crd')
             except:
                 self.status = 'F'
                 self.save()
@@ -132,7 +132,7 @@ class solvationTask(Task):
 
             wfn = WorkingFile()
             wfn.task = self
-            wfn.path = loc + '/' + bnm + '-neutralized.crd'
+            wfn.path = loc + '/' + bnm + '-neutralization.crd'
             wfn.canonPath = wfn.path
             wfn.type = 'crd'
             wfn.description = 'neutralized structure'
@@ -142,7 +142,7 @@ class solvationTask(Task):
 
             wfnpsf = WorkingFile()
             wfnpsf.task = self
-            wfnpsf.path = loc + '/' + bnm + '-neutralized.psf'
+            wfnpsf.path = loc + '/' + bnm + '-neutralization.psf'
             wfnpsf.canonPath = wfnpsf.path  
             wfnpsf.type = 'psf'
             wfnpsf.description = 'neutralized structure'
@@ -150,7 +150,7 @@ class solvationTask(Task):
 
             wfnpdb = WorkingFile()
             wfnpdb.task = self
-            wfnpdb.path = loc + '/' + bnm + '-neutralized.pdb'
+            wfnpdb.path = loc + '/' + bnm + '-neutralization.pdb'
             wfnpdb.canonPath = wfnpdb.path  
             wfnpdb.type = 'pdb'
             wfnpdb.description = 'neutralized structure'
