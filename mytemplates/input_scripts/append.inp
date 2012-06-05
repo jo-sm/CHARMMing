@@ -3,34 +3,50 @@
 {% block title %}Append multiple segments into a final structure{% endblock %}
 
 {% block read_struct %} blankme
-  {% if seg_list %}
-    {% for segobj in seg_list %}  blankme      
-      {% if forloop.first %}  blankme
-        ! Read PSF from file
-        read psf card name {{ segobj.builtPSF }}
-      {% else %}  blankme
-        read psf card append name {{ segobj.builtPSF }}
-      {% endif %}  blankme
-    {% endfor %}  blankme
+  {% if rebuild %}
 
-    {% for segobj in seg_list %} blankme
-      {% if forloop.first %} blankme
-        ! read coordinates
-        read coor card name {{ segobj.builtCRD }}
-      {% else %} blankme
-        read coor card append name {{ segobj.builtCRD }}
-      {% endif %} blankme
+    {% for sb in segbuild %} blankme
+       read sequ pdb name {{sb.1}}
+       gene {{sb.0}} setu first {{sb.2}} last {{sb.3}} {{sb.4}}
+    {% endfor %} blankme
+    {% for sb in segbuild %} blankme
+       {% if forloop.first %}
+         read coor pdb name {{sb.1}}
+       {% else %}
+         read coor append pdb name {{sb.1}}
+       {% endif %}
     {% endfor %} blankme
 
   {% else %}
-    ! This handles the case where we read a single monolithic
-    ! PDB file, such as for CG models.
-    open unit 10 read card name {{ input_pdb }}
-    read sequence pdb unit 10
-    generate {{ finalname }} setup first none last none
-    rewind unit 10
-    read coor pdb unit 10
-    close unit 10
+    {% if seg_list %}
+      {% for segobj in seg_list %}  blankme      
+        {% if forloop.first %}  blankme
+          ! Read PSF from file
+          read psf card name {{ segobj.builtPSF }}
+        {% else %}  blankme
+          read psf card append name {{ segobj.builtPSF }}
+        {% endif %}  blankme
+      {% endfor %}  blankme
+
+      {% for segobj in seg_list %} blankme
+        {% if forloop.first %} blankme
+          ! read coordinates
+          read coor card name {{ segobj.builtCRD }}
+        {% else %} blankme
+          read coor card append name {{ segobj.builtCRD }}
+        {% endif %} blankme
+      {% endfor %} blankme
+
+    {% else %}
+      ! This handles the case where we read a single monolithic
+      ! PDB file, such as for CG models.
+      open unit 10 read card name {{ input_pdb }}
+      read sequence pdb unit 10
+      generate {{ finalname }} setup first none last none
+      rewind unit 10
+      read coor pdb unit 10
+      close unit 10
+    {% endif %}
   {% endif %}
 
 {% endblock %} blankme

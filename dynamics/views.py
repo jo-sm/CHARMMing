@@ -29,7 +29,7 @@ from scheduler.statsDisplay import statsDisplay
 from solvation.models import solvationTask
 import django.forms
 import copy, shutil, os, re
-import lessonaux, input, output, charmming_config
+import lessonaux, input, output, charmming_config, lessons, lesson1, lesson2, lesson3, lesson4
 
 #processes form data for ld simulations
 def lddisplay(request):
@@ -153,8 +153,7 @@ def applyld_tpl(request,ldt,pTaskID):
 
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'] = ldt.workstruct.getTopologyList()
-    template_dict['parameter_list'] = ldt.workstruct.getParameterList()
+    template_dict['topology_list'], template_dict['parameter_list'], junk = ldt.workstruct.getTopparList()
     template_dict['fbeta'] = postdata['fbeta']
     template_dict['nstep'] = postdata['nstep']
     template_dict['usesgld'] = postdata.has_key('usesgld')
@@ -256,10 +255,25 @@ def applyld_tpl(request,ldt,pTaskID):
         ldt.make_movie = 't'
         return makeJmolMovie(ldt,postdata,ldt.action)
     else:
-        mdt.start()
+        ldt.start()
         ldt.save()
 
     ldt.workstruct.save()
+
+    #YP lessons status update
+    try:
+        lnum=ldt.workstruct.structure.lesson_type
+        lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+    except:
+        lesson_obj = None
+
+    if lesson_obj:
+        if postdata.has_key('usesgld'):
+            lessonaux.doLessonAct(ldt.workstruct.structure,"onSGLDSubmit",ldt,"")
+        else:
+            lessonaux.doLessonAct(ldt.workstruct.structure,"onLDSubmit",ldt,"")
+    #YP
+
     return HttpResponse("Done.")
 
 #Generates MD script and runs it
@@ -271,8 +285,7 @@ def applymd_tpl(request,mdt,pTaskID):
     
     # template dictionary passes the needed variables to the templat
     template_dict = {}     
-    template_dict['topology_list'] = mdt.workstruct.getTopologyList()
-    template_dict['parameter_list'] = mdt.workstruct.getParameterList()
+    template_dict['topology_list'], template_dict['parameter_list'], junk = mdt.workstruct.getTopparList()
 
     template_dict['output_name'] = mdt.workstruct.identifier + '-md'
 
@@ -342,6 +355,9 @@ def applymd_tpl(request,mdt,pTaskID):
         mdt.ensemble = 'heat'
         mdt.firstt = postdata['firstt']
         mdt.finalt = postdata['finalt']
+        mdt.teminc = postdata['teminc']
+        mdt.ihtfrq = postdata['ihtfrq']
+        mdt.tbath = postdata['tbath']
         template_dict['nstep'] = postdata['nstepht']
         template_dict['firstt'] = postdata['firstt']
         template_dict['finalt'] = postdata['finalt']
@@ -384,10 +400,6 @@ def applymd_tpl(request,mdt,pTaskID):
     mdt.scripts += ',%s' % md_filename
     mdt.save()
 
-    # lessons are still borked
-    #if file.lesson_type:
-    #    lessonaux.doLessonAct(file,"onMDSubmit",postdata,min_pdb)
-
     if postdata.has_key('make_movie'):
         mdt.make_movie = 't'
         return makeJmolMovie(mdt,postdata,'md')
@@ -396,6 +408,18 @@ def applymd_tpl(request,mdt,pTaskID):
 
     mdt.save()
     mdt.workstruct.save()
+
+    #YP lessons status update
+    try:
+        lnum=mdt.workstruct.structure.lesson_type
+        lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+    except:
+        lesson_obj = None
+
+    if lesson_obj:
+        lessonaux.doLessonAct(mdt.workstruct.structure,"onMDSubmit",mdt,"")
+    #YP
+
     return HttpResponse("Done.")
 
 #pre: Requires a file object, and the name of the psf/crd file to read in

@@ -27,7 +27,8 @@ from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
-import input, output
+from lessons.models import LessonProblem
+import input, output, lesson1, lesson2
 import re, os, copy, math
 import lessonaux, charmming_config
 
@@ -59,7 +60,7 @@ def solvationformdisplay(request):
         st.active = 'y'
         st.action = 'solvation'
         st.save()
-
+      
         if ws.isBuilt != 't':
             isBuilt = False
             pTask = ws.build(st)
@@ -114,6 +115,7 @@ def solvate_tpl(request,solvTask,pTaskID):
     else:
         raise AssertionError('Unknown type')
 
+
     solvTask.save()
 
     if not solvTask.check_valid():
@@ -122,8 +124,7 @@ def solvate_tpl(request,solvTask,pTaskID):
     # template dictionary passes the needed variables to the template
     template_dict = {}
     template_dict['angles'] = "%5.2f %5.2f %5.2f" % (solvTask.angles[0],solvTask.angles[1],solvTask.angles[2])
-    template_dict['topology_list'] = workingstruct.getTopologyList()
-    template_dict['parameter_list'] = workingstruct.getParameterList()
+    template_dict['topology_list'], template_dict['parameter_list'], junk = workingstruct.getTopparList()
     template_dict['solvation_structure'] = solvTask.solvation_structure
 
     pTask = Task.objects.get(id=pTaskID)
@@ -151,6 +152,7 @@ def solvate_tpl(request,solvTask,pTaskID):
     inp_out = open(solvate_input_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
+    
 
     #change the status of the file regarding solvation
     solvTask.scripts += ',%s' % solvate_input_filename
@@ -163,11 +165,24 @@ def solvate_tpl(request,solvTask,pTaskID):
         # Lessons are borked at the moment...
         #if file.lesson_type:
         #    lessonaux.doLessonAct(file,"onSolvationSubmit",postdata)
-
+        
         solvTask.start()
         solvTask.save()
         workingstruct.save() 
 
+    #YP lessons stuff
+
+    try:
+        lnum=workingstruct.structure.lesson_type
+        lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+    except:
+        lesson_obj = None
+
+
+    if lesson_obj:
+        lessonaux.doLessonAct(workingstruct.structure,"onSolvationSubmit",solvTask,"")
+    #end YP lesson stuff
+    
     return HttpResponse("Done")
 
 

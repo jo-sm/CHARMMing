@@ -39,6 +39,7 @@ from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from account.views import isUserTrustworthy
 from structure.aux import checkNterPatch
+from lessons.models import LessonProblem
 import output, lesson1, lesson2, lesson3, lesson4, lessonaux
 import structure.models, input
 import re
@@ -638,8 +639,7 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     postdata = request.POST
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'] = workstruct.getTopologyList()
-    template_dict['parameter_list'] = workstruct.getParameterList()
+    template_dict['topology_list'], template_dict['parameter_list'] = workstruct.getTopparList()
     template_dict['output_name'] = workstruct.identifier + '-ener'
     template_dict['input_file'] = workstruct.identifier + '-' + pTask.action
 
@@ -823,10 +823,12 @@ def newupload(request, template="html/fileupload.html"):
     #NOTE: Because Django is having issues with class inheritance, each file
     #Will have a lesson type (lesson1, lesson2, etc.) and a primary key id.
     #It's not a fun hack but until Django is changed it will have to be like this
+    #YP
     if request.POST.has_key('lesson') and request.POST['lesson'] !=  'nolesson':
         lnum = request.POST['lesson']
         lessontype = lnum
         lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+    
     else:
         lessonid = None
         lessontype = None
@@ -836,8 +838,8 @@ def newupload(request, template="html/fileupload.html"):
         lesson_obj.user = request.user
         lesson_obj.save()
         lessonid = lesson_obj.id
-    # end of checking for lesson   
-
+    #YP end of checking for lesson   
+     
     try:
         request.FILES['pdbupload'].name
         file_uploaded = 1
@@ -885,6 +887,14 @@ def newupload(request, template="html/fileupload.html"):
             pass
 
         struct.selected = 'y'
+        #YP lessons
+        if lesson_obj:
+            postdata = request.POST
+            struct.lesson_type=lnum
+            struct.lesson_id=lesson_obj.id
+            struct.save()
+            lessonaux.doLessonAct(struct,"onFileUpload",postdata,"")
+        #end YP lessons
         struct.save()
         return HttpResponseRedirect('/charmming/buildstruct')
 
@@ -907,11 +917,7 @@ def newupload(request, template="html/fileupload.html"):
         os.chmod(location + '/' + dname, 0775)
         fullpath = location + '/' + dname + '/' + filename
     
-        # BTM, fix me -- I am in the wrong place
-        if lesson_obj:
-            struct.lesson_type = lessontype
-            struct.lesson_id = lessonid
-
+        
         # Put the initial PDB onto the disk
         if file_uploaded:
             temp = open(fullpath, 'w')
@@ -946,10 +952,17 @@ def newupload(request, template="html/fileupload.html"):
             # set up the new structure object
             struct = structure.models.Structure()
             struct.name = dname
+            #YP
+            struct.owner = request.user
+            #YP
             struct.location = location + dname
-
-            pdb = pychm.io.crd.CRDFile(fullpath)
-            thisMol = pdb.iter_models.next()
+            
+            #YP
+            #pdb = pychm.io.crd.CRDFile(fullpath)
+            pdb = pychm.io.pdb.PDBFile()
+            thisMol = pychm.io.pdb.get_molFromCRD(fullpath)
+            pdb._mols["model00"] = thisMol
+            #YP
             getSegs(thisMol,struct,auto_append=True)
         
         else:
@@ -982,8 +995,18 @@ def newupload(request, template="html/fileupload.html"):
         except:
             pass
 
-        # set this structure as selected
         struct.selected = 'y'
+        #YP lessons
+        if lesson_obj:
+            postdata = request.POST
+            struct.lesson_type=lnum
+            struct.lesson_id=lesson_obj.id
+            struct.save()
+            lessonaux.doLessonAct(struct,"onFileUpload",postdata,"")
+        #end YP lessons
+
+        # set this structure as selected
+        
         struct.save()
         return HttpResponseRedirect('/charmming/buildstruct/')
 
@@ -1090,23 +1113,23 @@ def modstruct(request):
 
                 if tpdict[seg] == 'upload':
                     try:
-                        uptop = request.FILES['topology_' + seg].name
-                        uppar = request.FILES['parameter_' + seg].name
+                        uptop = request.FILES['topology_' + seg]
+                        uppar = request.FILES['parameter_' + seg]
                     except:
                         return HttpResponse("Topology/parameter files not uploaded")
 
-                    os.copy(uptop,struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.rtf')
-                    os.copy(upprm,struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.prm')
+                    topfp = open(struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.rtf', 'w+')
+                    prmfp = open(struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.prm', 'w+')
+                    for chunk in uptop.chunks(): topfp.write(chunk)
+                    for chunk in uppar.chunks(): prmfp.write(chunk)
             else:
                 tpdict[seg] = 'standard'
 
         new_ws = structure.models.WorkingStructure()
-        new_ws.modelName = request.POST['basemodel']
-        new_ws.associate(struct,seglist,tpdict)
-
         # to do, make this not contain spaces
         new_ws.identifier = request.POST['wsidentifier']
-        new_ws.save()
+        new_ws.modelName = request.POST['basemodel']
+        new_ws.associate(struct,seglist,tpdict)
 
         # Figure out terminal patching
         for segobj in new_ws.segments.all():

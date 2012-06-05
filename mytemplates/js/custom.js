@@ -448,7 +448,7 @@ function checkSgld(div_id,change)
  if(document.getElementById('usesgld').checked)
  {
   changeTabLabel(AjaxTabs.GetFocusedTabId(),'Langevin Dynamics: SGLD');
-  setVisible(div_id,change);
+  setVisible(div_id,"block");
  }
  else
  {

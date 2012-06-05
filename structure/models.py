@@ -29,11 +29,13 @@ from pychm.cg.sansombln import SansomBLN
 import charmming_config, input
 import commands, datetime, sys, re, os, glob, smtplib
 import normalmodes, dynamics, minimization
-import solvation, lessons.models, apbs
+import solvation, lessons.models, apbs, lesson1, lesson2, lesson3, lesson4, lesson, lessonaux
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
 import cPickle, copy, traceback, socket
 import pychm.io, pychm.lib, pychm.cg
+import pychm.future.lib.toppar as pychm_toppar
+from pychm.future.io.charmm import open_rtf, open_prm
 
 class Structure(models.Model):
 
@@ -768,6 +770,9 @@ class WorkingStructure(models.Model):
                 wseg.rtf_list = segobj.rtf_list
                 wseg.prm_list = segobj.prm_list
             elif wseg.tpMethod == 'upload':
+                logfp = open('/tmp/assoc.txt', 'w')
+                logfp.write('In assoc, identifier is %s.\n' % self.identifier)
+                logfp.close()
                 wseg.rtf_list = self.structure.location + '/' + self.identifier + '-' + wseg.name + '.rtf'
                 wseg.prm_list = self.structure.location + '/' + self.identifier + '-' + wseg.name + '.prm'
             elif wseg.tpMethod == 'redox':
@@ -786,29 +791,103 @@ class WorkingStructure(models.Model):
             self.segments.add(wseg)
             self.save()
 
-    def getTopologyList(self):
-        """
-        Returns a list of all topology files used by all the segments
-        in this WorkingStructure.
-        """
-        rlist = set()
-        for segobj in self.segments.all():
-            if segobj.redox: continue
-            for rtf in segobj.rtf_list.split(' '):
-                rlist.add(rtf)
-        return rlist
-
-    def getParameterList(self):
+    def getTopparList(self):
         """
         Returns a list of all parameter files used by all the segments
         in this WorkingStructure.
+
+        BTM 20120522 -- build one parameter file to rule them all, using
+        Frank's code. 
         """
-        rlist = set()
-        for segobj in self.segments.all():
-            if segobj.redox: continue
-            for prm in segobj.prm_list.split(' '):
-                rlist.add(prm)
-        return rlist
+
+        qrebuild=False
+
+        prm_list = []
+        seglist = self.segments.all()
+
+        bhlist = [x for x in seglist if x.name.endswith('-bad')]
+
+        # This rather obnoxious chunk of code checks if any of the bad hets are for
+        # REDOX, and if so removes them from the list, since they're not really bad
+        # in the sense that they require new topology and parameter files.
+        oklist = []
+        for i, seg in enumerate(bhlist):
+            if seg.redox: 
+                oklist.append(i)
+        oklist.sort(reverse=True)
+        for elt in oklist:
+            bhlist.pop(elt)
+
+        if not bhlist:
+
+            # no bad hets means no custom topology or parameters, behave as normal
+            tlist = set()
+            plist = set()
+            for segobj in self.segments.all():
+                if segobj.redox: continue
+                for prm in segobj.prm_list.split(' '):
+                   plist.add(prm)
+                for rtf in segobj.rtf_list.split(' '):
+                   tlist.add(rtf)
+
+            return tlist, plist, False
+        else:
+            # Shizzle my izzle we have some custom generated topologies and parameters
+            # here. Rather than worry about file ordering and inter-dependencies, we
+            # will just combine them with Frank's nifty code.
+            qrebuild = True # we might need to rebuild the PSF
+
+            pnlist = [x for x in seglist if x.name.endswith('-pro') or x.name.endswith('-dna') or x.name.endswith('rna')]
+            ghlist = [x for x in seglist if x.name.endswith('-good')]
+
+            # finlist is built to put the segments in the correct order for parameter
+            # file merging
+            finlist = pnlist + ghlist + bhlist
+            final_toppar = pychm_toppar.Toppar()
+
+            logfp = open('/tmp/debug-toppar-combo.txt', 'w')
+            for segobj in finlist:
+                logfp.write('Processing segment %s\n' % segobj.name)  
+
+                # we are going to assume that RTFs and PRMs are matched pairs in their
+                # respective lists.
+                rtflist = segobj.rtf_list.split(' ')
+                prmlist = segobj.prm_list.split(' ')
+                if len(rtflist) != len(prmlist):
+                    logfp.write('Problem: rtf list length %d prm list length %d\n' % (len(rtflist),len(prmlist)))
+                    raise Exception("Strange list lengths")
+
+                for i, rtf in enumerate(rtflist):
+                    logfp.write('Processing rtf %s and prm %s\n' % (rtf,prmlist[i]))
+
+                    rtfobj = open_rtf(rtf)
+                    prmobj = open_prm(prmlist[i])
+                    temp_toppar = pychm_toppar.Toppar()
+                    rtfobj.export_to_toppar(temp_toppar)
+                    prmobj.export_to_toppar(temp_toppar)
+
+                    final_toppar = final_toppar + temp_toppar
+
+            logfp.write('Done\n')
+            logfp.close()
+
+            # we have now combined all of the parameter file objects, write out a new file
+            newRTFFile = self.structure.location + '/' + self.identifier + '-constructed.rtf'
+            newPrmFile = self.structure.location + '/' + self.identifier + '-constructed.prm'
+            tfinal = open_rtf(newRTFFile, 'w')
+            pfinal = open_prm(newPrmFile, 'w')
+            tfinal.import_from_toppar(final_toppar)
+            pfinal.import_from_toppar(final_toppar)
+            tfinal.write_all()
+            pfinal.write_all()
+            tfinal.close()
+            pfinal.close()
+
+            tlist = set()
+            plist = set()
+            tlist.add(newRTFFile)
+            plist.add(newPrmFile)
+            return tlist, plist, True
 
     def getAppendPatches(self):
         """
@@ -868,9 +947,27 @@ class WorkingStructure(models.Model):
                 if not segobj.redox:
                     tdict['seg_list'].append(segobj)
 
-        tdict['topology_list'] = self.getTopologyList()
-        tdict['parameter_list'] = self.getParameterList()
+        tdict['topology_list'], tdict['parameter_list'], qrebuild = self.getTopparList()
         tdict['patch_lines'] = self.getAppendPatches()
+
+        logfp = open('/tmp/buildLog.txt', 'w')
+        logfp.write('Having called getTopparList: qrebuild = %s\n' % qrebuild)
+
+        if qrebuild:
+            tdict['rebuild'] = True
+            segtuplist = []
+            for segobj in self.segments.all():
+                if segobj.type == 'good':
+                    special = 'noangle nodihedral'
+                else:
+                    special = ''
+                segtuplist.append((segobj.name,segobj.builtCRD.replace('.crd','.pdb'),segobj.patch_first,segobj.patch_last,special))
+            tdict['segbuild'] = segtuplist
+        else:
+            tdict['rebuild'] = False
+        logfp.write('Setting template dict rebuild = %s\n' % tdict['rebuild'])
+        logfp.close() 
+
         t = get_template('%s/mytemplates/input_scripts/append.inp' % charmming_config.charmming_root)
         charmm_inp = output.tidyInp(t.render(Context(tdict)))
 
@@ -974,20 +1071,30 @@ class WorkingStructure(models.Model):
 
               
         tasks = Task.objects.filter(workstruct=self,active='y',finished='n')
+        #YP lesson stuff 
+        try:
+            lnum=self.structure.lesson_type
+            lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+        except:
+            lesson_obj=None
+        #YP
         for t in tasks:
             t.query()
 
             if t.status == 'C' or t.status == 'F':
-                # finish the task
                 if t.action == 'minimization':
                     t2 = minimization.models.minimizeTask.objects.get(id=t.id)
+                    if lesson_obj: lessonaux.doLessonAct(self.structure,"onMinimizeDone",t)
                 elif t.action == 'solvation':
                     t2 = solvation.models.solvationTask.objects.get(id=t.id)
+                    if lesson_obj:lessonaux.doLessonAct(self.structure,"onSolvationDone",t)
                 elif t.action == 'md':
+                    if lesson_obj:lessonaux.doLessonAct(self.structure,"onMDDone",t)
                     t2 = dynamics.models.mdTask.objects.get(id=t.id)
                 elif t.action == 'ld':
                     t2 = dynamics.models.ldTask.objects.get(id=t.id)
                 elif t.action == 'sgld':
+                    if lesson_obj:lessonaux.doLessonAct(self.structure,"onSGLDDone",t)
                     t2 = dynamics.models.sgldTask.objects.get(id=t.id)
                 elif t.action == 'energy':
                     t2 = energyTask.objects.get(id=t.id)
@@ -1001,7 +1108,19 @@ class WorkingStructure(models.Model):
                 t2.finish()
                 t2.finished = 'y'
                 t2.save()
-    
+
+                #YP lessons status update                
+                #try:
+                #    lnum=self.structure.lesson_type
+                #    lesson_num_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+                #    lesson_num_class=lesson_num_obj.__class__
+                #    lesson_obj=lesson_num_class.objects.filter(id=self.structure.lesson_id)[0]
+                #    lesson_obj.curStep=float(float(lesson_obj.curStep)+float(0.5))
+                #    lesson_obj.save()
+                #except:
+                #    pass
+                #YP
+
         self.save()
 
 class CGWorkingStructure(WorkingStructure):

@@ -55,8 +55,7 @@ def neutralize_tpl(solvTask,postdata):
 
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'] = workingstruct.getTopologyList()
-    template_dict['parameter_list'] = workingstruct.getParameterList()
+    template_dict['topology_list'], template_dict['parameter_list'], junk = workingstruct.getTopparList()
     template_dict['infile'] = workingstruct.identifier + '-solvation'
     template_dict['cation'] = cation
     template_dict['concentration'] = concentration

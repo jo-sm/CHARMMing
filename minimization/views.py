@@ -29,7 +29,7 @@ from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from minimization.models import minimizeTask
 from solvation.models import solvationTask
-import charmming_config, input, output, lessonaux
+import charmming_config, input, output, lessonaux, lessons, lesson1, lesson2, lesson3, lesson4
 import re, copy
 import os, shutil
 import commands, traceback
@@ -52,7 +52,7 @@ def minimizeformdisplay(request):
     if request.POST.has_key('sdsteps') or request.POST.has_key('abnrsteps'):
         #deals with changing the selected minimize_params
         try:
-            oldtsk = minimizeTask.objects.filter(ws=workstruct,active='y')[0]
+            oldtsk = minimizeTask.objects.filter(workstruct=ws,active='y')[0]
             oldtsk.active = 'n'
             oldtsk.save()
         except:
@@ -112,8 +112,7 @@ def minimize_tpl(request,mp,pTaskID):
 
     # template dictionary passes the needed variables to the template 
     template_dict = {}
-    template_dict['topology_list'] = mp.workstruct.getTopologyList()
-    template_dict['parameter_list'] = mp.workstruct.getParameterList()
+    template_dict['topology_list'], template_dict['parameter_list'], junk = mp.workstruct.getTopparList()
     template_dict['output_name'] = mp.workstruct.identifier + '-minimization'
 
     logfp = open('/tmp/ptask', 'w')
@@ -254,10 +253,16 @@ def minimize_tpl(request,mp,pTaskID):
     mp.start()
     mp.save()
 
+    #YP lessons status update
+    try:
+        lnum=mp.workstruct.structure.lesson_type
+        lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+    except:
+        lesson_obj = None
 
-    # lessons are borked under the new order, ToDo: come back and fix this
-    #if file.lesson_type:
-    #    lessonaux.doLessonAct(file,"onMinimizeSubmit",postdata,final_pdb_name)
+    if lesson_obj:
+        lessonaux.doLessonAct(mp.workstruct.structure,"onMinimizeSubmit",mp,"")
+    #YP
 
     mp.workstruct.save()
     return HttpResponse("Done.")
