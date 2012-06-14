@@ -5,16 +5,16 @@
 
       {% else %} blankme
          {% ifequal useqmmm 'y' %} blankme
-            shake bonh param sele notfix .and. .not. {{qmmmsel}} end
+            shake bonh param sele .not. {{qmmmsel}} end
          {% else %} blankme
-            shake bonh param sele notfix end
+            shake bonh param
          {% endifequal %} blankme
       {% endif %} blankme
    {% else %} blankme
       {% ifequal useqmmm 'y' %} blankme
-         shake bonh param sele notfix .and. .not. {{qmmmsel}} end
+         shake bonh param sele .not. {{qmmmsel}} end
       {% else %} blankme
-         shake bonh param sele notfix end
+         shake bonh param
       {% endifequal %} blankme
    {% endifequal %} blankme
 {% endif %} blankme
