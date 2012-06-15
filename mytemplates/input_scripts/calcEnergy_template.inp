@@ -16,6 +16,10 @@
     {% include 'input_scripts/setup_pbc.inp' %}
   {% endif %} blankme
 
+  {% if useqmmm %} blankme
+     {% include "input_scripts/make_qchem.inp" %}
+  {% endif %} blankme
+
   ! calculate energy
   energy
 

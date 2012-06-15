@@ -74,7 +74,7 @@
                      CHARMM-scripts   label mmhlink
 
                      CHARMM-scripts      addl qqh@i bynum @qmhost@@j bynum @mmhost@@i
-                     CHARMM-scripts      lonepair colinear scaled -.7261 bynum qqh@i bynum @qmhost@@j bynum @mmhost@@i
+                     CHARMM-scripts      lonepair colinear scaled -.7261 sele type qqh@i end sele bynum @qmhost@@j end sele bynum @mmhost@@i end
 
                      CHARMM-scripts      incr i by 1
                      CHARMM-scripts      decr nmmh by 1

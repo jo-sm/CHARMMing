@@ -11,7 +11,7 @@ read rtf card append
 * QM/MM topology (for link atom)
 *
 CHARMM-scripts   22     1
-mass    98 QQH    1.00800 ! link atom
+mass    98 qqh    1.00800 ! link atom
 
 end
 {% endif %}blankme
@@ -32,10 +32,13 @@ read param card append
 *
 
 BONDS
-qqh  cc      0.0       1.0    ! Link atom
+qqh  ctl2      0.0       1.0    ! Link atom
+qqh  ctl3      0.0       1.0    ! Link atom
 
 ANGLES
-qqh  cc   ct1    0.0        0.0    ! Link atom
+qqh  ctl2   ctl2    0.0        0.0    ! Link atom
+qqh  ctl2   ctl3    0.0        0.0    ! Link atom
+qqh  ctl2   hal2    0.0        0.0    ! Link atom
 
 NONBONDED
 qqh    0.000000   0.000000     0.000000 ! Link atom
