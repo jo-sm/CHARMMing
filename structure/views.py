@@ -30,7 +30,6 @@ from normalmodes.views import combineNmaPDBsForMovie
 from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeTask
 from apbs.models import redoxTask
-from structure.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
 from structure.models import Task, energyTask
 from django.contrib.auth.models import User
 from django.core.mail import mail_admins
@@ -40,6 +39,7 @@ from scheduler.statsDisplay import statsDisplay
 from account.views import isUserTrustworthy
 from structure.aux import checkNterPatch
 from lessons.models import LessonProblem
+from structure.qmmm import makeQChem_tpl, makeQchem_val
 import output, lesson1, lesson2, lesson3, lesson4, lessonaux
 import structure.models, input
 import re
@@ -634,7 +634,7 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     postdata = request.POST
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'], template_dict['parameter_list'] = workstruct.getTopparList()
+    template_dict['topology_list'], template_dict['parameter_list'], junk = workstruct.getTopparList()
     template_dict['output_name'] = workstruct.identifier + '-ener'
     template_dict['input_file'] = workstruct.identifier + '-' + pTask.action
 
@@ -651,7 +651,6 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     template_dict['solvate_implicitly'] = solvate_implicitly
 
     # check to see if PBC needs to be used -- if so we have to set up Ewald
-    dopbc = False
     if request.POST.has_key('usepbc'):
         if solvate_implicitly:
             return HttpResponse('Invalid options')
@@ -672,6 +671,7 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
             return HttpResponse('Requested PBC on unsolvated structure')
 
         dopbc = True
+        eobj.usepbc = 'y'
         try:
             sp = solvationTask.objects.filter(structure=workstruct,active='y')[0]
         except:
@@ -685,8 +685,37 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
 
         if template_dict['xtl_ucell'] == 'sphere':
             return HttpResponse('Cannot do PBC on a sphere')
-
+    else:
+        dopbc = False
+        eobj.usepbc = 'n'
+        
     template_dict['dopbc'] = dopbc
+
+
+    if postdata.has_key('useqmmm'):
+        eobj.useqmmm = 'y'
+        input.checkForMaliciousCode(postdata['qmsele'],postdata)
+        try:
+            eobj.qmmmsel = postdata['qmsele']
+        except:
+            pass
+
+        if dopbc:
+            return HttpResponse('Cannot combine QM/MM and periodic boundary conditions')
+    else:
+        eobj.useqmmm = 'n'
+
+
+    eobj.save()
+
+    if eobj.useqmmm == 'y':
+        qmparams = makeQchem_val(postdata,eobj.qmmmsel)
+        qmparams['jobtype'] = 'Force'
+        template_dict = makeQChem_tpl(template_dict,qmparams,eobj.workstruct)
+        template_dict['useqmmm'] = True
+    else:
+        template_dict['useqmmm'] = False
+
 
     # lessons are still borked
     #if file.lesson_type:
@@ -761,7 +790,13 @@ def parseEnergy(workstruct,output_filename,enerobj=None):
 
 def getSegs(Molecule,Struct,auto_append=False):
     Struct.save()
+
+    logfp = open('/tmp/getsegs.txt', 'w')
+    logfp.write('In getSegs\n')
+
     for seg in Molecule.iter_seg():
+        logfp.write('Found segment %s\n' % seg.segid)
+
         reslist = seg.iter_res()
         firstres = reslist.next().resName
 
@@ -770,6 +805,7 @@ def getSegs(Molecule,Struct,auto_append=False):
         newSeg.is_working = 'n'
         newSeg.name = seg.segid
         newSeg.type = seg.segType
+        logfp.write('new seg object in charmming created\n')
 
         if seg.segType in ['pro','rna','dna','good']:
             newSeg.rtf_list = charmming_config.data_home + '/toppar/top_all27_prot_na.rtf'
@@ -791,6 +827,9 @@ def getSegs(Molecule,Struct,auto_append=False):
         # set default patching type
         newSeg.set_default_patches(firstres)        
         newSeg.save()
+
+    logfp.write('All done\n')
+    logfp.close()
 
 def newupload(request, template="html/fileupload.html"):
     """
@@ -1162,6 +1201,11 @@ def modstruct(request):
                 p.save()
 
     elif request.POST['buildtype'] == 'go':
+
+        logfp = open('/tmp/build_go_model.txt', 'w')
+        logfp.write('Build Go model.\n')
+        logfp.close()
+
         seglist = []
 
         segs = structure.models.Segment.objects.filter(structure=struct,is_working='n')
@@ -1175,7 +1219,7 @@ def modstruct(request):
         new_ws.modelName = request.POST['basemodel']
         new_ws.cg_type = 'go'
         new_ws.associate(struct,seglist,contactSet=request.POST['gm_contact_type'], nScale=request.POST['gm_nscale'], \
-                         domainScale=request.POST['gm_domainscale'], kBond=request.POST['gm_kbond'], kAngle=request.POST['gm_kangle'])
+                         kBond=request.POST['gm_kbond'], kAngle=request.POST['gm_kangle'])
         new_ws.save()
 
     elif request.POST['buildtype'] == 'bln':
@@ -1191,7 +1235,7 @@ def modstruct(request):
         new_ws.identifier = request.POST['wsidentifier']
         new_ws.modelName = request.POST['basemodel']
         new_ws.cg_type = 'bln'
-        new_ws.associate(struct,seglist,domainScale=request.POST['bln_domainscale'],kBondHelix=request.POST['bln_kbondhelix'],\
+        new_ws.associate(struct,seglist,kBondHelix=request.POST['bln_kbondhelix'],\
                          kAngleHelix=request.POST['bln_kanglehelix'],kBondSheet=request.POST['bln_kbondsheet'],kAngleSheet=request.POST['bln_kanglesheet'], \
                          kBondCoil=request.POST['bln_kbondcoil'],kAngleCoil=request.POST['bln_kanglecoil'])
         new_ws.save()

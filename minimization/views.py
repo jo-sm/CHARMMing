@@ -21,7 +21,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
 from structure.models import Structure, WorkingStructure, WorkingFile, Segment, goModel, Task
-from structure.qmmm import makeQChem, makeQChem_tpl, handleLinkAtoms, writeQMheader
+from structure.qmmm import makeQChem_tpl, makeQchem_val
 from structure.aux import checkNterPatch
 from django.contrib.auth.models import User
 from django.template import *
@@ -79,7 +79,13 @@ def minimizeformdisplay(request):
     else:
         # get all workingFiles associated with this struct
         tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
-        return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'tasks': tasks})
+
+        # segments are also needed for QM/MM
+        seg_list = []
+        for seg in ws.segments.all():
+            seg_list.append(seg.name)       
+
+        return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'seg_list': seg_list})
 
 def minimize_tpl(request,mp,pTaskID):
     postdata = request.POST
@@ -101,7 +107,7 @@ def minimize_tpl(request,mp,pTaskID):
 
     if postdata.has_key('useqmmm'):
         mp.useqmmm = 'y'
-        file.checkForMaliciousCode(postdata['qmsele'],postdata)
+        input.checkForMaliciousCode(postdata['qmsele'],postdata)
         try:
             mp.qmmmsel = postdata['qmsele']
         except:
@@ -177,6 +183,9 @@ def minimize_tpl(request,mp,pTaskID):
         if not solvated:
             return HttpResponse('Requested PBC on unsolvated structure')
 
+        if mp.useqmmm == 'y':
+            return HttpResponse('You cannot use periodic boundary conditions with QM/MM')
+
         dopbc = True
         try:
             sp = solvationTask.objects.get(workstruct=mp.workstruct,active='y')
@@ -193,50 +202,30 @@ def minimize_tpl(request,mp,pTaskID):
             return HttpResponse('Cannot do PBC on a sphere')
 
     template_dict['dopbc'] = dopbc
-    template_dict['useqmmm'] = postdata.has_key("useqmmm")
+    template_dict['useqmmm'] = mp.useqmmm == "y"
     template_dict['sdsteps'] = sdsteps
     template_dict['abnr'] = abnr
     template_dict['tolg'] = tolg
+
+    logfp = open('/tmp/mini-qmmm.txt', 'w')
+    logfp.write('useqmmm is set to %s\n' % template_dict['useqmmm'])
+    logfp.close()
+
     if dopbc:
         mp.usepbc = 't'
     else:
         mp.usepbc = 'f'
     
-    if postdata.has_key("useqmmm"):
-        # validate input
-	if postdata['qmmm_exchange'] in ['HF','B','B3']:
-	    exch = postdata['qmmm_exchange']
-	else:
-	    exch = 'HF' 
-	if postdata['qmmm_correlation'] in ['None','LYP']:
-	    corr = postdata['qmmm_correlation']
-	else:
-	    corr = 'None' 
-	if postdata['qmmm_basisset'] in ['STO-3G','3-21G*','6-31G*']:
-	    bs = postdata['qmmm_basisset']
-	else:
-	    bs = 'sto3g' 
-	qmsel = postdata['qmsele']
-	if qmsel == '':
-	    qmsel = 'resid 1'
-	if postdata['qmmm_charge'] in ['-5','-4','-3','-2','-1','0','1','2','3','4','5']:
-	    charge = postdata['qmmm_charge']
-	else:
-	    charge = '0' 
-	if postdata['qmmm_multiplicity'] in ['0','1','2','3','4','5','6','7','8','9','10']:
-	    multi = postdata['qmmm_multiplicity']
-	else:
-	    multi = '0'
-	if int(postdata['num_linkatoms']) > 0:
-	    linkatoms = handleLinkAtoms(file,postdata)
-	else:
-	    linkatoms = None
-        template_dict = makeQChem_tpl(template_dict, file, exch, corr, bs, qmsel, "Force", charge, multi, file.stripDotPDB(final_pdb_name) + ".crd", linkatoms)
-
-    template_dict['headqmatom'] = 'blankme'
     if mp.useqmmm == 'y':
-        headstr = writeQMheader("", "SELE " + qmsel + " END")
-        template_dict['headqmatom'] = headstr.strip() 
+        qmparams = makeQchem_val(postdata,mp.qmmmsel)
+        qmparams['jobtype'] = 'Force'
+        template_dict = makeQChem_tpl(template_dict,qmparams,mp.workstruct)
+
+    ## There is probably a better way to do this...
+    #template_dict['headqmatom'] = 'blankme'
+    #if mp.useqmmm == 'y':
+    #    headstr = writeQMheader("", "SELE " + qmsel + " END")
+    #    template_dict['headqmatom'] = headstr.strip() 
     mp.save()
     t = get_template('%s/mytemplates/input_scripts/minimization_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))

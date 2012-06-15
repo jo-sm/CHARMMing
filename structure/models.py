@@ -695,6 +695,8 @@ class WorkingStructure(models.Model):
 
     modelName = models.CharField(max_length=100,default='model0')
 
+    qmRegion = models.CharField(max_length=250,default='none')
+
     # final topologies and parameters (built using Frank's TOP/PAR
     # stuff).
     finalTopology = models.CharField(max_length=50,null=True)
@@ -1213,8 +1215,6 @@ class CGWorkingStructure(WorkingStructure):
                 cgm = pychm.cg.ktgo.KTGo(pdbfile, strideBin=charmming_config.stride_bin)
                 if kwargs.has_key('nScale'):
                     cgm.nScale = float(kwargs['nScale'])
-                if kwargs.has_key('domainScale'):
-                    cgm.domainScale = float(kwargs['domainScale'])
                 if kwargs.has_key('contactSet'):
                     cgm.contactSet = kwargs['contactSet']
                 if kwargs.has_key('kBond'):
@@ -1416,7 +1416,6 @@ class PDBFileForm(forms.Form):
     gm_dm_file = forms.FileField()
     gm_dm_string = forms.CharField(max_length=25)
     gm_nScale = forms.CharField(max_length=10,initial="0.05")
-    gm_domainScale = forms.CharField(max_length=10,initial="1.0")
     gm_kBond = forms.CharField(max_length=10,initial="50.0")
     gm_kAngle = forms.CharField(max_length=10,initial="30.0")
 
@@ -1424,7 +1423,6 @@ class PDBFileForm(forms.Form):
     bln_dm_file = forms.FileField()
     bln_dm_string = forms.CharField(max_length=25)
     bln_nScale = forms.CharField(max_length=10,initial="1.0")
-    bln_domainScale = forms.CharField(max_length=8,initial="1.0")
     bln_kBondHelix = forms.CharField(max_length=8,initial="3.5")
     bln_kBondSheet = forms.CharField(max_length=8,initial="3.5")
     bln_kBondCoil  = forms.CharField(max_length=8,initial="2.5")
@@ -1486,16 +1484,12 @@ class goModel(models.Model):
     selected = models.CharField(max_length=1)
     pdb = models.ForeignKey(Structure)
     contactType = models.CharField(max_length=10)
-    domainData  = models.CharField(max_length=20)
     nScale      = models.DecimalField(max_digits=6,decimal_places=3)
-    domainScale = models.DecimalField(max_digits=6,decimal_places=3)
     kBond       = models.DecimalField(max_digits=6,decimal_places=3)
     kAngle      = models.DecimalField(max_digits=6,decimal_places=3)
 
 class blnModel(models.Model):
-    domainData  = models.CharField(max_length=20)
     nScale      = models.DecimalField(max_digits=6,decimal_places=3)
-    domainScale = models.DecimalField(max_digits=6,decimal_places=3)
     kBondHelix  = models.DecimalField(max_digits=6,decimal_places=3)
     kBondCoil   = models.DecimalField(max_digits=6,decimal_places=3)
     kBondSheet  = models.DecimalField(max_digits=6,decimal_places=3)
