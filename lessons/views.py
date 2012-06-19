@@ -20,7 +20,6 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
 from structure.models import Structure
-from structure.qmmm import makeQChem, handleLinkAtoms
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
@@ -44,7 +43,7 @@ def displayLessonStatus(request):
     except:
         return HttpResponse('')
     try:
-        lessonprob = lessons.models.LessonProblem.objects.filter(lesson_type = file.lesson_type,lesson_id = file.lesson_id)[0]
+        lessonprob = lessons.models.LessonProblem.objects.get(lesson_type = file.lesson_type,lesson_id = file.lesson_id)
     except:
         lessonprob = None
     step_status_list = lesson_obj.generateStatusHtml(file)
