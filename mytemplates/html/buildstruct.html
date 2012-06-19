@@ -1,13 +1,12 @@
 <script type="text/javascript" src="/charmming/js/custom.js"> </script>
-<div id="Edit Structure" style="text-align: center;">
- <center>
+<div id="Edit Structure">
 
-  <h2>Editing structure {{ structname }}</h2>
+  <h2 align="center">Editing structure {{ structname }}</h2>
   <hr />
 
   {% if haveworkingstruct %}
     <div id="swap_form">
-      <h2>Change Active Working Structure</h2>
+      <h2 align="center">Change Active Working Structure</h2>
       <form id="swap" method="post" action="/charmming/swapstruct/" onsubmit="return send_form_gener('swap_form','/charmming/swapstruct/',makeUniqueDiv('Edit Structure'));" >
         <select name="choosestruct">
           {% for str in built_list %}
@@ -20,10 +19,10 @@
   {% endif %}
 
   <div id="newbuild">
-     <h2>Build A New Working Structure</h2>
+     <h2 align="center">Build A New Working Structure</h2>
 
      <form id="config_form" method="post" action="/charmming/modstruct/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/modstruct/',makeUniqueDiv('Edit Structure'));" >
-        <b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" value="{{ proposedname }}" /><br />
+        <div style="background-color: #D1FFFF;"><b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" value="{{ proposedname }}" /></div><br />
         <b>Please choose which model you want this working structure based from:</b>
 
         <select name="basemodel">
@@ -32,12 +31,14 @@
            {% endfor %}
         </select>
 
-        <h3>What type of structure should be built?</h3>
-        <table align="center" width="65%">
-          <tr><td><input type="radio" name="buildtype" value="aa" onclick="setCGDisplay('aa');" checked /></td><td align="left">A &quot;traditional&quot; all-atom model using the CHARMM force field.</td></tr>
-          <tr><td><input type="radio" name="buildtype" value="go" onclick="setCGDisplay('go');" /></td><td align="left">A Klimov-Thirumalai style Go model.</td></tr>
-          <tr><td><input type="radio" name="buildtype" value="bln" onclick="setCGDisplay('bln');" /></td><td align="left">A two site BLN type model based on the work of Marrink and Bond & Sansom.</td></tr>
-        </table>
+        <div style="background-color: #D1FFFF;">
+          <h3>What type of structure should be built?</h3>
+          <table align="center" width="65%">
+            <tr><td><input type="radio" name="buildtype" value="aa" onclick="setCGDisplay('aa');" checked /></td><td align="left">A &quot;traditional&quot; all-atom model using the CHARMM force field.</td></tr>
+            <tr><td><input type="radio" name="buildtype" value="go" onclick="setCGDisplay('go');" /></td><td align="left">A Klimov-Thirumalai style Go model.</td></tr>
+            <tr><td><input type="radio" name="buildtype" value="bln" onclick="setCGDisplay('bln');" /></td><td align="left">A two site BLN type model based on the work of Marrink and Bond & Sansom.</td></tr>
+          </table>
+        </div>
 
         <div id="aa_display">
            <h3>Configure patching and chemical properties of the structure</h3>
@@ -128,39 +129,76 @@
            </table>
  
            <h3 align="center">Go model parameters</h3>
+
+           <p>A <b>Go like</b> model incorporates a potential energy function that is based on a known structure. Contacts within
+              the structure are defined as <b>native</b> or <b>non-native</b>, and determined via an empirical contact potential.
+              Long range interactions are modeled as Lennard-Jones potentials. The particular Go-type model used in CHARMMing is one
+              derived by Klimov and Thirumalai. For more details, please see 
+              <a target="_blank" href="http://onlinelibrary.wiley.com/doi/10.1002/bip.1978.360170612/abstract">Ueda <i>et al.</i></a>, 
+              <a target="_blank" href="http://jcp.aip.org/resource/1/jcpsa6/v109/i10/p4119_s1">Klimov <i>et al</i> (1998)</a>, and&nbsp;  
+              <a target="_blank" href="http://www.pnas.org/content/97/6/2544.abstract">Klimov and Thirumalai (2000)</a>.
+            </p>
+
            <table>
               <tr>
+                 <td colspan="2" bgcolor="#E0FFF0">Basic parameters (should be manipulated as needed for all Go models).</td>
+              </tr>
+              <tr>
                  <td><b>Contact types</b><br />
-                    Which contact parameter set should be used.
+                    The contact map determines which empirical potential is used for native and non-native contacts.
                  </td>
                  <td>
-                   <input type="radio" name="gm_contact_type" value="bt" checked> BT
+                   <input type="radio" name="gm_contact_type" value="mj" checked> MJ
                    <input type="radio" name="gm_contact_type" value="kgs"> KGS
-                   <input type="radio" name="gm_contact_type" value="mj"> MJ
+                   <input type="radio" name="gm_contact_type" value="bt"> BT
                  </td>
               </tr>
               <tr>
-                <td width="50%"><b>Domain mapping</b><br />
-                   Interaction between various domains are scaled by the domainScale parameter below. You can make each segment
-                   a separate domain, or you can provide your own domain. For example, if you give a mapping 10:20:30, then residues
-                   1-10 will be one domain, 11-20 another, and 21-30 yet another.
-                </td>
-                <td width="50%" valign="top">
-                   <input type="radio" name="gm_dm_uploadtype" value="auto" checked> Each segment is its own domain <br />
-                   <input type="radio" name="gm_dm_uploadtype" value="box"> Enter manually {{ form.gm_dm_string }}
+                 <td><b>Nscale</b><br />
+                    The Nscale parameter sets the relative strength of the native contact interactions. This must be tuned
+                    for each starting structure to reproduce a physically realistic melting temperature. Often, 1.0 is a good
+                    starting guess for Nscale, but each system is different and this parameter must be tuned separately.
                  </td>
+                 <td valign="top"><input type="text" name="gm_nscale" value="1.00" /></td>
               </tr>
               <tr>
-                <td colspan="2"><b>User-configurable paramerers:</b></td>
+                <td colspan="2" bgcolor="#E0FFF0">Advanced parameters (these should be left unchanged in most cases).</td>
               </tr>
-              <tr>
-                <td>nScale <input type="text" name="gm_nscale" value="1.00" /></td>
-                <td>domainScale <input type="text" name="gm_domainscale" value="1.00" /></td>
-              </tr>
-              <tr>
-                <td>kBond <input type="text" name="gm_kbond" value="50.0" /> </td>
-                <td>kAngle <input type="text" name="gm_kangle" value="30.0" /> </td>
-              </tr>
+              <div id="gm_advancedparms" style="display: block;">
+                <tr>
+                  <td width="50%"><b>Contact radius</b>: sets the distance<br />at which a contact is considered native.</td>
+                  <td width="50%"><input type="text" name="gm_contactrad" value="4.5" /></td>
+                </tr>
+                <tr>
+                  <td width="50%">Bond force constant <input type="text" name="gm_kbond" value="50.0" /> </td>
+                  <td width="50%">Angle force constant <input type="text" name="gm_kangle" value="30.0" /> </td>
+                </tr>
+
+                <!-- Frank needs to give me things for form processing -->
+                <tr>
+                  <td width="50%">&alpha;-helix 1 dihedral force constant <input type="text" name="gm_kdihedralalphahelix_1" value="0.30" /></td>
+                  <td width="50%">&alpha;-helix 3 dihedral force constant <input type="text" name="gm_kdihedralalphahelix_3" value="0.15" /></td>
+                </tr>
+                <tr>
+                  <td width="50%">310-helix 1 dihedral force constant <input type="text" name="gm_kdihedral310helix_1" value="0.30" /></td>
+                  <td width="50%">310-helix 3 dihedral force constant <input type="text" name="gm_kdihedral310helix_3" value="0.15" /></td>
+                </tr>
+                <tr>
+                  <td width="50%">Unhelical 1 dihedral force constant <input type="text" name="gm_kdihedralnohelix_1" value="0.55" /></td>
+                  <td width="50%">Unhelical 3 dihedral force constant <input type="text" name="gm_kdihedralnohelix_3" value="0.275" /></td>
+                </tr>
+                <tr>
+                  <td colspan="2">Well depth for hydrogen bond LJ potentials:
+                                  &alpha;-helix <input type="text" name="gm_hbondenergyalphahelix" value="-0.25" />
+                                  310-helix <input type="text" name="gm_hbondenergy310helix" value="-0.25" />
+                                  no helix <input type="text" name="gm_hbondenergynohelix" value="-0.50" />
+                  </td>
+                </tr>
+                <tr>
+                  <td width="50%">Epsilon NN <input type="text" name="gm_epsilonnn" value="1e-12" /></td>
+                  <td width="50%">Well depth for backbone-sidechain LJ interactions <input typr="text" name="gm_bbscinteraction" value="-0.37" /></td>
+                </tr>
+              </div>
            </table>
         </div>
 
@@ -174,45 +212,37 @@
            {% endfor %}
            </table>
 
+           <p>A BLN model is is based on the fact that amino acid residues generally fall into three chemical types: hydropho<b>B</b>ic,
+              hydrophi<b>L</b>ic, and <b>N</b>eutral. Under this model, the type of interaction between two residues is determined by
+              their chemical type. The BLN model used in CHARMMing is based on that of <a href="http://">Marrink <i>et al</i></a>
+              and expanded for proteins by <a target="_blank" href="http://">Bond and Sansom</a>.
+           </p>
+
            <h3 align="center">BLN Model Parameters</h3>
            <table>
              <tr>
-                <td widtth="50%" valign="top"><b>Domain Mapping</b><br />
-                   Interaction between various domains are scaled by the domainScale parameter below. You can make each segment
-                   a separate domain, or you can provide your own domain. For example, if you give a mapping 10:20:30, then residues
-                   1-10 will be one domain, 11-20 another, and 21-30 yet another.
-                </td>
-                <td width="50%" valign="top">
-                   <input type="radio" name="bln_dm_uploadtype" value="auto" checked> Each segment is its own domain <br />
-                   <input type="radio" name="bln_dm_uploadtype" value="box"> Enter manually {{ form.bln_dm_string }}
-                </td>
+                <td colspan="2" bgcolor="#E0FFF0">These parameters generally do not need to be adjusted.</td>
              </tr>
              <tr>
-                <td width="50%">domainScale <input type="text" name="bln_domainscale" value="1.00" /></td>
+                <td width="33%">Helix bond force constant <input type="text" name="bln_kbondhelix" value="3.50" /></td>
+                <td width="33%">Helix angle force constant <input type="text" name="bln_kanglehelix" value="8.37" /></td>
              </tr>
              <tr>
-                <td width="33%">kBondHelix <input type="text" name="bln_kbondhelix" value="3.50" /></td>
-                <td width="33%">kAngleHelix <input type="text" name="bln_kanglehelix" value="8.37" /></td>
+                <td width="33%">&Beta;-sheet bond force constant <input type="text" name="bln_kbondsheet" value="3.50" /></td>
+                <td width="33%">&Beta;-sheet angle force constant <input type="text" name="bln_kanglesheet" value="8.37" /></td>
              </tr>
              <tr>
-                <td width="33%">kBondSheet <input type="text" name="bln_kbondsheet" value="3.50" /></td>
-                <td width="33%">kAngleSheet <input type="text" name="bln_kanglesheet" value="8.37" /></td>
-             </tr>
-             <tr>
-                <td width="33%">kBondCoil <input type="text" name="bln_kbondcoil" value="2.50" /></td>
-                <td width="33%">kAngleCoil <input type="text" name="bln_kanglecoil" value="5.98" /></td>
+                <td width="33%">Coil bond force constant <input type="text" name="bln_kbondcoil" value="2.50" /></td>
+                <td width="33%">Coil angle force constant <input type="text" name="bln_kanglecoil" value="5.98" /></td>
              </tr>
            </table>
         </div>
 
-<!--
-        <h3>Apply Restraints</h3>
-        <p>Enter number of restraints: <input type="text" name="nrestraints" /></p>
--->
-
         <input type="submit" value="Submit" />
      </form>     
   </div>
-
- </center>
+  <br />
+  <br />
+  <br />
+  <br />
 </div>

@@ -29,6 +29,10 @@
       <br />
 
       <table>
+         <tr><td width="490px"><p class="fonrmed">Use QM/MM calculations</td><td width="20px"><input id="useqmmm" type="checkbox" name="useqmmm" onclick="checkPatch(makeUniqueDiv('useqmmm'),makeUniqueDiv('qmmm_parameters'));removePBC('usepbc',this);"></td></tr>
+         <div id="qmmm_parameters" style="display:none;">
+           {% include "html/qmmm_params.html" %}
+         </div>
 	 <tr><td><p class="fonrmed">Use Periodic Boundary Conditions (PBC)</td><td><input id="usepbc" type="checkbox" name="usepbc"></td></tr>
          <tr><td><p class="fontmed">Solvate implicitly with SCPISM</td><td><input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></td></tr>
       </table>

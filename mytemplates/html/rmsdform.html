@@ -28,42 +28,14 @@
 
     <center>
        <form id="rmsd_form" method="post"  action="." onsubmit="return send_form_rms(this,makeUniqueDiv('change_rmsd'),[{%for item in filename_list%}'{{item}}',{% endfor%}]);">
-       <table>
-        {% for item in filename_list %}
-          {% ifequal item append_pdb %}
-            <tr><td>Appended PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /></td></tr>
-            <tr><td colspan=3><hr width="100%"></td></tr>
-          {% endifequal %}
+       {% if tasks %}
+         <table>
+           {% for task in tasks %}
+             <tr><td><input type="checkbox" name="dotask_{{ task.id }}" value="1" /></td><td>Coordinates from {{ task.action }}</td></tr>
+           {% endfor %}
+         </table>
+       {% endif %}
 
-          {% ifequal item solv_pdb %}
-            <tr><td>Solvated PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /></td></tr>
-            <tr><td colspan=3><hr width="100%"></td></tr>
-          {% endifequal %}
- 
-          {% ifequal item neu_pdb %}
-            <tr><td>Neutralized and Solvated PDB</td><td>{{ item }}</td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
-            <tr><td colspan=3><hr width="100%"></td></tr>
-          {% endifequal %}
-
-          {% ifequal item min_pdb %}
-            <tr><td>Minimized PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
-            <tr><td colspan=3><hr width="100%"></td></tr>
-          {% else %}{% ifequal item md_pdb %}
-              <tr><td>MD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
-              <tr><td colspan=3><hr width="100%"></td></tr>
-          {% else %}{% ifequal item ld_pdb %}
-              <tr><td>LD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
-              <tr><td colspan=3><hr width="100%"></td></tr>
-          {% else %}{% ifequal item sgld_pdb %}
-              <tr><td>SGLD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
-              <tr><td colspan=3><hr width="100%"></td></tr>
-          {% else %}{% ifequal item md_avg_pdb %}
-              <tr><td>Average MD PDB</td><td> {{ item }} </td><td> <input id="id_{{ item }}" type="checkbox" name="{{item}}" value="{{item}}" /> </td></tr>
-              <tr><td colspan=3><hr width="100%"></td></tr>
-          {% endifequal %}{% endifequal %}{% endifequal %}{% endifequal %}{% endifequal %}
-
-        {% endfor %}
-       </table>
 
        <table>
          <tr><td><p class="fontmed">Compare all atoms (except bulk waters)</td>
