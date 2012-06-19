@@ -20,28 +20,31 @@ class Lesson1(models.Model):
     curStep = models.DecimalField(default=0,decimal_places=1,max_digits=3)
 
     
-    def onFileUpload(self,postdata):
+    def onFileUpload(self):
         try:
-            LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0].delete()
+            LessonProblem.objects.get(lesson_type='lesson1',lesson_id=self.id).delete()
         except:
             pass
-        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-        all_segids = file.segids.split() + file.good_het.split() + file.nongood_het.split()
+        uploadlog=open("/tmp/uploadlog.txt",'w')
+        uploadlog.write("lesson_id: %s\n" % (self.id))
+        file = structure.models.Structure.objects.filter(selected='y',lesson_id=self.id)[0]
+        #all_segids = file.segids.split() + file.good_het.split() + file.nongood_het.split()
         try:
-            filename1 = '%s/mytemplates/lessons/lesson1/1water.psf' % charmming_config.charmming_root 
-            os.stat(filename1)
-            filename2 = file.location + 'psf-' + file.stripDotPDB(file.filename) + '.psf'
-            os.stat(filename2)
+        #if 2==1:
+            #filename1 = '%s/mytemplates/lessons/lesson1/1water.psf' % charmming_config.charmming_root 
+            #os.stat(filename1)
+            #filename2 = file.location + '1water.psf' + file.stripDotPDB(file.filename) + '.psf'
+            #os.stat(filename2)
             filename3 = '%s/mytemplates/lessons/lesson1/1water.crd' % charmming_config.charmming_root
             os.stat(filename3)
-            filename4 = file.location + 'crd-' + file.stripDotPDB(file.filename) + '.crd'
+            filename4 = file.location+ '/1water.crd'
             os.stat(filename4)
         except:
-            lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=1,severity=9,description='The PDB you submitted did not upload properly. Check to make sure the PDB.org ID was valid.')
+            lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=1,severity=9,description='The structure you submitted did not upload properly. Check to make sure the structure files are valid.')
             lessonprob.save()
             return False
-        if not lessonaux.diffPDBs(file,filename1,filename2) and not lessonaux.diffPDBs(file,filename2,filename4):
-            lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=1,severity=9,description='The PDB you uploaded was not the correct PDB.')
+        if not lessonaux.diffPDBs(file,filename3,filename4):
+            lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=1,severity=9,description='The structure you uploaded was not the correct structure.')
             lessonprob.save()
             return False
         self.curStep = '1'
@@ -51,19 +54,26 @@ class Lesson1(models.Model):
     def onEditPDBInfo(self,postdata):
         return True
 
-    def onMinimizeSubmit(self,postdata,filename):
+    def onMinimizeSubmit(self,mp,filename):
         try:
-            LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0].delete()
+            LessonProblem.objects.get(lesson_type='lesson1',lesson_id=self.id).delete()
         except:
             pass
-        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-        mp = minimizeTask.objects.filter(pdb=file,selected='y')[0]
-        if filename not in ['new_' + file.stripDotPDB(file.filename) + '-solv']:
-            lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=3,severity=2,description='Please minimize the solvated PDB.')
-            lessonprob.save()
-            return False
+        #file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
+        #mp = minimizeTask.objects.filter(pdb=file,selected='y')[0]
+        ##if filename not in ['new_' + file.stripDotPDB(file.filename) + '-solv']:
+        ##    lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=3,severity=2,description='Please minimize the solvated PDB.')
+        ##    lessonprob.save()
+        ##    return False
         #Now check the sp (solvation parameter) object to make sure they used an RHDO structure
         #with a 15 angstrom distance to the edge of the protein
+        
+        task=structure.models.Task.objects.get(id=mp.task_ptr_id)
+        parent_task=structure.models.Task.objects.get(id=task.parent_id)
+        if parent_task.action!='solvation':
+            lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=3,severity=2,description='Please minimize the solvated PDB.')                                                             
+            lessonprob.save()
+            return False
         if mp.sdsteps != 1000:
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=3,severity=2,description='SD steps were not set to 1000.')
             lessonprob.save()
@@ -76,7 +86,7 @@ class Lesson1(models.Model):
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=3,severity=2,description='TOLG was set to %s, and not 0.01.' % mp.tolg)
             lessonprob.save()
             return False
-        if mp.usepbc != 'y':
+        if mp.usepbc != 't':
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=3,severity=2,description='Minimization did not use Periodic Boundary Conditions.')
             lessonprob.save()
             return False
@@ -86,32 +96,39 @@ class Lesson1(models.Model):
         self.save()
         return True
 
-    def onMinimizeDone(self,file):
+    def onMinimizeDone(self,mp):
         try:
-            lessonprob = LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0]
+            lessonprob = LessonProblem.objects.get(lesson_type='lesson1',lesson_id=self.id)
         except:
             lessonprob = None
-        mp = minimizeTask.objects.filter(pdb=file,selected='y')[0]
-        fail = re.compile('Failed')
+        #mp = minimizeTask.objects.filter(pdb=file,selected='y')[0]
+        #fail = re.compile('Failed')
         if lessonprob:
+            self.curStep = '2'
+            self.save()
             return False
-        if fail.search(mp.statusHTML):
+        #if fail.search(mp.statusHTML):
+        if mp.status=='F':
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=3,severity=9,description='The Job did not complete correctly.')
             lessonprob.save()
+            self.curStep = '2'
+            self.save()
             return False
         else:
             self.curStep = '3'
             self.save()
         return True
 
-    def onSolvationSubmit(self,postdata):
+    def onSolvationSubmit(self,sp):
         try:
             LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0].delete()
         except:
             pass
-        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-        sp = solvationTask.objects.filter(pdb=file,active='y')[0]
-        pdb_list = lessonaux.getPDBListFromPostdata(file,postdata)
+        #file = structure.models.Structure.objects.get(selected='y',owner=self.user,lesson_id=self.id)
+        #workingstruct = structure.models.WorkingStructure.objects.get(structure=file,selected='y')
+        #task=structure.models.Task(workstruct=workingstruct,
+        #sp = solvationTask.objects.filter(task_ptr_id=,active='y')[0]
+        #pdb_list = lessonaux.getPDBListFromPostdata(file,postdata)
 
         
         #Now check the sp (solvation parameter) object to make sure they used an RHDO structure
@@ -120,7 +137,7 @@ class Lesson1(models.Model):
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=2,severity=2,description='You used the wrong solvation structure. To go onto the next step you must use the RHDO structure.')
             lessonprob.save()
             return False
-        if sp.no_pref_radius != 15:
+        if (float(sp.xtl_x)<30 or float(sp.xtl_x)>33) or (float(sp.xtl_y)<30 or float(sp.xtl_y)>33) or (float(sp.xtl_z)<30 or float(sp.xtl_z)>33):
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=2,severity=2,description='The wrong radius size was set. Use a value fo 15 to move on in the lesson.')
             lessonprob.save()
             return False
@@ -142,18 +159,23 @@ class Lesson1(models.Model):
             lessonprob.save()
             return False
 
-    def onSolvationDone(self,file):
+    def onSolvationDone(self,sp):
         try:
             lessonprob = LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0]
         except:
             lessonprob = None
-        sp = solvationTask.objects.filter(pdb=file,active='y')[0]
-        fail = re.compile('Failed')
+        #sp = solvationTask.objects.filter(pdb=file,active='y')[0]
+        #fail = re.compile('Failed')
         if lessonprob:
+            self.curStep = '1'
+            self.save()
             return False
-        if fail.search(sp.statusHTML):
+        #if fail.search(sp.statusHTML):
+        if sp.status=='F':
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=2,severity=9,description='The job did not complete correctly.')
             lessonprob.save()
+            self.curStep = '1'
+            self.save()
             return False
         else:
             self.curStep = '2'
@@ -166,19 +188,19 @@ class Lesson1(models.Model):
     def onNMADone(self,file):
         return True
 
-    def onMDSubmit(self,postdata,filename):
+    def onMDSubmit(self,mdp,filename):
         #Clear any old lessonproblems
         try:
-            LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0].delete()
+            LessonProblem.objects.get(lesson_type='lesson1',lesson_id=self.id).delete()
         except:
             pass
-        file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-        mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
-        if filename not in ['new_' + file.stripDotPDB(file.filename) + '-min.pdb']:
-            lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=2,description='Please run dynamics on the minimized PDB (-min).')
-            lessonprob.save()
-            return False
-        if mdp.type != 'heat':
+        #file = structure.models.Structure.objects.get(selected='y',owner=self.user,lesson_id=self.id)[0]
+        #mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
+        ##if filename not in ['new_' + file.stripDotPDB(file.filename) + '-min.pdb']:
+        ##    lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=2,description='Please run dynamics on the minimized PDB (-min).')
+        ##    lessonprob.save()
+        ##    return False
+        if mdp.ensemble != 'heat':
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=2,description='You used an equilibration calculation instead of a heating one. Please use heating to continue.')
             lessonprob.save()
             return False
@@ -190,11 +212,11 @@ class Lesson1(models.Model):
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=2,description='Please set the starting temperature to 210.15 K to continue.')
             lessonprob.save()
             return False
-        if mdp.teminc != 10:
+        if float(mdp.teminc) != 10:
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=2,description='Please set the temperature increment to 10 K to continue.')
             lessonprob.save()
             return False
-        if mdp.ihtfrq != 100:
+        if float(mdp.ihtfrq) != 100:
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=2,description='Please set the heating frequency to 100 steps.')
             lessonprob.save()
             return False
@@ -210,16 +232,17 @@ class Lesson1(models.Model):
         self.save()
         return True
 
-    def onMDDone(self,file):
+    def onMDDone(self,mdp):
         try:
-            lessonprob = LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0]
+            lessonprob = LessonProblem.objects.get(lesson_type='lesson1',lesson_id=self.id)
         except:
             lessonprob = None
-        mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
-        fail = re.compile('Failed')
+        #mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
+        #fail = re.compile('Failed')
         if lessonprob:
             return False
-        if fail.search(mdp.statusHTML):
+        #if fail.search(mdp.statusHTML):
+        if mdp.status=='F':
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=9,description='The job did not complete correctly.')
             lessonprob.save()
             return False

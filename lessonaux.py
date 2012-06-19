@@ -9,63 +9,65 @@
 #  reproduction.
 #
 
-#import lesson1
-#import lesson2
-#import lesson3
-#import lesson4
+import lesson1
+import lesson2
+import lesson3
+import lesson4
 #import lesson96
 # by importing lesson_config to import all lessons created
 from lesson_config import *
 import sys, traceback
 
-def doLessonAct(file,function,postdata=None,filename=None,finale=None):
+def doLessonAct(file,function,task=None,filename=None,finale=None):
     lessontype = file.lesson_type
     lessonid = file.lesson_id
 
-    estr = lessontype+'.models.'+lessontype.capitalize()+'.objects.filter(id=lessonid)[0]'
-    lesson_obj = eval(estr)
+    estr = lessontype+'.models.'+lessontype.capitalize()+'()'
+    lesson_num_obj = eval(estr)
+    lesson_num_class=lesson_num_obj.__class__
+    lesson_obj = lesson_num_class.objects.get(id=lessonid)
 
     if function == 'onFileUpload':
-        lesson_obj.onFileUpload(postdata)
+        lesson_obj.onFileUpload()
         return True
     elif function == 'onMinimizeSubmit':
-        lesson_obj.onMinimizeSubmit(postdata,filename)
+        lesson_obj.onMinimizeSubmit(task,filename)
         return True
     elif function == 'onMinimizeDone':
-        lesson_obj.onMinimizeDone(file)
+        lesson_obj.onMinimizeDone(task)
         return True
     elif function == 'onSolvationSubmit':
-        lesson_obj.onSolvationSubmit(postdata)
+        lesson_obj.onSolvationSubmit(task)
         return True
     elif function == 'onSolvationDone':
-        lesson_obj.onSolvationDone(file)
+        lesson_obj.onSolvationDone(task)
         return True
     elif function == 'onMDSubmit':
-        lesson_obj.onMDSubmit(postdata,filename)
+        lesson_obj.onMDSubmit(task,filename)
         return True
     elif function == 'onMDDone':
-        lesson_obj.onMDDone(file)
+        lesson_obj.onMDDone(task)
         return True
     elif function == 'onLDSubmit':
-        lesson_obj.onLDSubmit(postdata)
+        lesson_obj.onLDSubmit(task)
         return True
     elif function == 'onLDDone':
         lesson_obj.onLDDone(file)
         return True
     elif function == 'onSGLDSubmit':
-        lesson_obj.onSGLDSubmit(postdata)
+        lesson_obj.onSGLDSubmit(task)
         return True
     elif function == 'onSGLDDone':
-        lesson_obj.onSGLDDone(file)
+        lesson_obj.onSGLDDone(task)
         return True
     elif function == 'onEnergySubmit':
-        lesson_obj.onEnergySubmit(postdata)
+        lesson_obj.onEnergySubmit(task)
         return True
     elif function == 'onEnergyDone':
-        lesson_obj.onEnergyDone(finale)
+        lesson_obj.onEnergyDone(task)
         return True
     elif function == 'onRMSDSubmit':
-        lesson_obj.onRMSDSubmit(file)
+        lesson_obj.onRMSDSubmit(task)
         return True
     elif function == 'getObject':
         return lesson_obj

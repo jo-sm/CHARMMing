@@ -26,6 +26,10 @@ from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
+#YP
+import charmming_config, input, output, lessonaux
+import structure.models
+#YP
 import re
 import copy
 import os
@@ -34,12 +38,16 @@ import os
 def lesson1Display(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    input.checkRequestData(request)
     try:
-        file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        #YP
+        file = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+        #YP
     except:
         return render_to_response('html/lesson1.html')
+    
     #If its a lesson1 object, get the id by the file id
+    
     if file.lesson_type == 'lesson1':
         lesson_obj = Lesson1.objects.filter(user=request.user,id=file.lesson_id)[0] 
         html_step_list = lesson_obj.getHtmlStepList()
@@ -47,9 +55,9 @@ def lesson1Display(request):
         lesson_obj = None
         html_step_list = None
     try:
-        lessonprob_obj = LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=lesson_obj.id)[0]
+        lessonproblems = LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=lesson_obj.id,errorstep__lt=999)
     except:
-        lessonprob_obj = None
-    return render_to_response('html/lesson1.html',{'lesson1':lesson_obj,'lessonproblem':lessonprob_obj,'html_step_list':html_step_list})
+        lessonproblems = None
+    return render_to_response('html/lesson1.html',{'lesson1':lesson_obj,'lessonproblems':lessonproblems,'html_step_list':html_step_list})
    
 

@@ -26,6 +26,10 @@ from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
+#YP
+import input
+import structure.models
+#YP
 import re
 import copy
 import os
@@ -34,9 +38,9 @@ import os
 def lesson4Display(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    Structure.checkRequestData(request)
+    input.checkRequestData(request)
     try:
-        file = Structure.objects.filter(owner=request.user,selected='y')[0]
+        file = structure.models.Structure.objects.get(owner=request.user,selected='y')
     except:
         return render_to_response('html/lesson4.html')
     #If its a lesson1 object, get the id by the file id

@@ -19,7 +19,11 @@ from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
-from structure.models import PDBFile, PDBFileForm 
+#YP
+#from structure.models import PDBFile, PDBFileForm 
+import input
+import structure.models
+#YP
 from lessons.models import LessonProblem
 from lesson2.models import Lesson2
 from django.contrib.auth.models import User
@@ -32,11 +36,15 @@ import os
 
 #Displays lesson1 page
 def lesson2Display(request):
+    lesson2log=open("/tmp/lesson2log.txt",'w')
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    PDBFile().checkRequestData(request)
+    input.checkRequestData(request)
     try:
-        file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        #YP
+        #file = PDBFile.objects.filter(owner=request.user,selected='y')[0]
+        file = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+        #YP
     except:
         return render_to_response('html/lesson2.html')
     #If its a lesson1 object, get the id by the file id
@@ -50,6 +58,8 @@ def lesson2Display(request):
         lessonprob_obj = LessonProblem.objects.filter(lesson_type='lesson2',lesson_id=lesson_obj.id)[0]
     except:
         lessonprob_obj = None
+
+    lesson2log.write("html step list: %s" % (html_step_list))
     return render_to_response('html/lesson2.html',{'lesson2':lesson_obj,'lessonproblem':lessonprob_obj,'html_step_list':html_step_list})
    
 

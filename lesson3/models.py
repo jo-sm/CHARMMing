@@ -19,9 +19,9 @@ class Lesson3(models.Model):
     curStep = models.DecimalField(default=0,decimal_places=1,max_digits=3)
 
     
-    def onFileUpload(self,postdata):
+    def onFileUpload(self):
         try:
-            LessonProblem.objects.filter(lesson_type='lesson3',lesson_id=self.id)[0].delete()
+            LessonProblem.objects.get(lesson_type='lesson3',lesson_id=self.id).delete()
         except:
             pass
 	try:
@@ -30,7 +30,7 @@ class Lesson3(models.Model):
 	    for lessn in oldlessons:
 	        if lessn.curStep == 3:
 		    oldlesson = lessn
-                    file = structure.models.Structure.objects.filter(owner=self.user,lesson_id=oldlesson.id)[0]
+                    file = structure.models.Structure.objects.get(owner=self.user,lesson_id=oldlesson.id)
 	            second_upload = 1
 		    break
             lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=file.id,errorstep=4,severity=9,description='You must perform the other steps first! This is the last step of the lesson!')
@@ -38,16 +38,21 @@ class Lesson3(models.Model):
 	    second_upload = 0
 	if second_upload == 1:
 	    try:
-                file2 = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-                filename1 = '%s/mytemplates/lessons/lesson3/1yjp-a.pdb' % charmming_config.charmming_root
-                filename2 = '%s/mytemplates/lessons/lesson3/1yjp-a-goodhet.pdb' % charmming_config.charmming_root
-		filename3 = file2.location + 'new_' + file2.stripDotPDB(file2.filename) + '-a-pro.pdb'
-		filename4 = file2.location + 'new_' + file2.stripDotPDB(file2.filename) + '-a-goodhet.pdb'
+                file2 = structure.models.Structure.objects.get(selected='y',owner=self.user,lesson_id=self.id)
+            #    filename1 = '%s/mytemplates/lessons/lesson3/1yjp-a.pdb' % charmming_config.charmming_root
+            #    os.stat(filename1)
+            #    #filename2 = '%s/mytemplates/lessons/lesson3/1yjp-a-goodhet.pdb' % charmming_config.charmming_root
+                filename1 = file2.location + '/seq2pdb.inp'
+                os.stat(filename1)
+                filename2 = file2.location + '/sequ.pdb'
+                os.stat(filename2)
+		#filename4 = file2.location + 'new_' + file2.stripDotPDB(file2.filename) + '-a-goodhet.pdb'
 	    except:
-                lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=file.id,errorstep=5,severity=9,description='You did not upload 1YJP properly.')
+                lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=file.id,errorstep=5,severity=9,description='You did not upload 1YJP sequence properly.')
                 lessonprob.save()
                 return False
-            if not lessonaux.diffPDBs(file2,filename1,filename3) and not lessonaux.diffPDBs(file2,filename2,filename4):
+            #if not lessonaux.diffPDBs(file2,filename1,filename2):
+            if not verifyFileByLine(filename1,"GLY ASN ASN GLN GLN ASN TYR"):
                 lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=file.id,errorstep=5,severity=9,description='You did not enter the right sequence of 1YJP.')
                 lessonprob.save()
                 return False
@@ -59,14 +64,17 @@ class Lesson3(models.Model):
 	else:
             file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
             try:
-                filename1 = '%s/mytemplates/lessons/lesson3/1yjp-sequ.pdb' % charmming_config.charmming_root
-                filename2 = file.location + 'new_' + file.stripDotPDB(file.filename) + '-sequ-pro.pdb'
+                #filename1 = '%s/mytemplates/lessons/lesson3/1yjp-sequ.pdb' % charmming_config.charmming_root
+                #filename2 = file.location + 'new_' + file.stripDotPDB(file.filename) + '-sequ-pro.pdb'
+                filename1 = file.location + '/seq2pdb.inp'
+                os.stat(filename1)
+                filename2 = file.location + '/sequ.pdb'
                 os.stat(filename2)
             except:
                 lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=1,severity=9,description='Please choose the option to upload your own sequence.')
                 lessonprob.save()
                 return False
-            if not lessonaux.diffPDBs(file,filename1,filename2):
+            if not self.verifyFileByLine(filename1,"GLY ASN ASN GLN GLN ASN TYR"):
                 lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=1,severity=9,description='You did not enter the right sequence of 1YJP.')
                 lessonprob.save()
                 return False
@@ -77,27 +85,27 @@ class Lesson3(models.Model):
     def onEditPDBInfo(self,postdata):
         return True
 
-    def onMinimizeSubmit(self,postdata,filename):
+    def onMinimizeSubmit(self,mp,filename):
         try:
             LessonProblem.objects.filter(lesson_type='lesson3',lesson_id=self.id)[0].delete()
         except:
             pass
         file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-        mp = minimizeTask.objects.filter(pdb=file,selected='y')[0]
-        pdb_list = lessonaux.getPDBListFromPostdata(file,postdata)
-        acceptable_pdb_list = ['new_' + file.stripDotPDB(file.filename) + '-sequ-pro.pdb']
-        for pdb in pdb_list:
-            if pdb not in acceptable_pdb_list:
-                lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=2,severity=2,description='Please select all of the initial segments. Do not use a segment that has had a calculation done on it.')
-                lessonprob.save()
-                return False
+        #mp = minimizeTask.objects.filter(pdb=file,selected='y')[0]
+        #pdb_list = lessonaux.getPDBListFromPostdata(file,postdata)
+        #acceptable_pdb_list = ['new_' + file.stripDotPDB(file.filename) + '-sequ-pro.pdb']
+        #for pdb in pdb_list:
+        #    if pdb not in acceptable_pdb_list:
+        #        lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=2,severity=2,description='Please select all of the initial segments. Do not use a segment that has had a calculation done on it.')
+        #        lessonprob.save()
+        #        return False
 
         # check that user has the right number of steps...
-        if mp.sdsteps != 1000:
+        if int(mp.sdsteps) != 1000:
             lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=2,severity=2,description='SD steps were not set to 1000.')
             lessonprob.save()
             return False
-        if mp.abnrsteps != 1000:
+        if int(mp.abnrsteps) != 1000:
             lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=2,severity=2,description='ABNR steps were not set to 1000.')
             lessonprob.save()
             return False
@@ -110,18 +118,23 @@ class Lesson3(models.Model):
         self.save()
         return True
 
-    def onMinimizeDone(self,file):
+    def onMinimizeDone(self,task):
         try:
-            lessonprob = LessonProblem.objects.filter(lesson_type='lesson3',lesson_id=self.id)[0]
+            lessonprob = LessonProblem.objects.get(lesson_type='lesson3',lesson_id=self.id)
         except:
             lessonprob = None
-        mp = minimizeTask.objects.filter(pdb=file,selected='y')[0]
-        fail = re.compile('Failed')
+        #mp = minimizeTask.objects.filter(pdb=file,selected='y')[0]
+        #fail = re.compile('Failed')
         if lessonprob:
+            self.curStep = '1'
+            self.save()
             return False
-        if fail.search(mp.statusHTML):
+        #if fail.search(mp.statusHTML):
+        if task.status=='F':
             lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=3,severity=9,description='The Job did not complete correctly.')
             lessonprob.save()
+            self.curStep = '1'
+            self.save()
             return False
         else:
             self.curStep = '2'
@@ -152,28 +165,28 @@ class Lesson3(models.Model):
     def onLDDone(self,file):
         return True
 
-    def onSGLDSubmit(self,postdata):
+    def onSGLDSubmit(self,sgldp):
         #Clear any old lessonproblems
         try:
             LessonProblem.objects.filter(lesson_type='lesson3',lesson_id=self.id)[0].delete()
         except:
             pass
         file = structure.models.Structure.objects.filter(selected='y',owner=self.user,lesson_id=self.id)[0]
-        sgldp = sgldTask.objects.filter(pdb=file,selected='y')[0]
+        #sgldp = sgldTask.objects.filter(pdb=file,selected='y')[0]
 
         #there should only be one filename in the PDBList from postdata and that should be
         #the minimized PDB
 
-        filename = lessonaux.getPDBListFromPostdata(file,postdata)[0]
-        if filename not in ['new_' + file.stripDotPDB(file.filename) + '-min.pdb']:
-            lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=3,severity=2,description='Please run dynamics on the minimized PDB (-min).')
-            lessonprob.save()
-            return False
+        #filename = lessonaux.getPDBListFromPostdata(file,postdata)[0]
+        #if filename not in ['new_' + file.stripDotPDB(file.filename) + '-min.pdb']:
+        #    lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=3,severity=2,description='Please run dynamics on the minimized PDB (-min).')
+        #    lessonprob.save()
+        #    return False
         if float(sgldp.fbeta) != 5.0:
             lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=3,severity=2,description='You used the wrong FBETA. Please use an FBETA of 5.0.')
             lessonprob.save()
             return False
-        if sgldp.nstep != 1000:
+        if int(sgldp.nstep) != 1000:
             lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=3,severity=2,description='Please set the number of steps to 1000 to continue.')
             lessonprob.save()
             return False
@@ -181,22 +194,27 @@ class Lesson3(models.Model):
         self.save()
         return True
 
-    def onSGLDDone(self,file):
+    def onSGLDDone(self,sgldp):
         try:
             lessonprob = LessonProblem.objects.filter(lesson_type='lesson3',lesson_id=self.id)[0]
         except:
             lessonprob = None
-        try:
-            sgldp = sgldTask.objects.filter(pdb=file,selected='y')[0]
-        except:
-            return False
+        #try:
+        #    sgldp = sgldTask.objects.filter(pdb=file,selected='y')[0]
+        #except:
+        #    return False
 
-        fail = re.compile('Failed')
+        #fail = re.compile('Failed')
         if lessonprob:
+            self.curStep = '2'
+            self.save()
             return False
-        if fail.search(sgldp.statusHTML):
+        #if fail.search(sgldp.statusHTML):
+        if sgldp.status=='F':
             lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=3,severity=9,description='The job did not complete correctly.')
             lessonprob.save()
+            self.curStep = '2'
+            self.save()
             return False
         else:
             self.curStep = '3'
@@ -281,3 +299,9 @@ class Lesson3(models.Model):
             lessonprob = None
         return htmlcode_list
 
+    def verifyFileByLine(self,filename,line):
+        fread=open(filename,'r')
+        for fline in fread:
+            if fline.rstrip()==line.rstrip():
+                return True
+        return False
