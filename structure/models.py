@@ -902,7 +902,7 @@ class WorkingStructure(models.Model):
         plines = ''
         for patch in plist.all():
             if patch.patch_segid: continue # not a structure-wide patch
-            plines += 'patch %s %s' % (patch.patch_name,patch.patch_segres)
+            plines += 'patch %s %s\n' % (patch.patch_name,patch.patch_segres)
 
         return plines
 
