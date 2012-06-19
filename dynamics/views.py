@@ -92,7 +92,7 @@ def lddisplay(request):
   
     else:
         # get all workingFiles associated with this struct
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
         return render_to_response('html/ldform.html', {'ws_identifier': ws.identifier,'tasks': tasks})
 
 #processes form data for md simulations
@@ -145,7 +145,7 @@ def mddisplay(request):
             canrestart = False
 
         # get all workingFiles associated with this struct
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
         return render_to_response('html/mdform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'canrestart': canrestart})
 
 def applyld_tpl(request,ldt,pTaskID):

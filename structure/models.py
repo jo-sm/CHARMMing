@@ -1101,6 +1101,7 @@ class WorkingStructure(models.Model):
                     t2 = dynamics.models.sgldTask.objects.get(id=t.id)
                 elif t.action == 'energy':
                     t2 = energyTask.objects.get(id=t.id)
+                    if lesson_obj:lessonaux.doLessonAct(self.structure,"onEnergyDone",t2)
                 elif t.action == 'nmode':
                     t2 = normalmodes.models.nmodeTask.objects.get(id=t.id)
                 elif t.action == 'redox':
@@ -1221,6 +1222,8 @@ class CGWorkingStructure(WorkingStructure):
                     cgm.kBond = float(kwargs['kBond'])
                 if kwargs.has_key('kAngle'):
                     cgm.kAngle = float(kwargs['kAngle'])
+                if kwargs.has_key('contactrad'):
+                    cgm.contactrad = float(kwargs['contactrad'])
 
             elif self.cg_type == 'bln':
                 # kwargs can be hbondstream

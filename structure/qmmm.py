@@ -48,12 +48,21 @@ def writeQMheader(charmm_inp, selection):
 # 1: QM region is the same
 # 2: No previous QM region to check
 def checkQMregion(ws, selection):
+    logfp = open('/tmp/checkQMregion.txt', 'w')
+
     qmsele = ws.qmRegion.lower()
 
     if qmsele == 'none':
+        logfp.write('return 2\n')
+        logfp.close()
         return 2
     if qmsele != selection.lower():
+        logfp.write('return 0\n')
+        logfp.close()
         return 0
+
+    logfp.write('return 1\n')
+    logfp.close()
     return 1
 
 def wrtQchemInp(fname, exchange, correlation, basis, jobtype, charge, multi, fullhess = False):

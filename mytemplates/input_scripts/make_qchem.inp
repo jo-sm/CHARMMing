@@ -44,51 +44,16 @@
                         addl qqh1 {{las}}
                      {% endfor %} blankme
                   {% else %} blankme
-                     ! Define MM Host for Link Atom
-                     define mmh select .bonded. qmregion .and. mmregion show end
+                      set j 1 
+                      label linkloop
 
-                     ! loop over bonded atoms
-                     set nmmh ?nsel
-                     if @nmmh .eq. 0 then goto linkdone
+                      stream /usr/local/charmming/definereg.str
+                      addl qqh@j bynum @qmhost@@j bynum @mmhost@@j
+                      stream /usr/local/charmming/definereg.str
+                      lonepair colinear scaled -.7261 bynum @qqh@@j bynum @qmhost@@j bynum @mmhost@@j
+                      incre j by 1 
 
-                     set i 0
-                     label mmhloop
-                     incr i by 1
-                     definte junk select mmh .subset. @i show end
-                     set mmhost@i ?SELATOM
-                     if @i .lt. @nmmh goto mmhloop
-
-                     define qmh select .bonded. mmh .and. qmregion show end
-
-                     set nqmh ?nsel
-                     set i 0
-                     label qmhloop
-                     incr i by 1
-                     define junk select qmh .subset. @i show end
-                     set qmhost@i ?SELATOM
-                     if @i .lt. @nqmh goto qmhloop
-
-                     set i 1
-                     set j 1
-                     label qmhlink
-                     CHARMM-scripts   label mmhlink
-
-                     CHARMM-scripts      addl qqh@i bynum @qmhost@@j bynum @mmhost@@i
-                     CHARMM-scripts      lonepair colinear scaled -.7261 sele type qqh@i end sele bynum @qmhost@@j end sele bynum @mmhost@@i end
-
-                     CHARMM-scripts      incr i by 1
-                     CHARMM-scripts      decr nmmh by 1
-                     CHARMM-scripts   if @nmmh .gt. 0 then goto mmhlink
-                     CHARMM-scripts   incr j by 1
-                     CHARMM-scripts   decr nqmh by 1
-                     if @nqmh .gt. 0 then goto qmhlink
-                 
-                     coor copy comp
-                     coor shake
-
-                     label linkdone
-                      
-
+                      if @j .le. @nlink goto linkloop 
                   {% endif %} blankme
                {% endifequal %} blankme
                !---------- Needed to define Q-Chem env. vars. ----------

@@ -20,7 +20,7 @@ from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from structure.models import Structure 
-from structure.qmmm import makeQChem, makeQChem_tpl, writeQMheader
+from structure.qmmm import makeQChem_tpl, writeQMheader
 from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeTask
 from account.views import isUserTrustworthy
@@ -104,7 +104,7 @@ def normalmodesformdisplay(request):
 
         return applynma_tpl(request,ws,pTaskID,nt)
     else:
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
         return render_to_response('html/normalmodesform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'nmode_lines': nmode_lines})
 
 

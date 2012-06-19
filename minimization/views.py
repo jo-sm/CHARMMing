@@ -78,7 +78,7 @@ def minimizeformdisplay(request):
         return minimize_tpl(request,mp,pTaskID)
     else:
         # get all workingFiles associated with this struct
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
 
         # segments are also needed for QM/MM
         seg_list = []

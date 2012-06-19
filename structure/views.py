@@ -599,7 +599,7 @@ def energyform(request):
 
     if request.POST.has_key('form_submit'):
         try:
-            oldtsk = energyTask.objects.filter(workstruct=workstruct,active='y')[0]
+            oldtsk = energyTask.objects.filter(workstruct=ws,active='y')[0]
             oldtsk.active = 'n'
             oldtsk.save()
         except:
@@ -621,7 +621,7 @@ def energyform(request):
 
     else:
         # get all workingFiles associated with this struct
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
         return render_to_response('html/energyform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'energy_lines': energy_lines})
 
 
@@ -742,6 +742,17 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
             break
         if "failed" in sstring:
             return HttpResponse('Energy calculation failed. Please check output from appending the structure.')
+
+    #YP lessons status update
+    try:
+        lnum=eobj.workstruct.structure.lesson_type
+        lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+    except:
+        lesson_obj = None
+
+    if lesson_obj:
+        lessonaux.doLessonAct(eobj.workstruct.structure,"onEnergySubmit",eobj,"")
+    #YP
 
     workstruct.save()
 
@@ -1219,7 +1230,7 @@ def modstruct(request):
         new_ws.modelName = request.POST['basemodel']
         new_ws.cg_type = 'go'
         new_ws.associate(struct,seglist,contactSet=request.POST['gm_contact_type'], nScale=request.POST['gm_nscale'], \
-                         kBond=request.POST['gm_kbond'], kAngle=request.POST['gm_kangle'])
+                         kBond=request.POST['gm_kbond'], kAngle=request.POST['gm_kangle'], contactrad=request.POST['gm_contactrad'])
         new_ws.save()
 
     elif request.POST['buildtype'] == 'bln':

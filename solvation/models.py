@@ -103,7 +103,7 @@ class solvationTask(Task):
         wf.description = 'solvated structure'
         wf.pdbkey = 'solv_' + self.workstruct.identifier
         wf.save()
-        self.workstruct.addCRDToPickle(wf.path,self.workstruct.identifier + '-solvation.crd')
+        self.workstruct.addCRDToPickle(wf.path, 'neut_' + self.workstruct.identifier)
 
         wfpsf = WorkingFile()
         wfpsf.task = self
