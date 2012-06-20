@@ -1207,7 +1207,7 @@ def modstruct(request):
                 if not (segid1 in seglist and segid2 in seglist): continue # patch not valid for segments selected
                 p = structure.models.Patch()
                 p.structure = new_ws
-                p.patch_name = 'disul'
+                p.patch_name = 'disu'
                 p.patch_segres = "%s %s %s %s" % (segid1,resid1,segid2,resid2)
                 p.save()
 

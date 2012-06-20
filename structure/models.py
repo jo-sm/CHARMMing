@@ -74,6 +74,12 @@ class Structure(models.Model):
         if not self.pdb_disul:
             return None
 
+        # we need to translate between old and new numbers how
+        pfp = open(self.pickle, 'r')
+        pdb = cPickle.load(pfp)
+        pfp.close()
+        mdl = pdb[0]
+
         logfp = open('/tmp/getDisul.log', 'w')
 
         dsl = self.pdb_disul.split()
@@ -83,6 +89,7 @@ class Structure(models.Model):
         rarr = []
         logfp.write('len dsl = %d\n' % len(dsl))
         logfp.flush()
+
         while n < len(dsl):
             idx = dsl[n]
             resn1 = dsl[n+1]
@@ -94,6 +101,24 @@ class Structure(models.Model):
             n += 7
             logfp.write('got %s: %s %s %s disul to %s %s %s\n' % (idx,segn1,resn1,resi1,segn2,resn2,resi2))
             logfp.flush()
+
+            # make sure we have the correct residue number -- hack to just
+            # use model 0
+            for segment in mdl.iter_seg():
+                logfp.write('Checking segment %s -- segn1 = %s segn2 = %s\n' % (segment.segid,segn1,segn2))
+
+                if segment.segid == segn1:
+                    for atom in segment:
+                        if atom.resid0 == int(resi1):
+                            resi1 = str(atom.resid)
+                            logfp.write("Renumbering: changed resid to %s\n" % resi1)
+
+                if segment.segid == segn2:
+                    for atom in segment:
+                        if atom.resid0 == int(resi2):
+                            resi2 = str(atom.resid)
+                            logfp.write("Renumbering: changed resid to %s\n" % resi2)
+
             rarr.append((segn1,resn1,resi1,segn2,resn2,resi2))
 
         logfp.close()
@@ -862,13 +887,17 @@ class WorkingStructure(models.Model):
                 for i, rtf in enumerate(rtflist):
                     logfp.write('Processing rtf %s and prm %s\n' % (rtf,prmlist[i]))
 
-                    rtfobj = open_rtf(rtf)
-                    prmobj = open_prm(prmlist[i])
-                    temp_toppar = pychm_toppar.Toppar()
-                    rtfobj.export_to_toppar(temp_toppar)
-                    prmobj.export_to_toppar(temp_toppar)
-
-                    final_toppar = final_toppar + temp_toppar
+                    with open_rtf(rtf) as tmp_rtf:
+                        tmp_rtf.export_to_toppar(final_toppar)
+                    with open_prm(prmlist[i]) as tmp_prm:
+                        tmp_prm.export_to_toppar(final_toppar)
+#                    rtfobj = open_rtf(rtf)
+#                    prmobj = open_prm(prmlist[i])
+#                    temp_toppar = pychm_toppar.Toppar()
+#                    rtfobj.export_to_toppar(temp_toppar)
+#                    prmobj.export_to_toppar(temp_toppar)
+#
+#                    final_toppar = final_toppar + temp_toppar
 
             logfp.write('Done\n')
             logfp.close()
