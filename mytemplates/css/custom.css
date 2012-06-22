@@ -14,7 +14,7 @@ div.colwrapper {
 }
 
 div.col1 {
- position absolute;
+ position: absolute;
  left: 0;
  top: 0;
  width: 200px;
@@ -33,15 +33,16 @@ div.frontpage{
  font-family:Arial;
 }
 th.status{
- background-color: #e2e9fe;
+ background-color: #012b01;
+ color: #ffffff;
  border: 0px;
- background: url(/charmming/images/sdmenu/leemenu2/toptitle2.gif) no-repeat;
+ /*background: url(/charmming/images/sdmenu/leemenu2/toptitle2.gif) no-repeat;*/
 }
 table.status{
  margin: 0;
  padding: 0;
  border:0;
- background-color: #e2e9fe;
+ background-color: #ffffff;
  font-size:small;
 }
 tr.statustop{
@@ -95,7 +96,7 @@ legend.custom_sequ
 {
  /*background: #FFBC47;*/
  background: #e2e9fe;
- font-size:small,
+ font-size:small;
 }
 fieldset.structure
 {
@@ -124,11 +125,6 @@ div.centerpage
    background-color: #000000;
    color: #CCCCCC;
 }
-#a.jmolfooter
-#{
-#   color: #CCCCCC;
-#   cursor: hand;
-#}
 
 .fontsmall {
 font-size:small;

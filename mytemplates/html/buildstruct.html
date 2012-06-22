@@ -6,7 +6,7 @@
 
   {% if haveworkingstruct %}
     <div id="swap_form">
-      <h2 align="center">Change Active Working Structure</h2>
+      <h2>Change Active Working Structure</h2>
       <form id="swap" method="post" action="/charmming/swapstruct/" onsubmit="return send_form_gener('swap_form','/charmming/swapstruct/',makeUniqueDiv('Edit Structure'));" >
         <select name="choosestruct">
           {% for str in built_list %}
@@ -19,10 +19,10 @@
   {% endif %}
 
   <div id="newbuild">
-     <h2 align="center">Build A New Working Structure</h2>
+     <h2>Build A New Working Structure</h2>
 
      <form id="config_form" method="post" action="/charmming/modstruct/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/modstruct/',makeUniqueDiv('Edit Structure'));" >
-        <div style="background-color: #D1FFFF;"><b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" value="{{ proposedname }}" /></div><br />
+        <div style="background-color: #919f86;"><b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" value="{{ proposedname }}" /></div><br />
         <b>Please choose which model you want this working structure based from:</b>
 
         <select name="basemodel">
@@ -31,7 +31,7 @@
            {% endfor %}
         </select>
 
-        <div style="background-color: #D1FFFF;">
+        <div style="background-color: #919f86;">
           <h3>What type of structure should be built?</h3>
           <table align="center" width="65%">
             <tr><td><input type="radio" name="buildtype" value="aa" onclick="setCGDisplay('aa');" checked /></td><td align="left">A &quot;traditional&quot; all-atom model using the CHARMM force field.</td></tr>
@@ -45,6 +45,7 @@
            <hr />
            <h4>Choose Segments and Patching</h4>
  
+           <div id="select_div">
            <table border align="center" cellspacing="2" cellpadding="2" width="70%">
              <tr><td>Selected</td><td>Segment Name</td><td>Segment type</td><td>First patch</td><td>Last patch</td><td>Topology File and Parameter File</td></tr>
              {% for seg in seg_list %}
@@ -86,26 +87,10 @@
                 </tr>
              {% endfor %}
            </table>
+           </div>
            <hr />
 
-           {% if proto_list %}
-             <h3>Choose Protonation State</h3>
-             <table align="center" cellspacing="2" cellpadding="2">
-             <tr><td>SEGID</td><td>Residue Number</td><td>Protonation State</td></tr>
-             {% for pproto in proto_list %}
-               <tr><td>{{ pproto.0 }}</td><td>{{ pproto.1 }}</td>
-                   <td>
-                     <select name="protostate_{{ pproto.0 }}_{{ pproto.1 }}" width="5">
-                        {% for alt in pproto.2 %}
-                           <option value="{{ alt.0 }}">{{ alt.0 }} ({{ alt.1 }})</option>
-                        {% endfor %}
-                     </select>
-                   </td>
-               </tr>
-             {% endfor %}
-             </table>
-           {% endif %}
-
+           <div id="proton_div">
            {% if disulfide_list %}
              <h3>Choose Disulfide Patching</h3>
              <table align="center" cellspacing="2" cellpadding="2">
@@ -115,6 +100,25 @@
                {% endfor %}
              </table>
            {% endif %}
+
+           {% if proto_list %}
+               <h3>Choose Protonation State</h3>
+               <table align="center" cellspacing="2" cellpadding="2">
+               <tr><td>SEGID</td><td>Residue Number</td><td>Protonation State</td></tr>
+               {% for pproto in proto_list %}
+                 <tr><td>{{ pproto.0 }}</td><td>{{ pproto.1 }}</td>
+                    <td>
+                      <select name="protostate_{{ pproto.0 }}_{{ pproto.1 }}" width="5">
+                         {% for alt in pproto.2 %}
+                            <option value="{{ alt.0 }}">{{ alt.0 }} ({{ alt.1 }})</option>
+                         {% endfor %}
+                      </select>
+                    </td>
+                </tr>
+               {% endfor %}
+               </table>
+           {% endif %}
+           </div>
 
         </div>
 

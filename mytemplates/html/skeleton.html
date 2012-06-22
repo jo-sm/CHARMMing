@@ -69,10 +69,20 @@
        return document.documentElement.clientWidth *.82;
     }
 
+    function resizeFrame(f) {
+       f.style.height = f.contentWindow.document.body.scrollHeight + "px";
+    }
+
     function doOnLoad() {
        AjaxTabs.OpenTab(getUniqueId("tab_page"), "Introduction", "/charmming/html/intro.html", true, '');
        myMenu = new SDMenu("my_menu");
        myMenu.init();
+
+       try {
+          internalFrame = document.getElementById("childframe");
+          resizeFrame(internalFrame);
+       } catch(err) {
+       }
 
        enableTooltips("sidebar");
 
@@ -122,7 +132,7 @@
    </div>
 
    <div id="maincontent">
-      <div id="sidebar" style="height:1600px;">
+      <div id="sidebar">
         <!----!>
         <div id="my_menu" class="sdmenu">
           <div>
@@ -195,7 +205,7 @@
 
       </div>
 
-      <div id="maincolumn" style="position: absolute; left: 155px; width: 1074px; height: 1200px; text-align: center;">
+      <div id="maincolumn" style="position: absolute; left: 151px; width: 1078px; text-align: center;">
          {% block content %}
          <div class="tabContainer">
             <div class="tabs">

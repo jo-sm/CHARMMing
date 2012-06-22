@@ -5,42 +5,40 @@ body {
       margin:0;
       padding:0;
       color:#000;
-      font:normal/1.5em Georgia,Serif;
-      voice-family: "\"}\""; voice-family:inherit;
       font-size:small;
 } 
 
 
 #headbkgd {
-width:  1224px;
-height: 215px;
+width:  1220px;
+height: 140px;
 background:#000000 url("/charmming/images/leebg.gif") repeat;
 background-color: #00FF00;
 display: block;
 }
 
 #container {
-width:  1224px;
+width:  1220px;
 position:relative;
-top: -215px;
+top: -140px;
 margin: 0px auto 0px auto;
 padding-top:15px;
 /*background-color: #FFFFFF;*/
-background-color: #DDDDDD;
-background: url(/charmming/images/charmming-css/charmming-bkgrd.png) repeat-y;*/
+background-color: #919f86;
+/* background: url(/charmming/images/charmming-css/charmming-bkgrd.png) repeat-y;*/
 }
 
 #login-container {
-width:  1224px;
+width:  1220px;
 position:relative;
-top: -215px;
+top: -140px;
 margin: 0px auto 0px auto;
 padding-top:15px;
 background-color: #FFFFFE;
 }
 
 #maincontent {
-width:  1064px;
+width:  1078px;
 margin: 0px;
 border-left: #000000 0px solid;
 border-right: #000000 0px solid;
@@ -51,21 +49,21 @@ border-right: #000000 0px solid;
 
 #header {
 margin: 0px;
-width:  1224px;
-height: 215px;
+width:  1220px;
+height: 140px;
 border-left: #000000 0px solid;
 border-right: #000000 0px solid;
 border-top: #000000 0px solid;
 border-bottom: #000000 0px solid;
 background-color: red;
-background: url(/charmming/images/charmming-css/charmming-header-public-1224.png) no-repeat;
+background: url(/charmming/images/redesign/header6.png) no-repeat;
 display: block;
 }
 
 #headmenu a {
   position: absolute;
-  height: 215px;
-  width: 1224px;
+  height: 140px;
+  width: 1220px;
   top: 15px; 
   text-decoration: none;
   }
@@ -77,7 +75,7 @@ display: block;
 visibility: hidden;
 }
 
-a#charmming { left: 1px; width: 1224px; top: 230px;}
+a#charmming { left: 1px; width: 1220px; top: 230px;}
 a#nih2 { left: 867px; width: 138px; top: 125px;}
 a#hhs2 { left: 867px; width: 228px; top: 107px;}
 a#hhs { left: 867px; width: 66px; top: 100px;}
@@ -96,13 +94,13 @@ padding-top: 0px;
 }
 
 #sidebar {
-width: 150px;
-height: 1200px;
+width: 156px;
 margin: 0px;
 float: left;
-padding-left: 6px;
+padding-left: 0px;
 padding-top: 5px;
-background: url(/charmming/images/charmming-css/charmming-bkgrd.png) repeat-y;
+background-color: #919f86;
+/* background: url(/charmming/images/charmming-css/charmming-bkgrd.png) repeat-y; */
 }
 
 #statusreport {
@@ -115,7 +113,7 @@ padding-bottom: 15px;
 }
 
 #maincolumn {
-width: 1064px;
+width: 1060px;
 margin: 0px;
 float: left;
 padding-left:5px;
@@ -125,7 +123,7 @@ padding-left:5px;
 
 #footer {
 color: #000000;
-width:  1224px;
+width:  1220px;
 height: 40px; 
 margin: auto;
 position: relative;
@@ -136,23 +134,24 @@ border-left: #000000 0px solid;
 border-right: #000000 0px solid;
 border-bottom: #000000 0px solid;
 background-color: #00FF00;
-background: url(/charmming/images/charmming-css/footer.png) no-repeat;
+background: url(/charmming/images/redesign/footer6.png) no-repeat;
+float: left;
 /*background-color: #f6f6f6;*/
 }
 
 #login-footer {
 color: #000000;
-width:  1224px;
+width:  1220px;
 height: 40px; 
 margin: auto;
-float: top;
+float: left;
 font-size: medium;
 font-weight: lighter;
 clear: both;
 border-left: #000000 0px solid;
 border-right: #000000 0px solid;
 border-bottom: #000000 0px solid;
-background: url(/charmming/images/charmming-css/footer.png) no-repeat;
+background: url(/charmming/images/redesign/footer6.png) no-repeat;
 background-color: #f6f6f6;
 }
 
@@ -160,7 +159,7 @@ background-color: #f6f6f6;
 #footmenu a {
   position: absolute;
   height: 40px;
-  width: 1224px;
+  width: 1220px;
   top: 0px;
   text-decoration: none;
   }
@@ -176,13 +175,16 @@ a#foothome { left: 0px; width:850px; top: 0px;}
 
 /*---------------------------------------------*/
 
+/*
 #statusfooter {
 background: url(/charmming/images/sdmenu/leemenu2/bottom.gif) no-repeat;
 } 
+*/
 
 .content {
 padding-top: 12px;
 padding-left: 28px;
+background: #012b01;
 }
 
 .single {
@@ -224,14 +226,14 @@ line-height: 14pt
     
 .tabs {
       float:left;
-      width:1064px;
+      width:1060px;
       font-size:93%;
       /*background:#000000 url("/charmming/images/leebg.gif") repeat;*/
       margin:0;
       padding:0;
       color:#000;
       /*background: #DCE0E7;*/
-      background: #dddddd;
+      background: #919f86;
       line-height:normal;
 }
 
@@ -337,7 +339,7 @@ line-height: 14pt
 .tabContainer {
    text-align: left;
    position:relative;
-   width: 1064px;
+   width: 1060px;
    background-color: #ffffff;
 }
 

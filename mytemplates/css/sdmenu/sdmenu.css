@@ -3,19 +3,21 @@ div.sdmenu {
 	font-family: Arial, sans-serif;
 	font-size: 12px;
 	padding-bottom: 10px;
-	background: url(/charmming/images/sdmenu/leemenu2/bottom.gif) no-repeat  right bottom;
-	/*background: #525252;*/
+	/*background: url(/charmming/images/sdmenu/leemenu2/bottom.gif) no-repeat  right bottom;*/
+	background: #012b01;
 	color: #FF7400;
 }
 div.sdmenu div {
-	background: url(/charmming/images/sdmenu/leemenu2/title.gif) repeat-x;
+	/*background: url(/charmming/images/sdmenu/leemenu2/title.gif) repeat-x;*/
 	overflow: hidden;
+        background: #012b01;
 	/*background: #525252;*/
 }
+
 div.sdmenu div:first-child {
-	background: url(/charmming/images/sdmenu/leemenu2/toptitle.gif) no-repeat;
-   white-space: nowrap; 
-	/*background: #525252;*/
+	/*background: url(/charmming/images/sdmenu/leemenu2/toptitle.gif) no-repeat;*/
+        white-space: nowrap; 
+	background: #012b01;
 }
 div.sdmenu div.collapsed {
 	height: 24px;
@@ -25,7 +27,7 @@ div.sdmenu div span {
 	padding: 5px 25px;
 	font-weight: bold;
 	/*color: white;*/
-	color: #00368f;
+	color: #ffffff;
 	background: url(/charmming/images/sdmenu/leemenu2/expanded.gif) no-repeat 10px center;
 	cursor: default;
 	border-bottom: 1px solid #ddd;
@@ -35,8 +37,9 @@ div.sdmenu div.collapsed span {
 }
 div.sdmenu div a {
 	padding: 5px 10px;
-	background: #FFFFFF;
+	/*background: #FFFFFF;*/
 	/*background: #E4E4E4;*/
+        background: #cfc4a3;
 	display: block;
 	border-bottom: 1px solid #ddd;
 	/*color: #066;*/
@@ -47,7 +50,7 @@ div.sdmenu div a.current {
 	/*background : #525252;*/
 }
 div.sdmenu div a:hover {
-	background : #00368f url(/charmming/images/sdmenu/leemenu2/linkarrow.gif) no-repeat right center;
-	color: #fff;
+	background : #012b01;
+	color: #ffffff;
 	text-decoration: none;
 }
