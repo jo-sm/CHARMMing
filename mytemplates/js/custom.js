@@ -952,3 +952,9 @@ function checkId(div_id)
 {
  document.getElementById(div_id).checked = true;
 }
+
+//Drug Design stuff
+function send_delete_ligand_form(id) {
+    new Ajax.Request("/charmming/dd_substrate/deleteligand/", {method:'post', asynchronous:false, parameters: {'id':id}});
+    
+}

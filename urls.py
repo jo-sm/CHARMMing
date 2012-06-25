@@ -94,9 +94,6 @@ urlpatterns = patterns('',
      (r'^charmming/analysis/updatetrajanal/$', 'trajanal.views.updatetrajanal'),
      (r'^charmming/analysis/redox/$', 'apbs.views.redoxformdisplay'),
 
-     # edit structure container
-     (r'^charmming/editstructurecontainer/$', 'structure.views.editstructurecontainer'),
-
      # job killing
      (r'^charmming/killjob/(?P<taskid>.*)/$', 'structure.views.killTask'),
 

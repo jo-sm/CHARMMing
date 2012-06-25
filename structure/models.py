@@ -570,8 +570,8 @@ class WorkingSegment(Segment):
         os.putenv("MATCH","%s/MATCH_RELEASE/MATCH" % charmming_config.data_home)
         os.chdir(self.structure.location)
        
-        self.rtf_list = '%s/top_all27_prot_na.rtf' % charmming_config.data_home
-        self.prm_list = '%s/par_all27_prot_na.prm' % charmming_config.data_home
+        self.rtf_list = '%s/toppar/top_all27_prot_na.rtf' % charmming_config.data_home
+        self.prm_list = '%s/toppar/par_all27_prot_na.prm' % charmming_config.data_home
         for badRes in badResList:
             exe_line = '%s/MATCH_RELEASE/MATCH/scripts/MATCH.pl %s-badres-h-%s.mol2' % (charmming_config.data_home,self.name,badRes)
             logfp.write('Xcute: %s\n' % exe_line)

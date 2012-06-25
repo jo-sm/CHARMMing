@@ -5,37 +5,21 @@
 
     <!-- this is for ChemDoodle -->
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link rel="stylesheet" href="/css/ChemDoodleWeb.css" type="text/css">
-    <script type="text/javascript" src="/js/ChemDoodleWeb-libs.js"></script>
-    <script type="text/javascript" src="/js/ChemDoodleWeb.js"></script>
+
+    <script src="/charmming/js/ajax.js" type="text/javascript"></script>
+    <script src="/charmming/js/sdmenu/sdmenu.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/charmming/js/custom.js"></script>
+    <script type="text/javascript" src="/charmming/js/emap.js"></script>
+    <script type="text/javascript" src="/charmming/js/windows2/window.js"></script>
+    <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
 
     <link href="/charmming/css/style.css" rel="stylesheet" type="text/css" />
     <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
     <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
     <link href="/charmming/css/sdmenu/sdmenu.css" rel="stylesheet" type="text/css" />
-    <script src="/charmming/js/ajax.js" type="text/javascript"></script>
-    <script src="/charmming/js/sdmenu/sdmenu.js" type="text/javascript"></script>
-    <script src="/charmming/js/tabs.js" type="text/javascript"></script>
-    {% if trusted %}
-     <script src="/charmming/js/trusted.js" type="text/javascript"></script>
-    {% endif %}
-    <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
-    <script type="text/javascript" src="/charmming/js/custom.js"> </script>
-    <script type="text/javascript" src="/charmming/js/emap.js"> </script>
-    <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
-    <script>
-      var GB_ROOT_DIR = "/charmming/greybox/greybox/";
-    </script>
     <link href="/charmming/css/windows2/default.css" rel="stylesheet" type="text/css"/>
     <link href="/charmming/css/windows2/spread.css" rel="stylesheet" type="text/css"/>
     <link href="/charmming/css/windows2/alert.css" rel="stylesheet" type="text/css"/>
-    <link href="/charmming/css/greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
-    <script type="text/javascript" src="/charmming/js/greybox/AJS.js"></script>
-    <script type="text/javascript" src="/charmming/js/greybox/AJS_fx.js"></script>
-    <script type="text/javascript" src="/charmming/js/greybox/gb_scripts.js"></script>
-
-    <script type="text/javascript" src="/charmming/js/BubbleTooltips.js"> </script>
-    <link href="/charmming/css/bt.css" rel="stylesheet" type="text/css" />
 
     <link rel="icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon"> 
@@ -51,15 +35,8 @@
     ***********************************************/
 
     var myMenu;
-    var tabCounter = -1;
     var jmolCounter = -1;
-    var selected_div = "";
     var currperiodicalupdater = null;
-    function refreshToolTips()
-    {
-
-       enableTooltips();
-    }
 
     function send_select_form(form) {
        new Ajax.Request("/select/"+form.id, {method:'post', asynchronous:true});
@@ -69,34 +46,11 @@
        return document.documentElement.clientWidth *.82;
     }
 
-    function resizeFrame(f) {
-       f.style.height = f.contentWindow.document.body.scrollHeight + "px";
-    }
-
     function doOnLoad() {
-       AjaxTabs.OpenTab(getUniqueId("tab_page"), "Introduction", "/charmming/html/intro.html", true, '');
        myMenu = new SDMenu("my_menu");
        myMenu.init();
 
-       try {
-          internalFrame = document.getElementById("childframe");
-          resizeFrame(internalFrame);
-       } catch(err) {
-       }
-
-       enableTooltips("sidebar");
-
        new Ajax.PeriodicalUpdater('statusreport', '/charmming/status/', {method: 'post', frequency: 2})
-       <!-- comment out lessons for now
-       {% if lessontype %}
-          currperiodicalupdater = new Ajax.PeriodicalUpdater('lessonreport', '/charmming/lessons/lessonstatus/', {method: 'post', frequency: 5});
-          currperiodicalupdater.start();
-       {% else %}
-          currperiodicalupdater = new Ajax.PeriodicalUpdater('lessonreport', '/charmming/lessons/lessonstatus/', {method: 'post', frequency: 5});
-          //currperiodicalupdater.stop();
-          currperiodicalupdater.start();
-       {% endif %}
-       -->
     }
 
     function showLesson(lesson)
@@ -121,74 +75,61 @@
    <div id="headbkgd"></div>
 
    <div id="header">
-      <div id="headmenu">
-         <a href="/charmming/html/skeleton/" id="charmming"><i></i></a>
-         <a href="http://www.nih.gov" id="nih2"><i>NIH</i></a>
-         <a href="http://www.hhs.gov" id="hhs2"><i>HHS</i></a>
-         <a href="http://www.hhs.gov" id="hhs"><i>HHS</i></a>
-         <a href="http://www.nih.gov" id="nih"><i>NIH</i></a>
-         <a href="http://www.nhlbi.nih.gov" id="nhlbi"><i>NHLBI</i></a>
-      </div>
    </div>
 
-   <div id="maincontent">
+   <div id="maincontent" style="float:left;">
       <div id="sidebar">
         <!----!>
         <div id="my_menu" class="sdmenu">
           <div>
             <span>Basic functions</span>
-            <a title="Opens a new tab." href="javascript:openNewTab();">Open A New Tab</a>
-            <a title="Closes all open tabs." href="javascript:closeAllTabs()">Close All Tabs</a>
             <a title="CHARMMing usage information and credits." href="javascript:openNewURL('/charmming/about/','About CHARMMing');timeoutWikipage('General');">About CHARMMing</a>
           </div>
           <div>
             <span>Structures</span>
-            <a title="Submit a structure to manipulate." href="javascript:openNewURL('/charmming/fileupload/','Submit Structure');">Submit Structure</a>
-            <a title="Work with a different structure or edit the structure information." href="javascript:openNewURL('/charmming/viewpdbscontainer/','Select PDB');">Change/Delete Structures</a>
-            <a title="Change the patching, protonation, and other chemical properties of the current structure." href="javascript:openNewURL('/charmming/editstructurecontainer/','Build Steructure');">Build Structure</a>
-            <a title="Download all files associated with this structure." href="javascript:openNewURL('/charmming/downloadfilescontainer/','Download Files');">Download Files</a>
+            <a href="/charmming/fileupload/">Submit Structure</a>
+            <a href="/charmming/viewpdbscontainer/">Change/Delete Structures</a>
+            <a href="/charmming/buildstruct/">Build Working Structure</a>
+            <a href="/charmming/downloadfilescontainer/">Download Files</a>
             <a title="View the 3D structure of your molecule." href="javascript:openNewURL('/charmming/visualize/','View PDBs');">View PDBs</a>
             <a title="View all the input/output scripts this site has generated for you." href="javascript:openNewURL('/charmming/viewprocessfiles/','Process Files');">View Process Files</a>
           </div>
           <div>
             <span>Calculations</span>
-            <a title="Runs a simple energy calculation. This can be used to generate a PSF/CRD file quickly while also informing you of the energy of your system." href=javascript:openNewURL("/charmming/energy/",'Energy');timeoutWikipage('Energy')>Energy</a>
-            <a title="Minimizes the system's energy, trying to simulate absolute zero. This should be done before dynamics runs." href=javascript:openNewURL("/charmming/minimize/",'Minimization');timeoutWikipage('Minimization')>Minimize</a>
-            <a title="Solvate your protein in a water structure." href=javascript:openNewURL("/charmming/solvate/",'Solvation');timeoutWikipage('Solvation');>Solvate</a>
-            <a title="Run Normal Mode Analysis. It is strongly recommended that you minimize first." href="javascript:openNewURL('/charmming/normalmodes/','Normal Mode Analysis');timeoutWikipage('Normal Mode Analysis');">Normal Modes</a>
-            <a title="Simulate the protein in a user-specified environment. It is best if you minimize first." href="javascript:openNewURL('/charmming/dynamics/md/','Molecular Dynamics');timeoutWikipage('Molecular Dynamics');">Molecular Dynamics</a>
-            <a title="Langevin Dynamics is used to quickly induce protein conformation change. Useful in studying protein folding." href="javascript:openNewURL('/charmming/dynamics/ld/','Langevin Dynamics');timeoutWikipage('Langevin Dynamics');">Langevin Dynamics</a>
+            <a href="/charmming/energy/">Energy</a>
+            <a href="/charmming/minimize/">Minimize</a>
+            <a href="/charmming/solvate/">Solvate</a>
+            <a href="/charmming/normalmodes/">Normal Modes</a>
+            <a href="/charmming/dynamics/md/">Molecular Dynamics</a>
+            <a href="/charmming/dynamics/ld/">Langevin Dynamics</a>
           </div>
           <div>
             <span>Analyses</span>
-            <a title="Get properties from an MD run." href="javascript:openNewURL('/charmming/analysis/mdprop/','RMSD calculator');timeoutWikipage('MDANAL');">MD Properties</a>
-            <a title="Analyze the root mean square deviation of various conformations of your structure." href="javascript:openNewURL('/charmming/analysis/rmsd/','RMSD calculator');timeoutWikipage('RMSD');">RMSD calculator</a>
-            <a title="Perform an Oxidation/Reduction calculation using APBS." href="javascript:openNewURL('/charmming/analysis/redox/','REDOX calculator');timeoutWikipage('Redox');">Redox</a>
-            <!-- <a title="Perform a graphical analysis of trajectory distances using RMSDYN." href="javascript:openNewURL('/charmming/analysis/trajanal/','Trajectory analyzer');timeoutWikipage('RMSD');">RMSDYN analysis</a> -->
+            <a href="/charmming/analysis/mdprop/">MD Properties</a>
+            <a href="/charmming/analysis/rmsd/">RMSD calculator</a>
+            <a href="/charmming/analysis/redox/">Redox</a>
           <div>
             <span>Drug Design</span>
-               <a title="Manage Projects" href="javascript:openNewURL('/charmming/dd_infrastructure/projectscontainer/','Manage Projects');">Projects</a>
-               <a title="Upload Target" href="javascript:openNewURL('/charmming/dd_target/targetfileupload/','Manage Targets');">New Target</a>
-               <a title="View Targets" href="javascript:openNewURL('/charmming/dd_target/viewtargetscontainer/','Manage Targets');">View Targets</a>
-                  <a title="Upload Ligands" href="javascript:openNewURL('/charmming/dd_substrate/ligandfileupload/','Manage Targets');">New Ligand</a>
-               <a title="Manage Ligand Sets" href="javascript:openNewURL('/charmming/dd_substrate/viewligandsetscontainer/','Ligand Sets');">Ligand Sets</a>
-               <a title="Launch DAIM/SEED/FFLD Job" href="javascript:openNewURL('/charmming/dd_infrastructure/dsfcontainer/','Launch DAIM/SEED/FFLD Job');">Launch Docking Job</a>
-               <a title="View Jobs/Results" href="javascript:openNewURL('/charmming/dd_infrastructure/viewjobscontainer/','View Jobs/Results');">View Jobs/Results</a>
+               <a href="/charmming/dd_infrastructure/projectscontainer/">Projects</a>
+               <a href="/charmming/dd_target/targetfileupload/">New Target</a>
+               <a href="/charmming/dd_target/viewtargetscontainer/">View Targets</a>
+               <a href="/charmming/dd_substrate/ligandfileupload/">New Ligand</a>
+               <a href="/charmming/dd_substrate/viewligandsetscontainer/">Ligand Sets</a>
+               <a href="/charmming/dd_infrastructure/dsfcontainer/">Launch Docking Job</a>
+               <a href="/charmming/dd_infrastructure/viewjobscontainer/">View Jobs/Results</a>
          </div>
           </div>
-          {% ifequal lessonuser 1 %}
 	  <div>
 	  <span> Lessons </span>
-            <a title="Lesson One will familiarize the user with basic CHARMM commands and basic methods used in computational chemistry." href="javascript:openNewURL('/charmming/lessons/lesson1/','Lesson 1');timeoutWikipage('Lesson One');">Lesson One</a>
-            <a title="Lesson Two will use a protein to demonstrate how a user can conduct computational chemistry." href="javascript:openNewURL('/charmming/lessons/lesson2/','Lesson 2');timeoutWikipage('Lesson Two');">Lesson Two</a>
-            <a title="Lesson Three will make the user create their amino acid, replicated 1YJP then running dynamics on it." href="javascript:openNewURL('/charmming/lessons/lesson3/','Lesson 3');timeoutWikipage('Lesson Three');">Lesson Three</a>
-            <a title="Put lesson description here." href="javascript:openNewURL('/charmming/lessons/lesson4/','Lesson 4');timeoutWikipage('Lesson Four');">Lesson Four</a>
-            <a title="TACOS TACOS TACOS" href="javascript:openNewURL('/charmming/lessons/lesson5/','Lesson 5');timeoutWikipage('Lesson Five');">Lesson Five</a>
+            <a href="/charmming/lessons/lesson1/">Lesson One</a>
+            <a href="/charmming/lessons/lesson2/">Lesson Two</a>
+            <a href="/charmming/lessons/lesson3/">Lesson Three</a>
+            <a href="/charmming/lessons/lesson4/">Lesson Four</a>
+            <a href="/charmming/lessons/lesson5/">Lesson Five</a>
 	  </div>
-          {% endifequal %}
           <div>
             <span>Account</span>
-            <a title="Change Password" href="javascript:openNewURL('/charmming/accounts/changepassword/','Change Password');timeoutWikipage('Change Password');">Change Password</a>
+            <a title="Change Password" href="/charmming/accounts/changepassword/">Change Password</a>
             <a title="Logout" href="/charmming/accounts/logout/">Logout</a>
           </div>
         </div>
@@ -207,27 +148,18 @@
 
       <div id="maincolumn" style="position: absolute; left: 151px; width: 1078px; text-align: center;">
          {% block content %}
-         <div class="tabContainer">
-            <div class="tabs">
-               <ul class="tabList" id="tabList"></ul>
-            </div>
-            <div class="tabPanels" id="tabPanels"></div>
-         </div>
+            {% include "html/intro.html" %}
          {% endblock %}
       </div>
 
    </div> <!-- maincontent --!> 
 
-   <div id="footer">
-    <div class="content">
-      CHARMMing (CHARMM INterface and Graphics)  
-    </div>
-    <div id="footmenu">
-       <a href="/charmming/html/skeleton/" id="foothome"><i>CHARMMing</i></a>
-       <a href="http://www.hhs.gov" id="foothhs"><i>HHS</i></a>
-       <a href="http://www.nih.gov" id="footnih"><i>NIH</i></a>
-       <a href="http://www.nhlbi.nih.gov" id="footnhlbi"><i>NHLBI</i></a>
-    </div>
+   <div id="footer" style="float:left;">
+     <div class="content">
+       CHARMMing (CHARMM INterface and Graphics)  
+      </div>
+      <div id="footmenu">
+      </div>
    </div>
 
 </div>

@@ -1302,6 +1302,3 @@ def swap(request):
 
 def protonate(file):
     return render_to_response('html/protonate.html')    
-
-def editstructurecontainer(request):
-    return render_to_response('html/editstructurecontainer.html')
