@@ -535,16 +535,6 @@ def reportError(request):
 
 
 
-def fileuploadform(request):
-    if not request.user.is_authenticated():
-        return render_to_response('html/loggedout.html')
-    file = structure.models.PDBFileForm()
-    lessonuser = 0
-    groupList = request.user.groups.all()
-    if request.user.groups.filter(name='lesson') or request.user.is_superuser:
-        lessonuser = 1
-    return render_to_response('html/fileuploadform.html', {'form':file,'lessonuser': lessonuser})
-
 #Lets user see the list of PDBs they have uploaded
 #THIS IS NOT FOR VIEWING JMOL/CHEMAXON STUFF
 def viewpdbs(request):
@@ -1058,7 +1048,7 @@ def newupload(request, template="html/fileupload.html"):
     # end of ye gigantic if test
 
     form = structure.models.PDBFileForm()
-    return render_to_response('html/fileupload.html', {'form': form} )
+    return render_to_response('html/fileuploadform.html', {'form': form} )
 
 
 # This function populates the form for building a structure

@@ -1,73 +1,8 @@
-<head>
-<link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
-<script type="text/javascript" src="/charmming/js/custom.js"> </script>
-<script type="text/javascript" src="/charmming/js/BubbleTooltips.js"> </script>
-<link href="/charmming/css/bt.css" rel="stylesheet" type="text/css"/>
-<script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+{% extends "html/skeleton.html" %}
 
-
-<script type="text/javascript">
-var last_option_id ="";
-
-function setOptionId(div)
-{
- last_option_id = div.id;
-}
-
-function doOnLoad()
-{
- enableTooltips();
-}
-
-function addResidue(residue)
-{
- sequ_field = document.getElementById('id_sequ');
- sequ_text = document.getElementById('id_sequ').value;
- //If the line is not blank, add a space
- if(sequ_text.length > 1)
- {
-  sequ_text += " ";
- }
- sequ_text += residue;
- sequ_field.value = sequ_text;
-}
-
-//This swaps two words separated by an underscore
-//example: bob_pdb is returned as pdb_bob
-//this is done because the form ID is the inverse
-//of the div_id it controls
-//upload_pdb controls pdb_upload
-function getChoiceDiv(div_id)
-{
- var re =  /[a-z]*/;
- var first_part = re.exec(div_id);
- var re2 = /_[a-z]*/;
- var second_part = re2.exec(div_id);
- second_part[0] = second_part[0].replace(/[_]/,'');
- new_div = second_part[0] + "_" + first_part[0];
- return new_div;
-}
-
-{% ifequal lessonuser 1 %}
-  //This gets the lesson value then passes it to the parent
-  function getLessonValue()
-  {
-    return document.getElementById("lesson").value;
-  }
-{% endifequal %}
-
-//This is needed otherwise the radio button selection moves
-//to the replace/append under topology/parameter
-//I'm assuming it's a javascript shortcoming
-function leavecheck()
-{
- field.checked = true;
-}
-</script>
-
-</head>
-<body bgcolor=#FFFFFF onload="doOnLoad();">
-   <center>
+{% block content %}
+<div id="mainpage">
+ <center>
    <div>
       <h1>Upload Structure</h1>
       <hr width="50%">
@@ -202,7 +137,6 @@ function leavecheck()
 
       <input type="submit" value="Submit Structure"/>
    </form>
-</center>
-</body>
-</html>
-
+ </center>
+</div>
+{% endblock %}

@@ -7,6 +7,56 @@ var visualizeWin;
 var tutorialWin;
 var timest = 0;
 
+// The following is taken from fileuploadform...
+var last_option_id ="";
+
+function setOptionId(div)
+{
+ last_option_id = div.id;
+}
+
+function doOnLoad()
+{
+ enableTooltips();
+}
+
+function addResidue(residue)
+{
+ sequ_field = document.getElementById('id_sequ');
+ sequ_text = document.getElementById('id_sequ').value;
+ //If the line is not blank, add a space
+ if(sequ_text.length > 1)
+ {
+  sequ_text += " ";
+ }
+ sequ_text += residue;
+ sequ_field.value = sequ_text;
+}
+
+//This swaps two words separated by an underscore
+//example: bob_pdb is returned as pdb_bob
+//this is done because the form ID is the inverse
+//of the div_id it controls
+//upload_pdb controls pdb_upload
+function getChoiceDiv(div_id)
+{
+ var re =  /[a-z]*/;
+ var first_part = re.exec(div_id);
+ var re2 = /_[a-z]*/;
+ var second_part = re2.exec(div_id);
+ second_part[0] = second_part[0].replace(/[_]/,'');
+ new_div = second_part[0] + "_" + first_part[0];
+ return new_div;
+}
+
+//This gets the lesson value then passes it to the parent
+function getLessonValue()
+{
+  return document.getElementById("lesson").value;
+}
+
+// end of stuff copied over from fileuploadform
+
 //displays the div_id sent to it, specially designed for
 //fileuploadform page
 function displayFields(div_id)
