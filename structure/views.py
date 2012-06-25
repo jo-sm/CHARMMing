@@ -117,12 +117,6 @@ def downloadFilesContainer(request):
         return render_to_response('html/loggedout.html')
     return render_to_response('html/downloadfilescontainer.html')
 
-#Lets user view file in browser, puts it in iframe
-def viewPDBsContainer(request):
-    if not request.user.is_authenticated():
-        return render_to_response('html/loggedout.html')
-    return render_to_response('html/viewpdbscontainer.html')
-
 #Lets user view file in browser
 def viewFiles(request,filename, mimetype = None):
     if not request.user.is_authenticated():

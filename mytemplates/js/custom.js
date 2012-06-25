@@ -7,6 +7,16 @@ var visualizeWin;
 var tutorialWin;
 var timest = 0;
 
+// The following is taken from the select/edit structures page
+function send_select_form(form) {
+   new Ajax.Request("/charmming/select/"+form.id, {method:'post', asynchronous:true});
+}
+
+function send_delete_form(filename) {
+   new Ajax.Request("/charmming/deletefile/", {method:'post', asynchronous:false, parameters: {'filename':filename}});
+}
+
+
 // The following is taken from fileuploadform...
 var last_option_id ="";
 
@@ -1004,7 +1014,8 @@ function checkId(div_id)
 }
 
 //Drug Design stuff
-function send_delete_ligand_form(id) {
-    new Ajax.Request("/charmming/dd_substrate/deleteligand/", {method:'post', asynchronous:false, parameters: {'id':id}});
-    
-}
+//function send_delete_ligand_form(id) {
+//    alert 'deleting ligand'+id;
+//    //new Ajax.Request("/charmming/dd_substrate/deleteligand/", {method:'post', asynchronous:false, parameters: {'id':id}});
+//    
+//}
