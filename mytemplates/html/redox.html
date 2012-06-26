@@ -32,7 +32,7 @@
   <hr noshade width="80%" size=3%>
     <center>
        <!-- We only care about protein segments for now -->
-       <form id="redox_form" method="post"  action="." onsubmit="return send_form_oxired(this,'/charmming/analysis/redox/',makeUniqueDiv('change_redox'),'status_redox',[{%for item in redox_list%}'{{item}}',{% endfor%}]);">
+       <form id="redox_form" method="post"  action=".">
        <h2>Working structure: {{ ws_identifier }}</h2>
 		       
        <hr noshade width="80%" size=3%>

@@ -1,6 +1,12 @@
-<div>
-  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+{% extends "html/skeleton.html" %}
 
-  <b>Working structure created.</b>
+{% block content %}
+<h3 align="center">A working structure has been created</h3>
+
+<div style="text-align:left;">
+<p>Now that you have defined the physical and chemical make up of your
+system, you may proceed to run calculations. For example, you may now
+minimize the potential energy of your structure using the CHARMM force
+field or add solvent.</p>
 </div>
-
+{% endblock %}

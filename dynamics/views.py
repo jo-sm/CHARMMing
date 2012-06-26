@@ -455,4 +455,4 @@ stop"""
 
     task.start()
     task.save()
-    return HttpResponse("Done")
+    return output.returnSubmission("Molecular dynamics")
