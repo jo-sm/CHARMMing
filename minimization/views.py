@@ -102,8 +102,7 @@ def minimize_tpl(request,mp,pTaskID):
         mp.abnrsteps = int(abnr)
         mp.tolg = tolg
     except:
-        # FixMe: alert user to errors
-        raise AssertionError('Form not filled out')        
+        return output.returnSubmission('Minimization',error='Form not filled out.')        
 
     if postdata.has_key('useqmmm'):
         mp.useqmmm = 'y'
@@ -120,10 +119,6 @@ def minimize_tpl(request,mp,pTaskID):
     template_dict = {}
     template_dict['topology_list'], template_dict['parameter_list'], junk = mp.workstruct.getTopparList()
     template_dict['output_name'] = mp.workstruct.identifier + '-minimization'
-
-    logfp = open('/tmp/ptask', 'w')
-    logfp.write('pTaskID = %d\n' % pTaskID) 
-    logfp.close()
 
     pTask = Task.objects.filter(id=pTaskID)[0]
     template_dict['input_file'] = mp.workstruct.identifier + '-' + pTask.action
@@ -148,7 +143,7 @@ def minimize_tpl(request,mp,pTaskID):
     template_dict['shake'] = request.POST.has_key('apply_shake')
     if request.POST.has_key('apply_shake'):
         template_dict['which_shake'] = postdata['which_shake']
-        template_dict['qmmmsel'] = mp.qmmmsel
+        ### WTF is this here? --> template_dict['qmmmsel'] = mp.qmmmsel
 
         if postdata['which_shake'] == 'define_shake':
             template_dict['shake_line'] = postdata['shake_line']
@@ -166,7 +161,7 @@ def minimize_tpl(request,mp,pTaskID):
     dopbc = False
     if request.POST.has_key('usepbc'):
         if solvate_implicitly:
-            return HttpResponse('Invalid options')
+            return output.returnSubmission('Minimization', error='Conflicting solvation options given')
 
         # decide if the structure we're dealing with has
         # been solvated.
@@ -181,16 +176,16 @@ def minimize_tpl(request,mp,pTaskID):
             else:
                 break
         if not solvated:
-            return HttpResponse('Requested PBC on unsolvated structure')
+            return output.returnSubmission('Minimization', error='Requested PBC on unsolvated structure')
 
         if mp.useqmmm == 'y':
-            return HttpResponse('You cannot use periodic boundary conditions with QM/MM')
+            return output.returnSubmission('Minimization', error='You cannot use periodic boundary conditions with QM/MM')
 
         dopbc = True
         try:
             sp = solvationTask.objects.get(workstruct=mp.workstruct,active='y')
         except:
-            return HttpResponse("Err ... couldn't find solvation parameters")
+            return output.returnSubmission('Minimization',error='You tried to use PBC on an un-solvated system.')        
         template_dict['xtl_x'] = sp.xtl_x
         template_dict['xtl_y'] = sp.xtl_y
         template_dict['xtl_z'] = sp.xtl_z
@@ -199,17 +194,13 @@ def minimize_tpl(request,mp,pTaskID):
         template_dict['ewalddim'] = sp.calcEwaldDim()
 
         if template_dict['xtl_ucell'] == 'sphere':
-            return HttpResponse('Cannot do PBC on a sphere')
+            return output.returnSubmission('Minimization',error='You tried to use PBC with a spherivcal water shell.')
 
     template_dict['dopbc'] = dopbc
     template_dict['useqmmm'] = mp.useqmmm == "y"
     template_dict['sdsteps'] = sdsteps
     template_dict['abnr'] = abnr
     template_dict['tolg'] = tolg
-
-    logfp = open('/tmp/mini-qmmm.txt', 'w')
-    logfp.write('useqmmm is set to %s\n' % template_dict['useqmmm'])
-    logfp.close()
 
     if dopbc:
         mp.usepbc = 't'
@@ -236,9 +227,6 @@ def minimize_tpl(request,mp,pTaskID):
     inp_out.write(charmm_inp)
     inp_out.close()	
     mp.scripts += ',%s' % minimize_filename
-    logfp = open('/tmp/scripts.txt', 'w')
-    logfp.write(mp.scripts + '\n')
-    logfp.close()
     mp.start()
     mp.save()
 
@@ -254,6 +242,6 @@ def minimize_tpl(request,mp,pTaskID):
     #YP
 
     mp.workstruct.save()
-    return HttpResponse("Done.")
+    return output.returnSubmission('Minimization')
 
 

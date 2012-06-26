@@ -1,0 +1,13 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
+   {% if joberror %}
+      <h2 align="center">ERROR: Job submission has failed</h2>
+      <h3 align="center">{{ errortext }}</h3>
+   {% else %}
+      <h2 align="center">{{ jobtitle }} job submitted</h2>
+      <h3 align="center">You can check the status of your run on the left hand panel.</h3>
+   {% endif %}
+</div>
+{% endblock %}

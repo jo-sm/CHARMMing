@@ -1014,8 +1014,8 @@ function checkId(div_id)
 }
 
 //Drug Design stuff
-//function send_delete_ligand_form(id) {
-//    alert 'deleting ligand'+id;
-//    //new Ajax.Request("/charmming/dd_substrate/deleteligand/", {method:'post', asynchronous:false, parameters: {'id':id}});
+function send_delete_ligand_form(id) {
+    alert ('deleting ligand'+id);
+    new Ajax.Request("/charmming/dd_substrate/deleteligand/", {method:'post', asynchronous:false, parameters: {'id':id}});
 //    
-//}
+}

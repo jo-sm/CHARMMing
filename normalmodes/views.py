@@ -118,7 +118,7 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
     pdb = cPickle.load(pfp)
     if 'append_' + workstruct.identifier in pdb.keys():
         if len(pdb['append_' + workstruct.identifier]) > 1500:
-            return HttpResponse('You may only do NMA on structures with less than 1500 atoms')
+            return output.returnSubmission('Normal modes', error='You may only do NMA on structures with less than 1500 atoms')
     else:
         # this must be the case where the appending has not happened yet
         # for now let's allow this but we need to figure out some way
@@ -151,9 +151,13 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
     template_dict['identifier'] = workstruct.identifier
     template_dict['numnormalmodes'] = nmTask.nmodes
     template_dict['useqmmm'] = request.POST.has_key("useqmmm")
+
+    # take care of any QM/MM that the user might want.
     if template_dict['nma'] == 'usevibran' and request.POST.has_key("useqmmm"):
-        # we will deal with the QM/MM stuff later
-        pass
+        input.checkForMaliciousCode(request.POST['qmsele'],request.POST)
+        qmparams = makeQchem_val(request.POST,request.POST['qmsele'])
+        qmparams['jobtype'] = 'freq'
+        template_dict = makeQChem_tpl(template_dict,qmparams,nmTask.workstruct)
 
     # If need be, print out trajectories for the modes the user requested.
     template_dict['gen_trj'] = request.POST.has_key("gen_trj") 
@@ -169,12 +173,12 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
             ntrjs = 20
         if ntrjs > nmm.nmodes:
             ntrjs = nmm.nmodes
-        if request.POST.has_key("useqmmm"):
-            headstr = writeQMheader("", "SELE " + qmsel + " END")
-        else:
-            headstr = "* Not using QM/MM\n"
+        #if request.POST.has_key("useqmmm"):
+        #    headstr = writeQMheader("", "SELE " + qmsel + " END")
+        #else:
+        #    headstr = "* Not using QM/MM\n"
         template_dict['ntrjs'] = str(ntrjs) 
-        template_dict['headstr'] = headstr
+        #template_dict['headstr'] = headstr
     else:
         nmTask.nma_movie_req = False
 
@@ -196,7 +200,7 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
         nmTask.start()
         
     workstruct.save()
-    return HttpResponse("Done.")
+    return output.returnSubmission('Normal modes')
 
 
 #makes NMA Movie

@@ -111,15 +111,14 @@ def solvate_tpl(request,solvTask,pTaskID):
             solvTask.xtl_y = ldim[2] + (2*buffer)
             solvTask.xtl_z = ldim[0] + (2*buffer)
         else:
-            raise AssertionError('Unknown crystal structure %s' % solvTask.solvation_structure)
+            return output.returnSubmission('Solvation', error='Unknown crystal structure %s' % solvTask.solvation_structure)
     else:
         raise AssertionError('Unknown type')
-
 
     solvTask.save()
 
     if not solvTask.check_valid():
-        return HttpResponse("Invalid crystal structure definition")
+        return output.returnSubmission('Solvation', error='Invalid crystal structure definition')
 
     # template dictionary passes the needed variables to the template
     template_dict = {}
@@ -162,14 +161,12 @@ def solvate_tpl(request,solvTask,pTaskID):
     if doneut:
         solvTask.action = 'neutralization'
         neutralize_tpl(solvTask,postdata)
+        ctask = 'Solvation'
     else:
-        # Lessons are borked at the moment...
-        #if file.lesson_type:
-        #    lessonaux.doLessonAct(file,"onSolvationSubmit",postdata)
-        
         solvTask.start()
         solvTask.save()
         workingstruct.save() 
+        ctask = 'Neutralization'
 
     #YP lessons stuff
 
@@ -184,6 +181,6 @@ def solvate_tpl(request,solvTask,pTaskID):
         lessonaux.doLessonAct(workingstruct.structure,"onSolvationSubmit",solvTask,"")
     #end YP lesson stuff
     
-    return HttpResponse("Done")
+    return output.returnSubmission(ctask)
 
 

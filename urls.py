@@ -142,7 +142,8 @@ urlpatterns = patterns('',
      (r'^charmming/dd_substrate/setavailableligands/(?P<selected_set_id>.*)$', 'dd_substrate.views.updateAvailableSetLigands'),
      (r'^charmming/dd_substrate/setligands/(?P<ligandset_id>.*)/(?P<addedids>.*)/(?P<removedids>.*)/$', 'dd_substrate.views.setLigands'),
      (r'^charmming/dd_substrate/viewligands/$', 'dd_substrate.views.viewligands'),
-     
+     (r'^charmming/dd_substrate/deleteligand/$', 'dd_substrate.views.deleteligand'),
+      
      (r'^charmming/dd_target/viewtargetscontainer/$', 'dd_target.views.viewTargetsContainer'),
      (r'^charmming/dd_target/viewtargets/$', 'dd_target.views.viewTargets'),
 

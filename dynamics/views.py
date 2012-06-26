@@ -202,18 +202,15 @@ def applyld_tpl(request,ldt,pTaskID):
     # determine whether periodic boundary conditions should be applied, and if
     # so pass the necessary crystal and image parameters
     dopbc = False
-    logfp = open('/tmp/ldsolv.txt', 'w')
-    logfp.write('About to tickle the PBC code.\n')
     if request.POST.has_key('usepbc'):
         if request.POST.has_key('solvate_inplicitly'):
-            return HttpResponse('Invalid options')
+            return output.returnSubmission('Langevin dynamics',error='Conflicting solvation options chosen')
 
         # decide if the structure we're dealing with has
         # been solvated.
         solvated = False
         wfc = pTask
         while True:
-            logfp.write('ancestor task action: %s\n' % wfc.action)
             if wfc.action == 'solvation' or wfc.action == 'neutralization':
                 solvated = True
                 break
@@ -222,13 +219,13 @@ def applyld_tpl(request,ldt,pTaskID):
             else:
                 break
         if not solvated:
-            return HttpResponse('Requested PBC on unsolvated structure')
+            return output.returnSubmission('Langevin dynamics', error='Requested PBC on unsolvated structure')
 
         dopbc = True
         try:
             sp = solvationTask.objects.filter(workstruct=ldt.workstruct,active='y')[0]
         except:
-            return HttpResponse("Err ... couldn't find solvation parameters")
+            return output.returnSubmission('Langevin dynamics', error="Could not find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x
         template_dict['xtl_y'] = sp.xtl_y
         template_dict['xtl_z'] = sp.xtl_z
@@ -237,9 +234,6 @@ def applyld_tpl(request,ldt,pTaskID):
         template_dict['ewalddim'] = sp.calcEwaldDim()
 
     template_dict['dopbc'] = dopbc
-    logfp.write('PBC code tickling complete.\n')
-    logfp.close()
-
     template_dict['output_name'] = ldt.workstruct.identifier + '-' + ldt.action
     user_id = ldt.workstruct.structure.owner.id
     ld_filename = ldt.workstruct.structure.location + '/' + ldt.workstruct.identifier + "-" + ldt.action + ".inp"
@@ -274,7 +268,7 @@ def applyld_tpl(request,ldt,pTaskID):
             lessonaux.doLessonAct(ldt.workstruct.structure,"onLDSubmit",ldt,"")
     #YP
 
-    return HttpResponse("Done.")
+    return output.returnSubmission('Langevin dynamics')
 
 #Generates MD script and runs it
 def applymd_tpl(request,mdt,pTaskID):
@@ -286,7 +280,6 @@ def applymd_tpl(request,mdt,pTaskID):
     # template dictionary passes the needed variables to the templat
     template_dict = {}     
     template_dict['topology_list'], template_dict['parameter_list'], junk = mdt.workstruct.getTopparList()
-
     template_dict['output_name'] = mdt.workstruct.identifier + '-md'
 
     pTask = Task.objects.get(id=pTaskID)
@@ -313,14 +306,11 @@ def applymd_tpl(request,mdt,pTaskID):
         if request.POST.has_key('solvate_inplicitly'):
             return HttpResponse('Invalid options')
         
-        logfp = open('/tmp/mdsolv.txt', 'w')
-        logfp.write('About to tickle PBC code.\n')
         # decide if the structure we're dealing with has
         # been solvated.
         solvated = False
         wfc = pTask
         while True:
-            logfp.write('ancestor action: %s\n' % wfc.action)
             if wfc.action == 'solvation' or wfc.action == 'neutralization':
                 solvated = True
                 break
@@ -329,14 +319,13 @@ def applymd_tpl(request,mdt,pTaskID):
             else:
                 break
         if not solvated:
-            return HttpResponse('Requested PBC on unsolvated structure')
+            return output.returnSubmission('Molecular dynamics', error='Requested PBC on unsolvated structure')
 
-        logfp.close()
         dopbc = True
         try:
             sp = solvationTask.objects.filter(workstruct=mdt.workstruct,active='y')[0]
         except:
-            return HttpResponse("Err ... couldn't find solvation parameters")
+            return output.returnSubmission('Molecular dynamics', error="Could not find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x
         template_dict['xtl_y'] = sp.xtl_y
         template_dict['xtl_z'] = sp.xtl_z
@@ -420,7 +409,7 @@ def applymd_tpl(request,mdt,pTaskID):
         lessonaux.doLessonAct(mdt.workstruct.structure,"onMDSubmit",mdt,"")
     #YP
 
-    return HttpResponse("Done.")
+    return output.returnSubmission("Molecular dynamics")
 
 #pre: Requires a file object, and the name of the psf/crd file to read in
 #Jmol requires the PDB to be outputted a certain a certain way for a movie to be displayed

@@ -11,6 +11,19 @@
 
 # tideInp takes an input script from a template a neatens it up (removes
 # leading spaces, excessive blank lines, and any line with just "blankme").
+
+from django.shortcuts import render_to_response
+
+def returnSubmission(jobtitle, error=None):
+    td = {}
+    if error:
+        td['joberror'] = True
+        td['errortext'] = error
+    else:
+        td['joberror'] = False
+
+    return render_to_response('html/jobsubmit.html', td)
+
 def tidyInp(intxt):
     blcnt = 0
     larr = intxt.split('\n')
