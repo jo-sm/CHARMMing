@@ -116,15 +116,6 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
     # try to decide how many atoms this structure has
     pfp = open(workstruct.structure.pickle, 'r')
     pdb = cPickle.load(pfp)
-    if 'append_' + workstruct.identifier in pdb.keys():
-        if len(pdb['append_' + workstruct.identifier]) > 1500:
-            return output.returnSubmission('Normal modes', error='You may only do NMA on structures with less than 1500 atoms')
-    else:
-        # this must be the case where the appending has not happened yet
-        # for now let's allow this but we need to figure out some way
-        # of counting the atoms of a pre-appended struct
-        pass
-        
     pfp.close()
 
     # get the parent task
@@ -148,6 +139,17 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
         nmTask.type = 1
     nmTask.nmodes = int(request.POST['num_normalmodes'])
 
+    if 'append_' + workstruct.identifier in pdb.keys():
+        if template_dict['nma'] == 'usevibran':
+            if len(pdb['append_' + workstruct.identifier]) > charmming_config.max_nma_atoms:
+                return output.returnSubmission('Normal modes', error='You may only do NMA on structures with less than %d atoms' % charmming_config.max_nma_atoms)
+    else:
+        # this must be the case where the appending has not happened yet
+        # for now let's allow this but we need to figure out some way
+        # of counting the atoms of a pre-appended struct
+        pass
+
+
     template_dict['identifier'] = workstruct.identifier
     template_dict['numnormalmodes'] = nmTask.nmodes
     template_dict['useqmmm'] = request.POST.has_key("useqmmm")
@@ -164,15 +166,15 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
     template_dict['num_trjs'] = request.POST.has_key("num_trjs") 
     if request.POST.has_key("gen_trj") and request.POST.has_key("num_trjs"):
         # movies are liable to be broken for the time being
-        nmm.nma_movie_req = True
+        nmTask.nma_movie_req = True
         try:
             ntrjs = int(request.POST['num_trjs'])
         except:
             ntrjs = 5
         if ntrjs > 20:
             ntrjs = 20
-        if ntrjs > nmm.nmodes:
-            ntrjs = nmm.nmodes
+        if ntrjs > nmTask.nmodes:
+            ntrjs = nmTask.nmodes
         #if request.POST.has_key("useqmmm"):
         #    headstr = writeQMheader("", "SELE " + qmsel + " END")
         #else:
@@ -195,7 +197,7 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
 
     #change the status of the file regarding minimization 
     if request.POST.has_key("gen_trj") and request.POST.has_key("num_trjs"):
-        return makeNmaMovie_tpl(workstruct,request.POST,pstructID,scriptlist,int(request.POST['num_trjs']),template_dict['nma'],nmm)
+        return makeNmaMovie_tpl(workstruct,request.POST,int(request.POST['num_trjs']),template_dict['nma'],nmTask)
     else:
         nmTask.start()
         
@@ -204,11 +206,11 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
 
 
 #makes NMA Movie
-def makeNmaMovie_tpl(workstruct,postdata,pstructID,scriptlist,num_trjs,typeoption,nmm):
+def makeNmaMovie_tpl(workstruct,postdata,num_trjs,typeoption,nmm):
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'], template_dict['parameter_list'], junk = file.getTopparList()
-    template_dict['filebase'] = file.stripDotPDB(file.filename)
+    template_dict['topology_list'], template_dict['parameter_list'], junk = workstruct.getTopparList()
+    template_dict['filebase'] = workstruct.identifier
     template_dict['typeoption'] = typeoption
     template_dict['num_trjs'] = str(num_trjs)
 
@@ -223,24 +225,19 @@ def makeNmaMovie_tpl(workstruct,postdata,pstructID,scriptlist,num_trjs,typeoptio
     t = get_template('%s/mytemplates/input_scripts/makeNmaMovie_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     
-    movie_filename = 'charmm-' + file.stripDotPDB(file.filename) + '-nmamovie.inp'
-    movie_handle = open(file.location + movie_filename,'w')
+    movie_filename = workstruct.identifier + '-nmamovie.inp'
+    movie_handle = open(workstruct.structure.location + movie_filename,'w')
     movie_handle.write(charmm_inp)
     movie_handle.close()
-    user_id = file.owner.id
-    scriptlist.append(file.location + movie_filename)
+    nmm.scripts += ',' + movie_filename
 
-    si = schedInterface()
-    newJobID = si.submitJob(user_id,file.location,scriptlist)
-    if file.lesson_type:
-        lessonaux.doLessonAct(file,"onNMASubmit",postdata,None)
-    file.nma_jobID = newJobID
-    sstring = si.checkStatus(newJobID)
-    nmm.statusHTML = statsDisplay(sstring,newJobID)
+    ## There are no NMA lessons at the moment ... when there are, this needs to be redone correctly
+    ##if file.lesson_type:
+    ##    lessonaux.doLessonAct(file,"onNMASubmit",postdata,None)
     #nmm.nma_movie_status = "<font color=33CC00>Done</font>"
+    nmm.start()
     nmm.save()
-    file.save()
-    return "Done."
+    return output.returnSubmission('Normal modes')
 
 #pre: Requires a PDBFile object
 #Combines all the smaller PDBs make in the above method into one large PDB that
