@@ -20,8 +20,11 @@ set centrz = ?ZAVE
 calc xlen = ?xmax - ?xmin
 calc ylen = ?ymax - ?ymin
 calc zlen = ?zmax - ?zmin
-if @xlen .ge. @ylen then set maxdist = @xlen
-if @ylen .gt. @zlen then set maxdist = @ylen
+if @xlen .ge. @ylen then 
+   set maxdist = @xlen
+else
+   set maxdist = @ylen
+endif
 if @zlen .gt. @maxdist then set maxdist = @zlen
 
 ! add a 20A buffer to the grid size
