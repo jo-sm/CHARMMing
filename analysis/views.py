@@ -29,7 +29,7 @@ import output, charmming_config, lessonaux, input, lessons, lesson1, lesson2, le
 #import Structure
 import os, re, time, cPickle
 
-def doRMSD(postdata,id,picklefile,stlist):
+def doRMSD(postdata,location,id,picklefile,stlist):
 
     pfp = open(picklefile, 'r')
     pdb = cPickle.load(pfp)
@@ -43,7 +43,7 @@ def doRMSD(postdata,id,picklefile,stlist):
         elif t.action == 'minimization':
             mols[t.action] = pdb['mini_' + id]
         elif t.action == 'solvation':
-            mols[t.action] = pdb['solv_' + id]
+            mols[t.action] = pdb['neut_' + id]
         elif t.action == 'neutralzation':
             mols[t.action] = pdb['neut_' + id]
         elif t.action == 'md':
@@ -51,7 +51,7 @@ def doRMSD(postdata,id,picklefile,stlist):
         elif t.action == 'ld':
             mols[t.action] = pdb['ld_' + id]
         else:
-            raise Exception('RMSD does not handle %s' % t.action)
+            return output.returnSubmission('RMS Calculation', error='RMSD does not handle %s' % t.action)
 
     # Now, strip out crap like solvent and orient them
     # we do this by only grabbing pro, dna, and rna residues...
@@ -64,6 +64,68 @@ def doRMSD(postdata,id,picklefile,stlist):
 
     # Last step: if we want only the backbone, pull those atoms out of the first struct,
     # reorient it, and get the transform matrix to apply to all of the rest of the structs.
+    if postdata['comp_allatom'] == '0':
+        fmols = {}
+        for k in smols.keys():
+            finmol = Mol()
+            if postdata.has_key('bb_n'):
+                tmp = smols[k].find(atomtype='n')
+                finmol = Mol(sorted(finmol + tmp))         
+            if postdata.has_key('bb_ca'):
+                tmp = smols[k].find(atomtype='ca')
+                finmol = Mol(sorted(finmol + tmp))         
+            if postdata.has_key('bb_c'):
+                tmp = smols[k].find(atomtype='c')
+                finmol = Mol(sorted(finmol + tmp))         
+            if postdata.has_key('bb_o'):
+                tmp = smols[k].find(atomtype='o')
+                finmol = Mol(sorted(finmol + tmp))         
+            if postdata.has_key('bb_hn'):
+                tmp = smols[k].find(atomtype='hn')
+                finmol = Mol(sorted(finmol + tmp))         
+            if postdata.has_key('bb_ha'):
+                tmp = smols[k].find(atomtype='ha')
+                finmol = Mol(sorted(finmol + tmp))         
+
+    else:
+        fmols = smols
+
+    # now go ahead and calculate the RMSDs:
+
+    rmsdlines = ['<table align="center">\n']
+
+    fp = open(location + '/rmsd-' + id + '.html', 'w')
+    structlist = fmols.keys()
+    structlist.sort()
+
+    tabwidth = float(100.0/(len(structlist)+1))
+    headline = '<tr><td width="%f%%"></td>' % tabwidth
+    for k in structlist:
+        headline += '<td width="%f%%">%s</td>' % (tabwidth,k)
+    headline += '</tr>\n'
+    rmsdlines.append(headline)
+
+    for i in range(len(structlist)):
+        thisline = '<tr><td>%s</td>' % structlist[i]
+        for j in range(len(structlist)):
+            if j < i:
+                thisline += '<td></td>'
+            elif j == i:
+                thisline += '<td>0.00</td>'
+            else:
+                key1 = structlist[i]
+                key2 = structlist[j]
+                rmsd = fmols[key1].get_rmsd(fmols[key2], orient=True)
+                thisline += '<td>%.2f</td>' % rmsd
+        thisline += '</tr>\n'
+        rmsdlines.append(thisline)
+    rmsdlines.append('</table>\n')
+
+    for line in rmsdlines:
+        fp.write(line)
+    fp.close()
+
+    return render_to_response('html/rmsddisplay.html', {'rmsdlines': rmsdlines})
 
 def rmsformdisplay(request):
     if not request.user.is_authenticated():
@@ -74,11 +136,11 @@ def rmsformdisplay(request):
     try:
          struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-         return HttpResponse("Please submit a structure first.")
+         return output.returnSubmission("RMS calculation", error="Please submit a structure first.")
     try:
          ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+        return output.returnSubmission("RMS calculation", error="Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     feedback = ''
     tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
@@ -87,11 +149,11 @@ def rmsformdisplay(request):
     for t in tasks:
         if request.POST.has_key('dotask_%d' % t.id):
             rmsd_list.append(t)
-    if len(rsmd_list) > 0:
+    if len(rmsd_list) > 0:
         if len(rmsd_list) == 1:
-            return HttpResponse('More than 1 structure must be selected')
+            return output.returnSubmission('RMS Calculation', error='More than 1 structure must be selected')
         else:
-            return doRMSD(request.POST,ws.identifier,struct.pickle,rmsd_list)
+            return doRMSD(request.POST,ws.structure.location,ws.identifier,struct.pickle,rmsd_list)
 
     prior_matrix = ''
     try:

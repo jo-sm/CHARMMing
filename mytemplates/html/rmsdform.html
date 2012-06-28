@@ -1,4 +1,7 @@
-<div>
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
   <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
   <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
   <br />
@@ -27,7 +30,7 @@
     <br />
 
     <center>
-       <form id="rmsd_form" method="post"  action="." onsubmit="return send_form_rms(this,makeUniqueDiv('change_rmsd'),[{%for item in filename_list%}'{{item}}',{% endfor%}]);">
+       <form id="rmsd_form" method="post"  action=".">
        {% if tasks %}
          <table>
            {% for task in tasks %}
@@ -60,4 +63,4 @@
     </center>
   </div>
 </div>
-
+{% endblock %}

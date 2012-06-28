@@ -1,0 +1,9 @@
+{% extends 'html/skeleton.html' %}
+
+{% block content %}
+  {% autoescape off %}
+  {% for line in rmsdlines %}
+    {{ line }}
+  {% endfor %}
+  {% endautoescape %}
+{% endblock %}

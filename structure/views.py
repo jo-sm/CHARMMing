@@ -540,6 +540,10 @@ def viewpdbs(request):
 #This is for changing the currently selected PDB
 #on the SELECT/EDIT PDBs page
 def switchpdbs(request,switch_id):
+    logfp = open('/tmp/switch.txt', 'w')
+    logfp.write('In switchpdbs\n')
+    logfp.close()
+
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
@@ -1281,7 +1285,7 @@ def swap(request):
         new_ws.selected = 'y'
         new_ws.save()
 
-    return HttpResponse('Swapped')
+    return render_to_response('html/swapped.html', {'wsname': new_ws.identifier})
 
 
 def protonate(file):
