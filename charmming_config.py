@@ -27,7 +27,7 @@ haveqchem = 1
 charmming_root = "/var/www/charmming"
 
 # place where user directories are...
-user_home = "/home/pdb_uploads"
+user_home = "/home/schedd"
 
 # place where executables etc. are kept
 data_home = "/usr/local/charmming"
@@ -41,9 +41,14 @@ toppar_generators = 'cgenff,match,antechamber,genrtf'
 cgenff_host = 'dogmans.umaryland.edu'
 cgenff_port = 32108
 
+# Path to all libraries needed by the CHARMM executables
+lib_path = ''
+
 # path to the single threaded CHARMM executable
-#charmm_exe = "/usr/local/charmming/gfortran-xxlg-qc.one"
-charmm_exe = "/usr/local/charmming/c35b4-apbs-qc.one"
+#charmm_exe = "/usr/local/charmm/charmm"
+#charmm_exe = "/usr/local/charmming/c35b6_cgenff.exe"
+charmm_exe = "/usr/local/charmming/c36b2-cgenff.exe"
+charmm_apbs_exe = "/usr/local/charmming/c35b4-apbs-qc.one"
 
 # path to the MPI-enabled CHARMM executable
 charmm_mpi_exe = "/usr/local/charmming/gfortran-xxlg-qc.ompi"
@@ -53,3 +58,43 @@ mpirun_exe = "/bin/false"
 
 # path to stride (needed for CG stuff)
 stride_bin = "/usr/local/bin/stride"
+
+
+# dd targets
+user_dd_targets_home = user_home + "/dd/targets"
+
+# dd ligands
+user_dd_ligands_home = user_home + "/dd/ligands"
+
+# dd jobs
+user_dd_jobs_home = user_home + "/dd/jobs"
+
+# path to the DAIM executable and properties files
+daim_exe = "/usr/local/charmming/drug_design/DAIM/bin/daim"
+daim_param = user_home + "/dd/app_files/daim/daim.param"
+daim_prop = user_home + "/dd/app_files/daim/daim.prop"
+
+# path to the SEED executable and parameter files
+seed_exe = "/usr/local/charmming/drug_design/seed_send_3.3.5/seed_3.3.5"
+seed_param = user_home + "/dd/app_files/seed/seed.par"
+
+# path to the FFLD executable
+ffld_exe = "/usr/local/charmming/drug_design/ffld_send_3.3/ffld_3.3_gcc4.0_static"
+ffld_param = user_home + "/dd/app_files/ffld/FFLD_param_cgenff"
+
+# path to the FLEA parameter
+flea_param = user_home + "/dd/app_files/flea/PARM.flea"
+
+charmm_param = user_home + "/dd/app_files/charmm/top_all27_prot_na.rtf"
+
+# dd scripts
+dd_scripts_home = user_home + "/dd/scripts"
+
+## Limits on various calculations
+
+# max atoms for all atom normal modes
+max_nma_atoms = 1500
+
+# step limits for minimization and dynamics
+minimize_steplimit = 1000
+dyna_steplimit = 1000

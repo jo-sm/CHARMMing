@@ -104,6 +104,9 @@ def minimize_tpl(request,mp,pTaskID):
     except:
         return output.returnSubmission('Minimization',error='Form not filled out.')        
 
+    if mp.sdsteps > charmming_config.minimize_steplimit or mp.abnrsteps > charmming_config.minimize_steplimit:
+        return output.returnSubmission('Minimization',error='Minimization has a limit of %d steps.' % charmming_config.minimize_steplimit)
+
     if postdata.has_key('useqmmm'):
         mp.useqmmm = 'y'
         input.checkForMaliciousCode(postdata['qmsele'],postdata)
