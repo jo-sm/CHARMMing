@@ -38,9 +38,9 @@
     var jmolCounter = -1;
     var currperiodicalupdater = null;
 
-    function send_select_form(form) {
-       new Ajax.Request("/select/"+form.id, {method:'post', asynchronous:true});
-    }
+    //function send_select_form(form) {
+    //   new Ajax.Request("/select/"+form.id, {method:'post', asynchronous:true});
+    //}
 
     function getDocWidth() {
        return document.documentElement.clientWidth *.82;
@@ -110,14 +110,14 @@
             <a href="/charmming/analysis/redox/">Redox</a>
           <div>
             <span>Drug Design</span>
-               <a href="/charmming/dd_infrastructure/projectscontainer/">Projects</a>
+               <a href="/charmming/dd_infrastructure/viewprojects/">Projects</a>
                <a href="/charmming/dd_target/targetfileupload/">New Target</a>
-               <a href="/charmming/dd_target/viewtargetscontainer/">View Targets</a>
+               <a href="/charmming/dd_target/viewtargets/">View Targets</a>
                <a href="/charmming/dd_substrate/ligandfileupload/">New Ligand</a>
                <a href="/charmming/dd_substrate/viewligands/">View Ligands</a>
-               <a href="/charmming/dd_substrate/viewligandsetscontainer/">Ligand Sets</a>
+               <a href="/charmming/dd_substrate/viewligandsets/">Ligand Sets</a>
                <a href="/charmming/dd_infrastructure/dsfcontainer/">Launch Docking Job</a>
-               <a href="/charmming/dd_infrastructure/viewjobscontainer/">View Jobs/Results</a>
+               <a href="/charmming/dd_infrastructure/viewjobs/">View Jobs/Results</a>
          </div>
           </div>
 	  <div>

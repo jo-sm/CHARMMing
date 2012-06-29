@@ -9,7 +9,7 @@ var timest = 0;
 
 // The following is taken from the select/edit structures page
 function send_select_form(form) {
-   new Ajax.Request("/charmming/select/"+form.id, {method:'post', asynchronous:true});
+   new Ajax.Request("/charmming/select/" + form.id, {method:'post', asynchronous:true});
 }
 
 function send_delete_form(filename) {
@@ -1006,7 +1006,419 @@ function checkId(div_id)
 
 //Drug Design stuff
 function send_delete_ligand_form(id) {
-    alert ('deleting ligand'+id);
-    new Ajax.Request("/charmming/dd_substrate/deleteligand/", {method:'post', asynchronous:false, parameters: {'id':id}});
-//    
+    alert ('ddeleting ligand'+id);
+    //new Ajax.Request("/charmming/dd_substrate/deleteligand/", {method:'post', asynchronous:false, parameters: {'id':id}});
+    
+}
+
+function doDDJobDetailsOnLoad(id){
+    //alert ('jobdetailonload'+id);           
+    //var code = "jobid={{job.id}}";
+    currperiodicalupdater = new Ajax.Updater('jobinfo', '/charmming/dd_infrastructure/viewjobinfo/' + id, {method: 'post'});
+    //code="jobid={{job.owner_id}}";
+
+        
+    currperiodicalupdater2 = new Ajax.PeriodicalUpdater('resultsdiv', '/charmming/dd_infrastructure/viewjobresults/'+id, {method: 'post', frequency: 5});
+    setVisible('resultsdiv','none');
+
+        //alert ("blah");
+
+}
+
+
+function viewDDJobResults(job_id) {
+
+    var params = 'jobid='+job_id;
+    var link=$("viewhideddjobresults");
+    //alert (document.getElementById('ddjobresultsdiv').style.display);
+    if ((document.getElementById('ddjobresultsdiv').style.display=='none')){
+	setVisible('ddjobresultsdiv','block')
+        //var style = document.getElementById('ddjobresultsdiv').style;
+        //style.display = change;
+
+	new Ajax.Updater('ddjobresultsdiv',"/charmming/dd_infrastructure/viewjobresults/"+job_id, {method:'post', asynchronous:true});
+        //link.innerHTML="Hide Results"
+    }
+    else if (document.getElementById('ddjobresultsdiv').style.display=='block'){
+	setVisible('ddjobresultsdiv','none')
+	//link.innerHTML="View Results"
+        //var style = document.getElementById('ddjobresultsdiv').style;
+	//style.display = change;
+	
+    }
+       
+}
+
+function dd_send_project_select_form(form) {
+    new Ajax.Request("/charmming/dd_infrastructure/select_project/"+form.id, {method:'post', asynchronous:true});
+}
+
+function getCheckedAvailableConformationsIds()
+{
+    var nodes=document.getElementsByName("availableconformationsdiv")[0].childNodes;
+    var checkedvalues="";
+    for(i = 0;i < nodes.length;++i)
+	if(nodes[i].id=="availableconformationsinsidediv"){
+	    var checkboxes = nodes[i].getElementsByTagName('input');
+	    //alert(checkboxes.length);
+	    for(j = 0;j < checkboxes.length;++j){
+		    //alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
+		    //alert("j " + j);
+		if (checkboxes[j].checked){
+		    if (checkedvalues=='') {
+			checkedvalues=checkboxes[j].value;
+			           
+		    }
+		    else {
+			checkedvalues=checkedvalues + ',' + checkboxes[j].value;
+		    }
+		    //alert(checkedvalues);
+		}
+	    }
+	}
+      //alert(checkedvalues);
+    return checkedvalues;
+}
+
+function getCheckedProjectConformationsIds()
+{
+    var nodes=document.getElementsByName("projectconformationsdiv")[0].childNodes;
+    var checkedvalues="";
+    for(i = 0;i < nodes.length;++i)
+	if(nodes[i].id=="projectconformationsinsidediv"){
+	    var checkboxes = nodes[i].getElementsByTagName('input');
+	    //alert(checkboxes.length);
+	    for(j = 0;j < checkboxes.length;++j){
+		    //alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
+		    //alert("j " + j);
+		if (checkboxes[j].checked){
+		    if (checkedvalues=='') {
+			checkedvalues=checkboxes[j].value;
+			           
+		    }
+		    else {
+			checkedvalues=checkedvalues + ',' + checkboxes[j].value;
+		    }
+		    //alert(checkedvalues);
+		}
+	    }
+	}
+    return checkedvalues;
+}
+
+function AddConformations(project_id)
+{
+    RefreshProjectConformations(project_id,getCheckedAvailableConformationsIds(),'');
+    //var code = 'ptid=' + $("protein_types").getValue();
+    //var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/updatemanagesetsgrids/', {method: 'post', parameters: code})
+}
+
+function RemoveConformations(project_id)
+{
+  //alert (getCheckedProjectConformationsIds());
+    RefreshProjectConformations(project_id,'',getCheckedProjectConformationsIds());
+    //var code = 'ptid=' + $("protein_types").getValue();
+    //var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/updatemanagesetsgrids/', {method: 'post', parameters: code})
+}
+  
+function RefreshProjectInfo(project_id)
+{
+    var code = '&name=' + document.getElementById("project_name").value + '&description=' + document.getElementById("project_description").value;
+    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/'+project_id+'/update/', {method: 'post', parameters: code})
+}
+    
+function DisplayProjectInfo(project_id)
+{
+    //alert (document.getElementById("gridset_name").value);
+    //var code = codestring;
+    //alert (code);
+    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/'+project_id+'/refresh/', {method: 'post'})
+}
+
+function RefreshAvailableConformations()
+{
+    //alert ($("targets").getValue());
+    //var code = "protein_id=" + $("targets").getValue() + "&setid=" + $("targets").getValue();
+    var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/dd_infrastructure/projectavailableconformations/'+$("targets").getValue()+'/', {method: 'post'})
+    //var myAjax = new Ajax.Updater('availableconformationsdiv', 'www.google.com', {method: 'post'})
+}
+
+
+function RefreshProjectConformations(project_id,addedids,removedids)
+{
+    //alert (document.getElementById("Receptor").value);
+    //var code = "project_id={{ project_id }}&addedids=" + addedids + "&removedids=" + removedids;
+        //var code = 'ptid=' + $("protein_types").getValue();
+    //alert('/charmming/dd_infrastructure/projectconformations/{{project_id}}/'+addedids+'/'+removedids);
+    var myAjax = new Ajax.Updater('projectconformationsdiv', '/charmming/dd_infrastructure/projectconformations/'+project_id+'/'+addedids+'/'+removedids+'/', {method: 'post'})
+
+    //alert(document.getElementById('conformations').style)
+}
+
+function CheckUncheck()
+{
+
+    if ( document.forms['projectdetail'].elements['gridfileid'].length )
+    {
+	for (var x = 0; x < document.forms['projectdetail'].elements['gridfileid'].length; x++)
+	{
+	    if (document.forms['projectdetail'].elements['checkall'].checked)
+	    {
+		document.forms['projectdetail'].elements['gridfileid'][x].checked = true;   
+	    }
+	     else
+	    {
+		document.forms['projectdetail'].elements['gridfileid'][x].checked = false;
+	    }
+	     
+	}
+    }
+       else
+    {
+	if (document.forms['projectdetail'].elements['checkall'].checked)
+	{
+	    document.forms['projectdetail'].elements['gridfileid'].checked = true;            
+	}
+	      else
+	{
+	    document.forms['projectdetail'].elements['gridfileid'].checked = false;
+	}
+    }
+}
+
+function SetCheckUncheck()
+{
+
+    if ( document.forms['projectdetail'].elements['conformations_file_id'].length )
+    {
+	for (var x = 0; x < document.forms['projectdetail'].elements['conformations_file_id'].length; x++)
+	{
+	    if (document.forms['projectdetail'].elements['setcheckall'].checked)
+	    {
+		document.forms['projectdetail'].elements['setconformations_file_id'][x].checked = true;   
+	    }
+	     else
+	    {
+		document.forms['projectdetail'].elements['setconformations_file_id'][x].checked = false;
+	    }
+	     
+	}
+    }
+       else
+    {
+	if (document.forms['projectdetail'].elements['setcheckall'].checked)
+	{
+	    document.forms['projectdetail'].elements['setconformations_file_id'].checked = true;            
+	}
+	      else
+	{
+	    document.forms['projectdetail'].elements['setconformations_file_id'].checked = false;
+	}
+    }
+}
+function CheckRedirect()
+{
+    alert (document.getElementById("gridset_name").value);
+}
+
+
+function RefreshProjectInfo(projectid,action)
+{
+    //alert (document.getElementById("gridset_name").value);
+    var code = 'name=' + document.getElementById("project_name").value + '&description=' + document.getElementById("project_description").value;
+    //alert (code);
+    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/'+projectid+'/'+action+'/', {method: 'post', parameters: code})
+}
+        
+function DisplayBlankForm()
+{
+    //alert (document.getElementById("gridset_name").value);
+    //var code = codestring;
+    //alert (code);
+    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/0/refresh/', {method: 'post'})
+}
+
+
+
+/////////////////////////////dd ligand set details
+function getCheckedAvailableLigandIds()
+{
+    var nodes=document.getElementsByName("availableligandsdiv")[0].childNodes;
+    var checkedvalues="";
+    for(i = 0;i < nodes.length;++i)
+	if(nodes[i].id=="availableligandsinsidediv"){
+	    var checkboxes = nodes[i].getElementsByTagName('input');
+	    //alert(checkboxes.length);
+	    for(j = 0;j < checkboxes.length;++j){
+		    //alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
+		    //alert("j " + j);
+		if (checkboxes[j].checked){
+		    if (checkedvalues=='') {
+			checkedvalues=checkboxes[j].value;
+			           
+		    }
+		    else {
+			checkedvalues=checkedvalues + ',' + checkboxes[j].value;
+		    }
+		    //alert(checkedvalues);
+		}
+	    }
+	}
+      //alert(checkedvalues);
+    return checkedvalues;
+}
+
+function getCheckedSetLigandIds()
+{
+    var nodes=document.getElementsByName("setligandsdiv")[0].childNodes;
+    var checkedvalues="";
+    for(i = 0;i < nodes.length;++i)
+	if(nodes[i].id=="setligandsinsidediv"){
+	    var checkboxes = nodes[i].getElementsByTagName('input');
+	    //alert(checkboxes.length);
+	    for(j = 0;j < checkboxes.length;++j){
+		    //alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
+		    //alert("j " + j);
+		if (checkboxes[j].checked){
+		    if (checkedvalues=='') {
+			checkedvalues=checkboxes[j].value;
+			           
+		    }
+		    else {
+			checkedvalues=checkedvalues + ',' + checkboxes[j].value;
+		    }
+		    //alert(checkedvalues);
+		}
+	    }
+	}
+    return checkedvalues;
+}
+
+function AddLigands(set_id)
+{
+    RefreshSetLigands(set_id,getCheckedAvailableLigandIds(),'');
+    //var code = 'ptid=' + $("protein_types").getValue();
+    //var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/updatemanagesetsgrids/', {method: 'post', parameters: code})
+}
+
+function RemoveLigands(set_id)
+{
+  //alert (getCheckedProjectConformationsIds());
+    RefreshSetLigands(set_id,'',getCheckedSetLigandIds());
+    //var code = 'ptid=' + $("protein_types").getValue();
+    //var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/updatemanagesetsgrids/', {method: 'post', parameters: code})
+}
+  
+function RefreshSetInfo(set_id)
+{
+    var code = '&name=' + document.getElementById("set_name").value + '&description=' + document.getElementById("set_description").value;
+    var myAjax = new Ajax.Updater('setinfodiv', '/charmming/dd_substrate/updateligandsetinfo/'+set_id+'/update/', {method: 'post', parameters: code})
+}
+    
+function DisplaySetInfo(set_id)
+{
+    //alert (document.getElementById("gridset_name").value);
+    //var code = codestring;
+    //alert (code);
+    var myAjax = new Ajax.Updater('ligandsetinfodiv', '/charmming/dd_substrate/updateligandsetinfo/'+set_id+'/refresh/', {method: 'post'})
+}
+
+function RefreshAvailableLigands()
+{
+    //alert ($("targets").getValue());
+    //var code = "protein_id=" + $("targets").getValue() + "&setid=" + $("targets").getValue();
+    //alert ('/charmming/dd_substrate/setavailableligands/'+$("sets").getValue()+'');
+    var myAjax = new Ajax.Updater('availableligandsdiv', '/charmming/dd_substrate/setavailableligands/'+$("sets").getValue()+'', {method: 'post'})
+    //var myAjax = new Ajax.Updater('availableconformationsdiv', 'www.google.com', {method: 'post'})
+}
+
+
+function RefreshSetLigands(set_id,addedids,removedids)
+{
+    //alert (document.getElementById("Receptor").value);
+    //var code = "project_id={{ project_id }}&addedids=" + addedids + "&removedids=" + removedids;
+        //var code = 'ptid=' + $("protein_types").getValue();
+    //alert('/charmming/dd_infrastructure/projectconformations/{{project_id}}/'+addedids+'/'+removedids);
+    var myAjax = new Ajax.Updater('setligandsdiv', '/charmming/dd_substrate/setligands/'+set_id+'/'+addedids+'/'+removedids+'/', {method: 'post'})
+
+    //alert(document.getElementById('conformations').style)
+}
+
+function LigandSet_CheckUncheck()
+{
+
+    if ( document.forms['setdetail'].elements['ligandid'].length )
+    {
+	for (var x = 0; x < document.forms['setdetail'].elements['ligandid'].length; x++)
+	{
+	    if (document.forms['setdetail'].elements['checkall'].checked)
+	    {
+		document.forms['setdetail'].elements['ligandid'][x].checked = true;   
+	    }
+	     else
+	    {
+		document.forms['setdetail'].elements['ligandid'][x].checked = false;
+	    }
+	     
+	}
+    }
+       else
+    {
+	if (document.forms['setdetail'].elements['checkall'].checked)
+	{
+	    document.forms['setdetail'].elements['ligandid'].checked = true;            
+	}
+	      else
+	{
+	    document.forms['setdetail'].elements['ligandid'].checked = false;
+	}
+    }
+}
+
+function LigandSet_SetCheckUncheck()
+{
+
+    if ( document.forms['setdetail'].elements['set_ligand_id'].length )
+    {
+	for (var x = 0; x < document.forms['setdetail'].elements['set_ligand_id'].length; x++)
+	{
+	    if (document.forms['setdetail'].elements['setcheckall'].checked)
+	    {
+		document.forms['setdetail'].elements['set_ligand_id'][x].checked = true;   
+	    }
+	     else
+	    {
+		document.forms['setdetail'].elements['set_ligand_id'][x].checked = false;
+	    }
+	     
+	}
+    }
+       else
+    {
+	if (document.forms['setdetail'].elements['setcheckall'].checked)
+	{
+	    document.forms['setdetail'].elements['set_ligand_id'].checked = true;            
+	}
+	      else
+	{
+	    document.forms['setdetail'].elements['set_ligand_id'].checked = false;
+	}
+    }
+}
+
+function RefreshLigandSetInfo(ligandsetid,action)
+{
+    //alert (document.getElementById("gridset_name").value);
+    //var code = 'name=' + document.getElementById("ligandset_name").value + '&description=' + document.getElementById("ligandset_description").value;
+    var code = 'name=' + $("ligandset_name").value + '&description=' + $("ligandset_description").value;
+    //alert (code);
+    var myAjax = new Ajax.Updater('ligandsetinfodiv', '/charmming/dd_substrate/updateligandsetinfo/'+ligandsetid+'/'+action+'/', {method: 'post', parameters: code})
+}
+        
+function DisplayBlankLigandForm()
+{
+    //alert (document.getElementById("gridset_name").value);
+    //var code = codestring;
+    //alert (code);
+    var myAjax = new Ajax.Updater('ligandsetinfodiv', '/charmming/dd_substrate/updateligandsetinfo/0/refresh/', {method: 'post'})
 }

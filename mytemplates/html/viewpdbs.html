@@ -13,7 +13,7 @@
        {% for PDBFile in user_pdbs %}
           {% if PDBFile.selected %}
             <tr bgcolor="yellow">
-              <td> <a href="/charmming/editpdbinfo/{{PDBFile.name}}" title="Edit:{{ PDBFile.name}}" rel="gb_page_center[800, 480]" ');">{{PDBFile.name}}</a></td><td> {{ PDBFile.title }} </td> 
+              <td> {{PDBFile.name}} </td><td> {{ PDBFile.title }} </td> 
               <td> {{ PDBFile.pub_date }} </td>
               <td> <input type="radio" name="viewpdbs" id={{ PDBFile.name }} onclick="send_select_form(this);parent.showLesson('{{PDBFile.lesson_type}}');" checked></td>
               <td> <a href="" onclick="send_delete_form('{{PDBFile.name}}')">X</a></td></tr>

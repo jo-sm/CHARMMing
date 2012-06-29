@@ -61,7 +61,9 @@
       SET KLONG {{klong}}
       SET ADDB 0
 
+      prnlev 0
       STREAM /usr/local/charmming/enmrestraint-multi.str
+      prnlev 5
 
       SKIP ALL EXCL RESD
 
