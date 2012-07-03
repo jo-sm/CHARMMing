@@ -6,27 +6,26 @@
     <!-- this is for ChemDoodle -->
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
 
+    <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+    <link href="/charmming/css/charmming.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/windows2/default.css" rel="stylesheet" type="text/css"/>
+    <link href="/charmming/css/windows2/spread.css" rel="stylesheet" type="text/css"/>
+    <link href="/charmming/css/windows2/alert.css" rel="stylesheet" type="text/css"/>
+    <link href="/charmming/css/sdmenu/sdmenu.css" rel="stylesheet" type="text/css" />
+
     <script src="/charmming/js/ajax.js" type="text/javascript"></script>
     <script src="/charmming/js/sdmenu/sdmenu.js" type="text/javascript"></script>
     <script type="text/javascript" src="/charmming/js/custom.js"></script>
     <script type="text/javascript" src="/charmming/js/emap.js"></script>
     <script type="text/javascript" src="/charmming/js/windows2/window.js"></script>
     <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
-
-    <link href="/charmming/css/style.css" rel="stylesheet" type="text/css" />
-    <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
-    <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
-    <link href="/charmming/css/sdmenu/sdmenu.css" rel="stylesheet" type="text/css" />
-    <link href="/charmming/css/windows2/default.css" rel="stylesheet" type="text/css"/>
-    <link href="/charmming/css/windows2/spread.css" rel="stylesheet" type="text/css"/>
-    <link href="/charmming/css/windows2/alert.css" rel="stylesheet" type="text/css"/>
+    <script src="/charmming/js/tablekit/fastinit.js" type="text/javascript"></script>
+    <script src="/charmming/js/tablekit/tablekit.js" type="text/javascript"></script>
 
     <link rel="icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon"> 
 
     <script type="text/javascript">
-
-
 
     /***********************************************
     * DHTML Window Widget- © Dynamic Drive (www.dynamicdrive.com)
@@ -37,10 +36,6 @@
     var myMenu;
     var jmolCounter = -1;
     var currperiodicalupdater = null;
-
-    //function send_select_form(form) {
-    //   new Ajax.Request("/select/"+form.id, {method:'post', asynchronous:true});
-    //}
 
     function getDocWidth() {
        return document.documentElement.clientWidth *.82;
@@ -67,17 +62,15 @@
      }
     }
 
-</script>
+    </script>
 </head>
 
 <body onload="doOnLoad()">
-<div id="container">
-   <div id="headbkgd"></div>
+  <div id="wholepage">
 
-   <div id="header">
-   </div>
-
-   <div id="maincontent" style="float:left;">
+   <div id="header" style="margin: 0 auto;"></div>
+   
+   <div id="body">
       <div id="sidebar">
         <!----!>
         <div id="my_menu" class="sdmenu">
@@ -91,10 +84,10 @@
             <a href="/charmming/viewpdbs/">Change/Delete Structures</a>
             <a href="/charmming/buildstruct/">Build Working Structure</a>
             <a href="/charmming/downloadfilescontainer/">Download Files</a>
-            <a title="View the 3D structure of your molecule." href="javascript:openNewURL('/charmming/visualize/','View PDBs');">View PDBs</a>
-            <a title="View all the input/output scripts this site has generated for you." href="javascript:openNewURL('/charmming/viewprocessfiles/','Process Files');">View Process Files</a>
+            <a title="View the 3D structure of your molecule." href="/charmming/visualize/">View PDBs</a>
+            <a title="View all the input/output scripts this site has generated for you." href="/charmming/viewprocessfiles/">View Process Files</a>
           </div>
-          <div>
+          <div class="collapsed">
             <span>Calculations</span>
             <a href="/charmming/energy/">Energy</a>
             <a href="/charmming/minimize/">Minimize</a>
@@ -103,12 +96,13 @@
             <a href="/charmming/dynamics/md/">Molecular Dynamics</a>
             <a href="/charmming/dynamics/ld/">Langevin Dynamics</a>
           </div>
-          <div>
+          <div class="collapsed">
             <span>Analyses</span>
             <a href="/charmming/analysis/mdprop/">MD Properties</a>
             <a href="/charmming/analysis/rmsd/">RMSD calculator</a>
             <a href="/charmming/analysis/redox/">Redox</a>
-          <div>
+          </div>
+          <div class="collapsed">
             <span>Drug Design</span>
                <a href="/charmming/dd_infrastructure/viewprojects/">Projects</a>
                <a href="/charmming/dd_target/targetfileupload/">New Target</a>
@@ -116,17 +110,16 @@
                <a href="/charmming/dd_substrate/ligandfileupload/">New Ligand</a>
                <a href="/charmming/dd_substrate/viewligands/">View Ligands</a>
                <a href="/charmming/dd_substrate/viewligandsets/">Ligand Sets</a>
-               <a href="/charmming/dd_infrastructure/dsfcontainer/">Launch Docking Job</a>
+               <a href="/charmming/dd_infrastructure/dsfform/">Launch Docking Job</a>
                <a href="/charmming/dd_infrastructure/viewjobs/">View Jobs/Results</a>
-         </div>
           </div>
-	  <div>
+	  <div class="collapsed">
 	  <span> Lessons </span>
-            <a href="/charmming/lessons/lesson1/">Lesson One</a>
-            <a href="/charmming/lessons/lesson2/">Lesson Two</a>
-            <a href="/charmming/lessons/lesson3/">Lesson Three</a>
-            <a href="/charmming/lessons/lesson4/">Lesson Four</a>
-            <a href="/charmming/lessons/lesson5/">Lesson Five</a>
+            <a href="/charmming/lessons/lesson1/">1. Intro to Simulations</a>
+            <a href="/charmming/lessons/lesson2/">2. Simulating proteins</a>
+            <a href="/charmming/lessons/lesson3/">3. SGLD, sequences</a>
+            <a href="/charmming/lessons/lesson4/">4. Custom RTF, QM/MM</a>
+            <a href="/charmming/lessons/lesson5/">5. Coarse-grain models</a>
 	  </div>
           <div>
             <span>Account</span>
@@ -147,23 +140,18 @@
 
       </div>
 
-      <div id="maincolumn" style="position: absolute; left: 151px; width: 1078px; text-align: center;">
+      <div id="content">
          {% block content %}
             {% include "html/intro.html" %}
          {% endblock %}
       </div>
 
-   </div> <!-- maincontent --!> 
-
-   <div id="footer" style="float:left;">
-     <div class="content">
-       CHARMMing (CHARMM INterface and Graphics)  
-      </div>
-      <div id="footmenu">
-      </div>
    </div>
 
-</div>
+   <div id="chmfooter" style="margin: 0 auto;"></div>
+
+ </div>
+
 </body>
 
 </html>

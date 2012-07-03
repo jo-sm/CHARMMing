@@ -1,35 +1,9 @@
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-<head>
-    <title>View/Edit PDBs</title>
+{% extends "html/skeleton.html" %}
 
-    <script type="text/javascript">
-        var GB_ROOT_DIR = "/greybox/greybox/";
-function send_select_form(form) {
-   new Ajax.Request("/select/"+form.id, {method:'post', asynchronous:true});
-}
-
-    </script>
-
-<link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
-<script type="text/javascript" src="/charmming/js/protoculous-1.0.2-packed.js"></script>
-<script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
-<script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
-    <script type="text/javascript" src="/charmming/js/greybox/AJS.js"></script>
-    <script type="text/javascript" src="/charmming/js/greybox/AJS_fx.js"></script>
-    <script type="text/javascript" src="/charmming/js/greybox/gb_scripts.js"></script>
-    <link href="/charmming/css/greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
-</head>
-<body>
-
-<center>
-<br />
-<br />
-<br />
-<h1>View Process Files</h1>
-</center>
+{% block content %}
+<div id="mainpage">
+<h1 align="center">View Process Files</h1>
 <hr width="50%">
-<div class='status'>
-<body>
 
 <center>
 <form method="post" action=".">
@@ -40,7 +14,7 @@ function send_select_form(form) {
        {% for file in files %}
           {% ifequal file.0 header %}
              <tr>
-               <td><a href="javascript:AjaxTabs.OpenTab(getUniqueId('tab_page'),'{{ file.1 }}','/charmming/viewprocessfilescontainer/{{file.1}}',true,'')">{{ file.1 }}</a></td>
+               <td><a href="/charmming/viewfile/{{file.1}}/">{{ file.1 }}</a></td>
                <td>{{ file.2 }}</td>
              </tr>
           {% endifequal %}
@@ -51,4 +25,4 @@ function send_select_form(form) {
 </form>
 </center>
 </div>
-</body>
+{% endblock %}

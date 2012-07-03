@@ -1,6 +1,11 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage" style="text-align: left;">
+
 {% autoescape off %}
 <center>
-<h1>Lesson 3{% ifequal lesson3.curStep 4 %}: <font color="red">Completed</font> {% endifequal %}</h1>
+<h1>Lesson 3, SGLD and custom sequences{% ifequal lesson3.curStep 4 %}: <font color="red">Completed</font> {% endifequal %}</h1>
 </center>
 
 <p class="intro">
@@ -119,3 +124,7 @@
 
 {% endif %}
 {% endautoescape %}
+
+</div>
+
+{% endblock %}

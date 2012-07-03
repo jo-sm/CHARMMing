@@ -1,7 +1,10 @@
-<div>
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
  <div id="mdform">
    <h2 align="center">Which properties would you like to generate</h2>
-   <form method="post" onsubmit="return send_form_mdanal(this,'/charmming/analysis/domdprop/','mdform');">
+   <form method="post" action="/charmming/analysis/domdprop/">
    <center>
       <table width="60%">
         <tr><td>Average potential energy</td><td><input type="checkbox" name="getener" value="getener" /></td></tr>
@@ -16,3 +19,4 @@
    </form>
  </div>
 </div>
+{% endblock %}
