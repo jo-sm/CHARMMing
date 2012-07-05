@@ -18,7 +18,7 @@
 
 import re, os, cPickle, copy
 import django.shortcuts, django.http, django.template.loader, django.template
-import minimization.views, input, apbs
+import minimization.views, input, output, apbs
 import charmming_config, output, scheduler
 from  apbs import redox_mod
 from django.http import HttpResponse
@@ -38,11 +38,11 @@ def redoxformdisplay(request):
     try:
          struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-         return HttpResponse("Please submit a structure first.")
+         return output.returnSunmission("Oxidationb/reduction", error="Please submit a structure first.")
     try:
          ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+        return output.returnSubmission("Oxidation/reduction", error="Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     tmpfp = open(struct.pickle, 'r')
     pdb = cPickle.load(tmpfp)
@@ -64,12 +64,12 @@ def redoxformdisplay(request):
         rdxtsk.save()
 
         if ws.isBuilt != 't':
-            raise AssertionError('Structures have to be built before REDOX may be run')
+            return output.returnSubmission("Oxidation/reduction", error='Your working structure must be built before you perform a redox calculation')
 
         isBuilt = True
         pTaskID = Task.objects.get(workstruct=ws,action='build').id
         pdb = createFinalPDB(request,ws)
-        return django.http.HttpResponse(redox_tpl(request,rdxtsk,ws,pdb,pdb_metadata))
+        return HttpResponse(redox_tpl(request,rdxtsk,ws,pdb,pdb_metadata))
 
     else:
         # This code path is taken if the form IS NOT filled in. We need
@@ -80,7 +80,7 @@ def redoxformdisplay(request):
         try:
             myMol = pdb['append_%s' % ws.identifier]
         except:
-            return HttpResponse('Your working structure must be built before you perform a redox calculation')
+            return output.returnSubmission("Oxidation/reduction", error='Your working structure must be built before you perform a redox calculation')
 
 
         pfp = open(struct.pickle, 'r')
@@ -545,7 +545,7 @@ def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
     redoxTask.start(altexe=charmming_config.charmm_apbs_exe)
     redoxTask.save()
 
-    return "foo"
+    return output.returnSubmission('Oxidation/reduction')
 
 def createFinalPDB(request,workstruct):
     if not request.POST.has_key('picksite'):
