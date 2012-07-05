@@ -92,8 +92,12 @@
            </div>
            <hr />
 
+
            <div id="proton_div">
            {% if disulfide_list %}
+             <p>Change disulfide bond patching options <input type="checkbox" name="disul_box" id="disul_box" onclick="showHideDisul();" /></p>
+
+             <div id="disulfide" style="display:none;">
              <h3>Choose Disulfide Patching</h3>
              <table align="center" cellspacing="2" cellpadding="2">
                <tr><td>SEGID 1</td><td>RESID 1</td><td>SEGID 2</td><td>RESID 2</td><td>Selected</td></tr>
@@ -101,10 +105,13 @@
                  <tr><td>{{ disul.0 }}</td><td>{{ disul.2 }}</td><td>{{ disul.3 }}</td><td>{{ disul.5 }}</td><td><input type="checkbox" name="disul_{{ disul.0 }}_{{ disul.2 }}_{{ disul.3 }}_{{ disul.5 }}" checked /></td></tr>
                {% endfor %}
              </table>
+             </div>
            {% endif %}
 
            {% if proto_list %}
-               <h3>Choose Protonation State</h3>
+               <p>Modify protonation states of titratable residues <input type="checkbox" name="proto_box" id="proto_box" onclick="showHideProto();" /></p>
+
+               <div id="protonation">  
                <table align="center" cellspacing="2" cellpadding="2">
                <tr><td>SEGID</td><td>Residue Number</td><td>Protonation State</td></tr>
                {% for pproto in proto_list %}
@@ -117,6 +124,7 @@
                       </select>
                     </td>
                 </tr>
+                </div>
                {% endfor %}
                </table>
            {% endif %}
