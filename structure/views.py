@@ -105,18 +105,6 @@ def deleteFile(request):
     return HttpResponse('Done')
 
 
-#Lets user view file in browser, puts it in iframe
-def viewProcessContainer(request,filename):
-    if not request.user.is_authenticated():
-        return render_to_response('html/loggedout.html')
-    return render_to_response('html/viewprocessfilescontainer.html', {'filename':filename })
-
-#Lets user view file in browser, puts it in iframe
-def downloadFilesContainer(request):
-    if not request.user.is_authenticated():
-        return render_to_response('html/loggedout.html')
-    return render_to_response('html/downloadfilescontainer.html')
-
 #Lets user view file in browser
 def viewFiles(request,filename, mimetype = None):
     if not request.user.is_authenticated():
@@ -128,14 +116,22 @@ def viewFiles(request,filename, mimetype = None):
     except:
         return render_to_response('html/nopdbuploaded.html')
     try:
-       os.stat("%s/%s" % (struct.location,filename))
+        logfp = open('/tmp/vf.txt', 'w')
+        logfp.write("%s/%s\n" % (struct.location,filename))
+        logfp.close()
+        os.stat("%s/%s" % (struct.location,filename))
     except:
-       return HttpResponse("That file doesn't seem to exist. Maybe you deleted it?")
+        return HttpResponse("That file doesn't seem to exist. Maybe you deleted it?")
 
-    mimetype = "Content-Type: text/richtext"
-    response = HttpResponse(mimetype=mimetype)
-    response.write(file("%s/%s" % (struct.location,filename), "rb").read())
-    return response
+    
+    fname = "%s/%s" % (struct.location,filename)
+    fcontent = []
+    fp = open(fname, 'r')
+    for line in fp:
+        fcontent.append(line)
+    fp.close()
+
+    return render_to_response('html/viewfile.html', {'fcontent': fcontent})
 
 #Wraps all files associated with the PDB into a tar and deletes it
 def downloadFilesPage(request,mimetype=None):
@@ -641,14 +637,14 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     # check to see if PBC needs to be used -- if so we have to set up Ewald
     if request.POST.has_key('usepbc'):
         if solvate_implicitly:
-            return HttpResponse('Invalid options')
+            return output.returnSubmission('energy', error='Invalid options')
 
         # decide if the structure we're dealing with has
         # been solvated.
         solvated = False
-        wfc = pstruct
+        wfc = pTask
         while True:
-            if wfc.parentAction == 'solv':
+            if wfc.action == 'solvatom' or wfc.action == 'neutralization':
                 solvated = True
                 break
             if wfc.parent:
@@ -656,14 +652,14 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
             else:
                 break
         if not solvated:
-            return HttpResponse('Requested PBC on unsolvated structure')
+            return output.returnSubmission('energy', error='Requested PBC on unsolvated structure')
 
         dopbc = True
         eobj.usepbc = 'y'
         try:
-            sp = solvationTask.objects.filter(structure=workstruct,active='y')[0]
+            sp = solvationTask.objects.get(workstruct=workstruct,active='y')
         except:
-            return HttpResponse("Err ... couldn't find solvation parameters")
+            return output.returnSubmission("Energy", error="Couldn't find solvation parameters")
         template_dict['xtl_x'] = sp.xtl_x
         template_dict['xtl_y'] = sp.xtl_y
         template_dict['xtl_z'] = sp.xtl_z
