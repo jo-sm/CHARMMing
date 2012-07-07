@@ -22,7 +22,7 @@ from django.shortcuts import render_to_response
 from structure.models import Structure, WorkingStructure, WorkingFile, Task
 from solvation.ionization import neutralize_tpl
 from solvation.models import solvationTask
-from account.views import isUserTrustworthy
+from account.views import checkPermissions
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
@@ -73,7 +73,9 @@ def solvationformdisplay(request):
     else:
         # get all completed tasks associated with this struct
         tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
-        return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'tasks': tasks})
+
+        lesson_ok, dd_ok = checkPermissions(request)
+        return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 
 def solvate_tpl(request,solvTask,pTaskID):

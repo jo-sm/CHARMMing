@@ -36,7 +36,7 @@ from django.core.mail import mail_admins
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
-from account.views import isUserTrustworthy
+from account.views import checkPermissions
 from structure.aux import checkNterPatch
 from lessons.models import LessonProblem
 from structure.qmmm import makeQChem_tpl, makeQchem_val
@@ -131,7 +131,8 @@ def viewFiles(request,filename, mimetype = None):
         fcontent.append(line)
     fp.close()
 
-    return render_to_response('html/viewfile.html', {'fcontent': fcontent})
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/viewfile.html', {'fcontent': fcontent, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 #Wraps all files associated with the PDB into a tar and deletes it
 def downloadFilesPage(request,mimetype=None):
@@ -165,7 +166,7 @@ def downloadFilesPage(request,mimetype=None):
     # now get all Tasks associated with the structure and get their workingFiles
     # hack alert: we only store CRDs now but we can extrapolate the PSFs, INPs, and OUTs
     # ToDo: store this info in the workingfile
-    tasks = structure.models.Task.objects.filter(workstruct=ws)
+    tasks = structure.models.Task.objects.filter(workstruct=ws,active='y')
     for task in tasks:
         headers.append(task.action)
 
@@ -351,7 +352,8 @@ def viewProcessFiles(request):
             ds = wf.description
             file_list.append((task.action,bn,ds))
 
-    return render_to_response('html/viewprocessfiles.html', {'headers': header_list, 'files': file_list})
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/viewprocessfiles.html', {'headers': header_list, 'files': file_list, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 def visualize(request,filename):
     """
@@ -387,7 +389,8 @@ def visualize(request,filename):
             s = wfile.canonPath.split('/')[-1]
             filelst.append((s, wfile.description))
 
-    return render_to_response('html/visualize.html', {'filelst': filelst})
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/visualize.html', {'filelst': filelst,'lesson_ok':lesson_ok,'dd_ok':dd_ok})
 
 
 #Let's user view PDB through ChemDoodle
@@ -428,7 +431,8 @@ def jmol(request,filename):
         return HttpResponse('No structure')
     filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
 
-    return render_to_response('html/jmol.html', {'filepath': filename, 'segid':'NA', 'resid':'NA'})
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/jmol.html', {'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok})
 
 
 def jmolHL(request,filename,segid,resid):
@@ -531,7 +535,9 @@ def viewpdbs(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     user_pdbs = structure.models.Structure.objects.filter(owner=request.user)
-    return render_to_response('html/viewpdbs.html', {'user_pdbs': user_pdbs})
+
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/viewpdbs.html', {'user_pdbs': user_pdbs, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 #This is for changing the currently selected PDB
 #on the SELECT/EDIT PDBs page
@@ -553,7 +559,9 @@ def switchpdbs(request,switch_id):
 
     newfile.selected = 'y'
     newfile.save()
-    return render_to_response('html/switchpdb.html',{'oldfile':oldfile,'newfile':newfile})
+
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/switchpdb.html',{'oldfile':oldfile,'newfile':newfile,'lesson_ok':lesson_ok,'dd_ok':dd_ok})
 
 #This calculates the energy
 def energyform(request):
@@ -606,7 +614,9 @@ def energyform(request):
     else:
         # get all workingFiles associated with this struct
         tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
-        return render_to_response('html/energyform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'energy_lines': energy_lines})
+
+        lesson_ok, dd_ok = checkPermissions(request)
+        return render_to_response('html/energyform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'energy_lines': energy_lines, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 
 def calcEnergy_tpl(request,workstruct,pTaskID,eobj): 
@@ -1042,7 +1052,9 @@ def newupload(request, template="html/fileupload.html"):
     # end of ye gigantic if test
 
     form = structure.models.PDBFileForm()
-    return render_to_response('html/fileuploadform.html', {'form': form} )
+
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/fileuploadform.html', {'form': form, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok} )
 
 
 # This function populates the form for building a structure
@@ -1100,6 +1112,7 @@ def buildstruct(request):
     for seg in sl:
         tdict['proto_list'].extend(seg.getProtonizableResidues())
 
+    tdict['lesson_ok'], tdict['dd_ok'] = checkPermissions(request)
     return render_to_response('html/buildstruct.html', tdict)
 
 
@@ -1251,7 +1264,8 @@ def modstruct(request):
     new_ws.selected = 'y'
     new_ws.save()
 
-    return render_to_response('html/built.html')
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/built.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 def swap(request):
     if not request.user.is_authenticated():
@@ -1281,7 +1295,8 @@ def swap(request):
         new_ws.selected = 'y'
         new_ws.save()
 
-    return render_to_response('html/swapped.html', {'wsname': new_ws.identifier})
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/swapped.html', {'wsname': new_ws.identifier, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 
 def protonate(file):

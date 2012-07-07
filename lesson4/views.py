@@ -19,6 +19,7 @@ from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
+from account.views import checkPermissions
 from structure.models import Structure
 from lessons.models import LessonProblem
 from lesson4.models import Lesson4
@@ -54,6 +55,8 @@ def lesson4Display(request):
         lessonprob_obj = LessonProblem.objects.filter(lesson_type='lesson4',lesson_id=lesson_obj.id)[0]
     except:
         lessonprob_obj = None
-    return render_to_response('html/lesson4.html',{'lesson4':lesson_obj,'lessonproblem':lessonprob_obj,'html_step_list':html_step_list})
+
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/lesson4.html',{'lesson4':lesson_obj,'lessonproblem':lessonprob_obj,'html_step_list':html_step_list, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
    
 

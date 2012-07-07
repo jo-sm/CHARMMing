@@ -19,6 +19,7 @@ from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import isUserTrustworthy
+from account.views import checkPermissions
 #YP
 #from structure.models import PDBFile, PDBFileForm 
 import input
@@ -60,6 +61,8 @@ def lesson2Display(request):
         lessonprob_obj = None
 
     lesson2log.write("html step list: %s" % (html_step_list))
-    return render_to_response('html/lesson2.html',{'lesson2':lesson_obj,'lessonproblem':lessonprob_obj,'html_step_list':html_step_list})
+
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/lesson2.html',{'lesson2':lesson_obj,'lessonproblem':lessonprob_obj,'html_step_list':html_step_list, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
    
 

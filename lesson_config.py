@@ -6,9 +6,10 @@ import lesson2
 import lesson3
 import lesson4
 import lesson5
+import lesson6
 
 # Lesson number list
-lesson_num_lis = ['1','2','3','4','5']
+lesson_num_lis = ['1','2','3','4','5','6']
 
 # The file type lessons need to upload
 file_type = {
@@ -27,6 +28,7 @@ lesson_txt = {
     '3':'Lesson Three',
     '4':'Lesson Four',
     '5':'Lesson Taco',
+    '6':'Lesson Five',
     '99':'Lesson 99',
     '98':'Lesson 98'
 }

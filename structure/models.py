@@ -1135,6 +1135,7 @@ class WorkingStructure(models.Model):
                     t2 = normalmodes.models.nmodeTask.objects.get(id=t.id)
                 elif t.action == 'redox':
                     t2 = apbs.models.redoxTask.objects.get(id=t.id)
+                    if lesson_obj:lessonaux.doLessonAct(self.structure,"onRedoxDone",t)
                 else:
                     t2 = t
 

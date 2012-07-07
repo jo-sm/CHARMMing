@@ -23,7 +23,7 @@ from structure.models import Structure
 from structure.qmmm import makeQChem_tpl, writeQMheader
 from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeTask
-from account.views import isUserTrustworthy
+from account.views import checkPermissions
 from structure.aux import checkNterPatch
 from django.contrib.auth.models import User
 from django.template import *
@@ -105,7 +105,9 @@ def normalmodesformdisplay(request):
         return applynma_tpl(request,ws,pTaskID,nt)
     else:
         tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
-        return render_to_response('html/normalmodesform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'nmode_lines': nmode_lines})
+
+        lesson_ok, dd_ok = checkPermissions(request)
+        return render_to_response('html/normalmodesform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'nmode_lines': nmode_lines, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 
 def applynma_tpl(request,workstruct,pTaskID,nmTask):

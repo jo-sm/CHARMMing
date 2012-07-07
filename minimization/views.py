@@ -19,7 +19,7 @@ from django import forms
 from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
-from account.views import isUserTrustworthy
+from account.views import checkPermissions
 from structure.models import Structure, WorkingStructure, WorkingFile, Segment, goModel, Task
 from structure.qmmm import makeQChem_tpl, makeQchem_val
 from structure.aux import checkNterPatch
@@ -85,7 +85,8 @@ def minimizeformdisplay(request):
         for seg in ws.segments.all():
             seg_list.append(seg.name)       
 
-        return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'seg_list': seg_list})
+        lesson_ok, dd_ok = checkPermissions(request)
+        return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'seg_list': seg_list, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 def minimize_tpl(request,mp,pTaskID):
     postdata = request.POST

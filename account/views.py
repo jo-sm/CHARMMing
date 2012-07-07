@@ -34,14 +34,6 @@ def redirectBasedOnLogin(request):
         return HttpResponseRedirect('/charmming/accounts/profile/')
     return HttpResponseRedirect('/charmming/login/')  
 
-def loadFrontPage(request):
-    if(request.user.is_authenticated()):
-        return HttpResponseRedirect('/charmming/accounts/profile/')
-    return render_to_response('html/frontpage.html')
-
-def loadAboutPage(request):
-    return render_to_response('html/about.html')
-
 #resets a user's password
 def resetUserPassword(request):
     if(request.POST):
@@ -155,11 +147,9 @@ def registerStudent(request,user):
 	    new_student.student.username = new_student.student.username.lower()
 	    new_student.save()
 	    #New student needs a folder
-            try:	    
-	        os.mkdir("%s/%s" % (charmming_config.user_home,new_student.student.username))
-	        os.chmod("%s/%s" % (charmming_config.user_home,new_student.student.username), 0775)
-	    except:
-	        pass
+            os.mkdir("%s/%s" % (charmming_config.user_home,new_student.student.username))
+            os.chmod("%s/%s" % (charmming_config.user_home,new_student.student.username), 0775)
+
             preapprove = Group.objects.get(name='preapprove')
             request.user.groups.add(preapprove)
 	    mail_message = """
@@ -286,6 +276,24 @@ def isUserTrustworthy(user):
     else:
         return False
 
+def checkPermissions(request):
+    # returns lesson, drug gesign
+    if request.user.is_authenticated():
+        if request.user.is_superuser:
+            return True, True
+        groupList = request.user.groups.all()
+      
+        lesson = False
+        drugde = False
+        if groupList.filter(name='lesson'):
+            lesson = True
+        if groupList.filter(name='drugdesign'):
+            drugde = True
+
+        return lesson, drugde
+    else:
+        return False, False
+
 def skeleton(request):
     if request.user.is_authenticated():
         # get a list of all the groups that the current user is in
@@ -324,3 +332,15 @@ def logout(request):
     auth.logout(request)
     # Redirect to a success page.
     return HttpResponseRedirect("/charmming", {'logout':1})
+
+
+def loadFrontPage(request):
+    if(request.user.is_authenticated()):
+        return HttpResponseRedirect('/charmming/accounts/profile/')
+
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/frontpage.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+
+def loadAboutPage(request):
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/about.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok})

@@ -19,12 +19,13 @@
 from django.template.loader import get_template
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
-from structure.models import Structure, WorkingStructure, Task
+from structure.models import Structure, WorkingStructure, WorkingFile, Task
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from django.template import *
 from pychm.lib.mol import Mol
 import output, charmming_config, lessonaux, input, lessons, lesson1, lesson2, lesson3, lesson4
+from account.views import checkPermissions
 #import structure.models
 #import Structure
 import os, re, time, cPickle
@@ -166,23 +167,33 @@ def rmsformdisplay(request):
             prior_matrix += line
         fp.close() 
 
-    return render_to_response('html/rmsdform.html', {'ws_identifier': ws.identifier, 'tasks': tasks, 'prior_matrix': prior_matrix})
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/rmsdform.html', {'ws_identifier': ws.identifier, 'tasks': tasks, 'prior_matrix': prior_matrix, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 import dynamics.models
+import traceback
 
 def domdprop(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    Structure.checkRequestData(request)
+    input.checkRequestData(request)
     #chooses the file based on if it is selected or not
-    try:
-        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
+    try: 
+         struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please submit a structure first.")
+         return output.returnSubmission("MD properties", error="Please submit a structure first.")
+    try:
+         ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        return output.returnSubmission("MD properties", error="Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+    try:
+        mdp = dynamics.models.mdTask.objects.filter(workstruct=ws, status='C', active='y')[0]
+    except:
+        return output.returnSubmission('MD properties', error='Could not find completed MD task.')         
 
-    os.chdir(file.location)
-    fname = "charmm-%s-md.out" % file.stripDotPDB(file.filename)
-    cmdline = "%s/prop.py %s %s-mdproperties.dat" % (charmming_config.data_home,fname,file.stripDotPDB(file.filename))
+
+    fname = "%s/%s-md.out" % (ws.structure.location,ws.identifier)
+    cmdline = "%s/prop.py %s %s-mdproperties.dat" % (charmming_config.data_home,fname,ws.identifier)
     
     nprop = 0
     if request.POST.has_key('getener'):
@@ -201,25 +212,43 @@ def domdprop(request):
     logfp = open('/tmp/mdprop.txt', 'w')
     logfp.write('cmdline = %s\n' % cmdline)
     logfp.close()
+    os.chdir(ws.structure.location)
     os.system(cmdline)
-    return HttpResponse("Properties generated, please download %s-mdproperties.dat from the download files page." % (file.stripDotPDB(file.filename)))
+
+    # create a working file, so that this thing appears on the download page
+    wf = WorkingFile()
+    wf.task = mdp
+    wf.path = '%s/%s-mdproperties.dat' % (ws.structure.location,ws.identifier)
+    wf.canonPath = wf.path
+    wf.type = 'prp'
+    wf.description = 'MD property analysis data'
+    wf.save()
+
+    return render_to_response("html/didprop.html", {'msg': "Properties generated, please download %s-mdproperties.dat from the download files page." % ws.identifier})
 
 def getmdprop(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    Structure.checkRequestData(request)
+    input.checkRequestData(request)
+
     #chooses the file based on if it is selected or not
     try:
-        file =  Structure.objects.filter(owner=request.user,selected='y')[0]
+         struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please submit a structure first.")
+         return output.returnSubmission("MD properties", error="Please submit a structure first.")
+    try:
+         ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        return output.returnSubmission("MD properties", error="Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     try:
-        mdp = dynamics.models.mdTask.objects.filter(pdb=file, selected='y')[0]
+        mdp = dynamics.models.mdTask.objects.filter(workstruct=ws, status='C', active='y')[0]
     except:
-        return HttpResponse("Please perform Molecular Dynamics before trying to get properties")
-    if not "Done" in mdp.statusHTML:
-        return HttpResponse("Please wait until Molecular Dynamics finished before trying to get properties")
+        logfp = open('/tmp/getmdprop.txt', 'w')
+        traceback.print_exc(file=logfp)
+        logfp.close()
+        return output.returnSubmission("MD properties", error="You must have completed molecular dynamics to get properties")
 
-    return render_to_response('html/mdanalysis.html')
+    lesson_ok, dd_ok = checkPermissions(request)
+    return render_to_response('html/mdanalysis.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 

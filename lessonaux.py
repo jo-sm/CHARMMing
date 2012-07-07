@@ -13,6 +13,7 @@ import lesson1
 import lesson2
 import lesson3
 import lesson4
+import lesson6
 #import lesson96
 # by importing lesson_config to import all lessons created
 from lesson_config import *
@@ -68,6 +69,12 @@ def doLessonAct(file,function,task=None,filename=None,finale=None):
         return True
     elif function == 'onRMSDSubmit':
         lesson_obj.onRMSDSubmit(task)
+        return True
+    elif function == 'onRedoxSubmit':
+        lesson_obj.onRedoxSubmit(task)
+        return True
+    elif function == 'onRedoxDone':
+        lesson_obj.onRedoxDone(task)
         return True
     elif function == 'getObject':
         return lesson_obj

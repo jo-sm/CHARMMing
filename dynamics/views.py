@@ -19,7 +19,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template.loader import get_template
 from structure.models import Structure, WorkingStructure, WorkingFile, Task
-from account.views import isUserTrustworthy
+from account.views import checkPermissions
 from structure.aux import checkNterPatch
 from dynamics.models import mdTask, ldTask, sgldTask
 from django.contrib.auth.models import User
@@ -93,7 +93,9 @@ def lddisplay(request):
     else:
         # get all workingFiles associated with this struct
         tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
-        return render_to_response('html/ldform.html', {'ws_identifier': ws.identifier,'tasks': tasks})
+
+        lesson_ok, dd_ok = checkPermissions(request)
+        return render_to_response('html/ldform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 #processes form data for md simulations
 def mddisplay(request):
@@ -146,7 +148,9 @@ def mddisplay(request):
 
         # get all workingFiles associated with this struct
         tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
-        return render_to_response('html/mdform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'canrestart': canrestart})
+
+        lesson_ok, dd_ok = checkPermissions(request)
+        return render_to_response('html/mdform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'canrestart': canrestart, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 def applyld_tpl(request,ldt,pTaskID):
     postdata = request.POST
@@ -158,6 +162,9 @@ def applyld_tpl(request,ldt,pTaskID):
     template_dict['nstep'] = postdata['nstep']
     template_dict['usesgld'] = postdata.has_key('usesgld')
     template_dict['identifier'] = ldt.workstruct.identifier
+
+    if int(template_dict['nstep']) > charmming_config.dyna_steplimit:
+        return output.returnSubmission('LD', error='Dynamics has a limit of %d steps.' % charmming_config.dyna_steplimit)
 
     ldt.fbeta = template_dict['fbeta']
     ldt.nstep = template_dict['nstep']
@@ -369,6 +376,9 @@ def applymd_tpl(request,mdt,pTaskID):
         template_dict['nstep'] = postdata['nstepnpt']
         template_dict['hoovertemp'] = postdata['hoovertemp']
         template_dict['pgamma'] = postdata['pgamma']
+
+    if int(template_dict['nstep']) > charmming_config.dyna_steplimit:
+        return output.returnSubmission('LD', error='Dynamics has a limit of %d steps.' % charmming_config.dyna_steplimit)
 
     if dopbc or mdt.ensemble == 'nvt' or mdt.ensemble == 'npt':
         template_dict['cpt'] = 'cpt'
