@@ -63,8 +63,8 @@ tr.status{
 }
 input.login
 {
- background: #C0D5DF;
- border: 1px solid #781351
+ background: #CFC4A3;
+ border: 1px solid #CFC4A3;
 }
 td.frontpage
 {
@@ -76,18 +76,18 @@ input:focus {
 } 
 fieldset.login
 {
- border: 1px solid #e2e9fe;/*#FFBC47;*/
+ border: 1px solid #CFC4A3;/*#FFBC47;*/
  width: 20em
 }
 fieldset.frontpage
 {
- border: 1px solid #e2e9fe;/*#FFBC47;*/
+ border: 1px solid #CFC4A3;/*#FFBC47;*/
  width: 36em;
  height:3.8em;
 }
 fieldset.custom_sequ
 {
- border: 2px solid #e2e9fe;/*#FFBC47;*/
+ border: 2px solid #cfc4a3;/*#FFBC47;*/
  width: 35em;
  font-size:small;
  text-align:left
@@ -95,18 +95,18 @@ fieldset.custom_sequ
 legend.custom_sequ
 {
  /*background: #FFBC47;*/
- background: #e2e9fe;
+ background: #cfc4a3;
  font-size:small;
 }
 fieldset.structure
 {
- border: 5px solid #e2e9fe;/*#FFBC47;*/
+ border: 5px solid #cfc4a3;/*#FFBC47;*/
  width: 35em
 }
 legend.login
 {
  /*background: #FFBC47;*/
- background: #e2e9fe;
+ background: #cfc4a3;
 }
 div.centerpageiframe
 {

@@ -20,7 +20,7 @@
 
 <p class="intro">1ZHY is the Protein Data Bank (PDB) ID of a Oxysterol binding protein complexed with cholesterol. This protein is known to transport 
   cholesterol within the cell and to the cell memebrane. It is found in high concentrations in cancer patients. The standard CHARMM topology and parameter
-  files for proteins do not have residue and parameter information for cholesterol so the custom topology files below will be used with this lesson. You 
+  files for proteins and nucleic acids do not have residue and parameter information for cholesterol, so the custom topology files below will be used with this lesson. You 
   will need to download them, along with the PDB file itself, to continue. The links are below: 
 </p></br>
 
@@ -33,10 +33,9 @@
 </p><br />
 
 
-<p class="intro">Go to the <b>Submit Structure</b> page, select &quot;Upload my own PDB file&quot;, and select the 1ZHY PDB file for uploading. Then
-  check both the &quot;Add my own topology file&quot; and the &quot;Add my own parameter file&quot; boxes  When uploading these, choose to replace the 
-  standard CHARMMing topology/parameter files as the files you are uploading already contain all the information in the standard CHARMM topology and
-  parameter files. Once you have done so come back here and you should see a completion message below if done correctly.</p>
+<p class="intro">Go to the <b>Submit Structure</b> page, select &quot;Upload my own PDB file&quot;, and select the 1ZHY PDB file for uploading. When you reach the
+   &quot;Build structure&quot; page, upload the topology and parameter files for the bad heteroatom segment. Once you have done so come back here and you should 
+   see a completion message below if done correctly.</p>
 <br />
 
 {% if lesson2 %}
@@ -49,8 +48,8 @@
    <br />
 
    <p class="intro">If you look at the <b>View PDBs</b> page and see the protein you'll notice it is globular. Because it is a globular protein we should use a cubic 
-     or RHDO structure. An RHDO structure is most efficient so solvate the structure in an RHDO and choose a radius of 10. 1ZHY has a negative charge, and in order 
-     for CHARMM to use the Ewald Summation method, a charge of 0 must be set. In order to do this, you may neutralize a system under CHARMMING through the 
+     or RHDO structure. An RHDO structure is most efficient, so solvate the structure in an RHDO and choose a buffer size of 10 angstroms. 1ZHY has a negative charge, and in order 
+     for CHARMM to use the Particle Mesh Ewald Summation method for electrostatics, the system must be neutral. In order to ensure this, you may neutralize through the 
      &quot;Solvate&quot; page. For this lesson, use Potassium Chloride, and set the molar concentration to .15. The number of trials will determine a lower energy 
      position for these ions but significantly add to the neutralization calculation time. For this reason, please set the number of trials to 1.</p>
  {% endifequal %}
@@ -64,9 +63,9 @@
    <br />
 
    <p class="intro">The next step is to minimize the system. Go to the <b>Minimization</b> page and select the neutralized structure. Like the previous
-     lesson, set the number of steps for SD and ABNR to 1000 and tolg to .01. This time, select &quot;Use Periodic Boundary Conditions (PBC) in minimization&quot;.
-     This will tell CHARMMing that periodic boundary conditions should be used with minimization. This causes the crystal data structure to be replicated
-     so that there are no unwanted boundary effects caused by placing the solvated crystal into a vacuum. Since dynamics is run with PBC, it is important
+     lesson, set the number of steps for SD and ABNR to 1000 and tolg to .01. This time, select &quot;Use Periodic Boundary Conditions (PBC)&quot;.
+     This will tell CHARMMing that periodic boundary conditions should be used with minimization, thus avoiding undesirable vacuum boundary effects. 
+      Since dynamics is run with PBC, it is important
      that the final minimization be run under the same conditions. Once you have set it up, go ahead and submit the minimization. Because this is a large
      structure, it may take over half an hour to run.</p>
    <br />
@@ -79,10 +78,10 @@
    <p class="intro"><font color="red"> Step 2: Solvation Done </font></p>
    <br />
 
-   <p class="intro">The next step is to minimize the system. Go to the <b>Minimization</b> page and select the neutralized structure. Like the previous 
-     lesson, set the number of steps for SD and ABNR to 1000 and tolg to .01. This time, select &quot;Use Periodic Boundary Conditions (PBC) in minimization&quot;.
-     This will tell CHARMMing that periodic boundary conditions should be used with minimization. This causes the crystal data structure to be replicated
-     so that there are no unwanted boundary effects caused by placing the solvated crystal into a vacuum. Since dynamics is run with PBC, it is important
+   <p class="intro">The next step is to minimize the system. Go to the <b>Minimization</b> page and select the neutralized structure. Like the previous
+     lesson, set the number of steps for SD and ABNR to 1000 and tolg to .01. This time, select &quot;Use Periodic Boundary Conditions (PBC)&quot;.
+     This will tell CHARMMing that periodic boundary conditions should be used with minimization, thus avoiding undesirable vacuum boundary effects. 
+      Since dynamics is run with PBC, it is important
      that the final minimization be run under the same conditions. Once you have set it up, go ahead and submit the minimization. Because this is a large
      structure, it may take over half an hour to run.</p>
    <br /> 
@@ -131,17 +130,16 @@
    <p class="intro">The next step after heating is to perform equilibration on the system in order to let it &quot;settle in&quot; at the desired temperature.
      Generally, the purpose of a molecular dynamics simulation is to get a statistical picture of how the system behaves in real world conditions. This can be
      done by running for a sufficiently long period of time to gain summary statistics about which conformations are preferred and how they shift over time.
-     Detailed explanation about how long is long enough and exactly how these statistics are gathered is beyond the scope of this tutorial. At this stage, it
+     Detailed explanation about how long is long enough and exactly how these statistics are gathered is beyond the scope of this lesson. At this stage, it
      is sufficient to know that CHARMM can write out files describing various facets of the system (energy, atomic velocities, etc.) as the simulation evolves.
      One of the most important of these files is called the <i>trajectory file</i>, which contains coordinates. A coordinate set (called a trajectory &quot;frame&quot;
-     is generally not written out every step, but usually every 10 to 1000 steps depending on the desires resolution. The input files CHARMMing produces are designed
+     is generally not written out every step, but usually every 10 to 1000 steps depending on the desired resolution. The input files CHARMMing produces are designed
      to write ten steps over the dynamics calculation, no matter how long it is.</p>
    <br />
 
    <p class="intro">In general, trajectories from early equilibrium runs are not used for analysis (as the system is still &quot;settling in&quot;, however they
      still can show how the system moves over time. In order to see this for yourself, go back to the <b>Molecular Dynamics</b> page and select the output of
-     the heating run to work on. This time, select &quot;equilibration&quot;, select the final temperature of the heating (310.15 K) for the temperature. Also, have
-     it make a movie.</p>
+     the heating run to work on. This time, select &quot;NPT&quot; and make the thermostat temperature 310.15 K. Also, have CHARMMing make a movie.</p>
 
  {% endifequal %}
 
@@ -162,8 +160,7 @@
 
    <p class="intro">In general, trajectories from early equilibrium runs are not used for analysis (as the system is still &quot;settling in&quot;, however they
      still can show how the system moves over time. In order to see this for yourself, go back to the <b>Molecular Dynamics</b> page and select the output of
-     the heating run to work on. This time, select &quot;equilibration&quot;, select the final temperature of the heating (310.15 K) for the temperature. Also, have
-     it make a movie.</p>
+     the heating run to work on. This time, select &quot;NPT&quot; and make the thermostat temperature 310.15 K. Also, have CHARMMing make a movie.</p>
    <br />
 
  {% endifequal %}

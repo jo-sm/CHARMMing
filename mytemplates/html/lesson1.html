@@ -26,11 +26,10 @@
 <br />
 
 <p class="intro">Because it is a large and complicated program, CHARMM can be intimidating for a new user. The series of tutorials on this web site will help
-  guide you through setting up basic simulations. You can look at the input and output files produced on the <b>View Process Files</b> page and you can download
+  guide you through setting up basic simulations. You can look at the input and output files produced on the <b>View Inputs and Outputs</b> page, and you can download
   them from the <b>Download Files</b> page. You should do this in order to get a sense of which CHARMM commands are used to perform various tasks. You should also
-  explore the commands in more detail in the documentation (available on <a href="http://www.charmm.org/html/documentation/chmdoc.html">
-  the CHARMM home page, www.charmm.org</a>. A complete tutorial is available at <a href="http://www.charmmtutorial.org">www.charmmtutorial.org</a>
-  or by clicking <b>View the tutorial</b> in the side menu.</p>
+  explore the commands in more detail in the documentation (available on <a href="http://www.charmm.org/documentation/chmdoc.html">
+  the CHARMM home page</a>. A complete tutorial is available at <a href="http://www.charmmtutorial.org">www.charmmtutorial.org</a>.</p>
 <br />
 
 <h2 class="intro">Protein structure and coordinate files</h2>
@@ -38,8 +37,8 @@
 <p class="intro">To get started with this lesson download the coordinate file and protein structure file below. A Protein Structure File (PSF) contains bond information 
   such as angles, torsion (dihedral) angles, and improper torsion angles. This makes a PSF vital to energy calculations in CHARMM. A CHARMM coordinate File (COOR, CRD), stores 
   the cartesian coordinates of each atom along with its residue and segment identification. Groups of atoms form commonly-used subunits called residues (e.g., an amino acid, 
-  such as Lysine, is a residue). Residues are further grouped into chains or segments which represent major functional groups or different observed conformations. Th PDB files 
-  contain the same information, but in a different format.</p>
+  such as Lysine, is a residue). Residues are further grouped into segments which represent chains of amino acids. A PDB file contains the same information, but in a different 
+  format.</p>
 <br />
 
 <p class="intro">In order for CHARMM to build a model of a molecule, it needs to know its structure (contained in the protein structure file) and the coordinates of its constituent
@@ -69,14 +68,12 @@
       are not used because there is no crystal structure for them). To solvate, look to the left menu bar under <i>Calculations</i> and select <b>Solvate.</b></p>
    <br />
 
-   <p class="intro">For the <font style="fixed">Solvation structure parameters</font> dialog, select the RHDO shape and for the size select &quot;<font style="fixed">Let the GUI
-      take care of it for me</font>.&quot; When this is selected, CHARMMing will automatically create a CHARMM input script that calculates the appropriate size of the RHDO structure. It will 
-      take the largest x,y,z coordinate and add 10 Angstroms to that value. The 10 Angstroms can be changed by changing the value in the textbox. Change the value to 15 
+   <p class="intro">For the <font style="fixed">Solvation Parameters</font> dialog, select the RHDO shape and choose to calculate the crystal dimensions based on the structure
+      size plus a buffer. When this is selected, CHARMMing will automatically create a CHARMM input script that calculates the appropriate size of the RHDO structure. It will 
+      take the largest x,y,z coordinate and add 5 Angstroms to that value. The 5 Angstroms can be changed by changing the value in the textbox. Change the value to 15 
       and press submit.</p>
    <br />
 
-   <p class="intro">In addition, we don't want CHARMM to use any patches that are meant for protein or nucleic acid segments. CHARMMing automatically will detect this and will not apply
-    a patch. Leave the number of disulfide patches set at 0. One you have set this up, go ahead and submit the solvation job.</p>
  {% endifequal %}
  
  {% ifequal html_step_list.1 2 %}
@@ -89,7 +86,7 @@
 
   <p class="intro">For the next step, you will minimize the water structure. The purpose of minimization is to try to find the conformation (position of the atoms in the protein) that
     has the lowest possible energy. Ideally, the conformation produced would be the structure at absolute zero. This is a commonly done to remove bad atom placement (often caused
-    by problems in the crystal or NMR structure). For a realistic dynamics simulation, the structure is then heated back to the desired temperature. Two common alogorithms for
+    by adding hydrogens to crystal and NMR structures). For a realistic dynamics simulation, the structure is then heated back to the desired temperature. Two common alogorithms for
     minimization are Steepest Descent (SD) and Adopted-Basis Newton-Rhapson (ABNR).</p>
   <br />
 
@@ -113,7 +110,7 @@
  
   <p class="intro">For the next step, you will minimize the water structure. The purpose of minimization is to try to find the conformation (position of the atoms in the protein) that
     has the lowest possible energy. Ideally, the conformation produced would be the structure at absolute zero. This is a commonly done to remove bad atom placement (often caused
-    by problems in the crystal or NMR structure). For a realistic dynamics simulation, the structure is then heated back to the desired temperature. Two common alogorithms for 
+    by adding hydrogens to crystal or NMR structures). For a realistic dynamics simulation, the structure is then heated back to the desired temperature. Two common alogorithms for 
     minimization are Steepest Descent (SD) and Adopted-Basis Newton-Rhapson (ABNR).</p>
   <br />
 
@@ -133,9 +130,11 @@
    <p class="intro">Minimization is currently running. Until it is finished you can read ahead.</p>
    <br />
 
-   <p class="intro">The next step will involve running Molecular Dynamics (MD). MD applies Newton's laws of motion coupled with electrostatic and van der Waals forces to simulate 
-     how the system would act in a &quot;natural state.&quot; CHARMMing supports two types of MD simulations: heating and equilibration. Heating gradually adds energy to the system
-     while equilibration runs keep the environment constant. Because we brought the system to a low energy conformation, we should start by heating the system gradually. Leave the 
+   <p class="intro">The next step will involve running Molecular Dynamics (MD). MD applies Newton's laws of motion coupled with the CHARMM force field to simulate 
+     how the system would act in a &quot;natural state.&quot; CHARMMing supports four types of MD simulations: heating, NVE (constant volume and energy), NVT (constant temperature and volume), and
+     NPT (constant pressure and volume). Heating gradually adds energy to the system, while NVT and NPT keep the temperature constant by means of a thermostat. NVE does
+     not attempt to regulate the temperature.
+     Because we brought the system to a low energy conformation, we should start by heating the system gradually. Leave the 
      number of steps at 1000, the starting temperature at 210.15 K, the final temprature at 310.15 K (physiological temperature), temperature increment at 10 K, steps between temperature 
      increases (IHTFRQ) to 100, and temperature of bath at 310.15 K. This increases the the temperature 300 K over the 1000 step simulation, which is a more rapid increase than is
      usually used.</p>
@@ -152,10 +151,12 @@
    <p class="intro">Congratulations! You have successfully minimized the system!</p>
    <br />
 
-   <p class="intro">The next step will involve running Molecular Dynamics (MD). MD applies Newton's laws of motion coupled with electrostatic and van der Waals forces to simulate
-     how the system would act in a &quot;natural state.&quot; CHARMMing supports two types of MD simulations: heating and equilibration. Heating gradually adds energy to the system
-     while equilibration runs keep the environment constant. Because we brought the system to a low energy conformation, we should start by heating the system gradually. Leave the
-     number of steps at 1000, set the starting temperature at 210.15 K, the final temprature at 310.15 K (physiological temperature), temperature increment at 10 K, steps between temperature
+   <p class="intro">The next step will involve running Molecular Dynamics (MD). MD applies Newton's laws of motion coupled with the CHARMM force field to simulate 
+     how the system would act in a &quot;natural state.&quot; CHARMMing supports four types of MD simulations: heating, NVE (constant volume and energy), NVT (constant temperature and volume), and
+     NPT (constant pressure and volume). Heating gradually adds energy to the system, while NVT and NPT keep the temperature constant by means of a thermostat. NVE does
+     not attempt to regulate the temperature.
+     Because we brought the system to a low energy conformation, we should start by heating the system gradually. Leave the 
+     number of steps at 1000, the starting temperature at 210.15 K, the final temprature at 310.15 K (physiological temperature), temperature increment at 10 K, steps between temperature 
      increases (IHTFRQ) to 100, and temperature of bath at 310.15 K. This increases the the temperature 300 K over the 1000 step simulation, which is a more rapid increase than is
      usually used.</p>
    <br />

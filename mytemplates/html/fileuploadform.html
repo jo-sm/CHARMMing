@@ -59,7 +59,7 @@
 	               <a href="javascript:addResidue('ASPP');">ASPP-Aspartic Acid* </a><br>
 	               <a href="javascript:addResidue('GLU');">GLU-Glutamic Acid </a><br>
 	               <a href="javascript:addResidue('GLUP');">GLUP-Glutamic Acid* </a><br>
-	               <a href="javascript:addResidue('HSP');">HSP-Histidine*</a><br>
+	               <a href="javascript:addResidue('HSP');">Delta+Epsilon-Histidine*</a><br>
 	               Basic:<br>
 	               <a href="javascript:addResidue('ARG');">ARG-Arginine </a><br>
 	               <a href="javascript:addResidue('LYS');">LYS-Lysine </a><br>
@@ -70,9 +70,9 @@
 	               <a href="javascript:addResidue('GLN');">GLN-Glutamine </a><br>
 	               <a href="javascript:addResidue('GLY');">GLY-Glycine </a><br>
                      </div>
-	             <div style="position:absolute;left:205px;top:0px;width:200px;">
-	               <a href="javascript:addResidue('HSD');">HISD-Histidine*</a><br>
-	               <a href="javascript:addResidue('HSE');">HSE-Histidine*</a><br>
+	             <div style="position: relative; left: 250px;">
+	               <a href="javascript:addResidue('HSD');">Delta-Histidine*</a><br>
+	               <a href="javascript:addResidue('HSE');">Epsilon-Histidine*</a><br>
 	               <a href="javascript:addResidue('ILE');">ILE-Isoleucine </a><br>
 	               <a href="javascript:addResidue('LEU');">LEU-Leucine </a><br>
 	               <a href="javascript:addResidue('LSN');">LSN-Lysine* </a><br>
@@ -84,14 +84,14 @@
 	               <a href="javascript:addResidue('TRP');">TRP-Tryptophan </a><br>
 	               <a href="javascript:addResidue('TYR');">TYR-Tyrosine </a><br>
 	               <a href="javascript:addResidue('VAL');">VAL-Valine </a><br>
+                       <p>* = alternate protonation state</p>
                      </div>
-                     <p>* = alternate protonation state</p>
      	           </div>
                  </fieldset>
             </div>
       </fieldset>
       <br />
-      {% ifequal lessonuser 1 %}
+      {% if lesson_ok %}
        What Lesson is this structure associated with?<br>
         <select name="lesson" id="lesson"> 
          <option value="nolesson" selected> No Lesson </option>
@@ -100,7 +100,7 @@
          <option value="lesson3"> Lesson 3 </option>
          <option value="lesson4"> Lesson 4 </option>
         </select><br><br>
-      {% endifequal %}
+      {% endif %}
 
       <div id="bln_params" style="display:none; font-size: small;">
         <table>
@@ -137,6 +137,5 @@
 
       <input type="submit" value="Submit Structure"/>
    </form>
- </center>
 </div>
 {% endblock %}

@@ -37,14 +37,6 @@ padding-top:15px;
 background-color: #FFFFFE;
 }
 
-#maincontent {
-width:  1078px;
-margin: 0px;
-border-left: #000000 0px solid;
-border-right: #000000 0px solid;
-/*background-color: #CCCFFF;*/
-}
-
 /*---------------------------------------------*/
 
 #header {
@@ -99,7 +91,8 @@ margin: 0px;
 float: left;
 padding-left: 0px;
 padding-top: 5px;
-background-color: #919f86;
+background-color: #fffffe;
+/* background-color: #919f86; */
 /* background: url(/charmming/images/charmming-css/charmming-bkgrd.png) repeat-y; */
 }
 

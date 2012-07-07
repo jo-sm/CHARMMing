@@ -25,10 +25,6 @@ function setOptionId(div)
  last_option_id = div.id;
 }
 
-function doOnLoad()
-{
- enableTooltips();
-}
 
 function addResidue(residue)
 {
@@ -536,6 +532,26 @@ function checkDisplayFile(filename)
   return 1;
 }
 
+
+function showHideDisul()
+{
+ if(document.getElementById('disul_box').checked) {
+    setVisible("disulfide","block");
+ } else {
+    setVisible("disulfide","none");
+ }
+}
+
+function showHideProto()
+{
+ if(document.getElementById('proto_box').checked) {
+    setVisible("protonation","block");
+ } else {
+    setVisible("protonation","none");
+ }
+}
+
+
 //for use with Normal modes
 function showHideQMMM()
 {
@@ -1006,7 +1022,17 @@ function checkId(div_id)
 
 //Drug Design stuff
 function send_delete_ligand_form(id) {
-    alert ('ddeleting ligand'+id);
+    var r=confirm("You are about to delete a ligand. This ligand will be removed from the all jobs, sets and the analysis!");
+    if (r==true)
+    {
+	//alert ('ddeleting ligand'+id);
+        new Ajax.Request("/charmming/dd_substrate/deleteligand/", {method:'post', asynchronous:false, parameters: {'id':id}});
+    }
+    else
+    {
+	//alert ('cancelled');
+    }
+    //alert ('ddeleting ligand'+id);
     //new Ajax.Request("/charmming/dd_substrate/deleteligand/", {method:'post', asynchronous:false, parameters: {'id':id}});
     
 }
@@ -1139,7 +1165,7 @@ function RefreshAvailableConformations()
 {
     //alert ($("targets").getValue());
     //var code = "protein_id=" + $("targets").getValue() + "&setid=" + $("targets").getValue();
-    var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/dd_infrastructure/projectavailableconformations/'+$("targets").getValue()+'/', {method: 'post'})
+    var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/dd_infrastructure/projectavailableconformations/'+document.getElementById("targets").value+'/', {method: 'post'});
     //var myAjax = new Ajax.Updater('availableconformationsdiv', 'www.google.com', {method: 'post'})
 }
 
@@ -1158,7 +1184,8 @@ function RefreshProjectConformations(project_id,addedids,removedids)
 function CheckUncheck()
 {
 
-    if ( document.forms['projectdetail'].elements['gridfileid'].length )
+    //alert(document.forms['projectdetail'].elements['conformation_id']);
+    if ( document.forms['projectdetail'].elements['conformation_id'].length )
     {
 	for (var x = 0; x < document.forms['projectdetail'].elements['gridfileid'].length; x++)
 	{
@@ -1175,13 +1202,14 @@ function CheckUncheck()
     }
        else
     {
-	if (document.forms['projectdetail'].elements['checkall'].checked)
+	//alert('checkall'+document.forms['projectdetail'].elements['checkall']);
+        if (document.forms['projectdetail'].elements['checkall'].checked)
 	{
-	    document.forms['projectdetail'].elements['gridfileid'].checked = true;            
+	    document.forms['projectdetail'].elements['conformation_id'].checked = true;            
 	}
 	      else
 	{
-	    document.forms['projectdetail'].elements['gridfileid'].checked = false;
+	    document.forms['projectdetail'].elements['conformation_id'].checked = false;
 	}
     }
 }
@@ -1189,17 +1217,17 @@ function CheckUncheck()
 function SetCheckUncheck()
 {
 
-    if ( document.forms['projectdetail'].elements['conformations_file_id'].length )
+    if ( document.forms['projectdetail'].elements['project_conformation_id'].length )
     {
-	for (var x = 0; x < document.forms['projectdetail'].elements['conformations_file_id'].length; x++)
+	for (var x = 0; x < document.forms['projectdetail'].elements['project_conformation_id'].length; x++)
 	{
 	    if (document.forms['projectdetail'].elements['setcheckall'].checked)
 	    {
-		document.forms['projectdetail'].elements['setconformations_file_id'][x].checked = true;   
+		document.forms['projectdetail'].elements['project_conformation_id'][x].checked = true;   
 	    }
 	     else
 	    {
-		document.forms['projectdetail'].elements['setconformations_file_id'][x].checked = false;
+		document.forms['projectdetail'].elements['project_conformation_id'][x].checked = false;
 	    }
 	     
 	}
@@ -1208,11 +1236,11 @@ function SetCheckUncheck()
     {
 	if (document.forms['projectdetail'].elements['setcheckall'].checked)
 	{
-	    document.forms['projectdetail'].elements['setconformations_file_id'].checked = true;            
+	    document.forms['projectdetail'].elements['project_conformation_id'].checked = true;            
 	}
 	      else
 	{
-	    document.forms['projectdetail'].elements['setconformations_file_id'].checked = false;
+	    document.forms['projectdetail'].elements['project_conformation_id'].checked = false;
 	}
     }
 }
@@ -1241,6 +1269,20 @@ function DisplayBlankForm()
 
 
 /////////////////////////////dd ligand set details
+function send_delete_ligandset_form(setid) {
+    //alert('deleting set'+setid);   
+    if(setid == 'all_sets')
+	new Ajax.Request("/charmming/dd_substrate/deleteligandset/", {method:'post', asynchronous:false });
+    else
+    {
+	//alert ('deleting set: '+setid);
+	new Ajax.Request("/charmming/dd_substrate/deleteligandset/"+setid, {method:'post', asynchronous:false});
+    }
+    //var viewgridsetsframe = parent.document.getElementById('viewgridsetscontainer');
+    //viewgridsetsframe.src = viewgridsetsframe.src;
+       //parent.refreshBottomdock();
+}
+
 function getCheckedAvailableLigandIds()
 {
     var nodes=document.getElementsByName("availableligandsdiv")[0].childNodes;
@@ -1327,8 +1369,8 @@ function RefreshAvailableLigands()
 {
     //alert ($("targets").getValue());
     //var code = "protein_id=" + $("targets").getValue() + "&setid=" + $("targets").getValue();
-    //alert ('/charmming/dd_substrate/setavailableligands/'+$("sets").getValue()+'');
-    var myAjax = new Ajax.Updater('availableligandsdiv', '/charmming/dd_substrate/setavailableligands/'+$("sets").getValue()+'', {method: 'post'})
+    //alert ('/charmming/dd_substrate/setavailableligands/'+document.getElementById("avaiableligandsets").value+'');
+    var myAjax = new Ajax.Updater('availableligandsdiv', '/charmming/dd_substrate/setavailableligands/'+document.getElementById("avaiableligandsets").value+'', {method: 'post'})
     //var myAjax = new Ajax.Updater('availableconformationsdiv', 'www.google.com', {method: 'post'})
 }
 
@@ -1421,4 +1463,91 @@ function DisplayBlankLigandForm()
     //var code = codestring;
     //alert (code);
     var myAjax = new Ajax.Updater('ligandsetinfodiv', '/charmming/dd_substrate/updateligandsetinfo/0/refresh/', {method: 'post'})
+}
+
+
+
+
+/////dsf form
+function RefreshDSFLigands()
+{
+    //alert (document.getElementById("Receptor").value);
+    //var code = "ptid=" + $("protein_types").getValue() + "&setid=" + $("gridsets").getValue();
+    //alert (code);
+    var myAjax = new Ajax.Updater('ligandsdiv', '/charmming/dd_infrastructure/updatedsfligands/'+$("ligandsets").getValue()+'', {method: 'post'})
+
+    //alert(document.getElementById('conformations').style)
+}
+
+function doDDJobDetailsOnLoad(job_id){
+               
+    //var code = "jobid={{job.id}}";
+    currperiodicalupdater = new Ajax.Updater('jobinfo', '/charmming/dd_infrastructure/viewjobinfo/'+job_id, {method: 'post'});
+    //code="jobid={{job.owner_id}}";
+
+        
+    currperiodicalupdater2 = new Ajax.PeriodicalUpdater('ddjobresultsdiv', '/charmming/dd_infrastructure/viewjobresults/'+job_id, {method: 'post', frequency: 5});
+    setVisible('ddjobresultsdiv','none');
+
+        //alert ("blah");
+
+}
+        
+function getCheckedDSFLigands()
+{
+    var nodes=document.getElementsByName("ligandsinsidediv")[0].childNodes;
+    var checkedvalues="";
+    for(i = 0;i < nodes.length;++i)
+	if(nodes[i].id=="availableconformationsinsidediv"){
+	    var checkboxes = nodes[i].getElementsByTagName('input');
+	        //alert(checkboxes.length);
+	    for(j = 0;j < checkboxes.length;++j){
+		    //alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
+		    //alert("j " + j);
+		if (checkboxes[j].checked){
+		    if (checkedvalues=='') {
+			checkedvalues=checkboxes[j].value;
+			           
+		    }
+		    else {
+			checkedvalues=checkedvalues + ',' + checkboxes[j].value;
+		    }
+		        //alert(checkedvalues);
+		}
+	    }
+	}
+      //alert(checkedvalues);
+    return checkedvalues;
+}
+
+
+function DSFLigands_CheckUncheck()
+{
+
+    if ( document.forms['dsfform'].elements['id_ligand_file'].length )
+    {
+	for (var x = 0; x < document.forms['dsfform'].elements['id_ligand_file'].length; x++)
+	{
+	    if (document.forms['dsfform'].elements['dsfligandscheckall'].checked)
+	    {
+		document.forms['dsfform'].elements['id_ligand_file'][x].checked = true;   
+	    }
+	         else
+	    {
+		document.forms['dsfform'].elements['id_ligand_file'][x].checked = false;
+	    }
+	         
+	}
+    }
+       else
+    {
+	if (document.forms['dsfform'].elements['dsfligandscheckall'].checked)
+	{
+	    document.forms['dsfform'].elements['id_ligand_file'].checked = true;            
+	}
+	      else
+	{
+	    document.forms['dsfform'].elements['id_ligand_file'].checked = false;
+	}
+    }
 }

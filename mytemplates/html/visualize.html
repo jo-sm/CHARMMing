@@ -1,4 +1,7 @@
-<body>
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
   <center>
   <h1>Visualize Structures</h1>
   <hr width="50%">
@@ -7,8 +10,9 @@
      <table class="sortable resizable" border=2>
         <tr><th>Filename</th><th>Description</th></tr>
         {% for file in filelst %}
-           <tr><td><a href="#" onclick="chooseViewProgram('{{file.0}}','jmol');">{{ file.0 }}</a> <a href="#" onclick="chooseViewProgram('{{file.0}}','chemdoodle');">(ChemDoodle)</a></td><td>{{ file.1 }}</td></tr>
+           <tr><td><a href="/charmming/jmolview/{{ file.0 }}">{{ file.0 }}</a></td><td>{{ file.1 }}</td></tr>
         {% endfor %}
      </table>
   </form>
-</body>
+</div>
+{% endblock %}

@@ -1,25 +1,24 @@
-<head>
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
   <script type="text/javascript" src="/charmming/jmol/Jmol.js"></script>
   <script type="text/javascript" src="/charmming/js/custom.js"></script>
   <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
-</head>
-<body>
-  <script>
-    function makeMspace()
-    {
-       var dimarray = parent.getFrameDim();
-       var text = "<applet codebase='/charmming/marvin/' code='chemaxon/marvin/space/gui/MSpaceApplet' name='MSpaceApplet' width="+dimarray[0]+" height="+dimarray[1]+" archive='mspace.jar,jmarvin.jar,jogl.jar,gluegen-rt.jar,jextexp.jar'> <param name='progressbar' value='true'> <param name='toolbar' value='true'><param name='menubar' value='true'> <param name='molecule' value='/pdbuploads/{{username}}/{{filename}}'> </applet>";
-       document.getElementById('app').innerHTML = text;
-    }
+
+  <center>
+    <h3>Visualization</h3>
+    <br />
+
+    <script>
     jmolInitialize("/charmming/jmol/"); // REQUIRED
     jmolSetAppletColor("black");
     {% ifequal segid "NA" %}
-       jmolApplet(parent.getFrameDim(), "load /charmming/pdbuploads/{{filepath}};anim mode palindrome 2 2;anim on");
+       jmolApplet("650", "load /charmming/pdbuploads/{{filepath}};anim mode palindrome 2 2;anim on");
     {% else %}
-       jmolApplet(parent.getFrameDim(), "load /charmming/pdbuploads/{{filepath}};anim mode palindrome 2 2; anim on; select {{resid}}; cpk 30%; wireframe 55; select {{resid}} and ( _O or _N ); label %a, %n");
+       jmolApplet("650", "load /charmming/pdbuploads/{{filepath}};anim mode palindrome 2 2; anim on; select {{resid}}; cpk 30%; wireframe 55; select {{resid}} and ( _O or _N ); label %a, %n");
     {% endifequal %}
-</script>
-
-<div id="app">
-</div>
-</body>
+  
+    </script>
+  </center>
+{% endblock %}

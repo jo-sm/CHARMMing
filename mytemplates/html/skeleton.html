@@ -76,16 +76,16 @@
         <div id="my_menu" class="sdmenu">
           <div>
             <span>Basic functions</span>
-            <a title="CHARMMing usage information and credits." href="javascript:openNewURL('/charmming/about/','About CHARMMing');timeoutWikipage('General');">About CHARMMing</a>
+            <a title="CHARMMing usage information and credits." href="/charmming/about/">About CHARMMing</a>
           </div>
           <div>
             <span>Structures</span>
             <a href="/charmming/fileupload/">Submit Structure</a>
             <a href="/charmming/viewpdbs/">Change/Delete Structures</a>
             <a href="/charmming/buildstruct/">Build Working Structure</a>
-            <a href="/charmming/downloadfilescontainer/">Download Files</a>
-            <a title="View the 3D structure of your molecule." href="/charmming/visualize/">View PDBs</a>
-            <a title="View all the input/output scripts this site has generated for you." href="/charmming/viewprocessfiles/">View Process Files</a>
+            <a href="/charmming/downloadfiles/">Download Files</a>
+            <a href="/charmming/visualize/">Visualize system</a>
+            <a href="/charmming/viewprocessfiles/">View Inputs and Outputs</a>
           </div>
           <div class="collapsed">
             <span>Calculations</span>
@@ -102,25 +102,36 @@
             <a href="/charmming/analysis/rmsd/">RMSD calculator</a>
             <a href="/charmming/analysis/redox/">Redox</a>
           </div>
+          {% if dd_ok %}
           <div class="collapsed">
+          {% else %}
+          <div class="collapsed" style="display: none;">
+          {% endif %}
             <span>Drug Design</span>
-               <a href="/charmming/dd_infrastructure/viewprojects/">Projects</a>
-               <a href="/charmming/dd_target/targetfileupload/">New Target</a>
-               <a href="/charmming/dd_target/viewtargets/">View Targets</a>
-               <a href="/charmming/dd_substrate/ligandfileupload/">New Ligand</a>
-               <a href="/charmming/dd_substrate/viewligands/">View Ligands</a>
-               <a href="/charmming/dd_substrate/viewligandsets/">Ligand Sets</a>
-               <a href="/charmming/dd_infrastructure/dsfform/">Launch Docking Job</a>
-               <a href="/charmming/dd_infrastructure/viewjobs/">View Jobs/Results</a>
+             <a href="/charmming/dd_infrastructure/viewprojects/">Projects</a>
+             <a href="/charmming/dd_target/targetfileupload/">New Target</a>
+             <a href="/charmming/dd_target/viewtargets/">View Targets</a>
+             <a href="/charmming/dd_substrate/ligandfileupload/">New Ligand</a>
+             <a href="/charmming/dd_substrate/viewligands/">View Ligands</a>
+             <a href="/charmming/dd_substrate/viewligandsets/">Ligand Sets</a>
+             <a href="/charmming/dd_infrastructure/dsfform/">Launch Docking Job</a>
+             <a href="/charmming/dd_infrastructure/viewjobs/">View Jobs/Results</a>
           </div>
-	  <div class="collapsed">
-	  <span> Lessons </span>
-            <a href="/charmming/lessons/lesson1/">1. Intro to Simulations</a>
-            <a href="/charmming/lessons/lesson2/">2. Simulating proteins</a>
-            <a href="/charmming/lessons/lesson3/">3. SGLD, sequences</a>
-            <a href="/charmming/lessons/lesson4/">4. Custom RTF, QM/MM</a>
-            <a href="/charmming/lessons/lesson5/">5. Coarse-grain models</a>
-	  </div>
+
+          {% if lesson_ok %}
+          <div class="collapsed">
+          {% else %}
+          <div class="collapsed" style="display:none;">
+          {% endif %}
+	    <span> Lessons </span>
+              <a href="/charmming/lessons/lesson1/">1. Intro to Simulations</a>
+              <a href="/charmming/lessons/lesson2/">2. Simulating proteins</a>
+              <a href="/charmming/lessons/lesson3/">3. SGLD, sequences</a>
+              <a href="/charmming/lessons/lesson4/">4. Custom RTF, QM/MM</a>
+              <a href="/charmming/lessons/lesson5/">5. Coarse-grain models</a>
+              <a href="/charmming/lessons/lesson6/">6. Redox Calculation</a>
+          </div> 
+
           <div>
             <span>Account</span>
             <a title="Change Password" href="/charmming/accounts/changepassword/">Change Password</a>

@@ -1,22 +1,7 @@
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-<head>
-    <title>Download files</title>
-    <script type="text/javascript">
-        var GB_ROOT_DIR = "/greybox/greybox/";
-    </script>
+{% extends "html/skeleton.html" %}
 
-  <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
-  <script type="text/javascript" src="/charmming/js/protoculous-1.0.2-packed.js"></script>
-  <script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
-  <script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
-  <script type="text/javascript" src="/charmming/js/greybox/AJS.js"></script>
-  <script type="text/javascript" src="/charmming/js/greybox/AJS_fx.js"></script>
-  <script type="text/javascript" src="/charmming/js/greybox/gb_scripts.js"></script>
-  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
-  <link href="/charmming/css/greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
-</head>
-<body>
-
+{% block content %}
+<div id="mainpage">
   <h1 align="center">Download Files</h1>
   <h2 align="center">Working structure: {{ wsname }}</h2>
 
@@ -41,5 +26,5 @@
       {% endfor %}
    </form>
   </center>
-</body>
-</html>
+</div>
+{% endblock %}

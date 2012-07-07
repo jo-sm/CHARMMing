@@ -28,12 +28,12 @@ div.sdmenu div span {
 	font-weight: bold;
 	/*color: white;*/
 	color: #ffffff;
-	background: url(/charmming/images/sdmenu/leemenu2/expanded.gif) no-repeat 10px center;
+	background: url(/charmming/images/sdmenu/expanded2.gif) no-repeat 10px center;
 	cursor: default;
 	border-bottom: 1px solid #ddd;
 }
 div.sdmenu div.collapsed span {
-	background-image: url(/charmming/images/sdmenu/leemenu2/collapsed.gif);
+	background-image: url(/charmming/images/sdmenu/collapsed2.gif);
 }
 div.sdmenu div a {
 	padding: 5px 10px;
