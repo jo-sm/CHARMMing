@@ -436,6 +436,17 @@ class WorkingSegment(Segment):
             logfp.close()
             if not success:
                raise AssertionError('Unable to build topology/parameters')
+
+        elif self.tpMethod == 'dogmans':
+            rval = self.makeCGenFF(bhResList)
+        elif self.tpMethod == 'match':
+            rval = self.makeMatch(bhResList)
+        elif self.tpMethod == 'antechamber':
+            rval = self.makeAntechamber()
+        elif self.tpMethod == 'genrtf':
+            rval = self.makeGenRTF()
+        
+
         # done top/par file building
         fp.close()
 

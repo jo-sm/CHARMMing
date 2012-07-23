@@ -1109,6 +1109,7 @@ def buildstruct(request):
     tdict['seg_list'] = sl
     tdict['disulfide_list'] = struct.getDisulfideList()
     tdict['proto_list'] = []
+    tdict['super_user'] = request.user.is_superuser
     for seg in sl:
         tdict['proto_list'].extend(seg.getProtonizableResidues())
 
@@ -1150,7 +1151,12 @@ def modstruct(request):
         for seg in seglist:
             if request.POST.has_key('toppar_' + seg):
                 tpdict[seg] = request.POST['toppar_' + seg]
-                if tpdict[seg] not in ['standard','upload','autogen','redox']:
+
+                allowedList = ['standard','upload','autogen','redox']
+                if request.user.is_superuser:
+                    allowedList.extend(['dogmans','match','genrtf','antechamber'])
+               
+                if tpdict[seg] not in allowedList:
                     tpdict[seg] = 'standard'
 
                 if tpdict[seg] == 'upload':
