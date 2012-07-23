@@ -61,6 +61,9 @@ def lesson5Display(request):
         lessonproblems = None
 
     lesson_ok, dd_ok = checkPermissions(request)
+    if not lesson_ok:
+        return render_to_response('html/unauthorized.html')
+
     tmp_dict = {'lesson1':lesson_obj,
                 'lessonproblems':lessonproblems,
                 'html_step_list':html_step_list,

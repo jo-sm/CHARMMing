@@ -57,6 +57,8 @@ def lesson4Display(request):
         lessonprob_obj = None
 
     lesson_ok, dd_ok = checkPermissions(request)
+    if not lesson_ok:
+        return render_to_response('html/unauthorized.html')
     return render_to_response('html/lesson4.html',{'lesson4':lesson_obj,'lessonproblem':lessonprob_obj,'html_step_list':html_step_list, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
    
 
