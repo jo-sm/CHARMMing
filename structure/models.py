@@ -26,6 +26,7 @@ from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from normalmodes.aux import parseNormalModes, getNormalModeMovieNum
 from pychm.cg.sansombln import SansomBLN
+from httplib import HTTPConnection
 import charmming_config, input
 import commands, datetime, sys, re, os, glob, smtplib
 import normalmodes, dynamics, minimization
@@ -366,9 +367,33 @@ class WorkingSegment(Segment):
             if residue.resName not in badResList:
                 badResList.append(residue.resName)
                 filename_noh = self.structure.location + '/' + self.name + '-badres-' + residue.resName + ".pdb"
+                filename_sdf = self.structure.location + '/' + self.name + '-badres-h-' + residue.resName + ".sdf"
                 filename_h = self.structure.location + '/' + self.name + '-badres-h-' + residue.resName + ".mol2"
                 residue.write(filename_noh, outformat='pdborg')
-                os.system("babel -h --title %s -ipdb %s -omol2 %s" % (residue.resName,filename_noh,filename_h))
+
+                # shiv to try to get an SDF file for the residue
+                conn = HTTPConnection("www.pdb.org")
+                logfp = open('/tmp/sdf.txt', 'w')
+                reqstring = "/pdb/files/ligand/%s_ideal.sdf" % residue.resName.upper()
+                logfp.write("reqstring = %s\n" % reqstring)
+                conn.request("GET", reqstring)
+                resp = conn.getresponse()
+                if resp.status == 200:
+                    logfp.write('OK\n')
+                    sdf_file = resp.read()
+
+                    outfp = open(filename_sdf, 'w')
+                    outfp.write(sdf_file)
+                    outfp.close()
+
+                    pdb_rewrite = self.structure.location + '/segment-' + seg.segid + '.pdb'
+                    os.system("babel --title %s -isdf %s -omol2 %s" % (residue.resName,filename_sdf,filename_h))
+                    ##os.system("babel --title %s -isdf %s -opdb %s" % (residue.resName,filename_sdf,pdb_rewrite))
+                else:
+                    logfp.write('No: use PDB\n')
+                    os.system("babel -h --title %s -ipdb %s -omol2 %s" % (residue.resName,filename_noh,filename_h))
+                logfp.close()
+          
         return badResList
 
     # This method will handle the building of the segment, including
@@ -541,12 +566,33 @@ class WorkingSegment(Segment):
                     prmfound = True
                     inprm = True
             
-            rtffp.close()
-            prmfp.close()
             if not (rtffound and prmfound):
                 logfp.write('Aw crap ... did not find both topology and parameters.\n')
                 logfp.close()
                 return -1
+
+            rtffp.close()
+            prmfp.close()
+       
+            # we need to adjust the naming conventions in the PDB            
+            with open_rtf('%s/%s-%s-dogmans.rtf' % (self.structure.location,self.name,badRes)) as rtffp:
+                new_tp = pychm_toppar.Toppar()
+                rtffp.export_to_toppar(new_tp)
+
+                name_list = []
+                if new_tp.residue is not None:
+                    name_list += [ resi.name for resi in new_tp.residue ]
+                if new_tp.patch is not None:
+                    name_list += [ resi.name for resi in new_tp.patch ]
+
+                pdbname = self.structure.location + '/segment-' + self.name + '.pdb'
+                molobj = pychm.io.pdb.get_molFromPDB(pdbname)
+                for res in molobj.iter_res():
+                    if res.resName in name_list:
+                         res._dogmans_rename()
+
+                molobj.write(pdbname)
+
 
             self.rtf_list += ' %s-%s-dogmans.rtf' % (self.name,badRes)
             self.prm_list += ' %s-%s-dogmans.prm' % (self.name,badRes)
@@ -614,7 +660,7 @@ class WorkingSegment(Segment):
         except:
             return -1
 
-        cmd = "/usr/local/charmming/antechamber/exe/charmmgen -f ac -i " + \
+        cmd = "/usr/local/newcharmming/antechamber/exe/charmmgen -f ac -i " + \
               acbase + ".ac -o " + acbase + " -s " + self.name
         status = os.system(cmd)
         if status != 0:
