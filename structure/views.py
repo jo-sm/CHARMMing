@@ -184,11 +184,11 @@ def downloadFilesPage(request,mimetype=None):
 def downloadTarFile(request,mimetype=None):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-    structure =  Structure.objects.filter(owner=request.user,selected='y')[0]
-    tar_filename = structure.name + '.tar.gz'
+    struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+    tar_filename = struct.name + '.tar.gz'
 
     username = request.user.username
-    os.chdir(charmming_config.user_home + username)
+    os.chdir(charmming_config.user_home + '/' + username)
 
     try:
         os.unlink(tar_filename)
