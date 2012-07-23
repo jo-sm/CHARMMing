@@ -77,6 +77,12 @@
                         {% if seg.fes4 %}
                            <option value="redox">Use only for REDOX calculations</option>
                         {% endif %}
+                        {% if super_user %}
+                           <option value="dogmans">Force Dogmans</option>
+                           <option value="match">Force MATCH</option>
+                           <option value="antechamber">Force Antechamber</option>
+                           <option value="genrtf">Force GENRTF</option>
+	                {% endif %}
                       </select>
                       <br />
                       topology file: <input type="file" name="topology_{{ seg.name }}" /><br />
