@@ -650,15 +650,20 @@ class WorkingSegment(Segment):
 
     # Tim Miller, make hetid RTF/PRM using antechamber
     def makeAntechamber(self):
-        os.putenv("AMBERHOME", charmming_config.data_home + "/amber11")
+
+        logfp = open('/tmp/ac.log', 'w')
+        logfp.write('In makeAntechamber.\n')
+
+        os.putenv("AMBERHOME", charmming_config.amber_home)
         os.chdir(self.structure.location)
 
         fname = "segment-" + self.name
         acbase = "antechamber-" + fname 
         acname = acbase + ".ac"
 
-        cmd = charmming_config.data_home + "/amber11/bin/antechamber -j 5 -fi pdb -i " + \
+        cmd = charmming_config.amber_home + "/bin/antechamber -j 5 -fi pdb -i " + \
               fname + ".pdb -fo ac -o " + acbase + ".ac"
+        logfp.write(cmd + '\n')
         status = os.system(cmd)
         if status != 0:
             # debug purposes only
@@ -671,8 +676,9 @@ class WorkingSegment(Segment):
         except:
             return -1
 
-        cmd = "/usr/local/newcharmming/antechamber/exe/charmmgen -f ac -i " + \
+        cmd = charmming_config.amber_home + "/bin/charmmgen -f ac -i " + \
               acbase + ".ac -o " + acbase + " -s " + self.name
+        logfp.write(cmd + '\n')
         status = os.system(cmd)
         if status != 0:
             # also for debug purposes only
@@ -681,12 +687,14 @@ class WorkingSegment(Segment):
         # run through CHARMM since Antechamber changes the residue IDs
         cmd = charmming_config.charmm_exe + " < " + acbase + ".inp > " + \
               acbase + ".out"
+        logfp.write(cmd + '\n')
         os.system(cmd)
 
         # set the newly generated RTF/PRM to be used.
         self.rtf_list = acbase + ".rtf"
         self.prm_list = acbase + ".prm"
         self.save()
+        logfp.close()
         return 0
 
     #pre:requires a list of het segids
@@ -700,7 +708,7 @@ class WorkingSegment(Segment):
 
         # BABEL gets called to put Hydrogen positions in for the bonds
         os.system('/usr/bin/babel -ipdb ' + filename + ' -oxyz ' + filebase + '.xyz -h')
-        os.system(charmming_config.data_home + '/genrtf-v3.3 -s ' + self.name + ' -x ' + filebase + '.xyz')
+        os.system(charmming_config.data_home + '/genrtf-v3.3b -s ' + self.name + ' -x ' + filebase + '.xyz')
 
         # Run the GENRTF generated inp script through CHARMMing b/c the residue names/ids have changed.
         # so we can't trust the original PDB any more.
