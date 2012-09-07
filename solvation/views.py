@@ -127,6 +127,10 @@ def solvate_tpl(request,solvTask,pTaskID):
     template_dict['angles'] = "%5.2f %5.2f %5.2f" % (solvTask.angles[0],solvTask.angles[1],solvTask.angles[2])
     template_dict['topology_list'], template_dict['parameter_list'], junk = workingstruct.getTopparList()
     template_dict['solvation_structure'] = solvTask.solvation_structure
+    if workingstruct.topparStream:
+        template_dict['tpstream'] = workingstruct.topparStream.split()
+    else:
+        template_dict['tpstream'] = []
 
     pTask = Task.objects.get(id=pTaskID)
     template_dict['input_file'] = solvTask.workstruct.identifier + '-' + pTask.action

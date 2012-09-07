@@ -62,6 +62,10 @@ def neutralize_tpl(solvTask,postdata):
     template_dict['ntrials'] = ntrials
     template_dict['solvation_structure'] = solvTask.solvation_structure
     template_dict['fname'] = workingstruct.identifier
+    if workingstruct.topparStream:
+        template_dict['tpstream'] = workingstruct.topparStream.split()
+    else:
+        template_dict['tpstream'] = []
 	
     t = get_template('%s/mytemplates/input_scripts/neutralize_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
