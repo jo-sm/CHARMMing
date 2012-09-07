@@ -26,6 +26,12 @@ wrnlev 1
 {% endfor %}blankme
 wrnlev 5
 
+{% if tpstream %} blankme
+   {% for item in tpstream %} blankme
+      stream {{item}}
+   {% endfor %} blankme
+{% endif %} blankme
+
 {% if useqmmm %} blankme
 read param card append
 * QM/MM parameters (for link atom)
@@ -61,3 +67,5 @@ qqh    0.000000   0.000000     0.000000 ! Link atom
 
 end
 {% endif %}blankme
+
+
