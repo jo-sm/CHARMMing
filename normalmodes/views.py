@@ -128,6 +128,12 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
     template_dict['input_file'] = workstruct.identifier + '-' + pTask.action
     template_dict['topology_list'], template_dict['parameter_list'], junk = workstruct.getTopparList()
     template_dict['nma'] = request.POST['nma']
+    if workstruct.topparStream:
+        template_dict['tpstream'] = workstruct.topparStream.split()
+    else:
+        template_dict['tpstream'] = []
+
+
     # save model
     if template_dict['nma'] == 'useenm':
         nmTask.type = 2
@@ -215,6 +221,11 @@ def makeNmaMovie_tpl(workstruct,postdata,num_trjs,typeoption,nmm):
     template_dict['filebase'] = workstruct.identifier
     template_dict['typeoption'] = typeoption
     template_dict['num_trjs'] = str(num_trjs)
+    if workstruct.topparStream:
+        template_dict['tpstream'] = workstruct.topparStream.split()
+    else:
+        template_dict['tpstream'] = []
+
 
     #Run the script through charmm, this is not done under job queue at the moment
     #because the PDBs must be appended together after the above script has been run.

@@ -122,6 +122,10 @@ def minimize_tpl(request,mp,pTaskID):
     # template dictionary passes the needed variables to the template 
     template_dict = {}
     template_dict['topology_list'], template_dict['parameter_list'], junk = mp.workstruct.getTopparList()
+    if mp.workstruct.topparStream:
+        template_dict['tpstream'] = mp.workstruct.topparStream.split()
+    else:
+        template_dict['tpstream'] = []
     template_dict['output_name'] = mp.workstruct.identifier + '-minimization'
 
     pTask = Task.objects.filter(id=pTaskID)[0]
