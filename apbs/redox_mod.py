@@ -73,9 +73,8 @@ def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, location, identifier, pdb_me
     # Mutate Residue if Exist
     if mutid != 0: turnOffChgs(rtf,thisMol,mutid)
     # Write out structure
-    #print het
-    het.sort(key=lambda tup: tup[4])
-    #print het
+    a=thisMol
+    a.sort()
     for seg in thisMol.iter_seg():
         stdoutList.append('%s-%s' % (seg.chainid, seg.segType))
         name = '%s/redox-%s-%s-%s_o.pdb' % (location, identifier, seg.chainid, seg.segType)
@@ -89,6 +88,8 @@ def fesSetup(thisMol, clusnameo, rtf, clusn, mutid, location, identifier, pdb_me
     # Mutate Residue if Exist
     if mutid != 0: turnOffChgs(rtf,thisMol,mutid)
     # Write out structure
+    #a=thisMol
+    #a.sort()
     for seg in thisMol.iter_seg():
         stdoutList.append('%s-%s' % (seg.chainid, seg.segType))
         name = '%s/redox-%s-%s-%s_r.pdb' % (location, identifier, seg.chainid, seg.segType)
@@ -221,6 +222,7 @@ def renameLigands(pdb_metadata,thisMol,het,clusname,numFe,cysDict):
         for cys in cysid:
             # TO USE MULTIPLE CHAINS/CLUSTER,NEED TO SET CHAIN ID TO THAT OF THE ATOM
             for atom in thisMol.find(resid=cys,chainid=res.chainid):
+                pos=4
                 if atom.atomType==' cb ':
                     temp = deepcopy(atom)
                     temp.atomType = ' cb'+str(c)
