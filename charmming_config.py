@@ -32,6 +32,10 @@ user_home = "/home/schedd"
 # place where executables etc. are kept
 data_home = "/usr/local/charmming"
 
+# Where AmberTools lives -- used for Antechamber topology/parameter
+# determination.
+amber_home = "/usr/local/charmming/amber12"
+
 # methods to use to try to generate topology/parameters for BADHET
 # atoms. These methods will be tried in order until one succeeds 
 # (or they all fail).
