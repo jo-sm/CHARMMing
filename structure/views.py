@@ -631,6 +631,11 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     template_dict['topology_list'], template_dict['parameter_list'], junk = workstruct.getTopparList()
     template_dict['output_name'] = workstruct.identifier + '-ener'
     template_dict['input_file'] = workstruct.identifier + '-' + pTask.action
+    if workstruct.topparStream:
+        template_dict['tpstream'] = workstruct.topparStream.split()
+    else:
+        template_dict['tpstream'] = []
+
 
     eobj.finale = 0.0
 

@@ -28,7 +28,7 @@ from normalmodes.aux import parseNormalModes, getNormalModeMovieNum
 from pychm.cg.sansombln import SansomBLN
 from httplib import HTTPConnection
 import charmming_config, input
-import commands, datetime, sys, re, os, glob, smtplib
+import commands, datetime, sys, re, os, glob, shutil
 import normalmodes, dynamics, minimization
 import solvation, lessons.models, apbs, lesson1, lesson2, lesson3, lesson4, lesson, lessonaux
 import string, output, charmming_config
@@ -37,6 +37,7 @@ import cPickle, copy, traceback, socket
 import pychm.io, pychm.lib, pychm.cg
 import pychm.future.lib.toppar as pychm_toppar
 from pychm.future.io.charmm import open_rtf, open_prm
+from pychm.io.mol2 import MOL2File
 
 class Structure(models.Model):
 
@@ -242,6 +243,7 @@ class Segment(models.Model):
     default_patch_last  = models.CharField(max_length=100)
     rtf_list    = models.CharField(max_length=500)
     prm_list    = models.CharField(max_length=500)
+    stream_list = models.CharField(max_length=500, null=True)
     is_working  = models.CharField(max_length=1,default='n')
     fes4        = models.BooleanField(default=False) # a bit of a hack, but it makes the views code easier
 
@@ -352,6 +354,7 @@ class WorkingSegment(Segment):
         logfp = open('/tmp/genUniqueResidues.txt', 'w')
         logfp.write('my name is %s\n' % self.name)
 
+        letters = 'abcdefghijklmnopqrstuvwxyz'
         badResList = []
         found = False
         for seg in mol.iter_seg():
@@ -359,12 +362,47 @@ class WorkingSegment(Segment):
             if seg.segid == self.name:
                 found = True
                 break
-        logfp.close()
         if not found:
             raise AssertionError('Asked to operate on a nonexistent segment!')
 
         for residue in seg.iter_res():
+
+            # if autogenerating, check if we know about this residue and add it to the stream
+            if self.tpMethod == 'autogen':
+                if residue.resName == 'hem':
+                    if self.stream_list:
+                        self.stream_list += ' %s/toppar/stream/toppar_all22_prot_heme.str' % charmming_config.data_home
+                    else:
+                        self.stream_list = '%s/toppar/stream/toppar_all22_prot_heme.str' % charmming_config.data_home
+
+                    if self.rtf_list:
+                         self.rtf_list += ' %s/toppar/top_all27_prot_na.rtf' % charmming_config.data_home
+                    else:
+                         self.rtf_list = '%s/toppar/top_all27_prot_na.rtf' % charmming_config.data_home
+                    if self.prm_list:
+                         self.prm_list += ' %s/toppar/par_all27_prot_na.prm' % charmming_config.data_home
+                    else:
+                         self.prm_list = '%s/toppar/par_all27_prot_na.prm' % charmming_config.data_home
+
+                    self.save()
+                    continue
+                ## add more residues that we have stream files for here ##
+
+            doitnow = True
             if residue.resName not in badResList:
+                logfp.write('--> considering residue %s badRes = %s\n' % (residue.resName,badResList))
+                for stuff in badResList:
+                    for letter in letters:
+                        mytest = letter + stuff
+                        logfp.write('---> checking to make sure %s is not what we seek\n' % mytest)
+                        if mytest == residue.resName:
+                            logfp.write('It is, continuing\n')
+                            ##BTM, have to be careful about whether we want to nuke these.
+                            ##doitnow = False
+
+                if not doitnow:
+                    continue
+                
                 badResList.append(residue.resName)
                 filename_noh = self.structure.location + '/' + self.name + '-badres-' + residue.resName + ".pdb"
                 filename_sdf = self.structure.location + '/' + self.name + '-badres-h-' + residue.resName + ".sdf"
@@ -373,13 +411,13 @@ class WorkingSegment(Segment):
 
                 # shiv to try to get an SDF file for the residue
                 conn = HTTPConnection("www.pdb.org")
-                logfp = open('/tmp/sdf.txt', 'w')
+                mylogfp = open('/tmp/sdf.txt', 'w')
                 reqstring = "/pdb/files/ligand/%s_ideal.sdf" % residue.resName.upper()
-                logfp.write("reqstring = %s\n" % reqstring)
+                mylogfp.write("reqstring = %s\n" % reqstring)
                 conn.request("GET", reqstring)
                 resp = conn.getresponse()
                 if resp.status == 200:
-                    logfp.write('OK\n')
+                    mylogfp.write('OK\n')
                     sdf_file = resp.read()
 
                     outfp = open(filename_sdf, 'w')
@@ -388,12 +426,35 @@ class WorkingSegment(Segment):
 
                     pdb_rewrite = self.structure.location + '/segment-' + seg.segid + '.pdb'
                     os.system("babel --title %s -isdf %s -omol2 %s" % (residue.resName,filename_sdf,filename_h))
+
+                    # try to convert the names in the MOL2 to match those in the PDB.
+                    pdbmol = pychm.io.pdb.get_molFromPDB(self.structure.location + '/segment-' + self.name + '.pdb')
+                    mymol2 = MOL2File(filename_h)
+                    molmol = mymol2.mol
+                    j = 0
+                    for i, pdbatom in enumerate(pdbmol):
+                        if pdbatom.resName != residue.resName.lower():
+                            continue
+                        if pdbatom.atomType.startswith('H'):
+                            break
+                        molatom = molmol[j]
+                        j = j + 1
+
+                        # This is for debug purposes only
+                        if pdbatom.atomType.strip()[0] != molatom.atomType.strip()[0]:
+                            raise(Exception('Mismatched atom types'))
+                        molatom.atomType = pdbatom.atomType.strip()
+
+                    molmol.write(filename_h, outformat='mol2', header=mymol2.header, bonds=mymol2.bonds)
+
                     ##os.system("babel --title %s -isdf %s -opdb %s" % (residue.resName,filename_sdf,pdb_rewrite))
                 else:
-                    logfp.write('No: use PDB\n')
+                    mylogfp.write('No: use PDB\n')
                     os.system("babel -h --title %s -ipdb %s -omol2 %s" % (residue.resName,filename_noh,filename_h))
-                logfp.close()
+                    os.system("babel -h --title %s -ipdb %s -osdf %s" % (residue.resName,filename_noh,filename_sdf))
+                mylogfp.close()
           
+        logfp.close()
         return badResList
 
     # This method will handle the building of the segment, including
@@ -412,39 +473,43 @@ class WorkingSegment(Segment):
                 break
 
         # see if we need to build any topology or param files
-        if self.tpMethod == 'autogen':
-            logfp = open('/tmp/autogen.txt', 'w')
+        if self.type == 'bad':
             bhResList = self.getUniqueResidues(mol)
 
-            success = False
-            for tpmeth in charmming_config.toppar_generators.split(','):
-                logfp.write('trying method: %s\n' % tpmeth)
-                if tpmeth == 'genrtf':
-                    rval = self.makeGenRTF()
-                elif tpmeth == 'antechamber':
-                    rval = self.makeAntechamber()
-                elif tpmeth == 'cgenff':
-                    rval = self.makeCGenFF(bhResList)
-                elif tpmeth == 'match':
-                    rval = self.makeMatch(bhResList)
+            if len(bhResList) > 0:
+                if self.tpMethod == 'autogen':
+                    logfp = open('/tmp/autogen.txt', 'w')
 
-                logfp.write('got rval = %d\n' % rval)
-                if rval == 0:
-                    success = True
-                    break
+                    success = False
+                    for tpmeth in charmming_config.toppar_generators.split(','):
+                        logfp.write('trying method: %s\n' % tpmeth)
+                        if tpmeth == 'genrtf':
+                            rval = self.makeGenRTF(bhResList)
+                        elif tpmeth == 'antechamber':
+                            rval = self.makeAntechamber(bhResList)
+                        elif tpmeth == 'cgenff':
+                            rval = self.makeCGenFF(bhResList)
+                        elif tpmeth == 'match':
+                            rval = self.makeMatch(bhResList)
+
+                        logfp.write('got rval = %d\n' % rval)
+                        if rval == 0:
+                            success = True
+                            break
      
-            logfp.close()
-            if not success:
-               raise AssertionError('Unable to build topology/parameters')
+                    logfp.close()
+                    if not success:
+                         raise AssertionError('Unable to build topology/parameters')
 
-        elif self.tpMethod == 'dogmans':
-            rval = self.makeCGenFF(bhResList)
-        elif self.tpMethod == 'match':
-            rval = self.makeMatch(bhResList)
-        elif self.tpMethod == 'antechamber':
-            rval = self.makeAntechamber()
-        elif self.tpMethod == 'genrtf':
-            rval = self.makeGenRTF()
+                elif self.tpMethod == 'dogmans':
+                     rval = self.makeCGenFF(bhResList)
+                elif self.tpMethod == 'match':
+                     rval = self.makeMatch(bhResList)
+                elif self.tpMethod == 'antechamber':
+                    rval = self.makeAntechamber(bhResList)
+                elif self.tpMethod == 'genrtf':
+                    rval = self.makeGenRTF(bhResList)
+        # ennd if self.type == 'bad' 
         
 
         # done top/par file building
@@ -457,6 +522,16 @@ class WorkingSegment(Segment):
         template_dict['patch_last'] = self.patch_last
         template_dict['segname'] = self.name
         template_dict['outname'] = self.name + '-' + str(self.id)
+        if self.stream_list:
+            template_dict['tpstream'] = [x for x in self.stream_list.split()]
+        else:
+            template_dict['tpstream'] = []
+
+        mylogfp = open('/tmp/maketemplate.txt', 'w')
+        mylogfp.write('%s\n' % template_dict['topology_list'])
+        mylogfp.write('%s\n' % template_dict['parameter_list'])
+        mylogfp.close()
+
         if self.type == 'good':
             template_dict['doic']      = False
             template_dict['noangdihe'] = 'noangle nodihedral'
@@ -586,23 +661,23 @@ class WorkingSegment(Segment):
             prmfp.close()
        
             # we need to adjust the naming conventions in the PDB            
-            with open_rtf('%s/%s-%s-dogmans.rtf' % (self.structure.location,self.name,badRes)) as rtffp:
-                new_tp = pychm_toppar.Toppar()
-                rtffp.export_to_toppar(new_tp)
-
-                name_list = []
-                if new_tp.residue is not None:
-                    name_list += [ resi.name for resi in new_tp.residue ]
-                if new_tp.patch is not None:
-                    name_list += [ resi.name for resi in new_tp.patch ]
-
-                pdbname = self.structure.location + '/segment-' + self.name + '.pdb'
-                molobj = pychm.io.pdb.get_molFromPDB(pdbname)
-                for res in molobj.iter_res():
-                    if res.resName in name_list:
-                         res._dogmans_rename()
-
-                molobj.write(pdbname)
+            #with open_rtf('%s/%s-%s-dogmans.rtf' % (self.structure.location,self.name,badRes)) as rtffp:
+            #    new_tp = pychm_toppar.Toppar()
+            #    rtffp.export_to_toppar(new_tp)
+            #
+            #    name_list = []
+            #    if new_tp.residue is not None:
+            #        name_list += [ resi.name for resi in new_tp.residue ]
+            #    if new_tp.patch is not None:
+            #        name_list += [ resi.name for resi in new_tp.patch ]
+            #
+            #    pdbname = self.structure.location + '/segment-' + self.name + '.pdb'
+            #    molobj = pychm.io.pdb.get_molFromPDB(pdbname)
+            #    for res in molobj.iter_res():
+            #        if res.resName in name_list:
+            #             res._dogmans_rename()
+            #
+            #    molobj.write(pdbname)
 
 
             self.rtf_list += ' %s-%s-dogmans.rtf' % (self.name,badRes)
@@ -612,7 +687,6 @@ class WorkingSegment(Segment):
         logfp.write('All looks OK\n')
         logfp.close()
         return 0
-
 
 
     def makeMatch(self, badResList):
@@ -635,6 +709,7 @@ class WorkingSegment(Segment):
             status, output = commands.getstatusoutput(exe_line)
             if status != 0:
                 logfp.write("sorry ... nonzero status :-(\n")
+                logfp.write(output + '\n')
                 logfp.close()
                 return -1
 
@@ -649,7 +724,7 @@ class WorkingSegment(Segment):
         return 0
 
     # Tim Miller, make hetid RTF/PRM using antechamber
-    def makeAntechamber(self):
+    def makeAntechamber(self,badResList):
 
         logfp = open('/tmp/ac.log', 'w')
         logfp.write('In makeAntechamber.\n')
@@ -657,118 +732,161 @@ class WorkingSegment(Segment):
         os.putenv("AMBERHOME", charmming_config.amber_home)
         os.chdir(self.structure.location)
 
-        fname = "segment-" + self.name
-        acbase = "antechamber-" + fname 
-        acname = acbase + ".ac"
+        for badRes in badResList:
 
-        cmd = charmming_config.amber_home + "/bin/antechamber -j 5 -fi pdb -i " + \
-              fname + ".pdb -fo ac -o " + acbase + ".ac"
-        logfp.write(cmd + '\n')
-        status = os.system(cmd)
-        if status != 0:
-            # debug purposes only
-            #raise("Antechamber screwed up!")
-            return -1
+            basefile = '%s-badres-h-%s' % (self.name,badRes)
+            mol2file = basefile + '.mol2'
+            cinpfile = basefile + '.inp'
+            rtffile = basefile + '.rtf'
+            prmfile = basefile + '.prm'
 
-        try:
-            # see if output file exists
-            os.stat(acbase + '.ac')
-        except:
-            return -1
+            cmd = charmming_config.amber_home + "/bin/antechamber -an n -rn " + badRes + \
+                  " -fi mol2 -i " + mol2file + " -fo charmm -o " + basefile
+            logfp.write(cmd + '\n')
+            status = os.system(cmd)
+            if status != 0:
+                # debug purposes only
+                # raise("Antechamber screwed up!")
+                return -1
 
-        cmd = charmming_config.amber_home + "/bin/charmmgen -f ac -i " + \
-              acbase + ".ac -o " + acbase + " -s " + self.name
-        logfp.write(cmd + '\n')
-        status = os.system(cmd)
-        if status != 0:
-            # also for debug purposes only
-            #raise("Charmmgen screwed up!")
-            return -1
-        # run through CHARMM since Antechamber changes the residue IDs
-        cmd = charmming_config.charmm_exe + " < " + acbase + ".inp > " + \
-              acbase + ".out"
-        logfp.write(cmd + '\n')
-        os.system(cmd)
+            try:
+                # see if output file exists
+                os.stat(cinpfile)
+                os.stat(rtffile)
+                os.stat(prmfile)
+            except:
+                logfp.write('No CHARMM input file produced!\n')
+                return -1
 
-        # set the newly generated RTF/PRM to be used.
-        self.rtf_list = acbase + ".rtf"
-        self.prm_list = acbase + ".prm"
+            # set the newly generated RTF/PRM to be used.
+            if self.rtf_list:
+                self.rtf_list += " " + rtffile
+            else:
+                self.rtf_list = rtffile
+            if self.prm_list:
+               self.prm_list += " " + prmfile
+            else:
+               self.prm_list = prmfile
+
         self.save()
         logfp.close()
         return 0
 
-    #pre:requires a list of het segids
-    #This will run genRTF through the non-compliant hetatms
-    #and make topology files for them
-    def makeGenRTF(self):
+    # This will run genRTF through the non-compliant hetatms
+    # and make topology files for them
+    def makeGenRTF(self,badResList):
         os.chdir(self.structure.location)
 
-        filebase = 'segment-' + self.name
-        filename = filebase + '.pdb'
+        my_gentop = []
+        my_genpar = []
+        for badRes in badResList:
+            filebase = self.name + '-badres-h-' + badRes
+            sdffname = filebase + '.sdf'
+            pdbfname = 'segment-' + self.name + '.pdb'
 
-        # BABEL gets called to put Hydrogen positions in for the bonds
-        os.system('/usr/bin/babel -ipdb ' + filename + ' -oxyz ' + filebase + '.xyz -h')
-        os.system(charmming_config.data_home + '/genrtf-v3.3b -s ' + self.name + ' -x ' + filebase + '.xyz')
+            # BABEL gets called to put Hydrogen positions in for the bonds
+            os.system('/usr/bin/babel -isdf ' + sdffname + ' -oxyz ' + filebase + '.xyz')
+            logfp = open('/tmp/genrtfcmd.txt', 'w')
+            logfp.write(charmming_config.data_home + '/genrtf-v3.3c -s ' + self.name + ' -r ' + badRes + ' -x ' + filebase + '.xyz\n')
+            logfp.close()
+            os.system(charmming_config.data_home + '/genrtf-v3.3c -s ' + self.name + ' -r ' + badRes + ' -x ' + filebase + '.xyz')
 
-        # Run the GENRTF generated inp script through CHARMMing b/c the residue names/ids have changed.
-        # so we can't trust the original PDB any more.
-        os.system(charmming_config.charmm_exe + ' < ' + filebase + '.inp > ' + filebase + '.out')
+            # Run the GENRTF generated inp script through CHARMMing b/c the residue names/ids have changed.
+            # so we can't trust the original PDB any more.
+            shutil.copy(pdbfname,'%s.bak' % pdbfname)
+            os.system(charmming_config.charmm_exe + ' < ' + filebase + '.inp > ' + filebase + '.out')
 
-        #The new rtf filename will look like genrtf-filename.rtf
-        self.rtf_list = "genrtf-" + self.name + "-" + str(self.id) + ".rtf"
-        self.save()
-        genrtf_handle = open(filebase + ".inp",'r')
-        rtf_handle = open(self.structure.location + '/' + self.rtf_list, 'w')
+            #The new rtf filename will look like genrtf-filename.rtf
+            my_gentop.append(filebase + ".rtf")
+            genrtf_handle = open(filebase + ".inp",'r')
+            rtf_handle = open(self.structure.location + '/' + filebase + '.rtf', 'w')
 
-        #Now the input file will be parsed for the rtf lines
-        #The RTF files start with read rtf card append and end with End
-	rtf_handle.write('* Genrtf \n*\n')
-        rtf_handle.write('   28\n\n') # need the CHARMM version under which this was generated, c28 is OK.
-        mass_start = False
-        logfp = open('/tmp/genrtf.txt', 'w')
+            #Now the input file will be parsed for the rtf lines
+            #The RTF files start with read rtf card append and end with End
+            rtf_handle.write('* Genrtf \n*\n')
+            rtf_handle.write('   28 1\n\n') # need the CHARMM version under which this was generated, c28 is OK.
+            mass_start = False
+            logfp = open('/tmp/genrtf.txt', 'w')
 
-        for line in genrtf_handle:
-            logfp.write(line)
-            if "MASS" in line:
-                logfp.write('got mass!\n')
-                mass_start = True
-                rtf_handle.write(line)
-            elif "End" in line or "END" in line:
-                logfp.write('got end!\n')
-		rtf_handle.write(line)
-		break
-	    elif mass_start:
-                rtf_handle.write(line)
-        rtf_handle.close()
+            for line in genrtf_handle:
+                logfp.write(line)
+                if "MASS" in line:
+                    logfp.write('got mass!\n')
+                    mass_start = True
+                    rtf_handle.write(line)
+                elif "End" in line or "END" in line:
+                    logfp.write('got end!\n')
+		    rtf_handle.write(line)
+		    break
+	        elif mass_start:
+                    rtf_handle.write(line)
+            rtf_handle.close()
 
-        #now for the Paramter files
-        #The new prm filename will look like genrtf-filename.prm
-        self.prm_list = "genrtf-" + self.name + '-' + str(self.id) + ".prm"
-        self.save()
-        prm_handle = open(self.structure.location + '/' + self.prm_list, 'w')
+            #now for the Paramter files
+            #The new prm filename will look like genrtf-filename.prm
+            if self.prm_list:
+                self.prm_list += ' '
+            self.prm_list += filebase + ".prm"
+            self.save()
+            my_genpar.append(filebase + ".prm")
+            prm_handle = open(self.structure.location + '/' + filebase + '.prm', 'w')
 
-        #Now the input file will be parsed for the prm lines
-        #The PRM files start with read prm card append and end with End
-        prm_handle.write('* Genrtf \n*\n\n')
-        continue_to_write = False
+            #Now the input file will be parsed for the prm lines
+            #The PRM files start with read prm card append and end with End
+            prm_handle.write('* Genrtf \n*\n\n')
+            continue_to_write = False
        
-        for line in genrtf_handle:
-            logfp.write(line)
+            for line in genrtf_handle:
+                logfp.write(line)
 
-            if line.upper().startswith("BOND"):
-                logfp.write('Got BOND Line!\n')
-                prm_handle.write(line)
-                continue_to_write = True
-            elif line.upper().startswith("END"):
-                logfp.write('Got END Line!\n')
-                prm_handle.write(line)
-                continue_to_write = False
-                break
-            elif continue_to_write:
-                prm_handle.write(line)
+                if line.upper().startswith("BOND"):
+                    logfp.write('Got BOND Line!\n')
+                    prm_handle.write(line)
+                    continue_to_write = True
+                elif line.upper().startswith("END"):
+                    logfp.write('Got END Line!\n')
+                    prm_handle.write(line)
+                    continue_to_write = False
+                    break
+                elif continue_to_write:
+                    prm_handle.write(line)
 	    
-        prm_handle.close()
-        genrtf_handle.close()
+            prm_handle.close()
+            genrtf_handle.close()
+        # end large for loop over all badres
+
+        # hack alert, recombine all of the bad RTF and PRMs because GENRTF
+        # does not generate flexible stuff.  
+        if len(my_gentop) != len(my_genpar):
+            raise("Funny list lengths from GENRTF!")
+
+        if len(badResList) > 1:
+            final_toppar = pychm_toppar.Toppar()
+            final_tfile  = open_rtf('genrtf-%s.rtf' % self.name, 'w')
+            final_pfile  = open_prm('genrtf-%s.prm' % self.name, 'w')
+            
+            for i in range(len(my_gentop)):
+                tmp_rtf = open_rtf(my_gentop[i], 'r')
+                tmp_prm = open_prm(my_genpar[i], 'r')
+                tmp_rtf.export_to_toppar(final_toppar)
+                tmp_prm.export_to_toppar(final_toppar)
+                tmp_rtf.close()
+                tmp_prm.close()
+
+            final_tfile.import_from_toppar(final_toppar)
+            final_pfile.import_from_toppar(final_toppar)
+            final_tfile.write_all()
+            final_pfile.write_all()
+            self.rtf_list = 'genrtf-%s.rtf' % self.name
+            self.prm_list = 'genrtf-%s.prm' % self.name
+        else:
+            self.rtf_list = my_gentop[0]
+            self.prm_list = my_genpar[0]
+
+        logfp = open('/tmp/lengthlist.txt', 'w')
+        logfp.write('%s\n' % self.rtf_list)
+        logfp.write('%s\n' % self.prm_list)
+        logfp.close()
         return 0
 
 
@@ -791,6 +909,9 @@ class WorkingStructure(models.Model):
     # stuff).
     finalTopology = models.CharField(max_length=50,null=True)
     finalParameter = models.CharField(max_length=50,null=True)
+
+    # see if we have any toppar stream files
+    topparStream = models.CharField(max_length=500,null=True)
 
     # lesson
     lesson = models.ForeignKey(lessons.models.Lesson,null=True)
@@ -945,6 +1066,8 @@ class WorkingStructure(models.Model):
                 # respective lists.
                 rtflist = segobj.rtf_list.split(' ')
                 prmlist = segobj.prm_list.split(' ')
+                logfp.write('rtflist = %s\n' % rtflist)
+                logfp.write('prmlist = %s\n' % prmlist)
                 if len(rtflist) != len(prmlist):
                     logfp.write('Problem: rtf list length %d prm list length %d\n' % (len(rtflist),len(prmlist)))
                     raise Exception("Strange list lengths")
@@ -1043,7 +1166,17 @@ class WorkingStructure(models.Model):
                 if not segobj.redox:
                     tdict['seg_list'].append(segobj)
 
+                if segobj.stream_list:
+                    if self.topparStream:
+                        self.topparStream += ' %s' % segobj.stream_list
+                    self.topparStream = segobj.stream_list
+                    self.save()
+
         tdict['topology_list'], tdict['parameter_list'], qrebuild = self.getTopparList()
+        if self.topparStream:
+            tdict['tpstream'] = self.topparStream.split()
+        else:
+            tdict['tpstream'] = []
         tdict['patch_lines'] = self.getAppendPatches()
 
         logfp = open('/tmp/buildLog.txt', 'w')
@@ -1394,7 +1527,7 @@ class Task(models.Model):
     parent      = models.ForeignKey('self',null=True)
     status      = models.CharField(max_length=1, choices=STATUS_CHOICES)
     jobID       = models.PositiveIntegerField()
-    scripts     = models.CharField(max_length=500,null=True)
+    scripts     = models.CharField(max_length=1024,null=True)
     active      = models.CharField(max_length=1)
     finished    = models.CharField(max_length=1)
 
