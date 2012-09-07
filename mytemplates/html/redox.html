@@ -20,11 +20,12 @@
     <h2 align="center">Results of previous submission:</h2>
     <center>
     <table>
-       <tr><td>&Delta;<i>G</i><sub>sol</sub>(Oxidized)</td><td>{{ oxipot }}</td></tr>
-       <tr><td>&Delta;<i>G</i><sub>sol</sub>(Oxidized-ref)</td><td>{{ oxipotref }}</td></tr>
-       <tr><td>&Delta;<i>G</i><sub>sol</sub>(modified)</td><td>{{ modpot }}</td></tr>
-       <tr><td>&Delta;<i>G</i><sub>sol</sub>(modified-ref)</td><td>{{ modpotref }}</td></tr>
-       <tr><td><i>E</i>&#176</td><td>{{ finres }}</td></tr>
+       <tr><td>&Delta;<i>G</i><sub>sol</sub>(Oxidized)</td><td>{{ oxipot|rjust:"0"|floatformat:0 }}</td><td>kJ/mol</td></tr>
+       <tr><td>&Delta;<i>G</i><sub>sol</sub>(Oxidized-ref)</td><td>{{ oxipotref|floatformat:0|rjust:"0" }}</td><td>kJ/mol</td></tr>
+       <tr><td>&Delta;<i>G</i><sub>sol</sub>(modified)</td><td>{{ modpot|floatformat:0|rjust:"0" }}</td><td>kJ/mol</td></tr>
+       <tr><td>&Delta;<i>G</i><sub>sol</sub>(modified-ref)</td><td>{{ modpotref|floatformat:0|rjust:"0" }}</td><td>kJ/mol</td></tr>
+       <tr><td>&Delta;<i>G</i><sub>in</sub></td><td>{{ ade|rjust:"0" }}</td><td>kJ/mol</td></tr>
+       <tr><td><i>E</i>&#176</td><td>{{ finres|floatformat:3|rjust:"0" }}</td><td>V</td></tr>
     </table>
     </center>
   {% endif %}

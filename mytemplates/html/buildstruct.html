@@ -117,7 +117,7 @@
            {% if proto_list %}
                <p>Modify protonation states of titratable residues <input type="checkbox" name="proto_box" id="proto_box" onclick="showHideProto();" /></p>
 
-               <div id="protonation">  
+               <div id="protonation" style="display:none;">  
                <table align="center" cellspacing="2" cellpadding="2">
                <tr><td>SEGID</td><td>Residue Number</td><td>Protonation State</td></tr>
                {% for pproto in proto_list %}
