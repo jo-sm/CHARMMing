@@ -162,6 +162,11 @@ def applyld_tpl(request,ldt,pTaskID):
     template_dict['nstep'] = postdata['nstep']
     template_dict['usesgld'] = postdata.has_key('usesgld')
     template_dict['identifier'] = ldt.workstruct.identifier
+    if ldt.workstruct.topparStream:
+        template_dict['tpstream'] = ldt.workstruct.topparStream.split()
+    else:
+        template_dict['tpstream'] = []
+
 
     if int(template_dict['nstep']) > charmming_config.dyna_steplimit:
         return output.returnSubmission('LD', error='Dynamics has a limit of %d steps.' % charmming_config.dyna_steplimit)
@@ -288,6 +293,11 @@ def applymd_tpl(request,mdt,pTaskID):
     template_dict = {}     
     template_dict['topology_list'], template_dict['parameter_list'], junk = mdt.workstruct.getTopparList()
     template_dict['output_name'] = mdt.workstruct.identifier + '-md'
+    if mdt.workstruct.topparStream:
+        template_dict['tpstream'] = mdt.workstruct.topparStream.split()
+    else:
+        template_dict['tpstream'] = []
+
 
     pTask = Task.objects.get(id=pTaskID)
     template_dict['input_file'] = mdt.workstruct.identifier + '-' + pTask.action
