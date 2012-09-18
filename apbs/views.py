@@ -127,6 +127,8 @@ def redoxformdisplay(request):
         modpot = 'N/A'
         modpotref = 'N/A'
         delg = "N/A"
+        ade = "N/A"
+        she = "N/A"
         delgnf = "N/A"
         finres = "N/A"
 
@@ -190,15 +192,16 @@ def redoxformdisplay(request):
             rp = apbs.models.redoxTask.objects.filter(workstruct=ws, action='redox', active='y', finished='y')[0]
             ade = 0.0
             delg = 0.0
+            she = 4.43
             if rp.redoxsite == 'couple_oxi':
                 delg = modpot - modpotref - oxipot + oxipotref
-                ade = 0.273
+                ade = -0.273
             elif rp.redoxsite == 'couple_red':
                 delg = oxipot - oxipotref - modpot + modpotref
-                ade = -3.543
+                ade = 3.543
 
             delgnf = delg * (-4.184/96.485)
-            finres = delgnf - 4.43 + ade
+            finres = delgnf - she - ade
     
         # Django's template language doesn't handle ranges well, so this is a hack to display
         # the correct number of redox sites for each segment.
@@ -207,7 +210,7 @@ def redoxformdisplay(request):
              rn[k] = range(1,redox_nums[k]+1)
         return django.shortcuts.render_to_response('html/redox.html', {'redox_segs': redox_segs, 'noredox': noredox, 'print_result': print_result, \
                                                                        'oxipot': oxipot, 'oxipotref': oxipotref, 'modpot': modpot, 'modpotref': modpotref, \
-                                                                       'delg': delg, 'delgnf': delgnf, 'ade':ade, 'finres': finres, \
+                                                                       'delg': delg, 'delgnf': delgnf, 'ade':ade, 'finres': finres, 'she':she, \
                                                                        'redox_nums': rn, 'ws_identifier': ws.identifier})
 
 def genstruct_old_tpl(request,file,scriptlist):
