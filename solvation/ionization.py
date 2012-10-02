@@ -87,7 +87,7 @@ def neutralize_tpl(solvTask,postdata):
             t2_dict['angles'] = "60.0 90.0 60.0"
         elif solvTask.solvation_structure == 'hexa':
             t2_dict['angles'] = "90.0 90.0 120.0"
-        elif solvTask.solvation_structure in ['cube','tetr']:
+        elif solvTask.solvation_structure in ['cube','cubic','tetr']:
             t2_dict['angles'] = "90.0 90.0 90.0"
         else:
             raise AssertionError("Unknown XTL type %s" % solvTask.solvation_structure)
