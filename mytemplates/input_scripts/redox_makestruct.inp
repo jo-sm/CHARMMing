@@ -13,7 +13,9 @@ read param card name {{prm}}
 {% endfor %} blankme
 
 {% if needpatch %}
-   patch {{presname}} {{segresid}} setup
+  {% for red in reds %}
+     patch {{red.presname}} {{red.segresid}} setup
+  {% endfor %}
 {% endif %}
 
 {% for seg in segs %} blankme

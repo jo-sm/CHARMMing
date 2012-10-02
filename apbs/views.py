@@ -195,10 +195,10 @@ def redoxformdisplay(request):
             she = 4.43
             if rp.redoxsite == 'couple_oxi':
                 delg = modpot - modpotref - oxipot + oxipotref
-                ade = -0.273
+                ade = -0.232
             elif rp.redoxsite == 'couple_red':
-                delg = oxipot - oxipotref - modpot + modpotref
-                ade = 3.543
+                delg = modpot - modpotref - oxipot + oxipotref #oxipot - oxipotref - modpot + modpotref
+                ade = 3.453
 
             delgnf = delg * (-4.184/96.485)
             finres = delgnf - she - ade
@@ -271,7 +271,7 @@ def genstruct_old_tpl(request,file,scriptlist):
         
     return finalseglist
 
-def getdelg_tpl(request,workstruct,redoxTask,knockout):
+def getdelg_tpl(request,workstruct,redoxTask,knockout,redoxSite):
     td = {}
     try:
         td['srad'] = float(request.POST['srad'])
@@ -284,6 +284,7 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout):
     td['data_home'] = charmming_config.data_home
     td['filebase'] = 'redox-%s' % workstruct.identifier
     td['knockout'] = knockout
+    td['siteid'] = redoxSite
 
     # step 1: generate final grids for full system and redox site
     # a. full sys
@@ -357,6 +358,7 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout):
     td['rdiel'] = 'rdiel'
     td['pdie'] = 4
     td['sdie'] = 78
+    td['site_only'] = False
     td['enefile'] = 'redox-%s-oxipot.txt' % workstruct.identifier
     inp_filename = 'redox-%s-oxipot.inp' % workstruct.identifier
 
@@ -372,6 +374,7 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout):
     td['rdiel'] = ''
     td['pdie'] = 1
     td['sdie'] = 1
+    td['site_only'] = True
     td['enefile'] = 'redox-%s-oxipotref.txt' % workstruct.identifier
     inp_filename = 'redox-%s-oxipotref.inp' % workstruct.identifier
 
@@ -387,6 +390,7 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout):
     td['rdiel'] = 'rdiel'
     td['pdie'] = 4
     td['sdie'] = 78
+    td['site_only'] = False
     td['enefile'] = 'redox-%s-modpot.txt' % workstruct.identifier
     inp_filename = 'redox-%s-modpot.inp' % workstruct.identifier
 
@@ -402,6 +406,7 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout):
     td['rdiel'] = ''
     td['pdie'] = 1
     td['sdie'] = 1
+    td['site_only'] = True
     td['enefile'] = 'redox-%s-modpotref.txt' % workstruct.identifier
     inp_filename = 'redox-%s-modpotref.inp' % workstruct.identifier
 
@@ -412,24 +417,47 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout):
     fp.close()
     redoxTask.scripts += ',%s' % inp_filename
 
-def genstruct_tpl(workstruct,redoxTask,rsite_chain,cysResList):
+def genstruct_tpl(workstruct,redoxTask,rsite_chain,rsite_resid,cysDict):
+    # Major changes by Scott on 09/28/12:
+    #     cysDict is carried over rather than just cysResList - need to patch all clusters
+    #     rsite_resid was added - indicates the residue being reduced
     td = {}
     td['rtf'] = '%s/toppar/top_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
     td['prm'] = '%s/toppar/par_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
     td['id'] = workstruct.identifier
 
     logfp = open('/tmp/cysres,txt', 'w')
-    logfp.write('cysResList = %s\n' % cysResList)
+    logfp.write('cysDict = %s\nrsite_resid = %s\n' % (cysDict,rsite_resid))
 
-    td['segresid'] = ''
-    resnums = cysResList.split(',')
-    if len(resnums) != 4:
-        raise AssertionError('wrong number of elements is cysResList')
-    for rnum in resnums:
-        td['segresid'] += '%s-pro %s ' % (rsite_chain,rnum)
-    td['segresid'] += '%s-bad 1' % rsite_chain # FixMe: we hope for now that the REDOX site is the only residue in the bad chain
+    NumberOfRedoxSites=len(cysDict)
+    reds=[]
+    for i in range(0,NumberOfRedoxSites):
+        red = {}
+        red['segid'] = 'FS%s' % i
+        red['presname'] = 'PFSR'
+        tmpsegresid = ''
+        cysResList=cysDict['a-%i'%(i+1)]
+        resnums = cysResList.split(',')
+        if len(resnums) != 4:
+            raise AssertionError('wrong number of elements is cysResList')
+        for rnum in resnums:
+            tmpsegresid += '%s-pro %s ' % (rsite_chain,rnum)
+        tmpsegresid += '%s-bad %i' % (rsite_chain,i+1)
+        red['segresid'] = tmpsegresid
+        reds.append(red)  
+    td['reds'] = reds
 
-    logfp.write('segresid = %s\n' % td['segresid'])
+    #td['reds'] = ['FS%s'%i for i in range(1,NumberOfRedoxSites+1)]
+    #td['segresid'] = ''
+    #resnums = cysResList.split(',')
+    #if len(resnums) != 4:
+    #    raise AssertionError('wrong number of elements is cysResList')
+    #for rnum in resnums:
+    #    td['segresid'] += '%s-pro %s ' % (rsite_chain,rnum)
+    #td['segresid'] += '%s 1' % td['reds'][0]
+    #td['segresid'] += '%s-bad 1' % rsite_chain # FixMe: we hope for now that the REDOX site is the only residue in the bad chain
+
+    logfp.write('segresid = %s\n' % td['reds'][rsite_resid-1]['segresid'])
     logfp.close()
 
     if redoxTask.redoxsite == 'couple_oxi':
@@ -444,8 +472,7 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,cysResList):
     td['suffix'] = '_o'
     td['outname'] = 'redox-%s-oxiall' % workstruct.identifier
     td['needpatch'] = True
-    td['presname'] = oxipatch
-
+    td['reds'][rsite_resid-1]['presname'] = oxipatch
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
     inp_filename = 'redox-%s-build-oxiall.inp' % workstruct.identifier
@@ -471,7 +498,7 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,cysResList):
     td['suffix'] = '_r'
     td['outname'] = 'redox-%s-redall' % workstruct.identifier
     td['needpatch'] = True
-    td['presname'] = redpatch
+    td['reds'][rsite_resid-1]['presname'] = redpatch
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     inp_filename = 'redox-%s-build-redall.inp' % workstruct.identifier
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
@@ -533,7 +560,8 @@ def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
         raise AssertionError('key %s not found in cysDict -- bad Scott!' % dictkey)
 
     # step 2: make final PSF and CRD of the oxidized and reduced structures
-    genstruct_tpl(workstruct,redoxTask,m.group(1),cysResList)
+    #genstruct_tpl(workstruct,redoxTask,m.group(1),rsite_resid,cysResList)
+    genstruct_tpl(workstruct,redoxTask,m.group(1),int(m.group(2)),cysDict)
 
     # step 3: make dielectric grids (1. protein + SF4 2. just SF4 + hanging -CH2)
     # This script will include a system call to dxmath to make the grids and combine
@@ -542,7 +570,7 @@ def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
     ##gengrid_tpl(request,workstruct,redoxTask)
 
     # step 4: Get the four free energy values for redpot, redpotref, modpot, modpotref where mod = oxi or sr
-    getdelg_tpl(request,workstruct,redoxTask,doKnockout)
+    getdelg_tpl(request,workstruct,redoxTask,doKnockout,int(m.group(2)))
 
     # all scripts generated, submit to the scheduler
     redoxTask.start(altexe=charmming_config.charmm_apbs_exe)
