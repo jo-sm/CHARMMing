@@ -1,0 +1,74 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage" style="width: 100%;">
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+
+<script>
+    doDDJobDetailsOnLoad({{ job.id }});
+</script>
+<center>
+<h2>Job Details</h2>
+</center>
+<center>
+{% if message %}
+<font size="3" color="Red">{{ message }}</font>
+{% endif %}
+<form method="post" action="." width="100%">
+
+<div id="jobinfo" name="jobinfo"  style="width:100%">
+</div>
+<div id="ddjobresultsdiv" name="ddjobresultsdiv" align="center" style="overflow:auto;width:100%;height:150px;border:1px solid #336699;padding-left:5px;text-align:left;display:none">
+</div>
+
+<hr>
+<!--<h3>Targets</h3>
+<div align="center" style="overflow:auto;width:100%;height:150px;border:1px solid #336699;padding-left:5px;text-align:center">
+<table class="sortable resizable" border=2>
+<tr><th>Protein</th><th>PDB Code</th><th>Conformation</th><th>View File</th><th>Download File</th></tr>
+{% for conformation in job_conformations %}
+           <tr>
+           <td align="center" width = "350">{{ conformation.protein_name }}</td>
+           <td align="center" width = "200">{{ conformation.pdb_code }}</td>
+           <td align="center" width = "200">{{ conformation.conformation_name }}</td>
+           <td align="center" width = "150"><a target="_blank" href="/charmming/dd_infrastructure/viewfile/{{conformation.file_id}}">View File</a></td></td>
+           <td align="center" width = "150"><a href="/charmming/dd_infrastructure/downloadfile/{{conformation.file_id}}">Download File</a></td></td>
+           </tr>
+{% endfor %}
+</table>
+</div>
+-->
+<h3>Ligands</h3>
+<div style="overflow:auto;width:100%;height:300px;border:1px solid #336699;padding-left:5px;text-align:left">
+<table class="sortable resizable" border=2>
+<tr><th>Ligand Name</th><th>Ligand Description</th><th>View File</th><th>Download File</th></tr>
+{% for ligand in job_ligands %}
+           <tr>
+           <td align="center" width = "300">{{ ligand.ligand_name }}</td>
+           <td align="center" width = "500">{{ ligand.description }}</td>
+           <td align="center" width = "100"><a target="_blank" href="/charmming/dd_infrastructure/viewfile/{{ligand.file_id}}">View File</a></td></td>
+           <td align="center" width = "140"><a href="/charmming/dd_infrastructure/downloadfile/{{ligand.file_id}}">Download File</a></td></td>
+           </tr>
+{% endfor %}
+</table>
+</div>
+
+<h3>Job Files</h3>
+<div style="overflow:auto;width:100%;height:105px;border:1px solid #336699;padding-left:5px;text-align:left">
+<p align="center">
+<table align="center" class="sortable resizable" border=2>
+<tr><th>File Description</th><th>View File</th><th>Download File</th></tr>
+{% for file in job_files %}
+           <tr>
+           <td align="center" width = "300">{{ file.description }}</td>
+           <td align="center" width = "100"><a target="_blank" href="/charmming/dd_infrastructure/viewfile/{{file.id}}">View File</a></td></td>
+           <td align="center" width = "140"><a href="/charmming/dd_infrastructure/downloadfile/{{file.id}}">Download File</a></td></td>
+           </tr>
+{% endfor %}
+</table>
+</p>
+</div>
+</form>
+</center>
+</div>
+{% endblock %}

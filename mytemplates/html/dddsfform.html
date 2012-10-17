@@ -1,0 +1,87 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+<p><font size="3" color="{{message_color}}"><strong>{{message}}</strong></font></p>
+{% ifequal message '' %}
+<form id="dsfform" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/dsfform/">
+<center>
+<h2>Submit Docking Job</h2>
+<h3>Working structure: {{ ws_identifier }}</h2>
+
+    {% include "html/taskfiles.html" %}
+
+<!--<h3>Select Target Conformation(s)</h1><br>Only Targets Belonging to the Current Project are Shown-->
+<p><font size="3" color="{{message_color}}"><strong>{{message}}</strong></font></p>
+
+<!--<form id="dsfform" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/dsfform/">
+<div name="conformationsdiv" id="conformationsdiv" style="overflow:auto;width:95%;height:150px;border:1px solid #336699;padding-left:5px;text-align:left">
+<table class="sortable resizable" width="100%" border=2>
+<tr><th>Conformation Name</th><th>Conformation Description</th><th>Target PDB</th><th>Select</th></tr>
+{% for conformation in conformations %}
+        <tr><td>{{ conformation.name }}</td><td>{{ conformation.description }}</td><td>{{ conformation.target_pdb_code }}</td>
+	<td> 
+	    <table width="100%">
+	    {% for conformation_file_object in conformation.file_objects_list %}
+	      <tr><td>{{ conformation_file_object.file.description}}</td><td width=10 align="left"> <input id="id_conformation_file" type="checkbox" name="conformation_{{ conformation_file_object.file.id }}" onchange="getCheckedConformations(); "/> </td><tr>
+	    {% endfor %}	
+	    </table>
+	</td>
+{% endfor %}  
+</table>
+</div>
+-->
+<center>
+<h3>Native Ligand</h2>
+
+    {% include "html/abadfiles.html" %}
+<!--<table>
+<tr><td><label for="id_native_ligand"> Upload Native Ligand in <u>PDB</u> Format: </label></td><td><input type="file" name="native_ligand_file" id="id_native_ligand_file" /></td></tr>
+</table>-->
+</center>
+<p align="center"><h3>Select Ligands to Dock</h4></p>
+<div class='status'>
+<table>
+<tr>
+<td>
+<font size="2">Select Grid Set:</font>
+<select name="ligandsets" id="ligandsets" onchange="RefreshDSFLigands();">
+{% for set in existingsets %}
+<option value='{{ set.id }}'>{{set.name}} ({{set.ligand_count}} ligands)</option>
+{% endfor %}
+</select>
+</td>
+</tr>
+<tr><td colspan=2>
+<div name="ligandsdiv" id="ligandsdiv" style="overflow:auto;width:100%;height:300px;border:1px solid #336699;padding-left:5px;text-align:left">
+</div>
+</td></tr>
+</table>
+<hr noshade width="80%" size=3%>
+       <br/>
+<div name="estimatediv" id="estimatediv">
+</div>
+       
+       <p align="center">Please enter a short description for this job<br>
+       <input type="text" name="job_description" id="job_description"/>
+       </p>
+       <input type="submit" value="Submit Docking Job"/>
+       <br>
+       <br>
+
+<script type="text/javascript">
+   RefreshDSFLigands();
+</script>
+
+</form>
+{% endifequal %}
+</div>
+</center>
+
+{% endblock %}
+
+
+
+
+

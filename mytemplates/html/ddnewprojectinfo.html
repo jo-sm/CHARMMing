@@ -1,0 +1,17 @@
+<form id="insideprojectform" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/updateprojectinfo/">
+<font color="{{ messagecolor }}">{{ message }}</font>
+<table width=78% align="center">
+ <tr>
+<td valign="top">Project Name:<br>
+       <input type="text" name="project_name" id="project_name" value="{{ name }}"size="30"></input></td>
+<td>Project Description:<br>
+       <textarea name="project_description" id="project_description" cols=50 rows=3>{{ description }}</textarea>
+</td>
+</tr>
+</table>
+<!--<button type="button" onclick="CheckRedirect();">Update Set Info</button>-->
+<button type="button" onclick="RefreshProjectInfo(0,'addnew');">Create Project</button>
+<!--<input type=submit id="submitAddNewSet" name="submitAddNewSet" value="Save New Set" onClick="CheckRedirect();"></input>-->
+</form>
+
+

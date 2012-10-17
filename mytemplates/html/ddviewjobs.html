@@ -1,0 +1,33 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+<center>
+<h1>Drug Design Jobs History</h1>
+</center>
+<div class='status'>
+<body>
+<center>
+
+<form method="post" action=".">
+<table class="sortable resizable" border=2>
+<tr><th>Job ID</th><th>Description</th><th>Current Status</th><th>Submitted</th><th>Wait time</th><th>Running time</th><th>Total time</th></tr>
+{% for job in jobs %}
+           <tr>
+           <td align = "center" width ="50"><a href="/charmming/dd_infrastructure/viewjobdetails/{{job.id}}" title="Edit:{{ job.description}}" ');">{{ job.owner_index }}</a></td>
+           <td><font size='2'><a href="/charmming/dd_infrastructure/viewjobdetails/{{job.id}}" title="Edit:{{ job.description}}" ');">{{job.description}}</a></font></td> 
+           <td align="center" width = "80">{{ job.status|safe }}</td>
+	   <td align="center"><font size='2'>{{ job.queued }}</font></td>
+	   <td align="center"><font size='2'>{{ job.waited }}</font></td>
+	   <td align="center"><font size='2'>{{ job.runtime }}</font></td>
+           <td align="center"><font size='2'>{{ job.totaltime }}</font></td>
+	   </tr>
+{% endfor %}
+</table>
+</form>
+</div>
+</center>
+
+
+{% endblock %}

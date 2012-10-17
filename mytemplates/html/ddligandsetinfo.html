@@ -1,0 +1,19 @@
+<form id="insideligandsetform" enctype="multipart/form-data" method="post" action="/charmming/dd_substrate/updateligandsetinfo/">
+<font color="{{ messagecolor }}">{{ message }}</font>
+<table width=78% align="center">
+ <tr>
+<td valign="top">Ligand Set Name:<br>
+       <input type="text" name="ligandset_name" id="ligandset_name" value="{{ ligand_set.ligand_set_name }}"size="30"></input></td>
+<td>Ligand Set Description:<br>
+       <textarea name="ligandset_description" id="ligandset_description" cols=50 rows=3>{{ ligand_set.description }}</textarea>
+</td>
+</tr>
+</table>
+<!--<button type="button" onclick="CheckRedirect();">Update Project Info</button>-->
+<button type="button" onclick="RefreshLigandSetInfo({{ligand_set.id}},'update');">Update Set Info</button><br><br>
+{% ifequal message "Ligand Set was successfully created" %}
+<a href="/charmming/dd_substrate/ligandsetdetails/{{ligand_set.id}}" title="Add Ligands to this Set" ');"><font size="3">Add Ligands to this Set</font></a>
+{% endifequal %}
+<!--<input type=submit id="submitAddNewSet" name="submitAddNewSet" value="Save New Set" onClick="CheckRedirect();"></input>-->
+</form>
+

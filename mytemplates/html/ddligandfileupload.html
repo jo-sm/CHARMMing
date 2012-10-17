@@ -1,0 +1,52 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage" align="center">
+<h2>Ligand Upload</h2>
+All Fields are Required
+<link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+     <form id='submit_structure' enctype="multipart/form-data" method="post" action="/charmming/dd_substrate/ligandfileupload/">
+      <fieldset class="structure">
+         <legend class="login">Submit Structure</legend>
+            
+		<div id='ligand_upload' style="display:block">
+		<p>
+		<table width="100%">
+		<tr><td><label for="id_ligand"> Ligand File<br> (mol2 format) </label></td><td> {{ form.ligand_file }} {{ form.ligand_file_file }}</td></tr>
+		</table>
+		</div>
+		<div id='ligand_draw' style="display:none">
+
+            	</div>
+		<table><tr><td><label for="ligandname"> File Description </label></td><td><input type="text" name="filedesc" id="filedesc"></input></td></tr></table>
+<!--		<div id='new_existing' style="display:none">
+		<font size="3">Is this new or existing ligand?<br></font>
+		<font size="2">New<input type="radio" name="new_existing_option" id="new_ligand" value="new_ligand" onclick="LoadNewLigand()">
+		Existing<input type="radio" name="new_existing_option" id="existing_ligand" value="existing_ligand" onclick="LoadExistingLigand()">
+	 	</font>
+		</div>
+-->
+		<div id='newliganddiv' name='newliganddiv' style="display:block">
+		  <table>
+                     <tr><td><label for="pdbcode"> Ligand PDB Code </label></td><td><input type="text" name="pdbcode" id="id_pdbcode"></input></td></tr>
+		     <tr><td><label for="ligandname"> Ligand Name </label></td><td><input type="text" name="ligandname" id="ligandname"></input></td></tr>
+		     <tr><td><label for="liganddescription"> Ligand Description </label></td><td><textarea name="liganddescription" id="liganddescription" rows="3" cols="50"></textarea></td></tr>
+		  </table>
+		</div>
+<!--		<div id='existingliganddiv' name='existingliganddiv' style="display:none">
+		</div>
+-->	    
+            
+            
+      </fieldset>
+
+      <hr>
+     <div name="savedrawing" id="savedrawing">
+     </div>
+     
+      <div id="file_button" style="display:block"><input type="submit" id="btn_file" value="Submit Structure File"></div>
+            
+   </form>
+</div>
+
+{% endblock %}

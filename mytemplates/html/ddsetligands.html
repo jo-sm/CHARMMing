@@ -1,0 +1,29 @@
+<html>
+<head>
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
+  <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+	 <script type="text/javascript">
+
+
+       
+</script>
+</head>
+<body>
+
+<table class="sortable" width="100%" border="0">
+<tr><td colspan="4"><font size="2">Ligands: {{ ligandcount }}</font></td>
+<tr><th align="left" width="50"><input id="setcheckall" type="checkbox" name="setcheckall" onclick='LigandSet_SetCheckUncheck();'/></th><th align="left" width="300">Ligand Name</th><th align="left" width="300">Ligand Description</th><th align="center">3D View</th></tr>
+</table>
+<div name="setligandsinsidediv" id="setligandsinsidediv" style="overflow:auto;width:99%;height:155px;border:0px solid #336699;padding-left:5px;text-align:left">
+<table class="sortable" width="100%" border="0">
+{% for setligand in setligands %}
+<tr>
+	      <td width="50"><input id="set_ligand_id" type="checkbox" name="set_ligand_id" value="{{ setligand.id}}"/></td><td width="300"><font size="2">{{ setligand.name}}</font></td><td width="300" align="left"><font size="2">{{ setligand.description }}</font></td><td align="center"><a href="#" onclick="window.open('/charmming/dd_substrate/viewligandjmol/{{setligand.file.id}}/', 'View Ligand', 'height=700, width=700');">View</a></td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<head>
+<link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+    <script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+    <script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+    <link href="/charmming/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/sdmenu/sdmenu.css" rel="stylesheet" type="text/css" />
+    <script src="/charmming/js/ajax.js" type="text/javascript"></script>
+    <script src="/charmming/js/sdmenu/sdmenu.js" type="text/javascript"></script>
+    <script src="/charmming/js/tabs.js" type="text/javascript"></script>
+    {% if trusted %}
+     <script src="/charmming/js/trusted.js" type="text/javascript"></script>
+    {% endif %}
+    <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+    <script type="text/javascript" src="/charmming/js/emap.js"> </script>
+    <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
+    <title>VCS Dock</title>
+    <script type="text/javascript">
+
+           function utest()
+	{
+  var myAjax = new Ajax.Updater('setinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/1/refresh/', {method: 'post'})
+  }
+</script>
+    
+</head>
+<body onload="utest();">
+<center>
+<h2>Manage User Defined Grid Sets</h1>
+</center>
+<div class='status'>
+
+<center>
+<form id="vcsmanagesets" enctype="multipart/form-data" method="post" action="/charmming/vcsmanagesets/">
+<div name="setinfodiv" id="setinfodiv">
+</div>
+<table>
+<tr><td colspan=2 align=center>
+<font size="3">Select from Available Grids</font></td>
+<tr>
+<td>
+<font size="2">Use Existing Grid Sets:</font>
+<select name="gridsets" id="gridsets" onChange="RefreshAllGrids();">
+{% for set in sets %}
+<option value='{{ set.id }}'>{{set.name}} ({{ set.grid_count }} Grids representing {{ set.structure_count }} Structures)</option>
+{% endfor %}
+</select>
+</td>
+<td>
+<font size="2">Protein Type Filter:</font>
+<select name="protein_types" id="protein_types" onchange="RefreshAllGrids();">
+<option value='0'>All</option>
+{% for proteintype in proteintypes %}
+<option value='{{ proteintype.id }}'>{{proteintype.name}}</option>
+{% endfor %}
+</select>
+</td></tr>
+<tr><td colspan=2>
+<div name="managesetsgridsdiv" id="managesetsgridsdiv" style="overflow:auto;width:100%;height:200px;border:1px solid #336699;padding-left:5px;text-align:left">
+</div>
+</td></tr></table>
+<table width=83% align="center">
+<tr>
+<td align="center"><button type="button" onclick="AddGrids();">Add Selected Grids to Custom Set</button></td>
+<td align="center"><button type="button" onclick="RemoveGrids();">Remove Selected Grids from Custom Set</button></td>
+</tr>
+<td colspan=2 align=center>
+<font size="3">Grids Belonging to This Set</font></td></tr>
+<tr>
+<td colspan=2 align=center>
+<div name="managesetssetdiv" id="managesetssetdiv" style="overflow:auto;width:100%;height:230px;border:1px solid #336699;padding-left:5px;text-align:left">
+</div>
+</td></tr>
+</table>
+
+</form>
+</div>
+</center>
+</body>
+
+
+
+
+

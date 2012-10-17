@@ -1,0 +1,43 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+   <center>
+      <h2>Upload Target Protein</h1>
+Both PDB and PSF files are required.<br>
+It is recommended that you upload your PDB through <i>Submit Structure</i> page, retrieve processed PDB and PSF files from the <i>Download Files</i> page and use these files to submit your Target here.
+<!--If PSF file is not available, upload your PDB through Submit Structure page and retrieve processed PDB and PSF files-->
+      <hr width="50%">
+<div id="app">
+</div>
+     <form id='submit_structure' enctype="multipart/form-data" method="post" action="/charmming/dd_target/targetfileupload/">
+      <fieldset class="structure">
+         <legend class="login">Submit Structure</legend>
+            
+		<div id='target_upload' style="display:block">
+		<p>
+		<table>
+		<tr><td><label for="id_target"> Target PDB File Uploader </label></td><td> {{ form.target_file }} {{ form.target_file_file }}</td></tr>
+		<tr><td><label for="id_psf_target"> Target PSF File Uploader </label></td><td> {{ form.psf_target_file }} {{ form.psf_target_file_file }}</td></tr>
+		</table>
+		</div>
+		<table><tr><td><label for="targetname"> File Description </label></td><td><input type="text" name="filedesc" id="filedesc"></input></td></tr></table>
+		<div id='newtargetdiv' name='newtargetdiv' style="display:block">
+		  <table>
+                     <tr><td><label for="pdbcode"> Target PDB Code </label></td><td><input type="text" name="pdbcode" id="id_pdbcode"></input></td></tr>
+		     <tr><td><label for="targetname"> Target Name </label></td><td><input type="text" name="targetname" id="targetname"></input></td></tr>
+		     <tr><td><label for="targetdescription"> Target Description </label></td><td><textarea name="targetdescription" id="targetdescription" rows="3" cols="50"></textarea></td></tr>
+		  </table>
+		</div>
+		            
+      </fieldset>
+
+      <hr>
+        
+      <div id="file_button" style="display:block"><input type="submit" id="btn_file" value="Submit Structure File"></div>
+            
+   </form>
+</center>
+
+{% endblock %}

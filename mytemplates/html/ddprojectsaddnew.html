@@ -1,0 +1,31 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+<script type="text/javascript">
+window.onload = function() {
+   DisplayBlankForm();
+}
+</script> 
+<center>
+<h2>Create Project</h1>
+</center>
+<div class='status'>
+
+<center>
+<form id="ddprojectsaddnew" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/projectsaddnew/">
+<div name="projectinfodiv" id="projectinfodiv">
+</div>
+
+
+</form>
+</div>
+</center>
+
+{% endblock %}
+
+
+
+
+

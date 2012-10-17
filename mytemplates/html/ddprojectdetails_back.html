@@ -1,0 +1,245 @@
+<head>
+<link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+    <script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+    <script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+    <link href="/charmming/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/sdmenu/sdmenu.css" rel="stylesheet" type="text/css" />
+    <script src="/charmming/js/ajax.js" type="text/javascript"></script>
+    <script src="/charmming/js/sdmenu/sdmenu.js" type="text/javascript"></script>
+    <script src="/charmming/js/tabs.js" type="text/javascript"></script>
+    {% if trusted %}
+     <script src="/charmming/js/trusted.js" type="text/javascript"></script>
+    {% endif %}
+    <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+    <script type="text/javascript" src="/charmming/js/emap.js"> </script>
+    <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
+    <title>VCS Dock</title>
+    <script type="text/javascript">
+    /*
+	function getCheckedIds()
+	{
+	  var nodes=document.getElementsByName("availableconformationsdiv")[0].childNodes;
+	  var checkedvalues="";
+	  for(i = 0;i < nodes.length;++i)
+	    if(nodes[i].id=="availableconformationsinsidediv"){
+		var checkboxes = nodes[i].getElementsByTagName('input');
+		//alert(checkboxes.length);
+	  	for(j = 0;j < checkboxes.length;++j){
+		    //alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
+		    //alert("j " + j);
+		    if (checkboxes[j].checked){
+			if (checkedvalues=='') {
+		           checkedvalues=checkboxes[j].value;
+		           
+			}
+			else {
+			   checkedvalues=checkedvalues + ',' + checkboxes[j].value;
+			}
+			//alert(checkedvalues);
+		    }
+		}
+	    }
+	  return checkedvalues;
+	}
+
+	function getCheckedTargetIds()
+	{
+	  var nodes=document.getElementsByName("projectconformationsdiv")[0].childNodes;
+	  var checkedvalues="";
+	  for(i = 0;i < nodes.length;++i)
+	    if(nodes[i].id=="projectconformationsinsidediv"){
+		var checkboxes = nodes[i].getElementsByTagName('input');
+		//alert(checkboxes.length);
+	  	for(j = 0;j < checkboxes.length;++j){
+		    //alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
+		    //alert("j " + j);
+		    if (checkboxes[j].checked){
+			if (checkedvalues=='') {
+		           checkedvalues=checkboxes[j].value;
+		           
+			}
+			else {
+			   checkedvalues=checkedvalues + ',' + checkboxes[j].value;
+			}
+			//alert(checkedvalues);
+		    }
+		}
+	    }
+	  return checkedvalues;
+	}
+
+  function AddConformations()
+	{
+	RefreshProjectConformations(getCheckedIds(),'');
+	//var code = 'ptid=' + $("protein_types").getValue();
+	//var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/updatemanagesetsgrids/', {method: 'post', parameters: code})
+	}
+
+        function RemoveConformations()
+	{
+	RefreshProjectConformations('',getCheckedSetIds());
+	//var code = 'ptid=' + $("protein_types").getValue();
+	//var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/updatemanagesetsgrids/', {method: 'post', parameters: code})
+	}
+
+  function RefreshProjetInfo(codestring)
+	{
+	//alert (document.getElementById("gridset_name").value);
+	var code = codestring + '&name=' + document.getElementById("project_name").value + '&description=' + document.getElementById("project_description").value;
+	//alert (code);
+	var myAjax = new Ajax.Updater('projectinfodiv', 'charmming/dd_infrastructure/updateprojectinfo/', {method: 'post', parameters: code})
+	}
+    
+  function DisplayProjectInfo()
+	{
+	//alert (document.getElementById("gridset_name").value);
+	//var code = codestring;
+	//alert (code);
+	//var myAjax = new Ajax.Updater('projectinfodiv', 'charmming/dd_infrastructure/updateprojectinfo/{{project_id}}/refresh/', {method: 'post'})
+	}
+	
+  function RefreshAvailableConformations()
+	{
+	//alert ($("targets").getValue());
+	//var code = "protein_id=" + $("targets").getValue() + "&setid=" + $("targets").getValue();
+	var myAjax = new Ajax.Updater('availableconformationsdiv', 'charmming/dd_infrastructure/projectavailableconformations/'+$("targets").getValue()+'/', {method: 'post'})
+	//var myAjax = new Ajax.Updater('availableconformationsdiv', 'www.google.com', {method: 'post'})
+  }
+
+	
+  function RefreshProjectConformations(addedids,removedids)
+	{
+	//alert (document.getElementById("Receptor").value);
+	//var code = "project_id={{ project_id }}&addedids=" + addedids + "&removedids=" + removedids;
+        //var code = 'ptid=' + $("protein_types").getValue();
+	//alert(code);
+	var myAjax = new Ajax.Updater('projectconformationsdiv', '/charmming/dd_infrastructure/projectconformations/{{project_id}}/0/0/', {method: 'post'})
+
+	//alert(document.getElementById('conformations').style)
+	}
+
+	function CheckUncheck()
+	{
+
+	   if ( document.forms['projectdetail'].elements['gridfileid'].length )
+	   {
+	      for (var x = 0; x < document.forms['projectdetail'].elements['gridfileid'].length; x++)
+	      {
+		 if (document.forms['projectdetail'].elements['checkall'].checked)
+		 {
+		    document.forms['projectdetail'].elements['gridfileid'][x].checked = true;   
+		 }
+		 else
+		 {
+		    document.forms['projectdetail'].elements['gridfileid'][x].checked = false;
+		 }
+		 
+	      }
+	   }
+	   else
+	   {
+	      if (document.forms['projectdetail'].elements['checkall'].checked)
+	      {
+		 document.forms['projectdetail'].elements['gridfileid'].checked = true;            
+	      }
+	      else
+	      {
+		 document.forms['projectdetail'].elements['gridfileid'].checked = false;
+	      }
+	   }
+	}
+
+	function SetCheckUncheck()
+	{
+
+	   if ( document.forms['projectdetail'].elements['gridfileid'].length )
+	   {
+	      for (var x = 0; x < document.forms['projectdetail'].elements['gridfileid'].length; x++)
+	      {
+		 if (document.forms['projectdetail'].elements['setcheckall'].checked)
+		 {
+		    document.forms['projectdetail'].elements['setgridfileid'][x].checked = true;   
+		 }
+		 else
+		 {
+		    document.forms['projectdetail'].elements['setgridfileid'][x].checked = false;
+		 }
+		 
+	      }
+	   }
+	   else
+	   {
+	      if (document.forms['projectdetail'].elements['setcheckall'].checked)
+	      {
+		 document.forms['projectdetail'].elements['setgridfileid'].checked = true;            
+	      }
+	      else
+	      {
+		 document.forms['projectdetail'].elements['setgridfileid'].checked = false;
+	      }
+	   }
+	}
+	function CheckRedirect()
+	{
+	  alert (document.getElementById("gridset_name").value);
+	}
+	   */
+	function utest()
+	{
+  var ax = new Ajax.Updater('projectinfodiv', 'www.google.com');
+
+  }
+</script>
+    
+</head>
+<body onload="utest();">
+<center>
+<h2>Project Details</h1>
+</center>
+<div class='status'>
+
+<center>
+<form id="projectdetail" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/projectdetails/">
+<div name="projectinfodiv" id="projectinfodiv">
+</div>
+<table>
+<tr>
+<td>
+<font size="2">Use Existing Targets:</font>
+<select name="targets" id="targets" onChange="RefreshAllConformations();">
+{% for target in targets %}
+<option value='{{ target.id }}'>{{target.pdb_code}}</option>
+{% endfor %}
+</select>
+</td>
+</tr>
+<tr><td colspan=2>
+<div name="availableconformationsdiv" id="availableconformationsdiv" style="overflow:auto;width:100%;height:200px;border:1px solid #336699;padding-left:5px;text-align:left">
+</div>
+</td></tr></table>
+<table width=83% align="center">
+<tr>
+<td align="center"><button type="button" onclick="AddConformations();">Add Selected Conformations to this Project</button></td>
+<td align="center"><button type="button" onclick="RemoveConformations();">Remove Selected Conformations from this Project</button></td>
+</tr>
+<td colspan=2 align=center>
+<font size="3">Conformations Belonging to This Project</font></td></tr>
+<tr>
+<td colspan=2 align=center>
+<div name="projectconformationsdiv" id="projectconformationsdiv" style="overflow:auto;width:100%;height:230px;border:1px solid #336699;padding-left:5px;text-align:left">
+</div>
+</td></tr>
+</table>
+
+</form>
+</div>
+</center>
+</body>
+
+
+
+
+

@@ -1,0 +1,40 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+<center>
+<h1>View Targets</h1>
+</center>
+<div class='status'>
+<body>
+<center>
+<form method="post" action=".">
+<div name="conformationsdiv" id="conformationsdiv" style="overflow:auto;width:95%;height:150px;border:1px solid #336699;padding-left:5px;text-align:left">
+<table width="100%" class="sortable resizable" border=2>
+<tr><th>Target</th><th>Target PDB</th><th>Target Description</th><th>Conformations</th></tr>
+{% for target in targets %}
+        <tr><td>{{ target.name }}</td><td>{{ target.target_pdb_code }}</td><td>{{ target.description }}</td>
+	<td> 
+	    <table width="100%">
+	    {% for conformation in target.conformations %}
+              <tr>
+              {% for file in conformation.files %}
+	      
+                <td align="center" width = "100"><a target="_blank" href="/charmming/dd_infrastructure/viewfile/{{file.id}}">{{ conformation.conformation_name}}</a></td></td>
+              
+              {% endfor %}
+              <tr>
+	    {% endfor %}	
+	    </table>
+	</td>
+        </tr>
+{% endfor %}  
+</table>
+</div>
+</form>
+</div>
+</center>
+</body>
+
+{% endblock %}

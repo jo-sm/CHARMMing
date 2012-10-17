@@ -1,0 +1,67 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+<center>
+<h2>Ligand Set Details</h1>
+</center>
+<script type="text/javascript">
+
+   DisplaySetInfo({{set_id}});
+   //RefreshAvailableLigands();
+   //RefreshSetLigands({{set_id}},0,0);
+
+</script>
+<div class='status'>
+
+<center>
+<form id="setdetail" enctype="multipart/form-data" method="post" action="/charmming/dd_substrate/ligandsetdetails/">
+<div name="ligandsetinfodiv" id="ligandsetinfodiv">
+</div>
+<table>
+<tr>
+<td>
+<font size="2">Use Existing Sets:</font>
+<select name="sets" id="avaiableligandsets" onChange="RefreshAvailableLigands();">
+{% for set in existingsets %}
+<option value='{{ set.id }}'>{{set.name}} ({{set.ligand_count}} ligands)</option>
+{% endfor %}
+</select>
+</td>
+</tr>
+<tr><td colspan=2>
+<div name="availableligandsdiv" id="availableligandsdiv" style="overflow:auto;width:100%;height:200px;border:1px solid #336699;padding-left:5px;text-align:left">
+</div>
+</td></tr></table>
+<table width=83% align="center">
+<tr>
+<td align="center"><button type="button" onclick="AddLigands({{ set_id }});">Add Selected Ligands to this Set</button></td>
+<td align="center"><button type="button" onclick="RemoveLigands({{ set_id }});">Remove Selected Ligands from this Set</button></td>
+</tr>
+<td colspan=2 align=center>
+<font size="3">Ligands Belonging to This Set</font></td></tr>
+<tr>
+<td colspan=2 align=center>
+<div name="setligandsdiv" id="setligandsdiv" style="overflow:auto;width:100%;height:230px;border:1px solid #336699;padding-left:5px;text-align:left">
+</div>
+</td></tr>
+</table>
+<script type="text/javascript">
+
+   //DisplaySetInfo({{set_id}});
+   RefreshAvailableLigands();
+   RefreshSetLigands({{set_id}},0,0);
+
+</script>
+
+</form>
+</div>
+</center>
+
+{% endblock %}
+
+
+
+
+

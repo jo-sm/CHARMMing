@@ -1,0 +1,62 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+<center>
+<h2>Project Details</h1>
+</center>
+<script type="text/javascript">
+   DisplayProjectInfo({{project_id}});
+   //RefreshAvailableConformations(0,0);
+   //RefreshProjectConformations({{project_id}},0,0);
+</script> 
+
+
+<center>
+<form id="projectdetail" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/projectdetails/">
+<div name="projectinfodiv" id="projectinfodiv">
+</div>
+<table>
+<tr>
+<td>
+<font size="2">Use Existing Targets:</font>
+<select name="targets" id="targets" onChange="RefreshAvailableConformations();">
+{% for target in targets %}
+<option value='{{ target.id }}'>{{target.protein_owner_index}}.{{target.pdb_code}}-{{target.protein_name}}</option>
+{% endfor %}
+</select>
+</td>
+</tr>
+<tr><td colspan=2>
+<div name="availableconformationsdiv" id="availableconformationsdiv" style="overflow:auto;width:100%;height:200px;border:1px solid #336699;padding-left:5px;text-align:left">
+</div>
+</td></tr></table>
+<table width=83% align="center">
+<tr>
+<td align="center"><button type="button" onclick="AddConformations({{project_id}});">Add Selected Conformations to this Project</button></td>
+<td align="center"><button type="button" onclick="RemoveConformations({{project_id}});">Remove Selected Conformations from this Project</button></td>
+</tr>
+<td colspan=2 align=center>
+<font size="3">Conformations Belonging to This Project</font></td></tr>
+<tr>
+<td colspan=2 align=center>
+<div name="projectconformationsdiv" id="projectconformationsdiv" style="overflow:auto;width:100%;height:230px;border:1px solid #336699;padding-left:5px;text-align:left">
+</div>
+</td></tr>
+</table>
+<script type="text/javascript">
+   //DisplayProjectInfo({{project_id}});
+   RefreshAvailableConformations();
+   RefreshProjectConformations({{project_id}},0,0);
+</script>
+
+</form>
+</center>
+
+
+{% endblock %}
+
+
+
+
