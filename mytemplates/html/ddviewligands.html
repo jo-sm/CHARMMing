@@ -1,0 +1,22 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage" align="center">
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+  <br />
+  <h1 align="center">View Ligands</h1>
+<form method="post" action=".">
+<table class="sortable resizable" border=2>
+<tr><th>Ligand Name</th><th>Description</th><th>Source</th><th>Delete</th></tr>
+{% for ligand in ligands %}
+        <tr>
+           <td> {{ligand.ligand_name}}</a></td><td> {{ ligand.description }} </td> 
+           <td> {{ ligand.source_name }} </td>
+           <td> <a href="" onclick="send_delete_ligand_form('{{ligand.id}}')">X</a></td></tr>
+
+{% endfor %}
+</table>
+</form>
+</div>
+{% endblock %}
+
