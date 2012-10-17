@@ -1475,7 +1475,7 @@ function RefreshDSFLigands()
     //var code = "ptid=" + $("protein_types").getValue() + "&setid=" + $("gridsets").getValue();
     //alert (code);
 //good    var myAjax = new Ajax.Updater('ligandsdiv', '/charmming/dd_infrastructure/updatedsfligands/'+$("ligandsets").getValue()+'', {method: 'post'})
-    var myAjax = new Ajax.Updater('ligandsdiv', '/charmming/dd_infrastructure/updatedsfligandschemspider/'+$("ligandsets").getValue()+'', {method: 'post'});
+    var myAjax = new Ajax.Updater('ligandsdiv', '/charmming/dd_infrastructure/updatedsfligands/'+$("ligandsets").getValue()+'', {method: 'post'});
     //alert(document.getElementById('conformations').style)
 }
 
