@@ -6,10 +6,11 @@ import lesson2
 import lesson3
 import lesson4
 import lesson5
-import lesson6
+##import lesson6
 
 # Lesson number list
-lesson_num_lis = ['1','2','3','4','5','6']
+#lesson_num_lis = ['1','2','3','4','5','6']
+lesson_num_lis = ['1','2','3','4','5']
 
 # The file type lessons need to upload
 file_type = {
