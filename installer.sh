@@ -113,7 +113,7 @@ function mysql_config {
     echo "INSERT INTO auth_group (id,name) VALUES (1,'preapprove');" > groups.sql
     echo "INSERT INTO auth_group (id,name) VALUES (2,'student');" >> groups.sql
     echo "INSERT INTO auth_group (id,name) VALUES (3,'lesson');" >> groups.sql
-    musql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/groups.sql
+    mysql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/groups.sql
   else
     echo    "-----------------------"
     echo -e "Ok, I will skip this..." 
