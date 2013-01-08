@@ -1,0 +1,41 @@
+#header {
+  margin: 0 auto;
+  width:  1220px;
+  height: 140px;
+  background: url(/newcharmming/images/redesign/header6.png) no-repeat;
+}
+
+#body {
+  margin: 0 auto;
+  width: 1220px;
+}
+
+#chmfooter {
+margin: 0 auto;
+width:  1220px;
+height: 40px;
+font-size: medium;
+font-weight: lighter;
+clear: both;
+background: url(/newcharmming/images/redesign/footer6.png) no-repeat;
+}
+
+#leftcol {
+    float:            left;
+    width:            160px;
+}
+
+#content {
+    margin-left:      160px;
+    margin-right:     0px;
+}
+
+body {
+    background-color: #FFFFFF;
+    color:            #000000;
+    font-family:      arial, helvetica, sans-serif;
+    font-size:        76%;
+    font-style:       normal;
+    font-weight:      normal;
+}
+
