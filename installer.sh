@@ -108,12 +108,7 @@ function mysql_config {
 # call mysql to create database and set permissions...
     echo -e " Creating charmming tables:\n" 
     mysql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/scheduler.sql
-    
-    echo -e " Creating initial groups...\n"
-    echo "INSERT INTO auth_group (id,name) VALUES (1,'preapprove');" > groups.sql
-    echo "INSERT INTO auth_group (id,name) VALUES (2,'student');" >> groups.sql
-    echo "INSERT INTO auth_group (id,name) VALUES (3,'lesson');" >> groups.sql
-    mysql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/groups.sql
+   
   else
     echo    "-----------------------"
     echo -e "Ok, I will skip this..." 
@@ -253,7 +248,7 @@ function config_apache {
 }
 
 function config_django {
-  echo -e "\nDo you need to setup django?" 
+  echo -e "\nDo you need to setup django and populate the databases?" 
   read answer
   if [[ "$answer" == "Y" || "$answer" == "y" || "$answer" = "" || "$answer" = "yes" || "$answer" = "Yes" || "$answer" = "YES" ]];
   then
@@ -267,6 +262,12 @@ function config_django {
     sleep 3 
 # sync datbases 
     sudo python manage.py syncdb 
+
+    echo -e " Creating initial groups...\n"
+    echo "INSERT INTO auth_group (id,name) VALUES (1,'preapprove');" > groups.sql
+    echo "INSERT INTO auth_group (id,name) VALUES (2,'student');" >> groups.sql
+    echo "INSERT INTO auth_group (id,name) VALUES (3,'lesson');" >> groups.sql
+    mysql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/groups.sql
   else
     echo    "-----------------------"
     echo -e "Ok, I will skip this..." 
