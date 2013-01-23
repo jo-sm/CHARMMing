@@ -38,7 +38,7 @@ def redoxformdisplay(request):
     try:
          struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-         return output.returnSunmission("Oxidationb/reduction", error="Please submit a structure first.")
+         return output.returnSubmission("Oxidationb/reduction", error="Please submit a structure first.")
     try:
          ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
