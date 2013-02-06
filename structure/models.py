@@ -365,7 +365,9 @@ class WorkingSegment(Segment):
         if not found:
             raise AssertionError('Asked to operate on a nonexistent segment!')
 
+        btmcount = 0
         for residue in seg.iter_res():
+            btmcount += 1
 
             # if autogenerating, check if we know about this residue and add it to the stream
             if self.tpMethod == 'autogen':
@@ -426,6 +428,7 @@ class WorkingSegment(Segment):
 
                     pdb_rewrite = self.structure.location + '/segment-' + seg.segid + '.pdb'
                     os.system("babel --title %s -isdf %s -omol2 %s" % (residue.resName,filename_sdf,filename_h))
+                    os.system("sed -i.bak -e 's/LIG1/HET%d/' %s" % (btmcount,filename_h))
 
                     # try to convert the names in the MOL2 to match those in the PDB.
                     pdbmol = pychm.io.pdb.get_molFromPDB(self.structure.location + '/segment-' + self.name + '.pdb')
