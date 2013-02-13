@@ -264,9 +264,9 @@ function config_django {
     sudo python manage.py syncdb 
 
     echo -e " Creating initial groups...\n"
-    echo "INSERT INTO auth_group (id,name) VALUES (1,'preapprove');" > groups.sql
-    echo "INSERT INTO auth_group (id,name) VALUES (2,'student');" >> groups.sql
-    echo "INSERT INTO auth_group (id,name) VALUES (3,'lesson');" >> groups.sql
+    echo "INSERT INTO auth_group (id,name) VALUES (1,'preapprove');" > /tmp/charmming/groups.sql
+    echo "INSERT INTO auth_group (id,name) VALUES (2,'student');" >> /tmp/charmming/groups.sql
+    echo "INSERT INTO auth_group (id,name) VALUES (3,'lesson');" >> /tmp/charmming/groups.sql
     mysql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/groups.sql
   else
     echo    "-----------------------"
