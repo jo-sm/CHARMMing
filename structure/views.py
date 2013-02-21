@@ -202,7 +202,7 @@ def downloadTarFile(request,mimetype=None):
     os.system('cp ' + charmming_config.data_home + '/calcewald.pl ' + struct.name)
     os.system('cp ' + charmming_config.data_home + '/savegv.py ' + struct.name)
     os.system('cp ' + charmming_config.data_home + '/savechrg.py ' + struct.name)
-    os.system('cp ' + charmming_config.data_home + '/toppar/top_all27_prot_na.rtf ' + charmming_config.data_home + '/toppar/par_all27_prot_na.prm ' + struct.name)
+    os.system('cp ' + charmming_config.data_home + '/toppar/top_all36_prot.rtf ' + charmming_config.data_home + '/toppar/par_all36_prot.prm ' + struct.name)
     os.system('tar -czf ' + tar_filename + ' ' + struct.name)
     statinfo = os.stat(tar_filename)
     if mimetype is None:
@@ -628,7 +628,7 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     postdata = request.POST
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'], template_dict['parameter_list'], junk = workstruct.getTopparList()
+    template_dict['topology_list'], template_dict['parameter_list'] = workstruct.getTopparList()
     template_dict['output_name'] = workstruct.identifier + '-ener'
     template_dict['input_file'] = workstruct.identifier + '-' + pTask.action
     if workstruct.topparStream:
@@ -817,9 +817,16 @@ def getSegs(Molecule,Struct,auto_append=False):
         newSeg.type = seg.segType
         logfp.write('new seg object in charmming created\n')
 
-        if seg.segType in ['pro','rna','dna','good']:
-            newSeg.rtf_list = charmming_config.data_home + '/toppar/top_all27_prot_na.rtf'
-            newSeg.prm_list = charmming_config.data_home + '/toppar/par_all27_prot_na.prm'
+        if seg.segType in ['pro','rna','dna']:
+            newSeg.rtf_list = charmming_config.data_home + '/toppar/' + charmming_config.default_pro_top
+            newSeg.prm_list = charmming_config.data_home + '/toppar/' + charmming_config.default_pro_prm
+        elif seg.segType in ['rna','dna']:
+            newSeg.rtf_list = charmming_config.data_home + '/toppar/' + charmming_config.default_na_top
+            newSeg.prm_list = charmming_config.data_home + '/toppar/' + charmming_config.default_na_prm
+        elif seg.segType == 'good':
+            newSeg.rtf_list = ''
+            newSeg.prm_list = ''
+            newSeg.stream_list = charmming_config.data_home + '/toppar/toppar_water_ions.str'
 
         # get list of potential REDOX only segments. These segments will only
         # be used for REDOX calculations and otherwise aren't part of the final

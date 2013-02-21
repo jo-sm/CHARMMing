@@ -38,6 +38,7 @@ import pychm.io, pychm.lib, pychm.cg
 import pychm.future.lib.toppar as pychm_toppar
 from pychm.future.io.charmm import open_rtf, open_prm
 from pychm.io.mol2 import MOL2File
+from tempfile import NamedTemporaryFile
 
 class Structure(models.Model):
 
@@ -215,8 +216,8 @@ class Structure(models.Model):
         td = {}
         td['nres'] = len(x)
         td['sequence'] = seqrdup
-        td['topology'] = '%s/toppar/top_all27_prot_na.rtf' % charmming_config.data_home
-        td['parameter'] = '%s/toppar/par_all27_prot_na.prm' % charmming_config.data_home
+        td['topology'] = '%s/toppar/%s' % (charmming_config.data_home,charmming_config.default_pro_top)
+        td['parameter'] = '%s/toppar/%s' % (charmming_config.data_home,charmming_config.default_pro_prm)
         td['outname'] = path
         td['name'] = self.owner.username
         
@@ -366,6 +367,7 @@ class WorkingSegment(Segment):
             raise AssertionError('Asked to operate on a nonexistent segment!')
 
         btmcount = 0
+        ##master_mol = pychm.lib.mol.Mol()
         for residue in seg.iter_res():
             btmcount += 1
 
@@ -373,18 +375,20 @@ class WorkingSegment(Segment):
             if self.tpMethod == 'autogen':
                 if residue.resName == 'hem':
                     if self.stream_list:
-                        self.stream_list += ' %s/toppar/stream/toppar_all22_prot_heme.str' % charmming_config.data_home
+                        self.stream_list += ' %s/toppar/stream/toppar_all36_prot_heme.str' % charmming_config.data_home
                     else:
-                        self.stream_list = '%s/toppar/stream/toppar_all22_prot_heme.str' % charmming_config.data_home
+                        self.stream_list = '%s/toppar/stream/toppar_all36_prot_heme.str' % charmming_config.data_home
 
+                    rtf_name = '%s/toppar/%s' % (charmming_config.data_home,charmming_config.default_pro_top)
+                    prm_name = '%s/toppar/%s' % (charmming_config.data_home,charmming_config.default_pro_prm)
                     if self.rtf_list:
-                         self.rtf_list += ' %s/toppar/top_all27_prot_na.rtf' % charmming_config.data_home
+                         self.rtf_list += ' %s' % rtf_name
                     else:
-                         self.rtf_list = '%s/toppar/top_all27_prot_na.rtf' % charmming_config.data_home
+                         self.rtf_list = '%s' % rtf_name
                     if self.prm_list:
-                         self.prm_list += ' %s/toppar/par_all27_prot_na.prm' % charmming_config.data_home
+                         self.prm_list += ' %s' % prm_name
                     else:
-                         self.prm_list = '%s/toppar/par_all27_prot_na.prm' % charmming_config.data_home
+                         self.prm_list = '%s' % prm_name
 
                     self.save()
                     continue
@@ -408,8 +412,10 @@ class WorkingSegment(Segment):
                 badResList.append(residue.resName)
                 filename_noh = self.structure.location + '/' + self.name + '-badres-' + residue.resName + ".pdb"
                 filename_sdf = self.structure.location + '/' + self.name + '-badres-h-' + residue.resName + ".sdf"
+                filename_pdb = self.structure.location + '/' + self.name + '-badres-h-' + residue.resName + ".pdb"
                 filename_h = self.structure.location + '/' + self.name + '-badres-h-' + residue.resName + ".mol2"
                 residue.write(filename_noh, outformat='pdborg')
+
 
                 # shiv to try to get an SDF file for the residue
                 conn = HTTPConnection("www.pdb.org")
@@ -426,34 +432,52 @@ class WorkingSegment(Segment):
                     outfp.write(sdf_file)
                     outfp.close()
 
-                    pdb_rewrite = self.structure.location + '/segment-' + seg.segid + '.pdb'
-                    os.system("babel --title %s -isdf %s -omol2 %s" % (residue.resName,filename_sdf,filename_h))
-                    os.system("sed -i.bak -e 's/LIG1/HET%d/' %s" % (btmcount,filename_h))
+                    ## Covert sdf to pdb so atom names map ...
+                    ##os.system("babel --title %s -isdf %s -opdb %s" % (residue.resName,filename_sdf,filename_pdb))
+                    ##tmpmol = pychm.io.pdb.get_molFromPDB(filename_pdb)
+                    ##for ta in tmpmol:
+                    ##    master_mol.append(ta)
+
+                    ## BTM 20130213 -- With Lee's new workflow, I think that we can just dispense
+                    ## with this whole bunch of logic. Each individual toppar-making mechanism will decide
+                    ## for itself what it wants to do with the SDF file.
+
+                    #pdb_rewrite = self.structure.location + '/segment-' + seg.segid + '.pdb'
+                    #os.system("babel --title %s -isdf %s -omol2 %s" % (residue.resName,filename_sdf,filename_h))
+                    #os.system("sed -i.bak -e 's/LIG1/HET%d/' %s" % (btmcount,filename_h))
 
                     # try to convert the names in the MOL2 to match those in the PDB.
-                    pdbmol = pychm.io.pdb.get_molFromPDB(self.structure.location + '/segment-' + self.name + '.pdb')
-                    mymol2 = MOL2File(filename_h)
-                    molmol = mymol2.mol
-                    j = 0
-                    for i, pdbatom in enumerate(pdbmol):
-                        if pdbatom.resName != residue.resName.lower():
-                            continue
-                        if pdbatom.atomType.startswith('H'):
-                            break
-                        molatom = molmol[j]
-                        j = j + 1
 
-                        # This is for debug purposes only
-                        if pdbatom.atomType.strip()[0] != molatom.atomType.strip()[0]:
-                            raise(Exception('Mismatched atom types'))
-                        molatom.atomType = pdbatom.atomType.strip()
+                    # BTM -- is this even necessary at the moment? Will the rename_dupes stuff I've been working
+                    # on fix this?
 
-                    molmol.write(filename_h, outformat='mol2', header=mymol2.header, bonds=mymol2.bonds)
+                    #pdbmol = pychm.io.pdb.get_molFromPDB(self.structure.location + '/segment-' + self.name + '.pdb')
+                    #mymol2 = MOL2File(filename_h)
+                    #molmol = mymol2.mol
+
+                    #mylogfp.write('Lengths: pdbmol %d molmol %d\n' % (len(pdbmol),len(molmol))
+                    #mylogfp.flush()
+
+                    #j = 0
+                    #for i, pdbatom in enumerate(pdbmol):
+                    #    if pdbatom.resName != residue.resName.lower():
+                    #        continue
+                    #    if pdbatom.atomType.startswith('H'):
+                    #        break
+                    #    molatom = molmol[j]
+                    #    j = j + 1
+
+                    #    # This is for debug purposes only
+                    #    if pdbatom.atomType.strip()[0] != molatom.atomType.strip()[0]:
+                    #        raise(Exception('Mismatched atom types'))
+                    #    molatom.atomType = pdbatom.atomType.strip()
+
+                    #molmol.write(filename_h, outformat='mol2', header=mymol2.header, bonds=mymol2.bonds)
 
                     ##os.system("babel --title %s -isdf %s -opdb %s" % (residue.resName,filename_sdf,pdb_rewrite))
                 else:
                     mylogfp.write('No: use PDB\n')
-                    os.system("babel -h --title %s -ipdb %s -omol2 %s" % (residue.resName,filename_noh,filename_h))
+                    ##os.system("babel -h --title %s -ipdb %s -omol2 %s" % (residue.resName,filename_noh,filename_h))
                     os.system("babel -h --title %s -ipdb %s -osdf %s" % (residue.resName,filename_noh,filename_sdf))
                 mylogfp.close()
           
@@ -519,8 +543,15 @@ class WorkingSegment(Segment):
         fp.close()
 
         # template dictionary passes the needed variables to the template
-        template_dict['topology_list'] = self.rtf_list.split(' ')
-        template_dict['parameter_list'] = self.prm_list.split(' ')
+        if self.rtf_list:
+            template_dict['topology_list'] = self.rtf_list.split(' ')
+        else:
+            template_dict['topology_list'] = []
+        if self.prm_list:
+            template_dict['parameter_list'] = self.prm_list.split(' ')
+        else:
+            template_dict['parameter_list'] = []
+
         template_dict['patch_first'] = self.patch_first
         template_dict['patch_last'] = self.patch_last
         template_dict['segname'] = self.name
@@ -599,14 +630,47 @@ class WorkingSegment(Segment):
         logfp.write('Try to use CGenFF\n')
         self.rtf_list = '%s/toppar/top_all36_cgenff.rtf' % charmming_config.data_home
         self.prm_list = '%s/toppar/par_all36_cgenff.prm' % charmming_config.data_home
+ 
 
         header = '# USER_IP 165.112.184.52 USER_LOGIN %s\n\n' % self.structure.owner.username
         for badRes in badResList:
-            fp = open('%s/%s-badres-h-%s.mol2' % (self.structure.location,self.name,badRes), 'r')
+            # make a mol2 file out of the SDF.
+            filebase = '%s/%s-badres-h-%s' % (self.structure.location,self.name,badRes)
+            filename_sdf = filebase + '.sdf'
+            filename_mol2 = filebase + '.mol2'
+            os.system("babel --title %s -isdf %s -omol2 %s" % (badRes,filename_sdf,filename_mol2))
+
+            # The following nasty crap attempts to make the names in the MOL2 file the same as those
+            # in the PDB.
+            pdbmol = pychm.io.pdb.get_molFromPDB(self.structure.location + '/segment-' + self.name + '.pdb')
+            mymol2 = MOL2File(filename_mol2)
+            molmol = mymol2.mol
+
+            logfp.write('Lengths: pdbmol %d molmol %d\n' % (len(pdbmol),len(molmol)))
+            logfp.flush()
+
+            j = 0
+            for i, pdbatom in enumerate(pdbmol):
+                if pdbatom.resName != badRes.lower():
+                    continue
+                if pdbatom.atomType.startswith('H'):
+                    break
+                molatom = molmol[j]
+                j = j + 1
+
+                # This is for debug purposes only
+                if pdbatom.atomType.strip()[0] != molatom.atomType.strip()[0]:
+                    raise(Exception('Mismatched atom types'))
+                molatom.atomType = pdbatom.atomType.strip()
+
+            molmol.write(filename_mol2, outformat='mol2', header=mymol2.header, bonds=mymol2.bonds)
+
+            fp = open(filename_mol2, 'r')
             payload = fp.read()
             content = header + payload
             fp.close()
 
+            # send off to dogmans for processing
             recvbuff = ''
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -704,10 +768,14 @@ class WorkingSegment(Segment):
         os.putenv("MATCH","%s/MATCH_RELEASE/MATCH" % charmming_config.data_home)
         os.chdir(self.structure.location)
        
-        self.rtf_list = '%s/toppar/top_all27_prot_na.rtf' % charmming_config.data_home
-        self.prm_list = '%s/toppar/par_all27_prot_na.prm' % charmming_config.data_home
-        for badRes in badResList:
-            exe_line = '%s/MATCH_RELEASE/MATCH/scripts/MATCH.pl %s-badres-h-%s.mol2' % (charmming_config.data_home,self.name,badRes)
+        self.rtf_list = '%s/toppar/top_all36_cgenff.rtf' % (charmming_config.data_home)
+        self.prm_list = '%s/toppar/par_all36_cgenff.prm' % (charmming_config.data_home)
+        os.chdir(self.structure.location)
+        magic_mol = pychm.lib.mol.Mol()
+        magic_anum = 0
+        for myresnum, badRes in enumerate(badResList):
+            filebase = '%s-badres-h-%s' % (self.name,badRes)
+            exe_line = '%s/MATCH_RELEASE/MATCH/scripts/MATCH.pl -CreatePdb %s.pdb %s.sdf' % (charmming_config.data_home,filebase,filebase)
             logfp.write('Xcute: %s\n' % exe_line)
             status, output = commands.getstatusoutput(exe_line)
             if status != 0:
@@ -716,12 +784,53 @@ class WorkingSegment(Segment):
                 logfp.close()
                 return -1
 
+            # add atoms from our PDB into magic_mol and renumber them.
+            myown_mol = pychm.io.pdb.get_molFromPDB('%s.pdb' % filebase)
+            for atom in myown_mol:
+                magic_anum += 1
+                atom.atomNum = magic_anum
+                atom.resName = badRes
+                atom.resid = myresnum+1
+                atom.chainid = self.name[0]
+                atom.segType = 'bad'
+                magic_mol.append(atom)
+
+            # nuke MASS lines from the RTF, or else they will conflict with CGENFF
+            inpfp = open('%s.rtf' % filebase,'r')
+            outfp = NamedTemporaryFile(mode='w',delete=True)
+            for line in inpfp:
+                if line.startswith('MASS'):
+                    continue
+                if line.startswith('RESI'):
+                    line = line.replace('UNK',badRes)
+                outfp.write(line)
+            outfp.flush()
+            inpfp.close()
+            shutil.copy(outfp.name,'%s.rtf' % filebase)
+            outfp.close()
+
+            # nuke NONBonded lines from the PRM, same reason
+            inpfp = open('%s.prm' % filebase,'r')
+            outfp = NamedTemporaryFile(mode='w',delete=True)
+            for line in inpfp:
+                if line.startswith('NONB'):
+                    break
+                outfp.write(line)
+            outfp.flush()
+            inpfp.close()
+            shutil.copy(outfp.name,'%s.prm' % filebase)
+            outfp.close()
+
+            os.chmod('%s.rtf' % filebase,0644)
+            os.chmod('%s.prm' % filebase,0644)
             logfp.write("OK!\n")
 
             # ToDo: add the rtf/param files that have been generated to a master topology
             # and parameter files for the entire segment.
             self.rtf_list += ' %s-badres-h-%s.rtf' % (self.name,badRes)
             self.prm_list += ' %s-badres-h-%s.prm' % (self.name,badRes)
+
+        magic_mol.write('segment-%s.pdb' % self.name,outformat='charmm')
 
         logfp.close()
         return 0
@@ -905,7 +1014,6 @@ class WorkingStructure(models.Model):
     segments = models.ManyToManyField(WorkingSegment)
 
     modelName = models.CharField(max_length=100,default='model0')
-
     qmRegion = models.CharField(max_length=250,default='none')
 
     # final topologies and parameters (built using Frank's TOP/PAR
@@ -980,6 +1088,7 @@ class WorkingStructure(models.Model):
             wseg.type = segobj.type
             wseg.default_patch_first = segobj.default_patch_first
             wseg.default_patch_last = segobj.default_patch_last
+            wseg.stream_list = segobj.stream_list
             wseg.tpMethod = tpdict[sid]
 
             if wseg.tpMethod == 'standard':
@@ -1014,102 +1123,26 @@ class WorkingStructure(models.Model):
 
         BTM 20120522 -- build one parameter file to rule them all, using
         Frank's code. 
-        """
 
-        qrebuild=False
+        BTM 20130213 -- building one param file to rule them all is no longer
+        needed thanks to some tricks and flexible param stuff. Pulling it out.
+        """
 
         prm_list = []
         seglist = self.segments.all()
 
-        bhlist = [x for x in seglist if x.name.endswith('-bad')]
-
-        # This rather obnoxious chunk of code checks if any of the bad hets are for
-        # REDOX, and if so removes them from the list, since they're not really bad
-        # in the sense that they require new topology and parameter files.
-        oklist = []
-        for i, seg in enumerate(bhlist):
-            if seg.redox: 
-                oklist.append(i)
-        oklist.sort(reverse=True)
-        for elt in oklist:
-            bhlist.pop(elt)
-
-        if not bhlist:
-
-            # no bad hets means no custom topology or parameters, behave as normal
-            tlist = set()
-            plist = set()
-            for segobj in self.segments.all():
-                if segobj.redox: continue
+        tlist = set()
+        plist = set()
+        for segobj in self.segments.all():
+            if segobj.redox: continue
+            if segobj.rtf_list:
                 for prm in segobj.prm_list.split(' '):
-                   plist.add(prm)
+                    plist.add(prm)
+            if segobj.prm_list:
                 for rtf in segobj.rtf_list.split(' '):
-                   tlist.add(rtf)
+                    tlist.add(rtf)
 
-            return tlist, plist, False
-        else:
-            # Shizzle my izzle we have some custom generated topologies and parameters
-            # here. Rather than worry about file ordering and inter-dependencies, we
-            # will just combine them with Frank's nifty code.
-            qrebuild = True # we might need to rebuild the PSF
-
-            pnlist = [x for x in seglist if x.name.endswith('-pro') or x.name.endswith('-dna') or x.name.endswith('rna')]
-            ghlist = [x for x in seglist if x.name.endswith('-good')]
-
-            # finlist is built to put the segments in the correct order for parameter
-            # file merging
-            finlist = pnlist + ghlist + bhlist
-            final_toppar = pychm_toppar.Toppar()
-
-            logfp = open('/tmp/debug-toppar-combo.txt', 'w')
-            for segobj in finlist:
-                logfp.write('Processing segment %s\n' % segobj.name)  
-
-                # we are going to assume that RTFs and PRMs are matched pairs in their
-                # respective lists.
-                rtflist = segobj.rtf_list.split(' ')
-                prmlist = segobj.prm_list.split(' ')
-                logfp.write('rtflist = %s\n' % rtflist)
-                logfp.write('prmlist = %s\n' % prmlist)
-                if len(rtflist) != len(prmlist):
-                    logfp.write('Problem: rtf list length %d prm list length %d\n' % (len(rtflist),len(prmlist)))
-                    raise Exception("Strange list lengths")
-
-                for i, rtf in enumerate(rtflist):
-                    logfp.write('Processing rtf %s and prm %s\n' % (rtf,prmlist[i]))
-
-                    with open_rtf(rtf) as tmp_rtf:
-                        tmp_rtf.export_to_toppar(final_toppar)
-                    with open_prm(prmlist[i]) as tmp_prm:
-                        tmp_prm.export_to_toppar(final_toppar)
-#                    rtfobj = open_rtf(rtf)
-#                    prmobj = open_prm(prmlist[i])
-#                    temp_toppar = pychm_toppar.Toppar()
-#                    rtfobj.export_to_toppar(temp_toppar)
-#                    prmobj.export_to_toppar(temp_toppar)
-#
-#                    final_toppar = final_toppar + temp_toppar
-
-            logfp.write('Done\n')
-            logfp.close()
-
-            # we have now combined all of the parameter file objects, write out a new file
-            newRTFFile = self.structure.location + '/' + self.identifier + '-constructed.rtf'
-            newPrmFile = self.structure.location + '/' + self.identifier + '-constructed.prm'
-            tfinal = open_rtf(newRTFFile, 'w')
-            pfinal = open_prm(newPrmFile, 'w')
-            tfinal.import_from_toppar(final_toppar)
-            pfinal.import_from_toppar(final_toppar)
-            tfinal.write_all()
-            pfinal.write_all()
-            tfinal.close()
-            pfinal.close()
-
-            tlist = set()
-            plist = set()
-            tlist.add(newRTFFile)
-            plist.add(newPrmFile)
-            return tlist, plist, True
+        return tlist, plist
 
     def getAppendPatches(self):
         """
@@ -1136,6 +1169,8 @@ class WorkingStructure(models.Model):
         tdict = {}
         # step 1: check if all segments are built
         tdict['seg_list'] = []
+        tdict['nonhet_seg_list'] = []
+        tdict['het_seg_list'] = []
         tdict['output_name'] = self.identifier + '-build'
         tdict['blncharge'] = False # we're not handling BLN models for now
 
@@ -1167,38 +1202,40 @@ class WorkingStructure(models.Model):
                     else:
                         inTask.scripts = newScript
                 if not segobj.redox:
-                    tdict['seg_list'].append(segobj)
+                    if segobj.type in ['pro','dna','rna']:
+                        tdict['nonhet_seg_list'].append(segobj)
+                    else:
+                        tdict['het_seg_list'].append(segobj)
 
                 if segobj.stream_list:
                     if self.topparStream:
-                        self.topparStream += ' %s' % segobj.stream_list
-                    self.topparStream = segobj.stream_list
+                        for item in segobj.stream_list.split():
+                            if item not in self.topparStream:
+                                self.topparStream += ' %s' % item
+                    else:
+                        self.topparStream = segobj.stream_list
                     self.save()
 
-        tdict['topology_list'], tdict['parameter_list'], qrebuild = self.getTopparList()
+        tdict['seg_list'] = tdict['nonhet_seg_list'] + tdict['het_seg_list']
+        tdict['topology_list'], tdict['parameter_list'] = self.getTopparList()
         if self.topparStream:
             tdict['tpstream'] = self.topparStream.split()
         else:
             tdict['tpstream'] = []
         tdict['patch_lines'] = self.getAppendPatches()
 
-        logfp = open('/tmp/buildLog.txt', 'w')
-        logfp.write('Having called getTopparList: qrebuild = %s\n' % qrebuild)
-
-        if qrebuild:
-            tdict['rebuild'] = True
-            segtuplist = []
-            for segobj in self.segments.all():
-                if segobj.type == 'good':
-                    special = 'noangle nodihedral'
-                else:
-                    special = ''
-                segtuplist.append((segobj.name,segobj.builtCRD.replace('.crd','.pdb'),segobj.patch_first,segobj.patch_last,special))
-            tdict['segbuild'] = segtuplist
-        else:
-            tdict['rebuild'] = False
-        logfp.write('Setting template dict rebuild = %s\n' % tdict['rebuild'])
-        logfp.close() 
+        ##if qrebuild:
+        ##    tdict['rebuild'] = True
+        ##    segtuplist = []
+        ##    for segobj in self.segments.all():
+        ##        if segobj.type == 'good':
+        ##            special = 'noangle nodihedral'
+        ##        else:
+        ##            special = ''
+        ##        segtuplist.append((segobj.name,segobj.builtCRD.replace('.crd','.pdb'),segobj.patch_first,segobj.patch_last,special))
+        ##    tdict['segbuild'] = segtuplist
+        ##else:
+        ##    tdict['rebuild'] = False
 
         t = get_template('%s/mytemplates/input_scripts/append.inp' % charmming_config.charmming_root)
         charmm_inp = output.tidyInp(t.render(Context(tdict)))
