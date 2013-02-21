@@ -19,9 +19,9 @@ end
 wrnlev 1
 {% for item in parameter_list %}blankme
    {% ifequal forloop.counter 1 %}blankme
-      read para card name {{item}}
+      read para card flex name {{item}}
    {% else %}blankme
-      read para card append name {{item}}
+      read para card append flex name {{item}}
    {% endifequal %}blankme
 {% endfor %}blankme
 wrnlev 5
@@ -33,7 +33,7 @@ wrnlev 5
 {% endif %} blankme
 
 {% if useqmmm %} blankme
-read param card append
+read param card append flex
 * QM/MM parameters (for link atom)
 *
 
