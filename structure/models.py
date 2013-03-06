@@ -1129,18 +1129,35 @@ class WorkingStructure(models.Model):
         """
 
         prm_list = []
-        seglist = self.segments.all()
+        tlist = []
+        plist = []
+        orderseglist = list(self.segments.filter(type='pro'))
+        orderseglist.extend(list(self.segments.filter(type__in=['rna','dna'])))
+        orderseglist.extend(list(self.segments.filter(type='good')))
+        orderseglist.extend(list(self.segments.filter(type='bad')))
 
-        tlist = set()
-        plist = set()
-        for segobj in self.segments.all():
+        logfp = open('/tmp/ordersegs.txt','w')
+        for segobj in orderseglist:
+            logfp.write('%s\n' % segobj.name)
+
             if segobj.redox: continue
-            if segobj.rtf_list:
-                for prm in segobj.prm_list.split(' '):
-                    plist.add(prm)
+            # NB: tlist and plist used to be done as sets, but
+            # it turns out that order DOES matter, hence the
+            # hack-y ordered set thing here.
             if segobj.prm_list:
+                for prm in segobj.prm_list.split(' '):
+                    if not prm in plist: plist.append(prm)
+            if segobj.rtf_list:
                 for rtf in segobj.rtf_list.split(' '):
-                    tlist.add(rtf)
+                    if not rtf in tlist: tlist.append(rtf)
+
+        logfp.write('----\n')
+        for item in tlist:
+            logfp.write(item + '\n')
+        logfp.write('----\n')
+        for item in plist:
+            logfp.write(item + '\n')
+        logfp.close()
 
         return tlist, plist
 
