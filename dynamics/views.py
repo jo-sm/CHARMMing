@@ -157,7 +157,7 @@ def applyld_tpl(request,ldt,pTaskID):
 
     # template dictionary passes the needed variables to the template
     template_dict = {}
-    template_dict['topology_list'], template_dict['parameter_list'], junk = ldt.workstruct.getTopparList()
+    template_dict['topology_list'], template_dict['parameter_list'] = ldt.workstruct.getTopparList()
     template_dict['fbeta'] = postdata['fbeta']
     template_dict['nstep'] = postdata['nstep']
     template_dict['usesgld'] = postdata.has_key('usesgld')
@@ -291,7 +291,7 @@ def applymd_tpl(request,mdt,pTaskID):
     
     # template dictionary passes the needed variables to the templat
     template_dict = {}     
-    template_dict['topology_list'], template_dict['parameter_list'], junk = mdt.workstruct.getTopparList()
+    template_dict['topology_list'], template_dict['parameter_list'] = mdt.workstruct.getTopparList()
     template_dict['output_name'] = mdt.workstruct.identifier + '-md'
     if mdt.workstruct.topparStream:
         template_dict['tpstream'] = mdt.workstruct.topparStream.split()

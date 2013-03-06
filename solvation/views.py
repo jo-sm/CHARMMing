@@ -125,7 +125,7 @@ def solvate_tpl(request,solvTask,pTaskID):
     # template dictionary passes the needed variables to the template
     template_dict = {}
     template_dict['angles'] = "%5.2f %5.2f %5.2f" % (solvTask.angles[0],solvTask.angles[1],solvTask.angles[2])
-    template_dict['topology_list'], template_dict['parameter_list'], junk = workingstruct.getTopparList()
+    template_dict['topology_list'], template_dict['parameter_list'] = workingstruct.getTopparList()
     template_dict['solvation_structure'] = solvTask.solvation_structure
     if workingstruct.topparStream:
         template_dict['tpstream'] = workingstruct.topparStream.split()
@@ -162,6 +162,14 @@ def solvate_tpl(request,solvTask,pTaskID):
     #change the status of the file regarding solvation
     solvTask.scripts += ',%s' % solvate_input_filename
     solvTask.save()
+
+    # make sure that toppar_water_ions.str is in the TopparList
+    if not 'toppar_water_ions.str' in workingstruct.topparStream:
+        if workingstruct.topparStream:
+            workingstruct.topparStream = '%s/toppar/toppar_water_ions.str' % chamming_config.data_home
+        else:
+            workingstruct.topparStream += ' %s/toppar/toppar_water_ions.str' % chamming_config.data_home
+        workingstruct.save() # probably isn't necessary -- being safe
 
     doneut = postdata.has_key('salt') and postdata['salt'] != 'none'
     if doneut:
