@@ -461,7 +461,7 @@ def glmol(request,filename):
     
     filename_end = filename.rsplit('/',1)[1]
     m = re.match(r'^/[^\/]+/(....)', filename) #Finds the 4-char protein filename from the file path given to this function
-    original_pdb_filename = "charmming_config.charmming_root/pdbuploads" + struct.location.replace(charmming_config.user_home,'') + '/' + m.group(1) + ".pdb" #gets the protein file's absolute path, i.e. "/charmming/pdbuploads/admin/6pti-1/6pti.pdb"
+    original_pdb_filename = charmming_config.charmming_root + "/pdbuploads" + struct.location.replace(charmming_config.user_home,'') + '/' + m.group(1) + ".pdb" #gets the protein file's absolute path, i.e. "/charmming/pdbuploads/admin/6pti-1/6pti.pdb"
     readFile = open(original_pdb_filename, "r")
     helix_info = ""
     for line in readFile.readlines():
