@@ -1,5 +1,13 @@
 <head>
-<script type="text/javascript" src="/charmming/jmol/Jmol.js"></script>
+<script type="text/javascript" src="/charmming/js/jsmol/JSmoljQuery.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/JSmolCore.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/JSmolApplet.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/JSmolApi.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/j2s/j2sjmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/JSmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/custom.js"></script>
+  <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
+
 </head>
 <body>
 
@@ -12,10 +20,26 @@
        //jmolApplet(parent.getFrameDim(), "load files '/charmming/vcs_data/mois/{{username}}/1FIN.pdb' '/charmmin/vcs_data/mois/{{username}}/1FIN_vcsdrawn302.mol2; slab off; spin off; wireframe off; spacefill off; trace off; set ambient 40; set specpower 40; slab off; ribbons on;");
        //jmolApplet(parent.getFrameDim(), "load '/charmming/vcs_data/mois/{{username}}/1FIN_vcsdrawn302.mol2'; load APPEND '/charmming/vcs_data/mois/{{username}}/1FIN.mol2'; frame *; display 1.1,2.1;");
        
-       jmolInitialize("/charmming/jmol/");
-       //jmolApplet(300, "load '{{ligandfile}}'; load APPEND '{{proteinfile}}';  select 2.1; slab off; spin off; wireframe off; spacefill off; trace off; set ambient 40; set specpower 40; slab off; ribbons on;select WITHIN(5, true,model=1.1) and model!=1.1 and protein and sidechain; wireframe 0.1; spacefill on; spacefill 0.25; select 1.1; wireframe 0.08; spacefill off; color green; frame *; display 2.1,1.1");
+     var jmolApplet;
+    jmol_isReady = function(applet) {
+        document.title = (applet._id + " is ready")
+        Jmol._getElement(applet, "appletdiv").style.border="1px solid blue"
+}
+    var Info = {
+        width: 680,
+        height: 680,
+        debug: false,
+        color: "black",
+        use: "HTML5",
+        j2sPath: "/charmming/js/jsmol/j2s",
+        readyFunction: jmol_isReady,
+        script: "set antialiasDisplay;"
+}
+       
+	jmolApplet = Jmol.getApplet("jmolApplet", Info)
+	Jmol.script(jmolApplet,  "load '{{ligandfile}}'; load APPEND '{{proteinfile}}';  select 2.1; slab off; spin off; wireframe off; spacefill off; trace off; set ambient 40; set specpower 40; slab off; ribbons on; color structure; select sidechain; color white; select WITHIN(5, true,model=1.1) and model!=1.1 and sidechain; color gray; wireframe 0.05; spacefill on; spacefill 0.15; select 1.1; wireframe 0.1; spacefill off; color yellow; frame *; display 2.1,1.1");
+//jmolApplet(300, "load '{{ligandfile}}'; load APPEND '{{proteinfile}}';  select 2.1; slab off; spin off; wireframe off; spacefill off; trace off; set ambient 40; set specpower 40; slab off; ribbons on;select WITHIN(5, true,model=1.1) and model!=1.1 and protein and sidechain; wireframe 0.1; spacefill on; spacefill 0.25; select 1.1; wireframe 0.08; spacefill off; color green; frame *; display 2.1,1.1");
 	
-        jmolApplet(680, "load '{{ligandfile}}'; load APPEND '{{proteinfile}}';  select 2.1; slab off; spin off; wireframe off; spacefill off; trace off; set ambient 40; set specpower 40; slab off; ribbons on; color structure; select sidechain; color white; select WITHIN(5, true,model=1.1) and model!=1.1 and sidechain; color gray; wireframe 0.05; spacefill on; spacefill 0.15; select 1.1; wireframe 0.1; spacefill off; color yellow; frame *; display 2.1,1.1");
        
         //jmolApplet(600, "load {{proteinfile}}; wireframe off; spacefill off; ribbons; color gray; select sidechain; wireframe on; color atom;")
         

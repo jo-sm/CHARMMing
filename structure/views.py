@@ -430,9 +430,10 @@ def jmol(request,filename):
     except:
         return HttpResponse('No structure')
     filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
-
+    filename_end = filename.rsplit('/',1)[1] #i.e., "a-pro-5.pdb", etc.
     lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/jmol.html', {'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok})
+    isProtein = "-pro-" in filename_end or "-build" in filename_end or "-minimization" in filename_end or "-solvation" in filename_end or "-neutralization" in filename_end
+    return render_to_response('html/jmol.html', {'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok, 'isProtein':isProtein})
 
 
 def jmolHL(request,filename,segid,resid):
@@ -446,6 +447,31 @@ def jmolHL(request,filename,segid,resid):
     filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
 
     return render_to_response('html/jmol.html', {'filepath': filename, 'segid': segid, 'resid': resid })
+
+#Lets user view PDB through GLmol
+def glmol(request,filename):
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+
+    try:
+        struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return HttpResponse('No structure')
+    filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
+    
+    filename_end = filename.rsplit('/',1)[1]
+    m = re.match(r'^/[^\/]+/(....)', filename) #Finds the 4-char protein filename from the file path given to this function
+    original_pdb_filename = "charmming_config.charmming_root/pdbuploads" + struct.location.replace(charmming_config.user_home,'') + '/' + m.group(1) + ".pdb" #gets the protein file's absolute path, i.e. "/charmming/pdbuploads/admin/6pti-1/6pti.pdb"
+    readFile = open(original_pdb_filename, "r")
+    helix_info = ""
+    for line in readFile.readlines():
+    	if ("HELIX" in line) or ("SHEET" in line):
+		helix_info += line #Required for GLmol rendering
+    helix_info = helix_info.replace("\n", "\\n")
+    lesson_ok, dd_ok = checkPermissions(request)
+    isProtein = "-pro-" in filename_end or "-build" in filename_end or "-minimization" in filename_end or "-solvation" in filename_end or "-neutralization" in filename_end
+    return render_to_response('html/glmol.html', {'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok, 'isProtein':isProtein, 'helix_info':helix_info})
+
 
 #Allows the user to see what processes their PDBs are undergoing
 def viewstatus(request):

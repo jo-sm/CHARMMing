@@ -65,7 +65,8 @@ urlpatterns = patterns('',
      (r'^charmming/chemdoodleview/(?P<filename>.*)$', 'structure.views.chemdoodle'),
      (r'^charmming/jmolviewhl/(?P<filename>.*)/(?P<segid>.*)/(?P<resid>.*)/$', 'structure.views.jmolHL'),
      (r'^charmming/visualize/(?P<filename>.*)$', 'structure.views.visualize'),
-     (r'^charmming/jmol/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '%s/jmol/' % charmming_config.charmming_root}),
+     (r'^charmming/glmolview/(?P<filename>.*)$', 'structure.views.glmol'),
+     #(r'^charmming/jmol/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '%s/jmol/' % charmming_config.charmming_root}),
      # Uncomment the next two lines to enable ChemAxom's Marvin software
      #(r'^charmming/marvin/pdbuploads/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/var/www/html/charmming/pdbuploads/'}),#way around Marvin's path system
      #(r'^charmming/marvin/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/var/www/html/charmming/marvin/'}),

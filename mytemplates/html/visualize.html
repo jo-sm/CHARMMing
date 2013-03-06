@@ -1,5 +1,4 @@
-{% extends "html/skeleton.html" %}
-
+{% extends "html/skeleton.html" %} 
 {% block content %}
 <div id="mainpage">
   <center>
@@ -8,9 +7,9 @@
 
   <form method="post" action=".">
      <table class="sortable resizable" border=2>
-        <tr><th>Filename</th><th>Description</th></tr>
+        <tr><th>Filename</th><th>Description</th><th>View in JSmol</th><th>View in GLmol</th></tr>
         {% for file in filelst %}
-           <tr><td><a href="/charmming/jmolview/{{ file.0 }}">{{ file.0 }}</a></td><td>{{ file.1 }}</td></tr>
+           <tr><td>{{ file.0 }}</td><td>{{ file.1 }}</td><td><a target="_blank" href="/charmming/jmolview/{{ file.0 }}">View</a></td><td><a target="_blank" href="/charmming/glmolview/{{ file.0 }}">View</a> </td></tr>
         {% endfor %}
      </table>
   </form>

@@ -1,0 +1,24 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
+  <script type="text/javascript" src="/charmming/jmol/Jmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/custom.js"></script>
+  <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
+
+  <center>
+    <h3>Visualization</h3>
+    <br />
+
+    <script>
+    jmolInitialize("/charmming/jmol/"); // REQUIRED
+    jmolSetAppletColor("black");
+    {% ifequal segid "NA" %}
+       jmolApplet("650", "load /charmming/pdbuploads/{{filepath}};anim mode palindrome 2 2;anim on");
+    {% else %}
+       jmolApplet("650", "load /charmming/pdbuploads/{{filepath}};anim mode palindrome 2 2; anim on; select {{resid}}; cpk 30%; wireframe 55; select {{resid}} and ( _O or _N ); label %a, %n");
+    {% endifequal %}
+  
+    </script>
+  </center>
+{% endblock %}
