@@ -88,7 +88,7 @@
                       topology file: <input type="file" name="topology_{{ seg.name }}" /><br />
                       parameter file: <input type="file" name="parameter_{{ seg.name }}" /><br />
                     {% else %}
-                      Standard CHARMM27 topology/parameters will be used
+                      CHARMM36 topology/parameters for proteins/nucleic acids will be used
                       <input type="hidden" name="toppar_{{ seg.name }}" value="standard" />
                     {% endifequal %}
                   </td>
