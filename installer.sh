@@ -65,7 +65,13 @@ function download_charmming {
     cd charmminglib 
     sudo python setup.py install
     cd ../
-    
+   
+# make sure visualization stuff is setup 
+    cd /tmp/charmming/charmming/mytemplates/js/
+    unzip glmol.zip 
+    unzip jsmol-13.1.13.zip
+    cd /tmp/charmming/
+ 
 #move charmming and charmming utils to final location.. 
     sudo mv charmming $charmming_path
     sudo cp -a $charmming_path/charmming-private $charmming_utils
