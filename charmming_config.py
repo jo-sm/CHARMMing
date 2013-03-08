@@ -32,6 +32,13 @@ user_home = "/home/schedd"
 # place where executables etc. are kept
 data_home = "/usr/local/charmming"
 
+# topology file to be used for proteins and nucleic acids ... these
+# must live in data_home/toppar.
+default_pro_top = "top_all36_prot.rtf"
+default_pro_prm = "par_all36_prot.prm"
+default_na_top = "top_all36_na.rtf"
+default_na_prm = "par_all36_na.prm"
+
 # Where AmberTools lives -- used for Antechamber topology/parameter
 # determination.
 amber_home = "/usr/local/charmming/amber12"
@@ -51,8 +58,8 @@ lib_path = ''
 # path to the single threaded CHARMM executable
 #charmm_exe = "/usr/local/charmm/charmm"
 #charmm_exe = "/usr/local/charmming/c35b6_cgenff.exe"
-charmm_exe = "/usr/local/charmming/c36b2-cgenff.exe"
-charmm_apbs_exe = "/usr/local/charmming/c35b4-apbs-qc.one"
+charmm_exe = "/usr/local/charmming/c37b2-prelease.exe"
+charmm_apbs_exe = "/usr/local/charmming/c37b2-prelease.exe"
 
 # path to the MPI-enabled CHARMM executable
 charmm_mpi_exe = "/usr/local/charmming/gfortran-xxlg-qc.ompi"
