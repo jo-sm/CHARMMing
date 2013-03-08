@@ -844,31 +844,102 @@ class WorkingSegment(Segment):
         os.putenv("AMBERHOME", charmming_config.amber_home)
         os.chdir(self.structure.location)
 
-        for badRes in badResList:
+        # as with makeMATCH, we have to cdollect all of the atoms
+        # in the BadHet segment together into a single Mol object,
+        # so we can write out a unified PDB for the segment with all
+        # of the correct names.
+        magic_mol = pychm.lib.mol.Mol()
+        magic_anum = 0
+
+        for myresnum,badRes in enumerate(badResList):
 
             basefile = '%s-badres-h-%s' % (self.name,badRes)
-            mol2file = basefile + '.mol2'
-            cinpfile = basefile + '.inp'
+            sdffile = basefile + '.sdf'
+            pdbfile = basefile + '.pdb'
             rtffile = basefile + '.rtf'
             prmfile = basefile + '.prm'
 
-            cmd = charmming_config.amber_home + "/bin/antechamber -an n -rn " + badRes + \
-                  " -fi mol2 -i " + mol2file + " -fo charmm -o " + basefile
+            cmd = "babel -isdf %s -opdb %s" % (sdffile,pdbfile)
             logfp.write(cmd + '\n')
             status = os.system(cmd)
             if status != 0:
-                # debug purposes only
-                # raise("Antechamber screwed up!")
+                return -1
+            cmd = "sed -i.bak -e 's/LIG/MOL/' %s" % pdbfile
+            logfp.write(cmd + '\n')
+            status = os.system(cmd)
+            if status != 0:
                 return -1
 
-            try:
-                # see if output file exists
-                os.stat(cinpfile)
-                os.stat(rtffile)
-                os.stat(prmfile)
-            except:
-                logfp.write('No CHARMM input file produced!\n')
+            cmd = charmming_config.amber_home + "/bin/antechamber -i " + pdbfile + " -fi pdb -fo pdb -pf yes " + \
+                  " -o charmm-input.pdb"
+            logfp.write(cmd + '\n')
+            status = os.system(cmd)
+            if status != 0:
                 return -1
+
+            inpfp = open('charmm-input.pdb','r')
+            outfp = open(pdbfile,'w')
+            for line in inpfp:
+                outfp.write(line)
+            outfp.write('END\n')
+            inpfp.close()
+            outfp.close()
+
+            cmd = charmming_config.amber_home + "/bin/antechamber -i " + pdbfile + " -fi pdb -at gaff -rn LIG -c 7 -fo charmm -pf yes -o charmm-input"
+            logfp.write(cmd + '\n')
+            status = os.system(cmd)
+            if status != 0:
+                return -1
+
+            cmd = "sed -i.bak -e 's/MOL/%s/' charmm-input.pdb" % badRes
+            logfp.write(cmd + '\n')
+            status = os.system(cmd)
+            if status != 0:
+                return -1
+
+            # call the rename_dupes script to rename atoms that might conflict with those in the
+            # standard topology and parameter files.
+            cmd = '%s/rename_dupes.py -n charmm-input.rtf %s/toppar/%s %s/toppar/%s %s/toppar/top_all36_water_ions.rtf' % \
+                  (charmming_config.data_home,charmming_config.data_home,charmming_config.default_pro_top,charmming_config.data_home,charmming_config.default_na_top,charmming_config.data_home)
+            logfp.write(cmd + '\n')
+            status = os.system(cmd)
+            if status != 0:
+                return -1
+
+            inpfp = open('charmm-input.rtf','r')
+            outfp = open(rtffile,'w')
+            masslines = []
+            masscount = 0
+            for line in inpfp:
+                line = line.lower()
+                newnum = 0
+                if line.startswith('mass'):
+                    masscount += 1
+                    larr = line.split()
+                    newnum = masscount+450
+                    line = line.replace(larr[1],str(newnum))
+                    masslines.append(line)
+                if line.startswith('resi'):
+                    line = line.replace('lig',badRes)
+                outfp.write(line)
+            inpfp.close()
+            outfp.close()
+
+            # make a flex-compatible PRM file
+            inpfp = open('charmm-input.prm','r')
+            outfp = open(prmfile,'w')
+            for line in inpfp:
+                line = line.lower()
+                if line.startswith('bond'):
+                    outfp.write('atoms\n')
+                    for ml in masslines:
+                        outfp.write(ml)
+                    outfp.write('\n\n\n')
+                outfp.write(line)
+            inpfp.close()
+            outfp.close()
+
+            os.rename('charmm-input.pdb',pdbfile)
 
             # set the newly generated RTF/PRM to be used.
             if self.rtf_list:
@@ -879,6 +950,20 @@ class WorkingSegment(Segment):
                self.prm_list += " " + prmfile
             else:
                self.prm_list = prmfile
+
+            # append atoms to the magic_mol
+            myown_mol = pychm.io.pdb.get_molFromPDB(pdbfile)
+            for atom in myown_mol:
+                magic_anum += 1
+                atom.atomNum = magic_anum
+                atom.resName = badRes
+                atom.resid = myresnum+1
+                atom.chainid = self.name[0]
+                atom.segType = 'bad'
+                magic_mol.append(atom)
+
+        # end of loop, dump out the new PDB for this segment
+        magic_mol.write('segment-%s.pdb' % self.name,outformat='charmm')
 
         self.save()
         logfp.close()
