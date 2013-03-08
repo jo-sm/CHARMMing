@@ -1,0 +1,50 @@
+#! /bin/csh -f
+
+echo " "
+echo "ptraj: Test multiple ptraj actions."
+
+if( ! $?DO_PARALLEL ) then
+  setenv DO_PARALLEL " "
+  if( ! $?TESTptraj ) set TESTptraj = "../../bin/ptraj"
+else
+  if( ! $?TESTptraj ) set TESTptraj = "../../bin/ptraj.MPI"
+  set numprocs=`echo $DO_PARALLEL | awk -f ../numprocs.awk `
+  if ( $numprocs != 2 && $numprocs != 4 ) then
+    echo " Trying to run test with $numprocs threads."
+    echo " The parallel version of this test case requires either 2 or 4 threads."
+    echo " Not running test, exiting....."
+    echo ""
+    exit(0)
+  endif
+endif
+
+$DO_PARALLEL $TESTptraj compound.prmtop ptraj.in >&  ptraj.out || goto error
+
+../dacdif dist_end_to_end.list.save dist_end_to_end.list
+../dacdif omega.save omega
+../dacdif phi.save phi
+../dacdif psi.save psi
+../dacdif watershell.list.save watershell.list
+../dacdif test.mdcrd.save test.mdcrd
+/bin/rm -f ptraj.out
+
+# Makefile passes in value of NETCDF as the first argument
+# For some reason -NETCDF is blank, -PNETCDF is no
+if ( "$1" == "" || "$1" == "no" ) then
+    echo "ptraj was not built with NetCDF support - skipping this test."
+    exit(0)
+endif
+    echo "testing NetCDF..."
+    $DO_PARALLEL $TESTptraj compound.prmtop ptraj_netcdf.in >&  ptraj_netcdf.out || goto error
+    $DO_PARALLEL $TESTptraj compound.prmtop ptraj_mdcrd.in >&  ptraj_mdcrd.out || goto error
+    ../dacdif trajectory.mdcrd trajectory_test.mdcrd
+    /bin/rm -f trajectory.netcdf ptraj_netcdf.out ptraj_mdcrd.out
+endif
+
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+echo " "
+exit(1)
+

@@ -1,0 +1,100 @@
+*******>Bugfix 19:
+Author: Andreas W. Goetz
+Date: 01 August 2012
+
+Program: sqm
+
+Description: Fix d orbital bug in semiempirical code
+   - Use d orbitals with MNDO/d also for Br and I
+   - Fix Slater-Condon parameter calculations for d orbitals with
+     principal quantum number n>4
+
+----------------------------------------------------------------------------
+
+ AmberTools/src/sqm/constants.F90      |   19 ++++++++++++-------
+ AmberTools/src/sqm/depend             |    9 ++++++---
+ AmberTools/src/sqm/qm2_parameters.F90 |    2 ++
+ 3 files changed, 20 insertions(+), 10 deletions(-)
+
+diff --git AmberTools/src/sqm/constants.F90 AmberTools/src/sqm/constants.F90
+index 590cc71..c19fd06 100644
+--- AmberTools/src/sqm/constants.F90
++++ AmberTools/src/sqm/constants.F90
+@@ -84,18 +84,23 @@ module constants
+   !------------------------------------------------------------
+   !     THE ARRAY FC(I) CONTAINS THE FACTORIALS OF (I-1).
+ 
+-  _REAL_, parameter :: FC(1:17) =&
+-       (/ 1.0D0,1.0D0, 2.0D0, 6.0D0, 24.0D0, 120.0D0, 720.0D0, 5040.0D0, &
+-          40320.0D0, 362880.0D0, 3628800.0D0, 39916800.0D0,              &
+-          4.790016D+08, 6.2270208D+09, 8.71782912D+10,                   &
+-          1.307674368D+12, 2.092278989D+13 /)   
++  _REAL_, parameter :: FC(1:25) =&
++       (/ 1.0D0,1.0D0, 2.0D0, 6.0D0, 24.0D0, &
++          120.0D0, 720.0D0, 5040.0D0, 40320.0D0, 362880.0D0, &
++          3628800.0D0, 39916800.0D0, 4.790016D+08, 6.2270208D+09, 8.71782912D+10, &
++          1.307674368D+12, 2.092278989D+13, 3.55687428096D+14, 6.402373705728D+15, 1.21645100408832D+17, &
++          2.43290200817664D+18, 5.109094217170944D+19, 1.12400072777760768D+21, 2.585201673888497664D+22, &
++                  6.2044840173323943936D+23 /)
+   
+-  _REAL_, parameter :: logFC(1:17) = (/ 0.0D0, 0.0D0, 0.6931471805599D0,       &
++  _REAL_, parameter :: logFC(1:25) = (/ 0.0D0, 0.0D0, 0.6931471805599D0,       &
+        &            1.7917594692281D0,  3.1780538303479D0,  4.7874917427820D0, &
+        &            6.5792512120101D0,  8.5251613610654D0, 10.6046029027453D0, &
+        &           12.8018274800815D0, 15.1044125730755D0, 17.5023078458739D0, &
+        &           19.9872144956619D0, 22.5521638531234D0, 25.1912211827387D0, &
+-       &           27.8992713838409D0, 30.6718601061763D0 /)
++       &           27.8992713838409D0, 30.6718601061763D0, 33.5050734501369D0, &
++                   36.3954452080331D0, 39.3398841871995D0, 42.3356164607535D0, &
++                   45.3801388984769D0, 48.4711813518352D0, 51.6066755677644D0, &
++                   54.7847293981123D0 /)
+ 
+   !     DEFINE C COEFFICIENTS FOR ASSOCIATE LEGENDRE POLYNOMIALS.         
+   _REAL_, parameter::CC(1:21,1:3) = reshape ( (/   &      
+diff --git AmberTools/src/sqm/depend AmberTools/src/sqm/depend
+index 357ef59..0d3db38 100644
+--- AmberTools/src/sqm/depend
++++ AmberTools/src/sqm/depend
+@@ -599,7 +599,8 @@ qm2_h1elec_d.o: \
+                     rotation.o\
+                     elementOrbitalIndex.o\
+                     slater_overlap.o\
+-                    qmmm_module.o
++                    qmmm_module.o\
++                    utilitiesModule.o
+ 
+ 
+ qm2_h1elec_d.o:   qm2_h1elec_d.F90
+@@ -668,7 +669,8 @@ qm2_parameters.o: \
+                     elementOrbitalIndex.o\
+                     qmmm_qmtheorymodule.o\
+                     parameterReader.o\
+-                    qmmm_module.o
++                    qmmm_module.o\
++                    utilitiesModule.o
+ 
+ 
+ qm2_parameters.o:   qm2_parameters.F90
+@@ -679,7 +681,8 @@ qm2_params_module.o: \
+                     ../include/assert.fh\
+                     ../include/dprec.fh\
+                     elementOrbitalIndex.o\
+-                    qmmm_qmtheorymodule.o
++                    qmmm_qmtheorymodule.o\
++                    constants.o
+ 
+ 
+ qm2_params_module.o:   qm2_params_module.F90
+diff --git AmberTools/src/sqm/qm2_parameters.F90 AmberTools/src/sqm/qm2_parameters.F90
+index 9985f1f..e762063 100644
+--- AmberTools/src/sqm/qm2_parameters.F90
++++ AmberTools/src/sqm/qm2_parameters.F90
+@@ -263,6 +263,8 @@ if (currentTheory%MNDOD) then
+   core_chg( 15) = 5; natomic_orbs( 15) = 9; heat_of_form( 15) = 75.570D0 !P 
+   core_chg( 16) = 6; natomic_orbs( 16) = 9; heat_of_form( 16) = 66.400D0 !S
+   core_chg( 17) = 7; natomic_orbs( 17) = 9; heat_of_form( 17) = 28.990D0 !Cl  
++  core_chg( 35) = 7; natomic_orbs( 35) = 9; heat_of_form( 35) = 26.740D0 !Br
++  core_chg( 53) = 7; natomic_orbs( 53) = 9; heat_of_form( 53) = 25.517D0 !I
+ end if
+ 
+ if (currentTheory%AM1D) then 

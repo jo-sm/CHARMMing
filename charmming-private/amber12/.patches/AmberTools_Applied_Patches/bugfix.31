@@ -1,0 +1,387 @@
+********>Bugfix 31:
+Author: Daniel R. Roe
+Date: 2 January 2013
+Programs: Cpptraj
+Description: (V12.5) Fix infinite loops in orthorhombic dist calc/imaging when 
+             box lengths == 0.0 (bug 209); fix hbond autosearch when either 
+             only donor or only acceptor mask specified; fix parsing of input 
+             files with DOS-style lines; fix memory leak in DCD box read.
+
+-----------------------------------------------------------------------------
+ AmberTools/src/cpptraj/src/Action_AutoImage.cpp |  5 +-
+ AmberTools/src/cpptraj/src/Action_Hbond.cpp     |  2 +-
+ AmberTools/src/cpptraj/src/Action_Image.cpp     |  5 +-
+ AmberTools/src/cpptraj/src/ArgList.cpp          |  2 +-
+ AmberTools/src/cpptraj/src/ArgList.h            |  2 +-
+ AmberTools/src/cpptraj/src/CpptrajState.cpp     |  2 +-
+ AmberTools/src/cpptraj/src/CpptrajState.h       |  2 +-
+ AmberTools/src/cpptraj/src/DistRoutines.cpp     | 24 +++------
+ AmberTools/src/cpptraj/src/Frame.cpp            |  4 +-
+ AmberTools/src/cpptraj/src/Frame.h              |  2 +-
+ AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp   | 23 +++++----
+ AmberTools/src/cpptraj/src/main.cpp             | 66 ++++++++++++-------------
+ 12 files changed, 66 insertions(+), 73 deletions(-)
+
+diff --git AmberTools/src/cpptraj/src/Action_AutoImage.cpp AmberTools/src/cpptraj/src/Action_AutoImage.cpp
+index ca61dc6..c8b7569 100644
+--- AmberTools/src/cpptraj/src/Action_AutoImage.cpp
++++ AmberTools/src/cpptraj/src/Action_AutoImage.cpp
+@@ -215,7 +215,10 @@ int Action_AutoImage::action() {
+   // Setup imaging, and image everything in currentFrame 
+   // according to mobileList. 
+   if (ortho_) {
+-    currentFrame->SetupImageOrtho(bp, bm, origin_);
++    if (currentFrame->SetupImageOrtho(bp, bm, origin_)) {
++      mprintf("Warning: autoimage: Frame %i imaging failed, box lengths are zero.\n",frameNum+1);
++      return 0;
++    }
+     currentFrame->ImageOrtho(bp, bm, center_, useMass, mobileList_);
+   } else {
+     currentFrame->BoxToRecip(ucell, recip);
+diff --git AmberTools/src/cpptraj/src/Action_Hbond.cpp AmberTools/src/cpptraj/src/Action_Hbond.cpp
+index 3a2ad07..bd868bf 100644
+--- AmberTools/src/cpptraj/src/Action_Hbond.cpp
++++ AmberTools/src/cpptraj/src/Action_Hbond.cpp
+@@ -161,7 +161,7 @@ int Hbond::setup() {
+   if (currentParm->SetupBondInfo()) return 1;
+ 
+   // Set up mask
+-  if (!hasDonorMask && !hasAcceptorMask) {
++  if (!hasDonorMask || !hasAcceptorMask) {
+     if ( currentParm->SetupIntegerMask( Mask, activeReference) ) return 1;
+     if ( Mask.None() ) {
+       mprintf("Warning: Hbond::setup: Mask has no atoms.\n");
+diff --git AmberTools/src/cpptraj/src/Action_Image.cpp AmberTools/src/cpptraj/src/Action_Image.cpp
+index 5e1dec8..bc7fd76 100644
+--- AmberTools/src/cpptraj/src/Action_Image.cpp
++++ AmberTools/src/cpptraj/src/Action_Image.cpp
+@@ -170,7 +170,10 @@ int Action_Image::action() {
+   double ucell[9], recip[9], fcom[3];
+   
+   if (ortho_) {
+-    currentFrame->SetupImageOrtho(bp, bm, origin_);
++    if (currentFrame->SetupImageOrtho(bp, bm, origin_)) {
++      mprintf("Warning: image: Frame %i imaging failed, box lengths are zero.\n",frameNum+1);
++      return 0;
++    }
+     currentFrame->ImageOrtho(bp, bm, center_, useMass, imageList_);
+   } else {
+     currentFrame->BoxToRecip( ucell, recip );
+diff --git AmberTools/src/cpptraj/src/ArgList.cpp AmberTools/src/cpptraj/src/ArgList.cpp
+index df11cab..fa75eff 100644
+--- AmberTools/src/cpptraj/src/ArgList.cpp
++++ AmberTools/src/cpptraj/src/ArgList.cpp
+@@ -56,7 +56,7 @@ void ArgList::SetDebug(int debugIn) {
+   * \param separator string containing characters used to separate arguments
+   * \return 0 if arglist successfully set up, 1 if not.
+   */
+-int ArgList::SetList(char *inputString, const char *separator) {
++int ArgList::SetList(const char *inputString, const char *separator) {
+   string argument;
+   char quotechar;
+ 
+diff --git AmberTools/src/cpptraj/src/ArgList.h AmberTools/src/cpptraj/src/ArgList.h
+index 74cce8f..6290ecd 100644
+--- AmberTools/src/cpptraj/src/ArgList.h
++++ AmberTools/src/cpptraj/src/ArgList.h
+@@ -32,7 +32,7 @@ class ArgList {
+     /// Set the debug level
+     void SetDebug(int);
+     /// Set up argument list from string and given separators
+-    int SetList(char *, const char *);
++    int SetList(const char *, const char *);
+     /// Add argument to the list
+     void AddArg(char*);
+     /// Unmark all arguments
+diff --git AmberTools/src/cpptraj/src/CpptrajState.cpp AmberTools/src/cpptraj/src/CpptrajState.cpp
+index 4ce4228..e0691b8 100644
+--- AmberTools/src/cpptraj/src/CpptrajState.cpp
++++ AmberTools/src/cpptraj/src/CpptrajState.cpp
+@@ -32,7 +32,7 @@ void CpptrajState::SetGlobalDebug(int debugIn) {
+  * \param inputLine NULL-terminated string consisting of commands and arguments.
+  */
+ // NOTE: Should differentiate between keyword rejection and outright error.
+-void CpptrajState::Dispatch(char *inputLine) {
++void CpptrajState::Dispatch(const char* inputLine) {
+   ArgList dispatchArg;
+   AmberParm *tempParm; // For coordinate lists
+ 
+diff --git AmberTools/src/cpptraj/src/CpptrajState.h AmberTools/src/cpptraj/src/CpptrajState.h
+index 0b04d34..0a3b923 100644
+--- AmberTools/src/cpptraj/src/CpptrajState.h
++++ AmberTools/src/cpptraj/src/CpptrajState.h
+@@ -43,7 +43,7 @@ class CpptrajState {
+     /// List of parameter files 
+     ParmFileList parmFileList;
+     /// Function that decides where to send commands
+-    void Dispatch(char*);        
++    void Dispatch(const char*);
+ 
+     CpptrajState();
+     /// Controls main flow of the program.
+diff --git AmberTools/src/cpptraj/src/DistRoutines.cpp AmberTools/src/cpptraj/src/DistRoutines.cpp
+index cc43265..aa8108b 100644
+--- AmberTools/src/cpptraj/src/DistRoutines.cpp
++++ AmberTools/src/cpptraj/src/DistRoutines.cpp
+@@ -377,38 +377,28 @@ double DIST2_ImageNonOrthoRecip(double *f, double *f2, double minIn, int *ixyz,
+   * and a2.
+   */
+ double DIST2_ImageOrtho(double *a1, double *a2, double *box) {
+-  double x,y,z,D;
+-
+-  x = a1[0] - a2[0];
+-  y = a1[1] - a2[1];
+-  z = a1[2] - a2[2];
+-
++  // If box lengths are zero no imaging possible
++  if (box[0]==0.0 && box[1]==0.0 && box[2]==0.0) return -1.0;
++  double x = a1[0] - a2[0];
++  double y = a1[1] - a2[1];
++  double z = a1[2] - a2[2];
+   // Get rid of sign info
+   if (x<0) x=-x;
+   if (y<0) y=-y;
+   if (z<0) z=-z;
+-
+   // Get rid of multiples of box lengths 
+   while (x > box[0]) x = x - box[0];
+   while (y > box[1]) y = y - box[1];
+   while (z > box[2]) z = z - box[2];
+-
+   // Find shortest distance in periodic reference
+-  D = box[0] - x;
++  double D = box[0] - x;
+   if (D < x) x = D;
+   D = box[1] - y;
+   if (D < y) y = D;  
+   D = box[2] - z;
+   if (D < z) z = D;
+ 
+-  x = x * x;
+-  y = y * y;
+-  z = z * z;
+- 
+-  //D = sqrt(x + y + z);
+-  D = x + y + z;
+-
+-  return D;
++  return (x*x + y*y + z*z);
+ }
+ 
+ // Frame::DIST2_NoImage()
+diff --git AmberTools/src/cpptraj/src/Frame.cpp AmberTools/src/cpptraj/src/Frame.cpp
+index 0adbe67..8e5b5f2 100644
+--- AmberTools/src/cpptraj/src/Frame.cpp
++++ AmberTools/src/cpptraj/src/Frame.cpp
+@@ -638,7 +638,7 @@ void Frame::ImageNonortho(double* boxTrans, double* Coord,
+   }
+ }
+ 
+-void Frame::SetupImageOrtho(double* bp, double* bm, bool origin) {
++int Frame::SetupImageOrtho(double* bp, double* bm, bool origin) {
+   // Set up boundary information for orthorhombic cell
+   if (origin) {
+     bp[0] = box[0] / 2;
+@@ -655,6 +655,8 @@ void Frame::SetupImageOrtho(double* bp, double* bm, bool origin) {
+     bm[1] = 0;
+     bm[2] = 0;
+   }
++  if (bp[0]==0.0 && bp[1]==0.0 && bp[2]==0.0) return 1;
++  return 0;
+ }
+ 
+ // Frame::ImageOrtho()
+diff --git AmberTools/src/cpptraj/src/Frame.h AmberTools/src/cpptraj/src/Frame.h
+index b24f86c..5784f34 100644
+--- AmberTools/src/cpptraj/src/Frame.h
++++ AmberTools/src/cpptraj/src/Frame.h
+@@ -59,7 +59,7 @@ class Frame {
+     void SetupImageTruncoct(double*, AtomMask*,bool,bool);
+     void ImageNonortho(bool, double*, double*, double*, bool, bool, bool, std::vector<int> &);
+     void ImageNonortho(double*, double*, bool, bool, double*, double*, double*);
+-    void SetupImageOrtho(double*, double*, bool);
++    int SetupImageOrtho(double*, double*, bool);
+     void ImageOrtho(double*,double*, bool, bool, std::vector<int> &);
+     void ImageOrtho(double*, double*, double*, double*);
+     // Coordinate assignment/extraction
+diff --git AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
+index 6074b05..cfbf292 100644
+--- AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
++++ AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
+@@ -418,7 +418,7 @@ int CharmmDcd::readDcdHeader() {
+ int CharmmDcd::readFrame(int set,double *X, double *V,double *box, double *T) {
+   // Load box info
+   if (hasBox) {
+-    double *boxtmp = new double[6];
++    double boxtmp[6];
+     if ( ReadBlock(48) < 0) return 1;
+     tfile->IO->Read(boxtmp, 6*sizeof(double), 1);
+     if (isBigEndian) endian_swap8(boxtmp,6);
+@@ -427,17 +427,16 @@ int CharmmDcd::readFrame(int set,double *X, double *V,double *box, double *T) {
+     box[0] = boxtmp[0];
+     box[1] = boxtmp[2];
+     box[2] = boxtmp[5];
+-    
+-    /* Some versions of NAMD write the angles in degrees, other times it is
+-       set in angle cosines (presumably to make some maths easier when imaging
+-       inside CHARMM/NAMD). If we are in angle-cosines, take the acos.  For
+-       numerical stability, we will special-case 90 degree angles.  We can tell
+-       if we are in angle-cosine measurements if all box values are bounded
+-       between -1 and 1
+-     */
++    // Some versions of NAMD write the angles in degrees, other times it is
++    // set in angle cosines (presumably to make some maths easier when imaging
++    // inside CHARMM/NAMD). If we are in angle-cosines, take the acos.  For
++    // numerical stability, we will special-case 90 degree angles.  We can tell
++    // if we are in angle-cosine measurements if all box values are bounded
++    // between -1 and 1
+     if ( boxtmp[4] >= -1.0 && boxtmp[4] <= 1.0 &&
+          boxtmp[3] >= -1.0 && boxtmp[3] <= 1.0 &&
+-         boxtmp[1] >= -1.0 && boxtmp[1] <= 1.0  ) {
++         boxtmp[1] >= -1.0 && boxtmp[1] <= 1.0  ) 
++    {
+       if (boxtmp[4] == 0) 
+         box[3] = 90.0;
+       else 
+@@ -450,13 +449,13 @@ int CharmmDcd::readFrame(int set,double *X, double *V,double *box, double *T) {
+         box[5] = 90.0;
+       else 
+         box[5] = acos(boxtmp[1]) * 180.0 / PI;
+-   }else {
++    } else {
+       // We are already in degrees
+       box[3] = boxtmp[4];
+       box[4] = boxtmp[3];
+       box[5] = boxtmp[1];
+     }
+-  } 
++  }
+   // Read X coordinates
+   ReadBlock(-1);
+   tfile->IO->Read(xcoord, sizeof(float), dcdatom);
+diff --git AmberTools/src/cpptraj/src/main.cpp AmberTools/src/cpptraj/src/main.cpp
+index 4fc0434..e972473 100644
+--- AmberTools/src/cpptraj/src/main.cpp
++++ AmberTools/src/cpptraj/src/main.cpp
+@@ -9,7 +9,7 @@
+ #include <cstdio>
+ #include <cstdlib> // atoi
+ #ifndef CPPTRAJ_VERSION_STRING
+-#define CPPTRAJ_VERSION_STRING "V12.4"
++#define CPPTRAJ_VERSION_STRING "V12.5"
+ #define CPPTRAJ_INTERNAL_VERSION "V2.4.7b"
+ #endif
+ 
+@@ -24,6 +24,11 @@ static void Usage(char *programName) {
+   mprinterr("             --defines: print list of defines used in compilation.\n");
+ }
+ 
++static inline bool EndChar(char ptr) {
++  if (ptr=='\n' || ptr=='\r' || ptr=='\0' || ptr==EOF) return true;
++  return false;
++}
++
+ // ProcessInputStream()
+ /// Process input from the file specified by filename. 
+ /** If filename is NULL process input from STDIN. Set up an input line that 
+@@ -34,12 +39,7 @@ static void Usage(char *programName) {
+   */
+ static int ProcessInputStream(char *inputFilename, CpptrajState &State) {
+   FILE *infile;
+-  char ptr,lastchar;
+-  std::string inputLine;
+-  int i;
+-  bool isStdin;
+-
+-  isStdin=false;
++  bool isStdin = false;
+   // Open input file or STDIN
+   if (inputFilename==NULL) {
+     // Do not allow read from STDIN when > 1 process
+@@ -58,21 +58,26 @@ static int ProcessInputStream(char *inputFilename, CpptrajState &State) {
+       return 1;
+     }
+   }
+-
+   // Read in each line of input. Newline or NULL terminates. \ continues line.
+-  i=0; // Index in inputLine
+-  lastchar='0';
+-  ptr=0;
++  std::string inputLine;
++  unsigned int idx = 0; // Index in inputLine
++  char lastchar = '0';
++  char ptr = 0;
+   if (isStdin) fprintf(stdout,"> ");
+   while ( ptr != EOF ) {
+     //if (prompt) {fprintf(stdout,"> "); prompt=false;}
+     ptr = (char)fgetc(infile);
+     //fprintf(stdout,"DEBUG: %i %c %i\n",i,ptr,ptr);
++    // Skip leading whitespace
++    if (idx == 0 && isspace(ptr)) {
++      while ( (ptr = (char)fgetc(infile))!=EOF )
++        if ( !isspace(ptr) ) break;
++    }
+     // If '#' is encountered, skip the rest of the line
+     if (ptr=='#')
+-      while (ptr!='\n' && ptr!=EOF && ptr!='\0') ptr=(char)fgetc(infile); 
++      while (!EndChar(ptr)) ptr=(char)fgetc(infile);
+     // newline, NULL, or EOF terminates the line
+-    if (ptr=='\n' || ptr=='\0' || ptr==EOF) {
++    if (EndChar(ptr)) {
+       // If no chars in string continue
+       if (inputLine.empty()) continue;
+       // If "go" then done reading input
+@@ -82,40 +87,31 @@ static int ProcessInputStream(char *inputFilename, CpptrajState &State) {
+       // Print the input line that will be sent to dispatch
+       mprintf("  [%s]\n",inputLine.c_str());
+       // Call Dispatch to convert input to arglist and process.
+-      State.Dispatch((char*)inputLine.c_str());
++      State.Dispatch(inputLine.c_str());
+       // Reset Input line
+       inputLine.clear();
+-      i=0;
++      idx = 0;
+       if (isStdin) fprintf(stdout,"> ");
+       continue;
+     }
+     // Any consecutive whitespace is skipped
+-    if (i>0) lastchar=inputLine[i-1];
++    if (idx > 0) lastchar = inputLine[idx-1];
+     if (isspace(ptr) && isspace(lastchar)) continue;
+-    // Skip leading whitespace
+-    if (i==0 && isspace(ptr)) {
+-      while ( (ptr = (char)fgetc(infile))!=EOF )
+-        if ( !isspace(ptr) ) break;
+-    } 
+-    // Forward slash continues to next line. Anything after slash is ignored
++    // Backslash followed by newline continues to next line. Otherwise backslash
++    // followed by next char will be inserted. 
+     if (ptr=='\\') {
+-      while ( (ptr = (char)fgetc(infile))!='\n' ) 
+-        if ( ptr == EOF ) break;
+-      // NOTE: Insert a space into InputLine?
+-      continue;
+-    }
+-    // Skip any line beginning with # character
+-    if (i==0 && ptr=='#') {
+-      while ( (ptr = (char)fgetc(infile))!='\n' ) 
+-        if ( ptr == EOF ) break;
+-      if (isStdin) fprintf(stdout,"> ");
++      ptr = (char)fgetc(infile);
++      if ( ptr == EOF ) break;
++      if (ptr == '\n' || ptr == '\r') continue;
++      inputLine += "\\";
++      inputLine += ptr;
++      idx += 2;
+       continue;
+     }
+     // Add character to input line
+-    inputLine+=ptr;
+-    ++i;
++    inputLine += ptr;
++    ++idx;
+   }
+-
+   if (!isStdin) fclose(infile);
+   return 0;
+ }

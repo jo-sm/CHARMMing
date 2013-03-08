@@ -1,0 +1,143 @@
+********>Bugfix 27:
+
+Author: Jason Swails and Niel Henriksen
+
+Date: 19 October 2012
+
+Program: NAB, MMPBSA.py
+
+Description: Fix the reporting of the EDISPER variable in NAB when inp=2
+
+-----------------------------------------------------------------------------
+
+ AmberTools/src/sff/eff.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git AmberTools/src/sff/eff.c AmberTools/src/sff/eff.c
+index 395c9e3..143b72d 100644
+--- AmberTools/src/sff/eff.c
++++ AmberTools/src/sff/eff.c
+@@ -3007,7 +3007,7 @@ REAL_T mme34(REAL_T * x, REAL_T * f, int *iter)
+         fprintf(nabout, " BOND    = %13.4lf  ANGLE   = %13.4lf  DIHED      = %13.4lf\n", ene[3], ene[4], ene[5]);
+         fprintf(nabout, " VDWAALS = %13.4lf  EEL     = %13.4lf  EPB        = %13.4lf\n", ene[1], ene[2], ene[10]);
+         fprintf(nabout, " 1-4 VDW = %13.4lf  1-4 EEL = %13.4lf  RESTRAINT  = %13.4lf\n", ene[7], ene[8], ene[9]);
+-        fprintf(nabout, " ECAVITY = %13.4lf  EDISPER = %13.4lf", ene[11], 0.0);
++        fprintf(nabout, " ECAVITY = %13.4lf  EDISPER = %13.4lf", ene[11], ene[12]);
+       }
+    }
+ #ifdef RISMSFF
+diff --git AmberTools/test/mmpbsa_py/02_Poisson_Boltzmann/FINAL_RESULTS_MMPBSA.dat.save AmberTools/test/mmpbsa_py/02_Poisson_Boltzmann/FINAL_RESULTS_MMPBSA.dat.save
+index 88a6451..1297bbe 100644
+--- AmberTools/test/mmpbsa_py/02_Poisson_Boltzmann/FINAL_RESULTS_MMPBSA.dat.save
++++ AmberTools/test/mmpbsa_py/02_Poisson_Boltzmann/FINAL_RESULTS_MMPBSA.dat.save
+@@ -1,4 +1,4 @@
+-| Run on Thu Mar  1 18:23:30 2012
++| Run on Fri Oct 19 18:03:01 2012
+ |
+ |Input file:
+ |--------------------------------------------------------------
+@@ -36,13 +36,14 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                  -2027.4585                6.6828              4.7254
+ EEL                     -17102.0128               39.7611             28.1154
+-EPB                      -3169.9158                7.2142              5.1012
++EPB                      -3169.9151                7.2145              5.1014
+ ENPOLAR                   1959.8428                3.2886              2.3254
++EDISPER                  -1101.7345                1.5684              1.1090
+ 
+ G gas                   -19129.4713               46.4439             32.8408
+-G solv                   -1210.0730                3.9256              2.7758
++G solv                   -2311.8068                5.4943              3.8851
+ 
+-TOTAL                   -20339.5443               42.5183             30.0650
++TOTAL                   -21441.2781               40.9496             28.9557
+ 
+ 
+ Receptor:
+@@ -50,13 +51,14 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                  -1963.0469                6.3796              4.5110
+ EEL                     -17062.3941               41.4017             29.2755
+-EPB                      -3189.9987                8.3000              5.8690
++EPB                      -3189.9983                8.3004              5.8692
+ ENPOLAR                   1952.5781                3.5130              2.4841
++EDISPER                  -1128.0228                0.5743              0.4061
+ 
+ G gas                   -19025.4410               47.7813             33.7865
+-G solv                   -1237.4206                4.7869              3.3849
++G solv                   -2365.4430                5.3616              3.7912
+ 
+-TOTAL                   -20262.8616               42.9944             30.4016
++TOTAL                   -21390.8841               42.4197             29.9953
+ 
+ 
+ Ligand:
+@@ -66,11 +68,12 @@ VDWAALS                     -2.1842                0.9276              0.6559
+ EEL                         -5.8905                0.2643              0.1869
+ EPB                        -36.4248                0.5457              0.3858
+ ENPOLAR                     52.1736                0.0969              0.0685
++EDISPER                    -50.4190                0.1926              0.1362
+ 
+ G gas                       -8.0747                1.1919              0.8428
+-G solv                      15.7488                0.6425              0.4544
++G solv                     -34.6702                0.4500              0.3182
+ 
+-TOTAL                        7.6740                1.8344              1.2971
++TOTAL                      -42.7450                1.6418              1.1609
+ 
+ 
+ Differences (Complex - Receptor - Ligand):
+@@ -78,14 +81,14 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                    -62.2274                1.2308              0.8703
+ EEL                        -33.7281                1.3763              0.9732
+-EPB                         56.5077                1.6314              1.1536
++EPB                         56.5080                1.6315              1.1536
+ ENPOLAR                    -44.9089                0.1275              0.0902
+-EDISPER                      0.0000                0.0000              0.0000
++EDISPER                     76.7074                1.1867              0.8392
+ 
+ DELTA G gas                -95.9555                0.1455              0.1029
+-DELTA G solv                11.5989                1.5039              1.0634
++DELTA G solv                88.3065                0.3172              0.2243
+ 
+-DELTA TOTAL                -84.3567                1.3583              0.9605
++DELTA TOTAL                 -7.6491                0.1716              0.1214
+ 
+ 
+ -------------------------------------------------------------------------------
+diff --git AmberTools/test/mmpbsa_py/02_Poisson_Boltzmann/energies.csv.save AmberTools/test/mmpbsa_py/02_Poisson_Boltzmann/energies.csv.save
+index 0c87183..9641f3d 100644
+--- AmberTools/test/mmpbsa_py/02_Poisson_Boltzmann/energies.csv.save
++++ AmberTools/test/mmpbsa_py/02_Poisson_Boltzmann/energies.csv.save
+@@ -1,22 +1,22 @@
+ POISSON BOLTZMANN:
+ Complex Energy Terms
+ Frame # VDWAALS EEL EPB ENPOLAR EDISPER G gas G solv TOTAL
+-0 -2034.1413 -17141.7739 -3162.7006 1956.5542 0.0 -19175.9152 -1206.1464 -20382.0616
+-1 -2020.7758 -17062.2516 -3177.1296 1963.1314 0.0 -19083.0274 -1213.9982 -20297.0256
++0 -2034.1413 -17141.7739 -3162.7006 1956.5542 -1100.1661 -19175.9152 -2306.3125 -21482.2277
++1 -2020.7758 -17062.2516 -3177.1296 1963.1314 -1103.3029 -19083.0274 -2317.3011 -21400.3285
+ 
+ Receptor Energy Terms
+ Frame # VDWAALS EEL EPB ENPOLAR EDISPER G gas G solv TOTAL
+-0 -1969.4265 -17103.7958 -3181.6979 1949.065 0.0 -19073.2223 -1232.6329 -20305.8552
+-1 -1956.6674 -17020.9923 -3198.2986 1956.0911 0.0 -18977.6597 -1242.2075 -20219.8672
++0 -1969.4265 -17103.7958 -3181.6979 1949.065 -1127.4486 -19073.2223 -2360.0815000000002 -21433.3038
++1 -1956.6674 -17020.9923 -3198.2986 1956.0911 -1128.5971 -18977.6597 -2370.8046 -21348.464299999996
+ 
+ Ligand Energy Terms
+ Frame # VDWAALS EEL EPB ENPOLAR EDISPER G gas G solv TOTAL
+-0 -1.2566 -5.6263 -35.8792 52.2705 0.0 -6.8829 16.3913 9.5084
+-1 -3.1118 -6.1548 -36.9705 52.0767 0.0 -9.2666 15.1062 5.8396
++0 -1.2566 -5.6263 -35.8792 52.2705 -50.6116 -6.882899999999999 -34.2203 -41.1032
++1 -3.1118 -6.1548 -36.9705 52.0767 -50.2264 -9.2666 -35.1202 -44.386799999999994
+ 
+ DELTA Energy Terms
+ Frame # VDWAALS EEL EPB ENPOLAR EDISPER DELTA G gas DELTA G solv DELTA TOTAL
+-0 -63.4582 -32.3518 54.8765 -44.7813 0.0 -95.81 10.0952 -85.7148
+-1 -60.9966 -35.1045 58.1395 -45.0364 0.0 -96.1011 13.1031 -82.998
++0 -63.45819999999997 -32.35180000000027 54.87649999999999 -44.781300000000016 77.89410000000004 -95.80999999999818 87.98930000000024 -7.820699999997956
++1 -60.996599999999844 -35.10449999999789 58.13949999999987 -45.036400000000114 75.52060000000004 -96.10109999999888 88.6236999999998 -7.477400000003627
+ 
+ 

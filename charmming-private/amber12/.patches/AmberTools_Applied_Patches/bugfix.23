@@ -1,0 +1,547 @@
+******>bugfix.23
+
+Date: Aug. 27, 2012
+
+Authors: Ross Walker, Scott Le Grand, and Jason Swails
+
+Programs: configure
+
+Description: This fixes xleap building on Mac OS X 10.8 and makes the necessary
+             configure changes to support the new, large Amber 12 CUDA upgrade.
+
+------------------------------------------------------------------------------
+
+diff --git AmberTools/src/configure2 AmberTools/src/configure2
+index 25d3f0a..9ce5ef0 100755
+--- AmberTools/src/configure2
++++ AmberTools/src/configure2
+@@ -24,17 +24,19 @@ Usage: ./configure [flags] compiler
+                      in your PATH; Note: you must first configure and build 
+                      a serial AmberTools.
+       -cuda          Builds the NVIDIA GPU version of pmemd (pmemd.cuda and
+-                     pmemd.cuda.MPI) with default SPDP hybrid precision.
++                     pmemd.cuda.MPI) with default SPFP mixed single/double/
++                     fixed-point precision.
+                      (Note: Set CUDA_HOME to your cuda build tools installation
+                      path.)
+-      -cuda_SPDP     Currently just an alias to CUDA
+-      -cuda_DPDP     Builds the NVIDIA GPU version of pmemd (pmemd.cuda and
+-                     pmemd.cuda.MPI) with full double precision. (Considerably
+-                     slower than SPDP for many cards without a meaningful gain
+-                     in accuracy)
+-      -cuda_SPSP     Builds the NVIDIA GPU version of pmemd (pmemd.cuda and
+-                     pmemd.cuda.MPI) with full single precision. (Not a good
+-                     choice for production runs!)
++      -cuda_SPDP     Builds the NVIDIA GPU version of pmemd (pmemd_SPDP.cuda and
++                     pmemd.cuda_SPDP.MPI) with SPDP hybrid precision. (This was
++                     the default for previous versions of AMBER but has now been
++                     superseded by the SPFP mixed precision model).
++      -cuda_DPDP     Builds the NVIDIA GPU version of pmemd (pmemd.cuda_DPDP and
++                     pmemd.cuda_DPDP.MPI) with full double precision. (Considerably
++                     slower than SPDP and SPFP for many cards without a meaningful
++                     gain in accuracy)
++      -cuda_SPFP     Currently an alias to -cuda.
+       -openmp        Use OpenMP pragmas to parallelize NAB and paramfit
+                      (not available for pgi).
+                      Do not use -openmp and -mpi at the same time. Type "make
+@@ -149,8 +151,8 @@ fi
+ #------------------------------------------------------------------------------
+ mpi='no'
+ mpinab=''
+-cuda='no'
+-cuda_SPSP='no'
++cuda_SPFP='no'
++cuda_SPDP='no'
+ cuda_DPDP='no'
+ scali='no'
+ scalapack='no'
+@@ -222,9 +224,9 @@ if [ $# -lt 1 ]; then usage; fi
+ while [ $# -gt 0 ]; do
+     case "$1" in
+         -mpi)           mpi='yes'; mpinab='mpi'; mdgx='no';mtkpp='' ;;
+-        -cuda)          cuda='yes';rism='no';pbsaflag='';mdgx='no';mtkpp='' ;;
+-        -cuda_SPDP)     cuda='yes';rism='no';pbsaflag='';mdgx='no';mtkpp='' ;;
+-        -cuda_SPSP)     cuda_SPSP='yes';rism='no';pbsaflag='';mdgx='no';mtkpp='' ;;
++        -cuda)          cuda_SPFP='yes';rism='no';pbsaflag='';mdgx='no';mtkpp='' ;;
++        -cuda_SPFP)     cuda_SPFP='yes';rism='no';pbsaflag='';mdgx='no';mtkpp='' ;;
++        -cuda_SPDP)     cuda_SPDP='yes';rism='no';pbsaflag='';mdgx='no';mtkpp='' ;;
+         -cuda_DPDP)     cuda_DPDP='yes';rism='no';pbsaflag='';mdgx='no';mtkpp='' ;;
+         -scali)         scali='yes' ;;
+         -scalapack)     scalapack='yes' ;;
+@@ -443,22 +445,22 @@ if [ "$noX11" = "false" ]; then
+         echo "       On old Fedora OS's install the xorg-x11-devel package."
+         echo "       On RedHat OS's install the XFree86-devel package."
+         echo "       On Ubuntu OS's install the xorg-dev package."
+-	echo "       To build Amber without XLEaP, re-run configure with '-no-X11:"
+-        echo "            `mod_command_args '' '-no-X11'`"
+-	exit 1
++        echo "       To build Amber without XLEaP, re-run configure with '-noX11:"
++        echo "            `mod_command_args '' '-noX11'`"
++        exit 1
+     fi
+ 
+     if [ -d /usr/include/X11/extensions ]
+     then
+         empty_statement=
+-    else
++    elif [ "$is_mac" = "no" ]; then
+         echo "ERROR: the X11 extensions headers are not in the usual location!"
+         echo "       To search for them try the command: locate X11/extensions"
+         echo "       On new Fedora OSes install libXext-devel"
+         echo "       On RedHat OSes install libXext-devel"
+-	echo "       To build Amber without XLEaP, re-run configure with '-no-X11:"
+-        echo "            `mod_command_args '' '-no-X11'`"
+-	exit 1
++        echo "       To build Amber without XLEaP, re-run configure with '-noX11:"
++        echo "            `mod_command_args '' '-noX11'`"
++        exit 1
+     fi
+ fi
+ 
+@@ -544,7 +546,7 @@ fi
+ #------------------------------------------------------------------------------
+ #  Determine which type of installation we're doing
+ #------------------------------------------------------------------------------
+-if [ "$cuda" = 'yes' -o "$cuda_SPSP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
++if [ "$cuda_SPFP" = 'yes' -o "$cuda_SPDP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
+    if [ "$mpi" = 'yes' ]; then
+       installtype='cuda_parallel'
+    else
+@@ -559,7 +561,7 @@ fi
+ #------------------------------------------------------------------------------
+ #  Check for cuda incompatibilities or missing files:
+ #------------------------------------------------------------------------------
+-if [ "$cuda" = 'yes' -o "$cuda_SPSP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
++if [ "$cuda_SPFP" = 'yes' -o "$cuda_SPDP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
+     if [ -z "$CUDA_HOME" ]; then
+         echo "Error: CUDA_HOME is not set. This must point to your NVIDIA tools installation"
+         exit 1
+@@ -572,25 +574,26 @@ if [ "$cuda" = 'yes' -o "$cuda_SPSP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
+         echo "Error: nvcc cuda compiler not found in $CUDA_HOME/bin/"
+         exit 1
+     fi
+-    #Check for mixing of cuda with cuda_SPSP or cuda_DPDP debugging options.
+-    #cuda      = SPDP mixed precision (default)
+-    #cuda_SPSP = SPSP single precision only - except shake (debug option!)
++    #Check for mixing of cuda with cuda_SPDP or cuda_DPDP debugging options.
++    #cuda      = SPFP mixed single/double/fixed-point precision (default)
++    #cuda_SPFP = SPFP mixed single/double/fixed-point precision (default)
++    #cuda_SPDP = SPDP hybrid single/double precision (debug option!)
+     #cuda_DPDP = DPDP double precision only (debug option!)
+-    if [ "$cuda" = 'yes' ]; then
+-      if [ "$cuda_SPSP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
+-        echo "Error: specification of -cuda, -cuda_SPSP and -cuda_DPDP are mutually exclusive"
++    if [ "$cuda_SPFP" = 'yes' ]; then
++      if [ "$cuda_SPDP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
++        echo "Error: specification of -cuda, -cuda_SPDP and -cuda_DPDP are mutually exclusive"
+         exit 1
+       fi
+     fi
+-    if [ "$cuda_SPSP" = 'yes' ]; then
+-      if [ "$cuda" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
+-        echo "Error: specification of -cuda, -cuda_SPSP and -cuda_DPDP are mutually exclusive"
++    if [ "$cuda_SPDP" = 'yes' ]; then
++      if [ "$cuda_SPFP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
++        echo "Error: specification of -cuda, -cuda_SPDP and -cuda_DPDP are mutually exclusive"
+         exit 1
+       fi
+     fi
+     if [ "$cuda_DPDP" = 'yes' ]; then
+-      if [ "$cuda" = 'yes' -o "$cuda_SPSP" = 'yes' ]; then
+-        echo "Error: specification of -cuda, -cuda_SPSP and -cuda_DPDP are mutually exclusive"
++      if [ "$cuda_SPFP" = 'yes' -o "$cuda_SPDP" = 'yes' ]; then
++        echo "Error: specification of -cuda, -cuda_SPDP and -cuda_DPDP are mutually exclusive"
+         exit 1
+       fi
+     fi
+@@ -736,14 +739,15 @@ gnu)
+     pmemd_coptflags="$coptflags"
+ 
+     #CUDA Specifics
+-    if [ "$cuda" = 'yes' -o "$cuda_SPSP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
++    if [ "$cuda_SPFP" = 'yes' -o "$cuda_SPDP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
+       pmemd_cu_includes='-I$(CUDA_HOME)/include -IB40C -IB40C/KernelCommon'
+       pmemd_cu_defines='-DCUDA'
+       pmemd_cu_libs='./cuda/cuda.a -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib -lcurand -lcufft -lcudart'
+       if [ "$optimise" = 'no' ]; then
+-        nvcc='$(CUDA_HOME)/bin/nvcc -use_fast_math -O0 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20'
++        nvcc='$(CUDA_HOME)/bin/nvcc -use_fast_math -O0 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30'
+       else
+-        nvcc='$(CUDA_HOME)/bin/nvcc -use_fast_math -O3 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20'
++	#2012/05/30 - Removed -O3 here because of 'possible' performance regression. - Scott sees this. Ross can't reproduce it.
++        nvcc='$(CUDA_HOME)/bin/nvcc -use_fast_math -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30'
+       fi
+       if [ "$mpi" = 'yes' ]; then
+         mpi_inc=`(mpicc -show 2>&1) | awk 'BEGIN{i=0} {while (i < NF) {if ( substr($i, 1, 2) == "-I" ) {printf("%s ", $i);}; i++;}}'`
+@@ -752,8 +756,11 @@ gnu)
+         pmemd_coptflags="$coptflags -DMPICH_IGNORE_CXX_SEEK"
+       fi
+     fi
+-    if [ "$cuda_SPSP" = 'yes' ]; then
+-      pmemd_cu_defines="$pmemd_cu_defines -Duse_SPSP"
++    if [ "$cuda_SPFP" = 'yes' ]; then
++      pmemd_cu_defines="$pmemd_cu_defines -Duse_SPFP"
++    fi
++    if [ "$cuda_SPDP" = 'yes' ]; then
++      pmemd_cu_defines="$pmemd_cu_defines -Duse_SPDP"
+     fi
+     if [ "$cuda_DPDP" = 'yes' ]; then
+       pmemd_cu_defines="$pmemd_cu_defines -Duse_DPDP"
+@@ -1001,7 +1008,7 @@ intel)
+       fi
+ 
+       #CUDA Specifics
+-      if [ "$cuda" = 'yes' -o "$cuda_SPSP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
++      if [ "$cuda_SPFP" = 'yes' -o "$cuda_SPDP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
+ 
+         # -ipo (multi-file Interprocedural Optimizations optimizations) causes issues with 
+         #  CUDA c code linking. Leave at a single-file IPO for the moment MJW
+@@ -1012,9 +1019,10 @@ intel)
+         pmemd_cu_defines='-DCUDA'
+         pmemd_cu_libs='./cuda/cuda.a -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib -lcurand -lcufft -lcudart'
+         if [ "$optimise" = 'yes' ]; then
+-            nvcc='$(CUDA_HOME)/bin/nvcc -use_fast_math -O3 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20'
++	#2012/05/30 - Removed -O3 here because of 'possible' performance regression. - Scott sees this. Ross can't reproduce it.
++            nvcc='$(CUDA_HOME)/bin/nvcc -use_fast_math -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30'
+         else
+-            nvcc='$(CUDA_HOME)/bin/nvcc -use_fast_math -O0 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20'
++            nvcc='$(CUDA_HOME)/bin/nvcc -use_fast_math -O0 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30'
+         fi
+ 
+         if [ "$mpi" = 'yes' ]; then
+@@ -1024,8 +1032,11 @@ intel)
+           pmemd_coptflags="$pmemd_coptflags -DMPICH_IGNORE_CXX_SEEK"
+         fi
+       fi
+-      if [ "$cuda_SPSP" = 'yes' ]; then
+-        pmemd_cu_defines="$pmemd_cu_defines -Duse_SPSP"
++      if [ "$cuda_SPFP" = 'yes' ]; then
++        pmemd_cu_defines="$pmemd_cu_defines -Duse_SPFP"
++      fi
++      if [ "$cuda_SPDP" = 'yes' ]; then
++        pmemd_cu_defines="$pmemd_cu_defines -Duse_SPDP"
+       fi
+       if [ "$cuda_DPDP" = 'yes' ]; then
+         pmemd_cu_defines="$pmemd_cu_defines -Duse_DPDP"
+@@ -1131,7 +1142,7 @@ pgi)
+         foptflags="$foptflags -fastsse"
+     fi
+ 
+-    if [ "$cuda" = "yes" -o "$cuda_SPSP" = "yes" -o "$cuda_DPDP" = "yes" ]; then
++    if [ "$cuda_SPFP" = "yes" -o "$cuda_SPDP" = "yes" -o "$cuda_DPDP" = "yes" ]; then
+         echo "ERROR: cuda is not available for pgi."
+         echo "       Please re-run configure without CUDA flags to use this compiler:"
+         echo "            `mod_command_args '-cuda -cuda_SPDP -cuda_DPDP' ''`"
+@@ -1258,7 +1269,7 @@ solaris)
+         flibs_arch="$flibs_arch $SCALAPACKHOME/scalapack_SUN64.a $BLACSHOME/blacsF77init_MPI-SUN64-0.a $BLACSHOME/blacs_MPI-SUN64-0.a $BLACSHOME/blacsCinit_MPI-SUN64-0.a -lmpi"
+     fi
+ 
+-    if [ "$cuda" = 'yes' -o "$cuda_SPSP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
++    if [ "$cuda_SPFP" = 'yes' -o "$cuda_SPDP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
+         echo "ERROR: cuda is not available for solaris."
+         echo "       Please re-run configure without CUDA flags to use this compiler:"
+         echo "            `mod_command_args '-cuda -cuda_SPDP -cuda_DPDP' ''`"
+@@ -1306,6 +1317,13 @@ open64)
+        echo "open64 setting is experimental."
+     fi
+ 
++    if [ "$cuda_SPFP" = 'yes' -o "$cuda_SPDP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
++        echo "ERROR: CUDA is not compatible with this compiler"
++        echo "       Please re-run configure without CUDA flags to use this compiler:"
++        echo "            `mod_command_args '-cuda -cuda_SPDP -cuda_DPDP' ''`"
++        exit 1
++    fi
++
+     if [ "$mpi" = 'yes' ]; then
+        ld=' mpif90 '
+     else
+diff --git AmberTools/test/mmpbsa_py/04_Per_Residue_Decomp/FINAL_RESULTS_MMPBSA.dat.save AmberTools/test/mmpbsa_py/04_Per_Residue_Decomp/FINAL_RESULTS_MMPBSA.dat.save
+index 0390673..f9c1daf 100644
+--- AmberTools/test/mmpbsa_py/04_Per_Residue_Decomp/FINAL_RESULTS_MMPBSA.dat.save
++++ AmberTools/test/mmpbsa_py/04_Per_Residue_Decomp/FINAL_RESULTS_MMPBSA.dat.save
+@@ -1,11 +1,11 @@
+-| Run on Fri Oct 21 16:59:53 2011
++| Run on Thu Aug 23 19:08:46 2012
+ |
+ |Input file:
+ |--------------------------------------------------------------
+ |MMPBSA input file for running per-residue decomp
+ |&general
+ |   startframe=1, endframe=2, interval=1,
+-|   keep_files=2, debug_printlevel=2
++|   keep_files=1, debug_printlevel=2
+ |/
+ |&gb
+ |   igb=5, saltcon=0.1
+@@ -14,7 +14,7 @@
+ |   idecomp=1, print_res='1-10; 200-241', csv_format=0,
+ |/
+ |--------------------------------------------------------------
+-|MMPBSA.py Version=3.0
++|MMPBSA.py Version=12.0
+ |Solvated complex topology file:  ../EstRAL_Files/sol.top
+ |Complex topology file:           ../EstRAL_Files/com.top
+ |Receptor topology file:          ../EstRAL_Files/rec.top
+@@ -38,13 +38,13 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                  -2027.4585                6.6828              4.7254
+ EEL                     -17102.0128               39.7611             28.1154
+-EGB                      -3036.0661               15.1517             10.7138
+-ESURF                       92.0643                0.2456              0.1737
++EGB                      -3036.2753               15.1544             10.7158
++ESURF                       92.0404                0.2552              0.1805
+ 
+ G gas                   -19129.4713               46.4439             32.8408
+-G solv                   -2944.0018               15.3973             10.8875
++G solv                   -2944.2348               15.4096             10.8963
+ 
+-TOTAL                   -22073.4731               31.0467             21.9533
++TOTAL                   -22073.7061               31.0343             21.9445
+ 
+ 
+ Receptor:
+@@ -52,13 +52,13 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                  -1963.0469                6.3796              4.5110
+ EEL                     -17062.3941               41.4017             29.2755
+-EGB                      -3045.5263               17.9328             12.6804
+-ESURF                       94.5901                0.3006              0.2125
++EGB                      -3045.7452               17.9344             12.6815
++ESURF                       94.5395                0.3071              0.2171
+ 
+ G gas                   -19025.4410               47.7813             33.7865
+-G solv                   -2950.9362               18.2334             12.8929
++G solv                   -2951.2056               18.2415             12.8987
+ 
+-TOTAL                   -21976.3773               29.5480             20.8936
++TOTAL                   -21976.6467               29.5398             20.8878
+ 
+ 
+ Ligand:
+@@ -66,13 +66,13 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                     -2.1842                0.9276              0.6559
+ EEL                         -5.8905                0.2643              0.1869
+-EGB                        -28.9823                0.3972              0.2809
+-ESURF                        5.5752                0.0080              0.0057
++EGB                        -28.9847                0.3972              0.2809
++ESURF                        5.5941                0.0255              0.0181
+ 
+ G gas                       -8.0747                1.1919              0.8428
+-G solv                     -23.4071                0.4052              0.2865
++G solv                     -23.3905                0.4228              0.2989
+ 
+-TOTAL                      -31.4819                1.5971              1.1293
++TOTAL                      -31.4653                1.6146              1.1417
+ 
+ 
+ Differences (Complex - Receptor - Ligand):
+@@ -80,13 +80,13 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                    -62.2274                1.2308              0.8703
+ EEL                        -33.7281                1.3763              0.9732
+-EGB                         38.4425                3.1784              2.2474
+-ESURF                       -8.1010                0.0630              0.0445
++EGB                         38.4546                3.1772              2.2466
++ESURF                       -8.0932                0.0774              0.0547
+ 
+ DELTA G gas                -95.9555                0.1455              0.1029
+-DELTA G solv                30.3415                3.2413              2.2919
++DELTA G solv                30.3614                3.2545              2.3013
+ 
+-DELTA TOTAL                -65.6140                3.0958              2.1890
++DELTA TOTAL                -65.5942                3.1090              2.1984
+ 
+ 
+ -------------------------------------------------------------------------------
+diff --git AmberTools/test/mmpbsa_py/05_Pairwise_Decomp/FINAL_RESULTS_MMPBSA.dat.save AmberTools/test/mmpbsa_py/05_Pairwise_Decomp/FINAL_RESULTS_MMPBSA.dat.save
+index f7cbe88..2135ffe 100644
+--- AmberTools/test/mmpbsa_py/05_Pairwise_Decomp/FINAL_RESULTS_MMPBSA.dat.save
++++ AmberTools/test/mmpbsa_py/05_Pairwise_Decomp/FINAL_RESULTS_MMPBSA.dat.save
+@@ -1,11 +1,11 @@
+-| Run on Fri Oct 21 17:35:19 2011
++| Run on Thu Aug 23 19:09:35 2012
+ |
+ |Input file:
+ |--------------------------------------------------------------
+ |MMPBSA input file for running per-residue decomp
+ |&general
+ |   startframe=1, endframe=2, interval=1,
+-|   keep_files=2, debug_printlevel=2,
++|   keep_files=0, debug_printlevel=2,
+ |/
+ |&gb
+ |   igb=5, saltcon=0.1
+@@ -15,7 +15,7 @@
+ |   csv_format=0,
+ |/
+ |--------------------------------------------------------------
+-|MMPBSA.py Version=3.0
++|MMPBSA.py Version=12.0
+ |Solvated complex topology file:  ../EstRAL_Files/sol.top
+ |Complex topology file:           ../EstRAL_Files/com.top
+ |Receptor topology file:          ../EstRAL_Files/rec.top
+@@ -39,13 +39,13 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                  -2027.4585                6.6828              4.7254
+ EEL                     -17102.0128               39.7611             28.1154
+-EGB                      -3036.0661               15.1517             10.7138
+-ESURF                       92.0643                0.2456              0.1737
++EGB                      -3036.2753               15.1544             10.7158
++ESURF                       92.0404                0.2552              0.1805
+ 
+ G gas                   -19129.4713               46.4439             32.8408
+-G solv                   -2944.0018               15.3973             10.8875
++G solv                   -2944.2348               15.4096             10.8963
+ 
+-TOTAL                   -22073.4731               31.0467             21.9533
++TOTAL                   -22073.7061               31.0343             21.9445
+ 
+ 
+ Receptor:
+@@ -53,13 +53,13 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                  -1963.0469                6.3796              4.5110
+ EEL                     -17062.3941               41.4017             29.2755
+-EGB                      -3045.5263               17.9328             12.6804
+-ESURF                       94.5901                0.3006              0.2125
++EGB                      -3045.7452               17.9344             12.6815
++ESURF                       94.5395                0.3071              0.2171
+ 
+ G gas                   -19025.4410               47.7813             33.7865
+-G solv                   -2950.9362               18.2334             12.8929
++G solv                   -2951.2056               18.2415             12.8987
+ 
+-TOTAL                   -21976.3773               29.5480             20.8936
++TOTAL                   -21976.6467               29.5398             20.8878
+ 
+ 
+ Ligand:
+@@ -67,13 +67,13 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                     -2.1842                0.9276              0.6559
+ EEL                         -5.8905                0.2643              0.1869
+-EGB                        -28.9823                0.3972              0.2809
+-ESURF                        5.5752                0.0080              0.0057
++EGB                        -28.9847                0.3972              0.2809
++ESURF                        5.5941                0.0255              0.0181
+ 
+ G gas                       -8.0747                1.1919              0.8428
+-G solv                     -23.4071                0.4052              0.2865
++G solv                     -23.3905                0.4228              0.2989
+ 
+-TOTAL                      -31.4819                1.5971              1.1293
++TOTAL                      -31.4653                1.6146              1.1417
+ 
+ 
+ Differences (Complex - Receptor - Ligand):
+@@ -81,13 +81,13 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                    -62.2274                1.2308              0.8703
+ EEL                        -33.7281                1.3763              0.9732
+-EGB                         38.4425                3.1784              2.2474
+-ESURF                       -8.1010                0.0630              0.0445
++EGB                         38.4546                3.1772              2.2466
++ESURF                       -8.0932                0.0774              0.0547
+ 
+ DELTA G gas                -95.9555                0.1455              0.1029
+-DELTA G solv                30.3415                3.2413              2.2919
++DELTA G solv                30.3614                3.2545              2.3013
+ 
+-DELTA TOTAL                -65.6140                3.0958              2.1890
++DELTA TOTAL                -65.5942                3.1090              2.1984
+ 
+ 
+ -------------------------------------------------------------------------------
+diff --git AmberTools/test/mmpbsa_py/10_QM_MMGBSA/FINAL_RESULTS_MMPBSA.dat.save AmberTools/test/mmpbsa_py/10_QM_MMGBSA/FINAL_RESULTS_MMPBSA.dat.save
+index 1c6672d..4dc52b5 100644
+--- AmberTools/test/mmpbsa_py/10_QM_MMGBSA/FINAL_RESULTS_MMPBSA.dat.save
++++ AmberTools/test/mmpbsa_py/10_QM_MMGBSA/FINAL_RESULTS_MMPBSA.dat.save
+@@ -1,4 +1,4 @@
+-| Run on Sun Feb 19 11:48:15 2012
++| Run on Thu Aug 23 19:12:17 2012
+ |
+ |Input file:
+ |--------------------------------------------------------------
+@@ -13,7 +13,7 @@
+ |   qm_theory='PM3',
+ |/
+ |--------------------------------------------------------------
+-|MMPBSA.py Version=3.1
++|MMPBSA.py Version=12.0
+ |Solvated complex topology file:  ../EstRAL_Files/sol.top
+ |Complex topology file:           ../EstRAL_Files/com.top
+ |Receptor topology file:          ../EstRAL_Files/rec.top
+@@ -38,14 +38,14 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                  -2025.2744                7.6103              5.3813
+ EEL                     -17062.4395               41.4020             29.2756
+-EGB                      -3038.1307               14.7141             10.4045
++EGB                      -3038.3396               14.7163             10.4060
+ ESURF                       96.5366                0.2385              0.1686
+-ESCF                       -21.6928                3.7699              2.6658
++ESCF                       -21.6939                3.7699              2.6657
+ 
+ G gas                   -19087.7139               49.0123             34.6570
+-G solv                   -2941.5940               14.4757             10.2358
++G solv                   -2941.8030               14.4778             10.2374
+ 
+-TOTAL                   -22051.0007               30.7667             21.7554
++TOTAL                   -22051.2107               30.7647             21.7539
+ 
+ 
+ Receptor:
+@@ -53,26 +53,26 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                  -1963.0469                6.3796              4.5110
+ EEL                     -17062.3941               41.4017             29.2755
+-EGB                      -3045.5263               17.9328             12.6804
++EGB                      -3045.7452               17.9344             12.6815
+ ESURF                      100.5546                0.3074              0.2173
+ 
+ G gas                   -19025.4410               47.7813             33.7865
+-G solv                   -2944.9718               17.6255             12.4631
++G solv                   -2945.1907               17.6270             12.4642
+ 
+-TOTAL                   -21970.4127               30.1558             21.3234
++TOTAL                   -21970.6316               30.1543             21.3223
+ 
+ 
+ Ligand:
+ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+-EGB                        -24.0340                0.8659              0.6123
++EGB                        -24.0371                0.8661              0.6124
+ ESURF                        4.4275                0.0229              0.0162
+-ESCF                         6.8997                1.2609              0.8916
++ESCF                         6.9011                1.2609              0.8916
+ 
+ G gas                        0.0000                0.0000              0.0000
+-G solv                     -19.6065                0.8889              0.6285
++G solv                     -19.6096                0.8891              0.6287
+ 
+-TOTAL                      -12.7069                2.1498              1.5201
++TOTAL                      -12.7085                2.1499              1.5202
+ 
+ 
+ Differences (Complex - Receptor - Ligand):
+@@ -80,14 +80,14 @@ Energy Component            Average              Std. Dev.   Std. Err. of Mean
+ -------------------------------------------------------------------------------
+ VDWAALS                    -62.2274                1.2308              0.8703
+ EEL                         -0.0454                0.0003              0.0002
+-EGB                         31.4297                4.0846              2.8882
++EGB                         31.4427                4.0842              2.8880
+ ESURF                       -8.4454                0.0459              0.0325
+-ESCF                       -28.5925                2.5090              1.7741
++ESCF                       -28.5950                2.5090              1.7741
+ 
+ DELTA G gas                -62.2728                1.2310              0.8705
+-DELTA G solv                22.9843                4.0386              2.8558
++DELTA G solv                22.9973                4.0383              2.8555
+ 
+-DELTA TOTAL                -67.8811                2.7607              1.9521
++DELTA TOTAL                -67.8705                2.7603              1.9519
+ 
+ 
+ -------------------------------------------------------------------------------
+

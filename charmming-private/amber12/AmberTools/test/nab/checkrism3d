@@ -1,0 +1,118 @@
+#!/bin/sh
+
+#script to check thermodynamic output from a 3D-RISM calculation
+#against the gold standard using dacdif
+
+#error to use
+error=1e-6
+#standard file to compare against
+standard=''
+#input file to test
+file=''
+#keep temporary files
+keep=''
+
+#regular expression for a float that can be used in grep or sed
+float='[+-]\?\(\(\([0-9]\+\.\?[0-9]*\)\|\([0-9]*\.\?[0-9]\+\)\)\([eE][-+]\?[0-9]\+\)\?\)'
+
+usage() {
+         echo "USAGE: checkrism3d [-err error] [-totalcharge] standard file"
+         echo
+         echo "       -err:       Error threshold.  Relative error except for total charge"
+         echo "                   where the absolute error is used. (Default $error)"
+         echo "       -k:         Keep all temporary files."
+         echo "       standard:   Name of file to check against."
+         echo "       file:       Name of file to check."
+         echo
+         echo "Checks thermodynamics output from 3D-RISM output files with variable precision"
+         echo "using dacdif by splitting up the contents of the file. The absolute error is"
+         echo "used to test the total charge of the solvent while relative error is used for"
+         echo "the rest of the data. Like dacdif, all temporary files, including 'file' are"
+         echo "deleted unless '-k' is used."
+         exit 1
+}
+
+#traverse up the path a directory at a time from current working
+#directory until we find dacdif.  If we get to '/' first, die with an
+#error message
+findDacdif() {
+    dir=`pwd`
+    while [ 0 ]; do
+        if [ -e "$dir/dacdif" ]; then
+            echo "$dir/dacdif"
+            break
+        elif [ "$dir" = '/' ]; then
+            echo "ERROR> cannot find 'dacdif'"
+            exit 1
+        fi
+        dir=`dirname $dir`
+    done
+}
+
+#0) parse the command line and extract error threshold and files
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -err)          if [ $# -gt 1 ]; then
+                         shift; error="$1"
+                         error=`echo "$1" | grep "^$float$"`
+                         if [ -z $error ]; then #not a float
+                           echo "ERROR: -err requires a floating point number"
+                           usage
+                         fi
+                       else #not enough remaining arguments
+                         echo "ERROR: missing <error>"
+                         usage
+                       fi;;
+        -k)            keep='-k';; #this value can be passed directly to dacdif
+        -*)            echo "Error: unknown flag: $1"
+                       usage;;
+        *)             if [ -z $standard ]; then
+                         standard=$1
+                       elif [ -z $file ]; then
+                         file=$1
+                       else
+                         echo "ERROR: too many file names"
+                         usage
+                       fi;;
+    esac
+    shift
+done
+
+if [ -z "$standard" -o -z "$file" ]; then
+    echo "ERROR: two file names must be specified"
+    usage
+fi
+
+#search up the directory tree for the local version of dacdif
+dacdif=`findDacdif`
+
+#1) Extract the total solvent charge from each file and dump into
+#   temporary files
+grep -o "^rism_exChrg \+$float" $standard > $standard.totChg
+grep -o "^rism_exChrg \+$float" $file > $file.totChg
+
+#2) Compare files
+$dacdif $keep -a $error $standard.totChg $file.totChg
+passTotChg=$?
+
+#3) Strip out the total solvent charge from each and dump the
+#   remainder into temporary files.  The extra spaces roughly re-align
+#   the data.
+sed -e "s/^\(rism_exChrg \+\)$float/\1                /" $standard > $standard.rel
+sed -e "s/^\(rism_exChrg \+\)$float/\1                /" $file > $file.rel
+
+#4) Compare files
+$dacdif $keep -r $error $standard.rel $file.rel
+passRel=$?
+
+#5) Clean up
+if [ "$passTotChg" = "0" -a -z "$keep" ]; then
+    rm -f $standard.totChg $file.totChg
+fi
+if [ "$passRel" = "0" -a -z "$keep" ]; then
+    rm -f $standard.rel $file.rel
+fi
+if [ "$passTotChg" = "0" -a "$passRel" = "0" -a -z "$keep" ]; then
+    rm -f $file
+fi
+exit 0

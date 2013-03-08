@@ -1,0 +1,439 @@
+#!/bin/bash
+# CPPTRAJ configure script
+# Daniel R. Roe
+# 2010-11-18
+# Simple script to set compiler vars. Create config.h, which will be used
+# by src/Makefile and test/Makefile.
+# Usage: ./configure [gnu/intel] OPTIONS
+
+# Print help message
+Usage() {
+  echo "Usage: ./configure [gnu/intel] OPTIONS"
+  echo "   OPTIONS:"
+  echo "   --help     : Display this message."
+  echo "   -d, -debug : Turn on compiler debugging info"
+  echo "   -debugon   : Add -DDEBUG flag to activate internal debugging"
+  echo "   -profile   : Add profiling flag to compile command"
+  echo "   -noopt     : Do not use optimized compiler flags (default when -d specified)"
+  echo "   -nobzlib   : Do not use Bzip2"
+  echo "   -nozlib    : Do not use zlib (gzip/zip)"
+  echo "   -nonetcdf  : Do not use netcdf"
+  echo "   -nolfs     : Do not enable large file support."
+  echo "   -noptrajanalyze: Do not include ptraj analysis functions, which requires"
+  echo "                    ptraj, arpack, lapack, and blas from AmberTools"
+  echo "      Static linking options:"
+  echo "   --with-netcdf=<DIR>"
+  echo "   --with-zlib=<DIR>"
+  echo "   --with-bzlib=<DIR>"
+  echo ""
+  echo "   EXPERIMENTAL OPTIONS:"
+  echo "   -profile   : Use Gnu compiler profiling (>= V4.5)"
+  echo "   -gprofile  : Use Gnu compiler GLIBC profiling (>= V4.5)"
+  echo "   -mpi       : Use mpicc/mpicxx to compile."
+  echo "   -openmp    : Use openmp for parallelization of certain routines."
+  echo "   NOTE: -openmp and -mpi are mutually exclusive, as are -profile and -gprofile."
+  echo "   --with-hdf5=<DIR>"
+}
+
+# If arg is Key=Value, separate into Key and Value
+ParseArg() {
+  KEY=`echo "$1" | awk 'BEGIN{FS = "=";}{print $1;}'`
+  VALUE=`echo "$1" | awk 'BEGIN{FS = "=";}{print $2;}'`
+  if [[ $VALUE = $KEY ]] ; then
+    VALUE=""
+  fi
+}
+
+# Write a C or C++ program to test compiler and flags
+# Arg should be file to write test program to, testp.c or testp.cpp.
+WriteTestProgram() {
+  if [[ $1 = "testp.c" ]] ; then
+    STDIO="<stdio.h>"
+  elif [[ $1 = "testp.cpp" ]] ; then 
+    STDIO="<cstdio>"
+  fi
+  
+  cat > $1 <<EOF
+#include $STDIO
+#ifdef HASBZ2
+#  include "bzlib.h"
+#endif
+#ifdef HASGZ
+#  include "zlib.h"
+#endif
+#ifdef BINTRAJ
+#  include "netcdf.h"
+#endif
+
+int main() {
+#ifdef HASBZ2
+  BZFILE *bfile;
+  bfile=NULL;
+#endif
+#ifdef HASGZ
+  gzFile gfile;
+  gfile=NULL;
+#endif
+  printf("Testing\n");
+#ifdef BINTRAJ
+  printf("%s\n",nc_strerror(0));
+#endif
+  return 0;
+}
+EOF
+}
+
+# Test compilation with flags
+TestCompile() {
+  # C
+  echo "Testing C compiler:"
+  WriteTestProgram testp.c
+  $CC $CFLAGS -o testp testp.c $BZLIB $NETCDFLIB $ZLIB > /dev/null 2>&1 
+  ./testp | grep "Testing" > /dev/null
+  status=$?
+  if [[ $status -gt 0 ]] ; then
+      echo "  Error: Unable to compile a C program using:"
+      echo "       $CC $CFLAGS $ZLIB $BZLIB $NETCDFLIB"
+      echo "       Please check your compiler settings or configure flags."
+      echo "       If errors/warnings above appear related to netcdf.h, zlib.h,"
+      echo "       or bzlib.h check that your compiler is able to find the "
+      echo "       correct libraries."
+      echo ""
+      exit 1
+  fi
+  /bin/rm -f testp.c testp
+  echo "  OK"
+
+  # C++
+  echo "Testing C++ compiler:"
+  WriteTestProgram testp.cpp
+  $CXX $CXXFLAGS -o testp testp.cpp $BZLIB $NETCDFLIB $ZLIB > /dev/null 2>&1
+  ./testp | grep "Testing" > /dev/null
+  status=$?
+  if [[ $status -gt 0 ]] ; then
+      echo "  Error: Unable to compile a C++ program using:"
+      echo "       $CXX $CXXFLAGS $ZLIB $BZLIB $NETCDFLIB"
+      echo "       Please check your compiler settings or configure flags."
+      echo "       If errors/warnings above appear related to netcdf.h, zlib.h,"
+      echo "       or bzlib.h check that your compiler is able to find the "
+      echo "       correct libraries."
+      echo ""
+      exit 1
+  fi
+  /bin/rm -f testp.cpp testp
+  echo "  OK"
+
+  # Fortran - only needed if ptraj analyze routines being used
+  if [[ $PTRAJ_ANALYZE -eq 1 ]] ; then
+    echo "Testing Fortran compiler:"
+    cat > testp.f <<EOF
+      program testf
+      write(6,*) 'testing a Fortran program'
+      end program testf
+EOF
+    $FC $FFLAGS -o testp testp.f > /dev/null 2>&1
+    ./testp | grep "testing a Fortran program" > /dev/null
+    status=$?
+    if [[ $status -gt 0 ]] ; then
+        echo "  Error: Unable to compile a Fortran program using:"
+        echo "       $FC $FFLAGS" 
+        echo "       Please check your compiler settings or configure flags."
+        echo "       If errors/warnings above appear related to netcdf.h, zlib.h,"
+        echo "       or bzlib.h check that your compiler is able to find the "
+        echo "       correct libraries."
+        echo ""
+        exit 1
+    fi
+    /bin/rm -f testp.f testp
+    echo "  OK"
+  fi
+}
+
+#---------------------------------------------------------------------
+
+if [[ -z $1  || $1 = "--help" ]] ; then
+  Usage
+  exit 0
+fi
+
+CONFIGURECMD="./configure $*"
+
+KEY=""
+VALUE=""
+echo ""
+
+# Process Options
+OPT=1
+CC=""
+CXX=""
+FC=""
+CPPTRAJHOME=`pwd`
+CPPTRAJBIN=$CPPTRAJHOME/bin
+DIRECTIVES=""
+DBGFLAGS=""
+OPTFLAGS=""
+OMPFLAGS=""
+FFLAGS=""
+FOPTFLAGS=""
+LDFLAGS=""
+BZLIB="-lbz2"
+ZLIB="-lz"
+NETCDFLIB="-lnetcdf"
+BLAS_HOME=$AMBERHOME/AmberTools/src/blas
+LAPACK_HOME=$AMBERHOME/AmberTools/src/lapack
+ARPACK_HOME=$AMBERHOME/AmberTools/src/arpack
+BLAS=$AMBERHOME/lib/libblas.a
+LAPACK=$AMBERHOME/lib/liblapack.a
+ARPACK=$AMBERHOME/lib/libarpack.a
+PTRAJ_HOME=$AMBERHOME/AmberTools/src/ptraj
+PTRAJ_ANALYZE=1
+FLIBS=""
+PTRAJ_OBJECTS="thermo.o pubfft.o"
+#HDF5LIB="-lhdf5_hl -lhdf5"
+HDF5LIB=""
+LFS="-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
+INCLUDE=""
+USEMPI=0
+USEOPENMP=0
+PROFILE=0
+while [[ ! -z $1 ]] ; do
+  ParseArg $1
+  case "$KEY" in
+    "gnu" )
+      echo "Using gnu compilers"
+      CC=gcc
+      CXX=g++
+      FC=gfortran
+      OPTFLAGS="-O3 -Wall"
+      OMPFLAGS="-fopenmp"
+      FFLAGS="-ffree-form"
+      FOPTFLAGS="-O3"
+      FLIBS="$FLIBS -lgfortran -w"
+      ;;
+    "intel" )
+      echo "Using intel compilers"
+      CC=icc
+      CXX=icpc
+      FC=ifort
+      OPTFLAGS="-O3 -Wall"
+      OMPFLAGS="-openmp"
+      FFLAGS="-FR"
+      FOPTFLAGS="-ip -O3"
+      FLIBS="$FLIBS -lifport -lifcore"
+      ;; 
+    "-debug" | "-d" ) 
+      echo "Turning on compiler debug info"
+      echo "Turning off optimization"
+      DBGFLAGS="-g -Wall -O0"
+      OPT=0
+      ;;
+    "-debugon"      ) 
+      echo "Turning on cpptraj internal debug info"
+      DIRECTIVES="$DIRECTIVES -DDEBUG" 
+      ;;
+    "-noopt"          ) 
+      echo "Turning off optimization"
+      OPT=0 
+      ;;
+    "-mpi"          )
+      USEMPI=1
+      USEOPENMP=0
+      ;;
+    "-openmp"       )
+      USEOPENMP=1
+      USEMPI=0
+      ;;
+    "-profile"      ) PROFILE=1 ;;
+    "-gprofile"      ) PROFILE=2 ;;
+    "-nolfs"        )
+      echo "Disabling large file support"
+      LFS=""
+      ;;
+    "-nobzlib"      )
+      echo "Not using bzip2"
+      BZLIB=""
+    ;;
+    "-nozlib"       )
+      echo "Not using zlib (gzip/zip)"
+      ZLIB=""
+      ;;
+    "-nonetcdf"     )
+      echo "Not using netcdf"
+      NETCDFLIB=""
+      ;;
+    "-noptrajanalyze")
+      echo "Not using 'timecorr' and 'matrix' analysis functions from ptraj."
+      PTRAJ_ANALYZE=0
+      ;;
+    "--with-bzlib"  )
+      INCLUDE="$INCLUDE -I$VALUE/include"
+      BZLIB="-I$VALUE/include $VALUE/lib/libbz2.a"
+      echo "Using BZIP2: $BZLIB"
+      ;;
+    "--with-zlib" )
+      INCLUDE="$INCLUDE -I$VALUE/include"
+      ZLIB="-I$VALUE/include $VALUE/lib/libz.a"
+      echo "Using ZLIB: $ZLIB"
+      ;;
+    "--with-netcdf" )
+      INCLUDE="$INCLUDE -I$VALUE/include"
+      NETCDFLIB="-I$VALUE/include $VALUE/lib/libnetcdf.a"
+      echo "Using NETCDFLIB: $NETCDFLIB"
+      ;;
+    "--with-hdf5" )
+      INCLUDE="$INCLUDE -I$VALUE/include"
+      HDF5LIB="-I$VALUE/include $VALUE/lib/libhdf5_hl.a $VALUE/lib/libhdf5.a -lm"
+      echo "Using HDF5LIB: $HDF5LIB"
+      ;;
+    "--prefix" )
+      CPPTRAJHOME=$VALUE
+      CPPTRAJBIN=$VALUE
+      echo "Installing cpptraj binary to $CPPTRAJBIN"
+      ;;
+    * )
+      echo "Unrecognized OPTION: $1"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+# Check for compilers
+if [[ -z $CC || -z $CXX ]] ; then
+  echo "No compiler specified."
+  echo "Specify 'gnu' or 'intel' as an argument to ./configure"
+  Usage
+  exit 1
+fi
+
+# Remove opt flags if specified
+if [[ $OPT -eq 0 ]] ; then
+  OPTFLAGS=""
+  FOPTFLAGS=""
+fi
+
+# If no netcdf specified and AMBERHOME defined use netcdf from AMBERHOME
+#if [[ $NETCDFLIB = "-lnetcdf" && ! -z $AMBERHOME ]] ; then
+#  echo "Using netcdf from AMBERHOME: $AMBERHOME"
+#  INCLUDE="$INCLUDE -I$AMBERHOME/AmberTools/src/netcdf/include"
+#  NETCDFLIB="-I$AMBERHOME/AmberTools/src/netcdf/include $AMBERHOME/AmberTools/src/netcdf/lib/libnetcdf.a"
+#fi
+
+# Add HDF5 flags to NETCDF
+if [[ ! -z $NETCDFLIB ]] ; then
+  NETCDFLIB="$NETCDFLIB $HDF5LIB"
+fi
+
+# Add directives
+if [[ ! -z $BZLIB ]] ; then
+  DIRECTIVES="$DIRECTIVES -DHASBZ2"
+fi
+if [[ ! -z $ZLIB ]] ; then
+  DIRECTIVES="$DIRECTIVES -DHASGZ"
+fi
+if [[ ! -z $NETCDFLIB ]] ; then
+  DIRECTIVES="$DIRECTIVES -DBINTRAJ"
+fi
+
+# Remove ptraj objects if specified, otherwise make sure AMBERHOME is defined
+if [[ $PTRAJ_ANALYZE -eq 0 ]] ; then
+  PTRAJ_OBJECTS=""
+  PTRAJ_HOME=""
+  BLAS_HOME=""
+  ARPACK_HOME=""
+  LAPACK_HOME=""
+  BLAS=""
+  ARPACK=""
+  LAPACK=""
+  #FLIBS="" # Still need FLIBS for Rotdif
+  DIRECTIVES="$DIRECTIVES -DNO_PTRAJ_ANALYZE"
+else
+  if [[ -z $AMBERHOME ]] ; then
+    echo "Error: AMBERHOME is not defined and '-noptrajanalyze' not specified."
+    echo "       The ptraj analyze routines require ptraj, blas, arpack, and"
+    echo "       lapack from AmberTools. Set AMBERHOME and re-run configure."
+    exit 1
+  fi
+fi
+
+# Change compilers for MPI if specified
+if [[ $USEMPI -eq 1 ]] ; then
+  echo "Using MPI"
+  CC=mpicc
+  CXX=mpicxx
+  FC=mpif90
+  DIRECTIVES="$DIRECTIVES -DMPI"
+fi
+
+# Add flags for OPENMP if specified
+if [[ $USEOPENMP -eq 1 ]] ; then
+  echo "Using OPENMP"
+  DIRECTIVES="$OMPFLAGS $DIRECTIVES"
+  LDFLAGS="$OMPFLAGS $LDFLAGS"
+fi
+
+CFLAGS="$DBGFLAGS $OPTFLAGS $DIRECTIVES $LFS $INCLUDE"
+CXXFLAGS="$DBGFLAGS $OPTFLAGS $DIRECTIVES $LFS $INCLUDE"
+FFLAGS="$FFLAGS $DBGFLAGS $FOPTFLAGS $DIRECTIVES $LFS $INCLUDE"
+
+# Add C++ specific debug flags if debug info on
+if [[ ! -z $DBGFLAGS ]] ; then
+  CXXFLAGS="-fno-inline $CXXFLAGS"
+fi
+
+# Turn on profiling if specified
+if [[ $PROFILE -eq 1 && $CXX = "g++" ]] ; then
+  echo "Using $CXX profiling."
+  CFLAGS="-pg $CFLAGS"
+  CXXFLAGS="-pg $CXXFLAGS"
+  LDFLAGS="-pg $LDFLAGS"
+elif [[ $PROFILE -eq 2 && $CXX = "g++" ]] ; then
+  echo "Turning on GLIBC profiling for $CXX."
+  CXXFLAGS="-D_GLIBCXX_PROFILE $CXXFLAGS"
+fi
+
+# Test compilers
+TestCompile
+
+# Write config.h
+cat > config.h <<EOF
+# config.h for cpptraj
+# configured using: "$CONFIGURECMD"
+
+CPPTRAJHOME=$CPPTRAJHOME
+CPPTRAJBIN=$CPPTRAJBIN
+
+DBGFLAGS=
+CC=$CC
+CXX=$CXX
+FC=$FC
+CFLAGS=$CFLAGS \$(DBGFLAGS)
+CXXFLAGS=$CXXFLAGS \$(DBGFLAGS)
+FFLAGS=$FFLAGS \$(DBGFLAGS)
+ZLIB=$ZLIB
+BZLIB=$BZLIB
+NETCDFLIB=$NETCDFLIB
+
+ARPACK_HOME=$ARPACK_HOME
+LAPACK_HOME=$LAPACK_HOME
+BLAS_HOME=$BLAS_HOME
+ARPACK=$ARPACK
+LAPACK=$LAPACK
+BLAS=$BLAS
+FLIBS=$FLIBS
+PTRAJ_HOME=$PTRAJ_HOME
+PTRAJ_OBJECTS=$PTRAJ_OBJECTS
+
+LDFLAGS=$LDFLAGS
+SFX=
+
+
+EOF
+
+# Create directories if necessary
+if [[ ! -e $CPPTRAJBIN ]] ; then
+  mkdir $CPPTRAJBIN
+fi
+
+echo ""
+exit 0

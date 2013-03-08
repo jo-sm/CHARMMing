@@ -1,0 +1,108 @@
+********>Bugfix 21:
+Author: Daniel R. Roe
+Date: 15 August 2012
+Program: Cpptraj
+
+Description: Fix bug where reading restart files with velocity info after an
+             initial restart with no velocity info would result in corruption
+             of box coordinates. 
+
+-----------------------------------------------------------------------------
+ AmberTools/src/cpptraj/src/CpptrajState.cpp      | 11 ++++++++---
+ AmberTools/src/cpptraj/src/Traj_AmberRestart.cpp | 17 +++++++++++------
+ AmberTools/src/cpptraj/src/Traj_AmberRestart.h   |  1 +
+ AmberTools/src/cpptraj/src/main.cpp              |  2 +-
+ 4 files changed, 21 insertions(+), 10 deletions(-)
+
+diff --git AmberTools/src/cpptraj/src/CpptrajState.cpp AmberTools/src/cpptraj/src/CpptrajState.cpp
+index 7aa0e9e..4ce4228 100644
+--- AmberTools/src/cpptraj/src/CpptrajState.cpp
++++ AmberTools/src/cpptraj/src/CpptrajState.cpp
+@@ -209,11 +209,16 @@ int CpptrajState::Run() {
+     }
+     // Set current parm from current traj.
+     CurrentParm = traj->TrajParm();
++    // Check if parm has changed
++    bool parmHasChanged = (lastPindex != CurrentParm->pindex);
+ 
+-    // If Parm has changed, reset Frame and actions for new topology.
+-    if (lastPindex != CurrentParm->pindex) {
+-      // Set up the incoming trajectory frame for this parm
++    // If Parm has changed or trajectory velocity status has changed,
++    // reset the frame.
++    if (parmHasChanged || ((TrajFrame.V != NULL) != traj->HasVelocity()))
+       TrajFrame.SetupFrameV(CurrentParm->natom, CurrentParm->mass, traj->HasVelocity());
++
++    // If Parm has changed, reset actions for new topology.
++    if (parmHasChanged) {
+       // Set up actions for this parm
+       if (actionList.Setup( &CurrentParm )) {
+         mprintf("WARNING: Could not set up actions for %s: skipping.\n",
+diff --git AmberTools/src/cpptraj/src/Traj_AmberRestart.cpp AmberTools/src/cpptraj/src/Traj_AmberRestart.cpp
+index d2a398a..6d060a6 100644
+--- AmberTools/src/cpptraj/src/Traj_AmberRestart.cpp
++++ AmberTools/src/cpptraj/src/Traj_AmberRestart.cpp
+@@ -9,6 +9,7 @@
+ // CONSTRUCTOR
+ AmberRestart::AmberRestart() {
+   restartAtoms=0;
++  coordSize_ = 0;
+   frameSize=0;
+   frameBuffer=NULL;
+   numBoxCoords=0;
+@@ -218,6 +219,7 @@ int AmberRestart::setupRead(AmberParm *trajParm) {
+   // For DOS files CR present before newline
+   if (tfile->isDos) frame_lines*=2;
+   frameSize = ((natom3 * 12) + frame_lines);
++  coordSize_ = frameSize;
+   frameBuffer=(char*) malloc(frameSize*sizeof(char));
+   //if (debug>0) mprintf("    Amber Restart frameSize= %i\n",frameSize);
+ 
+@@ -302,13 +304,16 @@ int AmberRestart::readFrame(int set,double *X,double *V,double *box, double *T)
+     return 1;  
+   }
+   // Get velocity from buffer if present
+-  if (hasVelocity && V!=NULL) {
+-    if ( (bufferPosition = BufferToDouble(bufferPosition, V, natom3, 12))==NULL ) {
+-      mprinterr("Error: AmberRestart::getFrame: * detected in velocities of %s\n",
+-              tfile->filename);
+-      return 1;
++  if (hasVelocity) {
++    if (V != NULL) {
++      if ( (bufferPosition = BufferToDouble(bufferPosition, V, natom3, 12))==NULL ) {
++        mprinterr("Error: AmberRestart::getFrame: * detected in velocities of %s\n",
++                tfile->filename);
++        return 1;
++      }
++    } else {
++      bufferPosition += coordSize_;
+     }
+-    //F->V->printAtomCoord(0);
+   }
+   // Get box from buffer if present
+   if (hasBox) {
+diff --git AmberTools/src/cpptraj/src/Traj_AmberRestart.h AmberTools/src/cpptraj/src/Traj_AmberRestart.h
+index ba21b2a..b231874 100644
+--- AmberTools/src/cpptraj/src/Traj_AmberRestart.h
++++ AmberTools/src/cpptraj/src/Traj_AmberRestart.h
+@@ -7,6 +7,7 @@ class AmberRestart : public TrajectoryIO {
+     int restartAtoms;     ///< Number of atoms in restart file
+     int natom3;           ///< Number of coords
+     int frameSize;        ///< Size of 1 coord frame in bytes, inc box & velo if present
++    size_t coordSize_;    ///< Size of 1 coord frame in bytes, used for blank reads.
+     char *frameBuffer;    ///< Used to read in restart coord
+     int numBoxCoords;     ///< Number of box coords (3 or 6)
+     double restartTime;   ///< Time in restart file, read in
+diff --git AmberTools/src/cpptraj/src/main.cpp AmberTools/src/cpptraj/src/main.cpp
+index 297212d..4fc0434 100644
+--- AmberTools/src/cpptraj/src/main.cpp
++++ AmberTools/src/cpptraj/src/main.cpp
+@@ -9,7 +9,7 @@
+ #include <cstdio>
+ #include <cstdlib> // atoi
+ #ifndef CPPTRAJ_VERSION_STRING
+-#define CPPTRAJ_VERSION_STRING "V12.3"
++#define CPPTRAJ_VERSION_STRING "V12.4"
+ #define CPPTRAJ_INTERNAL_VERSION "V2.4.7b"
+ #endif
+ 

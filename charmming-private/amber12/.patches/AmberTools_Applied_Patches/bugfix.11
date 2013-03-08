@@ -1,0 +1,45 @@
+*********>Bugfix 11:
+
+Authors: Matthew Clark, Mike Wu, Jason Swails & Ross Walker
+
+Date:   June 25th, 2012
+
+Programs: Configure File (affects pmemd.cuda and pmemd.cuda.MPI)
+
+Description:
+             1) Fixes same problems as Bugfix 8 (see 2 and 3) but for
+                the GNU compiler (which was inadvertently missed). 
+             2) Fixes unresolved symbols seen when compiling the CUDA
+                code on certain newer versions of Ubuntu and possibly
+                other Linux installations using GNU v4.6 or later
+                compilers.
+             3) Removes the dependence on MPI_HOME in the compilation
+                of the CUDA MPI code and attempts to determine the
+                location of MPI include files from mpicc instead of
+                relying on $MPI_HOME/include. This fixes possible issues
+                with mpi.h not being found when using system installed
+                MPI instances.
+
+----------------------------------------------------------------------------
+
+--- AmberTools/src/configure2	2012-06-25 10:26:54.082203238 -0700
++++ AmberTools/src/configure2	2012-06-25 10:55:39.676030327 -0700
+
+@@ -739,14 +739,15 @@
+     if [ "$cuda" = 'yes' -o "$cuda_SPSP" = 'yes' -o "$cuda_DPDP" = 'yes' ]; then
+       pmemd_cu_includes='-I$(CUDA_HOME)/include -IB40C -IB40C/KernelCommon'
+       pmemd_cu_defines='-DCUDA'
+-      pmemd_cu_libs='-L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib -lcurand -lcufft -lcudart ./cuda/cuda.a'
++      pmemd_cu_libs='./cuda/cuda.a -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib -lcurand -lcufft -lcudart'
+       if [ "$optimise" = 'no' ]; then
+         nvcc='$(CUDA_HOME)/bin/nvcc -use_fast_math -O0 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20'
+       else
+         nvcc='$(CUDA_HOME)/bin/nvcc -use_fast_math -O3 -gencode arch=compute_13,code=sm_13 -gencode arch=compute_20,code=sm_20'
+       fi
+       if [ "$mpi" = 'yes' ]; then
+-        pmemd_cu_includes="$pmemd_cu_includes -I$MPI_HOME/include"
++        mpi_inc=`(mpicc -show 2>&1) | awk 'BEGIN{i=0} {while (i < NF) {if ( substr($i, 1, 2) == "-I" ) {printf("%s ", $i);}; i++;}}'`
++        pmemd_cu_includes="$pmemd_cu_includes $mpi_inc"
+         pmemd_cu_defines="$pmemd_cu_defines -DMPI  -DMPICH_IGNORE_CXX_SEEK"
+         pmemd_coptflags="$coptflags -DMPICH_IGNORE_CXX_SEEK"
+       fi

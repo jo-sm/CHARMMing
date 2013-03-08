@@ -1,0 +1,31 @@
+*********>Bugfix 15:
+
+Authors: Jason Swails
+
+Date:   July 23, 2012
+
+Programs: MMPBSA.py
+
+Description: In some cases, MMPBSA.py will fail with a KeyError when trying to
+             calculate the total binding free energy including entropy.  This
+             will happen when there are fewer frames used for the normal mode
+             calculation than the implicit solvent calculation
+
+----------------------------------------------------------------------------
+
+ AmberTools/src/mmpbsa_py/MMPBSA_mods/amber_outputs.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git AmberTools/src/mmpbsa_py/MMPBSA_mods/amber_outputs.py AmberTools/src/mmpbsa_py/MMPBSA_mods/amber_outputs.py
+index b01b891..0349ba9 100644
+--- AmberTools/src/mmpbsa_py/MMPBSA_mods/amber_outputs.py
++++ AmberTools/src/mmpbsa_py/MMPBSA_mods/amber_outputs.py
+@@ -1152,7 +1152,7 @@ class BindingStatistics(object):
+       classes and returns the average and standard deviation of that diff.
+       """
+       if len(self.data[key1]) != len(other.data[key2]):
+-         return (self.data[key1].avg() - self.data[key2].avg(),
++         return (self.data[key1].avg() - other.data[key2].avg(),
+                  sqrt(self.data[key1].stdev()**2 + other.data[key2].stdev()**2))
+       
+       mydiff = self.data[key1] - other.data[key2]

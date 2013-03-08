@@ -1,0 +1,40 @@
+********>Bugfix 30:
+Author: Andreas W Goetz
+Date: 13 December 2012
+
+Program: SQMlib
+
+Description: Fixes error with QM/MM switching function in presence of link atoms
+
+    Affects MD simulations with AMBER SANDER based on SQMLIB.
+    The array size for the switching potential is now re-allocated to the
+    correct size if link atoms are present. This was not done previously and
+    led to out-of-bound errors manifesting sometimes in SCF failures or 
+    segfaults.
+
+-----------------------------------------------------------------------------
+ AmberTools/src/sqm/qmmm_struct_module.F90 |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git AmberTools/src/sqm/qmmm_struct_module.F90 AmberTools/src/sqm/qmmm_struct_module.F90
+index d5e115f..d6fccc0 100644
+--- AmberTools/src/sqm/qmmm_struct_module.F90
++++ AmberTools/src/sqm/qmmm_struct_module.F90
+@@ -276,10 +276,14 @@ contains
+     end if
+ 
+     if (qmmm_switch) then
+-       if ( .not. associated ( self%switched_mmpot ) ) then
+-          allocate ( self%switched_mmpot(nquant+nlink), stat=ier )
+-          REQUIRE(ier == 0) !Deallocated in deallocate qmmm
++       ! In case of link atoms needs to be re-allocated since link atoms
++       ! are not known when this routine is first called
++       if ( associated ( self%switched_mmpot ) ) then
++          deallocate ( self%switched_mmpot, stat=ier )
++          REQUIRE(ier == 0)
+        end if
++       allocate ( self%switched_mmpot(nquant+nlink), stat=ier )
++       REQUIRE(ier == 0) !Deallocated in deallocate qmmm
+     end if
+ 
+   end subroutine new_qmmm_struct_type

@@ -1,0 +1,83 @@
+********>Bugfix 26:
+Author: Daniel R. Roe
+Date: 2 October 2012
+Program: Cpptraj
+
+Description: Fix reading of Charmm PSF files when atom type is not an integer.
+             Also add detection of DCD # frames by file size to avoid spurious
+             errors in the case where # of frames reported by DCD file does
+             not match actual # of frames. 
+
+-----------------------------------------------------------------------------
+ AmberTools/src/cpptraj/src/Parm_CharmmPsf.cpp |  6 ++---
+ AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp | 32 +++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+), 3 deletions(-)
+
+diff --git AmberTools/src/cpptraj/src/Parm_CharmmPsf.cpp AmberTools/src/cpptraj/src/Parm_CharmmPsf.cpp
+index 98d1059..c11edc1 100644
+--- AmberTools/src/cpptraj/src/Parm_CharmmPsf.cpp
++++ AmberTools/src/cpptraj/src/Parm_CharmmPsf.cpp
+@@ -14,7 +14,7 @@ int CharmmPsfParmFile::ReadParm(AmberParm &parmOut, CpptrajFile &parmfile) {
+   int bondatoms[8];
+   int currResnum;
+   int psfresnum;
+-  int psfattype;
++  char psfattype[6];
+   int nbond,nlines;
+ 
+   mprintf("    Reading Charmm PSF file %s as topology file.\n",parmOut.parmName);
+@@ -58,8 +58,8 @@ int CharmmPsfParmFile::ReadParm(AmberParm &parmOut, CpptrajFile &parmfile) {
+     //if (buffer[bufferLen-1] == '\n') buffer[bufferLen-1]='\0';
+     // Read line
+     // ATOM# SEGID RES# RES ATNAME ATTYPE CHRG MASS (REST OF COLUMNS ARE LIKELY FOR CMAP AND CHEQ)
+-    sscanf(buffer,"%*i %*s %i %s %s %i %lf %lf",&psfresnum,psfresname,psfname,
+-           &psfattype,parmOut.charge+atom,parmOut.mass+atom);
++    sscanf(buffer,"%*i %*s %i %s %s %s %lf %lf",&psfresnum,psfresname,psfname,
++           psfattype,parmOut.charge+atom,parmOut.mass+atom);
+     // Ensure name has 4 chars
+     PadWithSpaces( psfname );
+     strcpy(parmOut.names[atom],psfname);
+diff --git AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
+index 8563938..6074b05 100644
+--- AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
++++ AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
+@@ -203,7 +203,39 @@ int CharmmDcd::WriteBlock(int blocksize) {
+ /** Call openTraj, which reads the DCD header and all necessary info.
+   */
+ int CharmmDcd::setupRead(AmberParm *trajParm) {
++  size_t boxBytes, dim;
+   if ( openTraj() ) return -1;
++  // DCD file may have less frames than is stored in the header. 
++  // Check the file size against the reported number of frames.
++  if (hasBox)
++    boxBytes = 56; // 6(crds) * 8(double) + 4(hdr) + 4(end hdr)
++  else
++    boxBytes = 0;
++  if (dcd4D)
++    dim = 4;
++  else
++    dim = 3;
++  size_t dimBytes = dim * sizeof(float);
++  size_t frame1Bytes = (((size_t) dcdatom+2         ) * dimBytes) + boxBytes;
++  size_t frameNBytes = (((size_t)(dcdatom - namnf)+2) * dimBytes) + boxBytes;
++  // Header size should be current position after open, which automatically
++  // reads DCD header.
++  size_t headerBytes = (size_t)tfile->IO->Tell();
++  size_t file_size = (size_t)tfile->file_size - headerBytes - frame1Bytes;
++  if ( (file_size % frameNBytes) != 0 ) {
++    mprintf("Warning: %s: Number of frames in DCD file could not be accurately determined.\n",
++            tfile->filename);
++    mprintf("Warning:\t\tFile may be corrupted.\n");
++  }
++  int nframes = (int)(file_size / frameNBytes) + 1; // +1 for first frame
++  if (nframes != dcdframes) {
++    mprintf("Warning: %s: Reported number of frames in DCD file is %i,\n", 
++            tfile->filename, dcdframes);
++    mprintf("Warning:\tactual number of frames is %i. Only reading %i frames.\n",
++            nframes, nframes);
++    dcdframes = nframes;
++  }
++
+   closeTraj();
+   return dcdframes;
+ }

@@ -1,0 +1,80 @@
+********> bugfix 12
+  Author: Qin Cai
+  Date:   28 June 2012
+
+  Programs: pbsa
+
+  Description: Fixes for pbsa
+    - Fix a bug in water-related energy decomposition
+    - Eliminate round-off errors in the level set function
+
+---------------------------------------------------------------------------
+
+ AmberTools/src/pbsa/pb_direct.F90 |    7 +++++++
+ AmberTools/src/pbsa/pb_exmol.F90  |    3 +++
+ 2 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git AmberTools/src/pbsa/pb_direct.F90 AmberTools/src/pbsa/pb_direct.F90
+index 7d8b111..2868f71 100644
+--- AmberTools/src/pbsa/pb_direct.F90
++++ AmberTools/src/pbsa/pb_direct.F90
+@@ -255,6 +255,7 @@ subroutine pb_dirpro( proatm,natom,watres,watfirst,ionfirst,ntypes,ifcap,nex,iex
+        
+       ! compute forces for i <-> ow
+        
++      j = watfirst
+       jfirst = 1; jlast = watres
+ !c !DIR$ IVDEP
+       do jp = jfirst, jlast
+@@ -283,10 +284,13 @@ subroutine pb_dirpro( proatm,natom,watres,watfirst,ionfirst,ntypes,ifcap,nex,iex
+          fx(jp) = fw1
+          fy(jp) = fw2
+          fz(jp) = fw3
++
++         j = j + 3
+       end do
+        
+       ! compute forces for i <-> hw1, hw2
+        
++      j = watfirst + 1
+       jfirst = watres+1; jlast = 3*watres
+ !c !DIR$ IVDEP
+       do jp = jfirst, jlast
+@@ -311,6 +315,9 @@ subroutine pb_dirpro( proatm,natom,watres,watfirst,ionfirst,ntypes,ifcap,nex,iex
+          fx(jp) = fw1
+          fy(jp) = fw2
+          fz(jp) = fw3
++
++         j = j + 3
++         if ( jp == 2*watres ) j = watfirst + 2 
+       end do
+        
+       ! collecting forces
+diff --git AmberTools/src/pbsa/pb_exmol.F90 AmberTools/src/pbsa/pb_exmol.F90
+index 6a67606..488cfac 100644
+--- AmberTools/src/pbsa/pb_exmol.F90
++++ AmberTools/src/pbsa/pb_exmol.F90
+@@ -3000,6 +3000,7 @@ subroutine epsfracx_r( i, j, k, a, b, a1, b1, rh, epsint, depsin, depsout, u )
+    else
+       aa = dble(i+1) - t
+    end if
++   if ( abs(aa) < 1.d-12 ) aa = 0.d0
+    if(sasopt==2) nbndx=nbndx+1
+    fedgex(nbndx) = t - dble(i)
+    epsint = (depsout*depsin)/(depsin*(1.0d0-aa) + depsout*aa)
+@@ -3054,6 +3055,7 @@ subroutine epsfracy_r( i, j, k, a, b, a1, b1, rh, epsint, depsin, depsout, u )
+    else
+       aa = dble(j+1) - t
+    end if
++   if ( abs(aa) < 1.d-12 ) aa = 0.d0
+    if(sasopt==2) nbndy=nbndy+1
+    fedgey(nbndy) = t - dble(j)
+    epsint = (depsout*depsin)/(depsin*(1.0d0-aa) + depsout*aa)
+@@ -3107,6 +3109,7 @@ subroutine epsfracz_r( i, j, k, a, b, a1, b1, rh, epsint, depsin, depsout, u )
+    else
+       aa = dble(k+1) - t
+    end if
++   if ( abs(aa) < 1.d-12 ) aa = 0.d0
+    if(sasopt == 2) nbndz=nbndz+1
+    fedgez(nbndz) =  t - dble(k)
+    epsint = (depsout*depsin)/(depsin*(1.0d0-aa) + depsout*aa)

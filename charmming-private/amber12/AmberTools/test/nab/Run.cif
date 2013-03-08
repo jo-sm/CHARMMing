@@ -1,0 +1,17 @@
+#!/bin/sh
+
+if [ "$DO_PARALLEL" != "" ];  then
+    exit 0
+fi
+
+. ../program_error.sh
+
+echo "Running test to create a simple mmCIF file "
+echo ""
+../../bin/nab -o cif cif.nab || error
+./cif || error
+
+../dacdif gbrna.cif.check gbrna.cif
+
+rm -f cif cif.c
+exit 0

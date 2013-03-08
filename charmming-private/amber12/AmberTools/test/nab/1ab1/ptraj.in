@@ -1,0 +1,6 @@
+trajin prmcrd
+trajin min1.x
+trajin min2.x
+trajin min3.x
+rms first out rms_vs_xray :*
+go

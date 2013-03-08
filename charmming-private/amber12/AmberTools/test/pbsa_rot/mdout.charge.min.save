@@ -1,0 +1,1867 @@
+
+          -------------------------------------------------------
+          PBSA VERSION 2009                       UC Irvine
+          -------------------------------------------------------
+
+| Run on 03/29/2012 at 13:09:20
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: min.in                                                                
+| MDOUT: mdout.charge.min                                                      
+|INPCRD: inpcrd                                                                
+|  PARM: prmtop                                                                
+|
+ 
+ Here is the input file:
+ 
+ test of pbsa                                                                  
+ &cntrl                                                                        
+   ntx=1, imin=6, ipb=1, inp=0                                                 
+ /                                                                             
+ &pb                                                                           
+   npbverb=0, istrng=0, epsout=80.0, epsin=1.0, space=.5,                      
+   accept=0.001, dprob=1.4, radiopt=0, fillratio=3,                            
+   nfocus=1, smoothopt=1, eneopt=2, bcopt=6, frcopt=0,                         
+   arcres=0.0625, frcopt=1,                                                    
+ /                                                                             
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags:                                                                        
+| New format PARM file being parsed.
+| Version =    1.000 Date = 02/25/10 Time = 14:57:48
+ NATOM  =       2 NTYPES =       2 NBONH =       0 MBONA  =       1
+ NTHETH =       0 MTHETA =       0 NPHIH =       0 MPHIA  =       0
+ NHPARM =       0 NPARM  =       0 NNB   =       2 NRES   =       1
+ NBONA  =       1 NTHETA =       0 NPHIA =       0 NUMBND =       1
+ NUMANG =       0 NPTRA  =       0 NATYP =       2 NPHB   =       0
+ IFBOX  =       0 NMXRS  =       2 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+
+|     Memory Use     Allocated
+|     Real                 112
+|     Hollerith             15
+|     Integer            18027
+|     Max Pairs              1
+|     Max Rstack             1
+|     Max Istack             1
+|       Total               71 kbytes
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+ACE                                                                             
+
+General flags:
+     imin    =       6, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       1, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       1, ntpr    =      50, ntrx    =       1, ntwr    =     500
+     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       0, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       1, ipb     =       1, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =   8.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Energy minimization:
+     maxcyc  =       1, ncyc    =      10, ntmin   =       1
+     dx0     =   0.01000, drms    =   0.00010
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+ACE                                                                             
+ begin time read from input coords =     0.000 ps
+
+ Number of triangulated 3-point waters found:        0
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3814
+ --------------------------------
+rotation           1           1 translation           1
+ analytical force
+       -0.0858054771       -0.0353348760      -23.0025107115
+        0.0858054771        0.0353348760       23.0025107115
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =        1   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3814  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3814  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4082
+ --------------------------------
+rotation           1           2 translation           1
+ analytical force
+        0.0811463782        0.1394062853      -23.2105450518
+       -0.0811463782       -0.1394062853       23.2105450518
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =        2   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4082  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4082  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4038
+ --------------------------------
+rotation           1           3 translation           1
+ analytical force
+       -0.0340385858        0.0105122313      -23.2117544231
+        0.0340385858       -0.0105122313       23.2117544231
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =        3   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4038  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4038  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3724
+ --------------------------------
+rotation           1           4 translation           1
+ analytical force
+       -0.1839109063        0.0240244161      -22.9042277820
+        0.1839109063       -0.0240244161       22.9042277820
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =        4   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3724  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3724  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9876
+ Reaction field energy    -87.4161
+ --------------------------------
+rotation           1           5 translation           1
+ analytical force
+        0.1427009779        0.0955969464      -23.2542590349
+       -0.1427009779       -0.0955969464       23.2542590349
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =        5   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4161  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4161  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3767
+ --------------------------------
+rotation           1           6 translation           1
+ analytical force
+        0.1880320570       -0.0168060001      -22.9403304290
+       -0.1880320570        0.0168060001       22.9403304290
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =        6   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3767  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3767  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3770
+ --------------------------------
+rotation           1           7 translation           1
+ analytical force
+        0.0973563552        0.1298527448      -22.9682075087
+       -0.0973563552       -0.1298527448       22.9682075087
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =        7   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3770  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3770  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3720
+ --------------------------------
+rotation           1           8 translation           1
+ analytical force
+        0.2269052288       -0.1079003145      -22.9383232860
+       -0.2269052288        0.1079003145       22.9383232860
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =        8   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3720  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3720  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3789
+ --------------------------------
+rotation           1           9 translation           1
+ analytical force
+       -0.0849045126       -0.0628539763      -23.0368268587
+        0.0849045126        0.0628539763       23.0368268587
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =        9   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3789  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3789  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9876
+ Reaction field energy    -87.4154
+ --------------------------------
+rotation           1          10 translation           1
+ analytical force
+       -0.1749419265       -0.0517626153      -23.2467581485
+        0.1749419265        0.0517626153       23.2467581485
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       10   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4154  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4154  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4442
+ --------------------------------
+rotation           1          11 translation           1
+ analytical force
+       -0.1271850344       -0.0028368490      -23.5722077206
+        0.1271850344        0.0028368490       23.5722077206
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       11   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4442  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4442  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3967
+ --------------------------------
+rotation           1          12 translation           1
+ analytical force
+        0.0116690681        0.3104392669      -23.1088294951
+       -0.0116690681       -0.3104392669       23.1088294951
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       12   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3967  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3967  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3871
+ --------------------------------
+rotation           1          13 translation           1
+ analytical force
+       -0.0204209742       -0.0363575133      -23.0924381072
+        0.0204209742        0.0363575133       23.0924381072
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       13   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3871  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3871  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4132
+ --------------------------------
+rotation           1          14 translation           1
+ analytical force
+       -0.2689910687       -0.0317033119      -23.2584810212
+        0.2689910687        0.0317033119       23.2584810212
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       14   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4132  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4132  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4145
+ --------------------------------
+rotation           1          15 translation           1
+ analytical force
+       -0.3016101408       -0.0115121031      -23.2769376410
+        0.3016101408        0.0115121031       23.2769376410
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       15   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4145  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4145  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4243
+ --------------------------------
+rotation           1          16 translation           1
+ analytical force
+       -0.2322717193       -0.0300101569      -23.3985109759
+        0.2322717193        0.0300101569       23.3985109759
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       16   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4243  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4243  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4002
+ --------------------------------
+rotation           1          17 translation           1
+ analytical force
+        0.0500713357        0.0383554255      -23.1358619608
+       -0.0500713357       -0.0383554255       23.1358619608
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       17   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4002  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4002  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4008
+ --------------------------------
+rotation           1          18 translation           1
+ analytical force
+        0.0601323566       -0.0098376395      -23.1497138750
+       -0.0601323566        0.0098376395       23.1497138750
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       18   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4008  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4008  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4335
+ --------------------------------
+rotation           1          19 translation           1
+ analytical force
+        0.0280362977        0.3681368175      -23.4415344134
+       -0.0280362977       -0.3681368175       23.4415344134
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       19   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4335  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4335  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3917
+ --------------------------------
+rotation           1          20 translation           1
+ analytical force
+        0.0513452084       -0.0056925870      -23.0837323345
+       -0.0513452084        0.0056925870       23.0837323345
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       20   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3917  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3917  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4513
+ --------------------------------
+rotation           1          21 translation           1
+ analytical force
+        0.3829731582       -0.0178706304      -23.6082940807
+       -0.3829731582        0.0178706304       23.6082940807
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       21   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4513  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4513  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3950
+ --------------------------------
+rotation           1          22 translation           1
+ analytical force
+        0.0071680976        0.2562371157      -23.0974941469
+       -0.0071680976       -0.2562371157       23.0974941469
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       22   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3950  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3950  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9876
+ Reaction field energy    -87.4006
+ --------------------------------
+rotation           1          23 translation           1
+ analytical force
+       -0.0255690479       -0.0673558378      -23.1263537745
+        0.0255690479        0.0673558378       23.1263537745
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       23   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4006  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4006  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3858
+ --------------------------------
+rotation           1          24 translation           1
+ analytical force
+       -0.0034337987       -0.0207758005      -23.0270498149
+        0.0034337987        0.0207758005       23.0270498149
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       24   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3858  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3858  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9876
+ Reaction field energy    -87.4119
+ --------------------------------
+rotation           1          25 translation           1
+ analytical force
+        0.1729337639        0.0071114257      -23.2183827765
+       -0.1729337639       -0.0071114257       23.2183827765
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       25   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4119  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4119  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3505
+ --------------------------------
+rotation           1          26 translation           1
+ analytical force
+       -0.1320651247        0.0254369600      -22.7985093499
+        0.1320651247       -0.0254369600       22.7985093499
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       26   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3505  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3505  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4085
+ --------------------------------
+rotation           1          27 translation           1
+ analytical force
+       -0.1398481661       -0.0533311543      -23.2046437464
+        0.1398481661        0.0533311543       23.2046437464
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       27   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4085  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4085  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3997
+ --------------------------------
+rotation           1          28 translation           1
+ analytical force
+       -0.3382596498       -0.2620202654      -23.1228393699
+        0.3382596498        0.2620202654       23.1228393699
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       28   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3997  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3997  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4050
+ --------------------------------
+rotation           1          29 translation           1
+ analytical force
+        0.0352303017       -0.0440479122      -23.1607214567
+       -0.0352303017        0.0440479122       23.1607214567
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       29   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4050  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4050  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9876
+ Reaction field energy    -87.4030
+ --------------------------------
+rotation           1          30 translation           1
+ analytical force
+       -0.2643792579        0.1011811882      -23.1356698173
+        0.2643792579       -0.1011811882       23.1356698173
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       30   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4030  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4030  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3888
+ --------------------------------
+rotation           1          31 translation           1
+ analytical force
+       -0.1925727437       -0.1795687712      -23.0699843882
+        0.1925727437        0.1795687712       23.0699843882
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       31   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3888  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3888  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9876
+ Reaction field energy    -87.3877
+ --------------------------------
+rotation           1          32 translation           1
+ analytical force
+       -0.2243197013        0.0103040757      -23.0142137993
+        0.2243197013       -0.0103040757       23.0142137993
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       32   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3877  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3877  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3906
+ --------------------------------
+rotation           2           1 translation           1
+ analytical force
+       -0.0557023325       -0.0585810760      -23.0821238754
+        0.0557023325        0.0585810760       23.0821238754
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       33   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3906  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3906  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4159
+ --------------------------------
+rotation           2           2 translation           1
+ analytical force
+       -0.2354261721       -0.4248037503      -23.3155651818
+        0.2354261721        0.4248037503       23.3155651818
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       34   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4159  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4159  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4249
+ --------------------------------
+rotation           2           3 translation           1
+ analytical force
+       -0.0647417822       -0.0279140620      -23.3572934836
+        0.0647417822        0.0279140620       23.3572934836
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       35   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4249  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4249  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3921
+ --------------------------------
+rotation           2           4 translation           1
+ analytical force
+       -0.0412040050        0.0376263644      -23.0697341917
+        0.0412040050       -0.0376263644       23.0697341917
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       36   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3921  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3921  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4210
+ --------------------------------
+rotation           2           5 translation           1
+ analytical force
+        0.2231900770       -0.1414582967      -23.2967904160
+       -0.2231900770        0.1414582967       23.2967904160
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       37   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4210  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4210  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4094
+ --------------------------------
+rotation           2           6 translation           1
+ analytical force
+        0.0503674721       -0.0339888889      -23.2210262541
+       -0.0503674721        0.0339888889       23.2210262541
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       38   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4094  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4094  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3590
+ --------------------------------
+rotation           2           7 translation           1
+ analytical force
+       -0.1705449686       -0.1525499035      -22.8165989753
+        0.1705449686        0.1525499035       22.8165989753
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       39   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3590  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3590  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4095
+ --------------------------------
+rotation           2           8 translation           1
+ analytical force
+        0.1033395627        0.1752156416      -23.2633401082
+       -0.1033395627       -0.1752156416       23.2633401082
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       40   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4095  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4095  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4288
+ --------------------------------
+rotation           2           9 translation           1
+ analytical force
+        0.2695764953        0.1052207579      -23.4082456202
+       -0.2695764953       -0.1052207579       23.4082456202
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       41   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4288  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4288  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4048
+ --------------------------------
+rotation           2          10 translation           1
+ analytical force
+       -0.3259628030        0.2631670686      -23.1612951643
+        0.3259628030       -0.2631670686       23.1612951643
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       42   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4048  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4048  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4121
+ --------------------------------
+rotation           2          11 translation           1
+ analytical force
+        0.0085214134        0.0497568313      -23.2911051056
+       -0.0085214134       -0.0497568313       23.2911051056
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       43   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4121  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4121  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3934
+ --------------------------------
+rotation           2          12 translation           1
+ analytical force
+        0.0007142077        0.0232823447      -23.0638726145
+       -0.0007142077       -0.0232823447       23.0638726145
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       44   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3934  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3934  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3738
+ --------------------------------
+rotation           2          13 translation           1
+ analytical force
+       -0.0186024452       -0.1033461596      -22.9587801301
+        0.0186024452        0.1033461596       22.9587801301
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       45   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3738  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3738  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4075
+ --------------------------------
+rotation           2          14 translation           1
+ analytical force
+        0.1152954932       -0.0344249176      -23.1946799425
+       -0.1152954932        0.0344249176       23.1946799425
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       46   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4075  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4075  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4005
+ --------------------------------
+rotation           2          15 translation           1
+ analytical force
+        0.0561218657        0.0630340685      -23.1591009632
+       -0.0561218657       -0.0630340685       23.1591009632
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       47   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4005  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4005  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3921
+ --------------------------------
+rotation           2          16 translation           1
+ analytical force
+       -0.0025618367        0.0126257867      -23.1340720582
+        0.0025618367       -0.0126257867       23.1340720582
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       48   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3921  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3921  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3967
+ --------------------------------
+rotation           2          17 translation           1
+ analytical force
+       -0.0399085302       -0.0658315584      -23.0989673117
+        0.0399085302        0.0658315584       23.0989673117
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       49   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3967  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3967  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9876
+ Reaction field energy    -87.3680
+ --------------------------------
+rotation           2          18 translation           1
+ analytical force
+        0.1412991833        0.1006624026      -22.8517769311
+       -0.1412991833       -0.1006624026       22.8517769311
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       50   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3680  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3680  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3986
+ --------------------------------
+rotation           2          19 translation           1
+ analytical force
+       -0.0054411771       -0.0901666301      -23.2000759541
+        0.0054411771        0.0901666301       23.2000759541
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       51   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3986  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3986  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3852
+ --------------------------------
+rotation           2          20 translation           1
+ analytical force
+        0.3422604567       -0.3200279308      -23.0096928701
+       -0.3422604567        0.3200279308       23.0096928701
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       52   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3852  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3852  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3768
+ --------------------------------
+rotation           2          21 translation           1
+ analytical force
+        0.0540037069        0.0174833557      -22.9895128649
+       -0.0540037069       -0.0174833557       22.9895128649
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       53   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3768  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3768  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3925
+ --------------------------------
+rotation           2          22 translation           1
+ analytical force
+        0.0551442281       -0.0296317058      -23.0527615568
+       -0.0551442281        0.0296317058       23.0527615568
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       54   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3925  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3925  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9876
+ Reaction field energy    -87.3884
+ --------------------------------
+rotation           2          23 translation           1
+ analytical force
+        0.0021371687        0.0127401205      -23.0365176874
+       -0.0021371687       -0.0127401205       23.0365176874
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       55   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3884  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3884  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3993
+ --------------------------------
+rotation           2          24 translation           1
+ analytical force
+       -0.1170858100       -0.0653598442      -23.1294769821
+        0.1170858100        0.0653598442       23.1294769821
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       56   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3993  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3993  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4010
+ --------------------------------
+rotation           2          25 translation           1
+ analytical force
+       -0.3674337389        0.1774462994      -23.1560901165
+        0.3674337389       -0.1774462994       23.1560901165
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       57   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4010  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4010  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9876
+ Reaction field energy    -87.3812
+ --------------------------------
+rotation           2          26 translation           1
+ analytical force
+        0.0183136921        0.0466881586      -22.9734716856
+       -0.0183136921       -0.0466881586       22.9734716856
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       58   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3812  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3812  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4169
+ --------------------------------
+rotation           2          27 translation           1
+ analytical force
+       -0.2188129781        0.2135011227      -23.3093695166
+        0.2188129781       -0.2135011227       23.3093695166
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       59   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4169  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4169  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3995
+ --------------------------------
+rotation           2          28 translation           1
+ analytical force
+       -0.0225403148        0.3588347139      -23.1396872678
+        0.0225403148       -0.3588347139       23.1396872678
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       60   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3995  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3995  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4225
+ --------------------------------
+rotation           2          29 translation           1
+ analytical force
+        0.0175135377        0.0610806782      -23.3477681229
+       -0.0175135377       -0.0610806782       23.3477681229
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       61   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4225  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4225  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3814
+ --------------------------------
+rotation           2          30 translation           1
+ analytical force
+       -0.0994129659       -0.0182826168      -22.9664733590
+        0.0994129659        0.0182826168       22.9664733590
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       62   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3814  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3814  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9876
+ Reaction field energy    -87.4277
+ --------------------------------
+rotation           2          31 translation           1
+ analytical force
+        0.2925554712        0.0817673952      -23.3532629666
+       -0.2925554712       -0.0817673952       23.3532629666
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       63   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4277  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4277  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3903
+ --------------------------------
+rotation           2          32 translation           1
+ analytical force
+        0.0792352617        0.1765461445      -23.0811604000
+       -0.0792352617       -0.1765461445       23.0811604000
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       64   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3903  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3903  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3831
+ --------------------------------
+rotation           3           1 translation           1
+ analytical force
+        0.2312399381       -0.0868698295      -22.9958710410
+       -0.2312399381        0.0868698295       22.9958710410
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       65   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3831  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3831  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3852
+ --------------------------------
+rotation           3           2 translation           1
+ analytical force
+        0.0161749066       -0.0192522721      -23.0322108149
+       -0.0161749066        0.0192522721       23.0322108149
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       66   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3852  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3852  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3762
+ --------------------------------
+rotation           3           3 translation           1
+ analytical force
+        0.0777378061       -0.1638066593      -22.9285856155
+       -0.0777378061        0.1638066593       22.9285856155
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       67   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3762  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3762  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3705
+ --------------------------------
+rotation           3           4 translation           1
+ analytical force
+        0.0517615050       -0.1384748372      -22.9027813642
+       -0.0517615050        0.1384748372       22.9027813642
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       68   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3705  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3705  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3575
+ --------------------------------
+rotation           3           5 translation           1
+ analytical force
+        0.1701834089       -0.2524215689      -22.8007295401
+       -0.1701834089        0.2524215689       22.8007295401
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       69   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3575  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3575  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3854
+ --------------------------------
+rotation           3           6 translation           1
+ analytical force
+        0.1995696028       -0.3460424905      -23.0249674626
+       -0.1995696028        0.3460424905       23.0249674626
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       70   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3854  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3854  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3918
+ --------------------------------
+rotation           3           7 translation           1
+ analytical force
+       -0.2464074770       -0.0757398460      -23.0857220509
+        0.2464074770        0.0757398460       23.0857220509
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       71   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3918  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3918  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3835
+ --------------------------------
+rotation           3           8 translation           1
+ analytical force
+       -0.0172619252        0.1351980066      -23.0198606466
+        0.0172619252       -0.1351980066       23.0198606466
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       72   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3835  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3835  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3726
+ --------------------------------
+rotation           3           9 translation           1
+ analytical force
+       -0.0060476476        0.1375958139      -22.9195552145
+        0.0060476476       -0.1375958139       22.9195552145
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       73   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3726  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3726  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3770
+ --------------------------------
+rotation           3          10 translation           1
+ analytical force
+       -0.1543670914        0.0643046737      -22.9182831617
+        0.1543670914       -0.0643046737       22.9182831617
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       74   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3770  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3770  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4074
+ --------------------------------
+rotation           3          11 translation           1
+ analytical force
+       -0.0086489675       -0.0146936361      -23.2464555053
+        0.0086489675        0.0146936361       23.2464555053
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       75   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4074  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4074  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4056
+ --------------------------------
+rotation           3          12 translation           1
+ analytical force
+       -0.3757287666       -0.2401524617      -23.1904346693
+        0.3757287666        0.2401524617       23.1904346693
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       76   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4056  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4056  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3727
+ --------------------------------
+rotation           3          13 translation           1
+ analytical force
+       -0.0723537842        0.1634374671      -22.9290691068
+        0.0723537842       -0.1634374671       22.9290691068
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       77   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3727  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3727  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3640
+ --------------------------------
+rotation           3          14 translation           1
+ analytical force
+        0.0888353421        0.1204268399      -22.8922977845
+       -0.0888353421       -0.1204268399       22.8922977845
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       78   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3640  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3640  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3975
+ --------------------------------
+rotation           3          15 translation           1
+ analytical force
+        0.0885494568        0.0498305193      -23.0988280559
+       -0.0885494568       -0.0498305193       23.0988280559
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       79   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3975  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3975  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4062
+ --------------------------------
+rotation           3          16 translation           1
+ analytical force
+        0.0867757642       -0.0903039873      -23.2738440704
+       -0.0867757642        0.0903039873       23.2738440704
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       80   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4062  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4062  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3817
+ --------------------------------
+rotation           3          17 translation           1
+ analytical force
+        0.1703021046        0.0575524333      -22.9578466908
+       -0.1703021046       -0.0575524333       22.9578466908
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       81   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3817  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3817  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3901
+ --------------------------------
+rotation           3          18 translation           1
+ analytical force
+        0.0045848059        0.0351238829      -23.1173588259
+       -0.0045848059       -0.0351238829       23.1173588259
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       82   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3901  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3901  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3885
+ --------------------------------
+rotation           3          19 translation           1
+ analytical force
+       -0.0675190633       -0.0198581326      -23.1089900448
+        0.0675190633        0.0198581326       23.1089900448
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       83   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3885  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3885  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4193
+ --------------------------------
+rotation           3          20 translation           1
+ analytical force
+       -0.1367979689        0.1895210160      -23.2846621141
+        0.1367979689       -0.1895210160       23.2846621141
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       84   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4193  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4193  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4126
+ --------------------------------
+rotation           3          21 translation           1
+ analytical force
+       -0.0493644537        0.0698483705      -23.3223610524
+        0.0493644537       -0.0698483705       23.3223610524
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       85   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4126  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4126  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4235
+ --------------------------------
+rotation           3          22 translation           1
+ analytical force
+       -0.5063829235       -0.0056215920      -23.3418143589
+        0.5063829235        0.0056215920       23.3418143589
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       86   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4235  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4235  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3958
+ --------------------------------
+rotation           3          23 translation           1
+ analytical force
+       -0.0179880142        0.0644986643      -23.1373343927
+        0.0179880142       -0.0644986643       23.1373343927
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       87   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3958  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3958  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3877
+ --------------------------------
+rotation           3          24 translation           1
+ analytical force
+        0.0172665614       -0.0632207695      -23.0500215911
+       -0.0172665614        0.0632207695       23.0500215911
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       88   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3877  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3877  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9876
+ Reaction field energy    -87.4075
+ --------------------------------
+rotation           3          25 translation           1
+ analytical force
+        0.1723579614        0.1199880015      -23.1296718917
+       -0.1723579614       -0.1199880015       23.1296718917
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       89   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4075  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4075  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4022
+ --------------------------------
+rotation           3          26 translation           1
+ analytical force
+       -0.0058395539        0.0541794316      -23.2272260127
+        0.0058395539       -0.0541794316       23.2272260127
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       90   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4022  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4022  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3769
+ --------------------------------
+rotation           3          27 translation           1
+ analytical force
+       -0.0266131677        0.3177031926      -22.9273456658
+        0.0266131677       -0.3177031926       22.9273456658
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       91   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3769  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3769  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3837
+ --------------------------------
+rotation           3          28 translation           1
+ analytical force
+        0.1118092200        0.0283575138      -22.9992852435
+       -0.1118092200       -0.0283575138       22.9992852435
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       92   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3837  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3837  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4001
+ --------------------------------
+rotation           3          29 translation           1
+ analytical force
+        0.0386919336       -0.1284942476      -23.1546614360
+       -0.0386919336        0.1284942476       23.1546614360
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       93   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4001  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4001  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3979
+ --------------------------------
+rotation           3          30 translation           1
+ analytical force
+        0.0802524120       -0.0031041323      -23.1333063650
+       -0.0802524120        0.0031041323       23.1333063650
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       94   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3979  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3979  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.3964
+ --------------------------------
+rotation           3          31 translation           1
+ analytical force
+       -0.0308291368       -0.0166386799      -23.1001672065
+        0.0308291368        0.0166386799       23.1001672065
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       95   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.3964  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.3964  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Total surface charge      -0.9875
+ Reaction field energy    -87.4247
+ --------------------------------
+rotation           3          32 translation           1
+ analytical force
+       -0.0818346484        0.1332834227      -23.3617744857
+        0.0818346484       -0.1332834227       23.3617744857
+ total analytical force
+        0.0000000000        0.0000000000        0.0000000000
+
+ NSTEP =       96   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =       -87.4247  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =         0.0000
+ EELEC  =         0.0000  EPB     =       -87.4247  RESTRAINT  =         0.0000
+ ECAVITY=         0.0000  EDISPER =         0.0000
+ ------------------------------------------------------------------------------
+
+ Summary of finite-difference force
+Number of orientations:            96
+ Mean of analytical force
+       -0.0151303300        0.0099529438      -23.1241579215
+        0.0151303300       -0.0099529438       23.1241579215
+ Standard deviation of analytical force
+        0.1602390172        0.1378349744        0.1597345614
+        0.1602390172        0.1378349744        0.1597345614
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+| Total time                     1.30
+| Read prm/crd time              0.00
+| Force time                     1.29
+| Bond/Angle/Dihedral            0.00
+| Nonbond force                  1.29
+| PB Nonbond                     1.29
+| PB NB list                     0.00
+| PB FD grid                     0.03
+| PB Sasa                        0.01
+| PB FD force                    1.25
+| PB Set linear sys              0.26
+| PB Solver                      0.97
+| PB Direct                      0.00
+| PB SA srf                      0.00
+| PB SA arc                      0.00
+| PB SA arc setup                0.00
+| PB exclude                     0.00
+| PB exmol                       0.25
+| PB exmol setup                 0.08
+| PB exmol part a                0.01
+| PB exmol part b                0.03
+| PB exmol part c                0.01
+| PB exmol part d                0.00
+| PB exmol part e                0.01
+| PB exmol part f                0.00
+| PB epsbnd                      0.02
+| PB epsmap                      0.09
+|           Job began  at 13:09:20.932  on 03/29/2012
+|           Setup done at 13:09:20.934  on 03/29/2012
+|           Run   done at 13:09:22.229  on 03/29/2012
+|     wallclock() was called    6532 times

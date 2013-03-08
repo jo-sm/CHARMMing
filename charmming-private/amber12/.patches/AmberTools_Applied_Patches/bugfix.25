@@ -1,0 +1,98 @@
+*******>bugfix.25
+
+Date: Oct. 4, 2012
+
+Author: Bill Miller III, Jason Swails
+
+Program: MMPBSA.py
+
+Description: This fixes alanine scanning simulations when mutant_only=1
+
+--------------------------------------------------------------------------------
+ .../src/mmpbsa_py/MMPBSA_mods/calculation.py       |   24 +++++++++++++------
+ 1 files changed, 16 insertions(+), 8 deletions(-)
+
+diff --git AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py
+index b0d379d..6a2cd98 100644
+--- AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py
++++ AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py
+@@ -104,7 +104,8 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+ 
+       if not stability:
+          # Don't re-run the receptor if we don't have to
+-         if mutant and FILES.receptor_prmtop == FILES.mutant_receptor_prmtop:
++         if mutant and FILES.receptor_prmtop == FILES.mutant_receptor_prmtop \
++                   and not INPUT['mutant_only']:
+             print '  no mutation found in receptor -- using unmutated files'
+             shutil.copy('%sreceptor_gb.mdout.%d' % (
+                         prefix[:prefix.index('mutant')], rank), 
+@@ -127,7 +128,8 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+             calc.Setup()
+             calc.Run()
+ 
+-         if mutant and FILES.ligand_prmtop == FILES.mutant_ligand_prmtop:
++         if mutant and FILES.ligand_prmtop == FILES.mutant_ligand_prmtop \
++                   and not INPUT['mutant_only']:
+             print '  no mutation found in ligand -- using unmutated files'
+             shutil.copy('%sligand_gb.mdout.%d' % (
+                         prefix[:prefix.index('mutant')], rank), 
+@@ -174,7 +176,8 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+       calc.Run()
+ 
+       if not stability:
+-         if mutant and FILES.receptor_prmtop == FILES.mutant_receptor_prmtop:
++         if mutant and FILES.receptor_prmtop == FILES.mutant_receptor_prmtop \
++                   and not INPUT['mutant_only']:
+             print '  no mutation found in receptor -- using unmutated files'
+             shutil.copy('%sreceptor_pb.mdout.%d' % (
+                         prefix[:prefix.index('mutant')], rank), 
+@@ -195,7 +198,8 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+             calc.Setup()
+             calc.Run()
+ 
+-         if mutant and FILES.ligand_prmtop == FILES.mutant_ligand_prmtop:
++         if mutant and FILES.ligand_prmtop == FILES.mutant_ligand_prmtop \
++                   and not INPUT['mutant_only']:
+             print '  no mutation found in ligand -- using unmutated files'
+             shutil.copy('%sligand_pb.mdout.%d' % (
+                         prefix[:prefix.index('mutant')], rank), 
+@@ -232,7 +236,8 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+       calc.Run()
+ 
+       if not stability:
+-         if mutant and FILES.receptor_prmtop == FILES.mutant_receptor_prmtop:
++         if mutant and FILES.receptor_prmtop == FILES.mutant_receptor_prmtop \
++                   and not INPUT['mutant_only']:
+             print '  no mutation found in receptor -- using unmutated files'
+             shutil.copy('%sreceptor_rism.mdout.%d' % (
+                         prefix[:prefix.index('mutant')], rank), 
+@@ -246,7 +251,8 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+             calc.Setup()
+             calc.Run()
+                
+-         if mutant and FILES.ligand_prmtop == FILES.mutant_ligand_prmtop:
++         if mutant and FILES.ligand_prmtop == FILES.mutant_ligand_prmtop \
++                   and not INPUT['mutant_only']:
+             print '  no mutation found in ligand -- using unmutated files'
+             shutil.copy('%sligand_rism.mdout.%d' % (
+                         prefix[:prefix.index('mutant')], rank), 
+@@ -278,7 +284,8 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+       calc.Run()
+ 
+       if not stability:
+-         if mutant and FILES.receptor_prmtop == FILES.mutant_receptor_prmtop:
++         if mutant and FILES.receptor_prmtop == FILES.mutant_receptor_prmtop \
++                   and not INPUT['mutant_only']:
+             print '  no mutation found in receptor -- using unmutated files'
+             shutil.copy('%sreceptor_nm.out.%d' % (
+                         prefix[:prefix.index('mutant')], rank), 
+@@ -291,7 +298,8 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+             calc.Setup()
+             calc.Run()
+ 
+-         if mutant and FILES.ligand_prmtop == FILES.mutant_ligand_prmtop:
++         if mutant and FILES.ligand_prmtop == FILES.mutant_ligand_prmtop \
++                   and not INPUT['mutant_only']:
+             print '  no mutation found in ligand -- using unmutated files'
+             shutil.copy('%sligand_nm.out.%d' % (
+                         prefix[:prefix.index('mutant')], rank), 

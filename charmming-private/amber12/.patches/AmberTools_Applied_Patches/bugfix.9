@@ -1,0 +1,635 @@
+********>Bugfix 9:
+Authors: Jason Swails and Dan Roe
+Date: June 20, 2012
+Program: cpptraj, MMPBSA.py, ante-MMPBSA.py
+
+Description: Cpptraj: -Fix how number of outputted frames is determined
+                      -Adds 'nastruct' keywords 'hbcut' to set cutoff for
+                       determining H-bond cutoff in base pairing (Angstrom),
+                       'origincut' to set the base reference axes cutoff for
+                       determining base pairing (Angstrom), and 'ref' to use
+                       a reference structure for base pair identification
+                      -Fix issue where large PDB files can overflow atom number
+                       columns
+             MMPBSA.py: Adjust to cpptraj fix above -- this fixes MMPBSA
+                        calculations with only 1 frame in the input trajectory
+             ante-MMPBSA.py: Allow users to specify a new PBRadii set that is
+                             appropriate to the solvent model they want to use
+
+-----------------------------------------------------------------------------
+ AmberTools/src/cpptraj/src/Action_NAstruct.cpp     |   52 +++++++++++++++++++-
+ AmberTools/src/cpptraj/src/Action_NAstruct.h       |    1 +
+ AmberTools/src/cpptraj/src/PDBfileRoutines.cpp     |    2 +
+ AmberTools/src/cpptraj/src/Traj_AmberCoord.cpp     |    2 +-
+ AmberTools/src/cpptraj/src/Traj_AmberCoord.h       |    2 +-
+ AmberTools/src/cpptraj/src/Traj_AmberNetcdf.cpp    |    2 +-
+ AmberTools/src/cpptraj/src/Traj_AmberNetcdf.h      |    2 +-
+ AmberTools/src/cpptraj/src/Traj_AmberRestart.cpp   |    4 +-
+ AmberTools/src/cpptraj/src/Traj_AmberRestart.h     |    2 +-
+ AmberTools/src/cpptraj/src/Traj_AmberRestartNC.cpp |    4 +-
+ AmberTools/src/cpptraj/src/Traj_AmberRestartNC.h   |    2 +-
+ AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp      |    2 +-
+ AmberTools/src/cpptraj/src/Traj_CharmmDcd.h        |    2 +-
+ AmberTools/src/cpptraj/src/Traj_Conflib.cpp        |    2 +-
+ AmberTools/src/cpptraj/src/Traj_Conflib.h          |    2 +-
+ AmberTools/src/cpptraj/src/Traj_Mol2File.cpp       |    4 +-
+ AmberTools/src/cpptraj/src/Traj_Mol2File.h         |    2 +-
+ AmberTools/src/cpptraj/src/Traj_PDBfile.cpp        |    4 +-
+ AmberTools/src/cpptraj/src/Traj_PDBfile.h          |    2 +-
+ AmberTools/src/cpptraj/src/TrajectoryFile.cpp      |    8 ++-
+ AmberTools/src/cpptraj/src/TrajectoryIO.h          |    2 +-
+ .../src/mmpbsa_py/MMPBSA_mods/calculation.py       |   12 ++--
+ AmberTools/src/mmpbsa_py/MMPBSA_mods/make_trajs.py |    6 +-
+ AmberTools/src/mmpbsa_py/MMPBSA_mods/utils.py      |   12 ++--
+ AmberTools/src/mmpbsa_py/ante-MMPBSA.py            |   20 +++++++-
+ .../test/cpptraj/Test_Charmm/test.ala3.pdb.save    |    2 -
+ 26 files changed, 114 insertions(+), 43 deletions(-)
+
+diff --git AmberTools/src/cpptraj/src/Action_NAstruct.cpp AmberTools/src/cpptraj/src/Action_NAstruct.cpp
+index 108c19b..4b7b329 100644
+--- AmberTools/src/cpptraj/src/Action_NAstruct.cpp
++++ AmberTools/src/cpptraj/src/Action_NAstruct.cpp
+@@ -11,12 +11,13 @@ NAstruct::NAstruct() {
+   //fprintf(stderr,"NAstruct Con\n");
+   Nbp=0;
+   Nbases=0;
+-  HBdistCut2=9.61;  // Hydrogen Bond distance cutoff^2: 3.1^2
++  HBdistCut2=12.25;  // Hydrogen Bond distance cutoff^2: 3.5^2
+   // NOTE: Currently not used
+   HBangleCut2=2.53; // Hydrogen Bond angle cutoff (in radians, ~145 degs)
+   // NOTE: Is this too big?
+   originCut2=6.25;  // Origin cutoff^2 for base-pairing: 2.5^2
+   Nframe=0;
++  useReference_=false;
+   //outFilename=NULL;
+   //naoutFilename=NULL;
+   noheader = false;
+@@ -846,9 +847,17 @@ int NAstruct::init() {
+   std::string resname;
+   NAME mapresname;
+   mapresname[4]='\0';
++  Frame* refframe = NULL;
++  AmberParm* refparm = NULL;
+ 
+   // Get keywords
+   outputsuffix = actionArgs.getKeyString("naout",NULL);
++  double hbcut = actionArgs.getKeyDouble("hbcut", -1);
++  if (hbcut > 0) 
++    HBdistCut2 = hbcut * hbcut;
++  double origincut = actionArgs.getKeyDouble("origincut", -1);
++  if (origincut > 0)
++    originCut2 = origincut * origincut;
+   // Require a filename
+   if (outputsuffix==NULL) {
+     mprinterr("Error: nastruct: Requires an output filename, 'naout <filename>'\n");
+@@ -858,6 +867,28 @@ int NAstruct::init() {
+   if (resrange_arg != NULL)
+     if (resRange.SetRange( resrange_arg )) return 1;
+   noheader = actionArgs.hasKey("noheader");
++  // Reference for setting up basepairs
++  int refindex = actionArgs.getKeyInt("refindex", -1);
++  if (actionArgs.hasKey("reference")) refindex = 0;
++  char* refname = actionArgs.getKeyString("ref",NULL);
++  if (refindex!=-1 || refname!=NULL) {
++    useReference_ = true;
++    // Reference by name/tag
++    if (refname!=NULL)
++      refindex = FL->GetFrameIndex( refname );
++    // Get reference by index
++    refframe = FL->GetFrame( refindex );
++    if (refframe==NULL) {
++      mprinterr("Error: nastruct: Could not get ref frame, index=%i\n",refindex);
++      return 1;
++    }
++    // Get parm for reference
++    refparm = FL->GetFrameParm( refindex );
++    if (refparm == NULL) {
++      mprinterr("Error: nastruct: Could not get parm for frame %s\n", FL->FrameName(refindex));
++      return 1;
++    }
++  }
+ 
+   // Get custom residue maps
+   while ( (maparg = actionArgs.getKeyString("resmap",NULL))!=NULL ) {
+@@ -949,6 +980,22 @@ int NAstruct::init() {
+     if (noheader) mprintf(", no header");
+   }
+   mprintf(".\n");
++  mprintf("\tHydrogen bond cutoff for determining base pairs is %.2lf Angstroms.\n",
++          sqrt( HBdistCut2 ) );
++  mprintf("\tBase reference axes origin cutoff for determining base pairs is %.2lf Angstroms.\n",
++          sqrt( originCut2 ) );
++
++  // Use reference to determine base pairing
++  if (useReference_) {
++    mprintf("\tUsing reference %s to determine base-pairing.\n",FL->FrameName(refindex));
++    currentParm = refparm;
++    if (setup()) return 1;
++    // Set up base axes
++    if ( setupBaseAxes(refframe) ) return 1;
++    // Determine Base Pairing
++    if ( determineBasePairing() ) return 1;
++    mprintf("\tSet up %zu base pairs.\n", BasePairAxes.size() );
++  }
+ 
+   return 0;
+ }
+@@ -1060,7 +1107,8 @@ int NAstruct::action() {
+   if ( setupBaseAxes(currentFrame) ) return 1;
+ 
+   // Determine Base Pairing
+-  if ( determineBasePairing() ) return 1;
++  if (!useReference_)
++    if ( determineBasePairing() ) return 1;
+ 
+   // Determine base parameters
+   determineBaseParameters();
+diff --git AmberTools/src/cpptraj/src/Action_NAstruct.h AmberTools/src/cpptraj/src/Action_NAstruct.h
+index 2996af8..cd8c6c8 100644
+--- AmberTools/src/cpptraj/src/Action_NAstruct.h
++++ AmberTools/src/cpptraj/src/Action_NAstruct.h
+@@ -35,6 +35,7 @@ class NAstruct: public Action {
+     double HBangleCut2;                 ///< Angle Cutoff^2 for determining if bases can h bond
+     double originCut2;                  ///< Cutoff^2 for determining base-pairing vi origins
+     int Nframe;                         ///< Keep track of # frames for print() function
++    bool useReference_;
+     std::map<std::string,AxisType::NAbaseType> CustomMap;
+     std::map<std::string,AxisType::NAbaseType>::iterator customRes;
+     CpptrajFile BPOut;
+diff --git AmberTools/src/cpptraj/src/PDBfileRoutines.cpp AmberTools/src/cpptraj/src/PDBfileRoutines.cpp
+index 6576658..ee31583 100644
+--- AmberTools/src/cpptraj/src/PDBfileRoutines.cpp
++++ AmberTools/src/cpptraj/src/PDBfileRoutines.cpp
+@@ -259,6 +259,8 @@ int pdb_write_ATOM(char *buffer, PDB_RECTYPE Record, int atom, char *name,
+   atomName[4]='\0';
+   // Residue number in PDB format can only be 4 digits wide
+   while (resnum>9999) resnum-=9999;
++  // Atom number in PDB format can only be 5 digits wide
++  while (atom>99999) atom-=99999;
+   // Residue names in PDB format are 3 chars long starting at column 18. 
+   // However in Amber residues are 4 characters long, usually with a space
+   // at the end. If this is the case remove the space so that the residue name
+diff --git AmberTools/src/cpptraj/src/Traj_AmberCoord.cpp AmberTools/src/cpptraj/src/Traj_AmberCoord.cpp
+index 7820791..cf610d0 100644
+--- AmberTools/src/cpptraj/src/Traj_AmberCoord.cpp
++++ AmberTools/src/cpptraj/src/Traj_AmberCoord.cpp
+@@ -362,7 +362,7 @@ int AmberCoord::processWriteArgs(ArgList *argIn) {
+   * size, necessary only for seeking when MPI writing. Allocate memory for
+   * the frame buffer. 
+   */
+-int AmberCoord::setupWrite(AmberParm *trajParm) {
++int AmberCoord::setupWrite(AmberParm *trajParm,int NframesToWrite) {
+   int frame_lines;
+   //long int outfilesize;
+ 
+diff --git AmberTools/src/cpptraj/src/Traj_AmberCoord.h AmberTools/src/cpptraj/src/Traj_AmberCoord.h
+index 0e9e63c..1bfc5c1 100644
+--- AmberTools/src/cpptraj/src/Traj_AmberCoord.h
++++ AmberTools/src/cpptraj/src/Traj_AmberCoord.h
+@@ -18,7 +18,7 @@ class AmberCoord: public TrajectoryIO {
+ 
+     // Inherited functions
+     int setupRead(AmberParm*);
+-    int setupWrite(AmberParm*);
++    int setupWrite(AmberParm*,int);
+     int openTraj();
+     void closeTraj();
+     int readFrame(int,double*,double*,double*,double*);
+diff --git AmberTools/src/cpptraj/src/Traj_AmberNetcdf.cpp AmberTools/src/cpptraj/src/Traj_AmberNetcdf.cpp
+index 30a13c0..8657e99 100644
+--- AmberTools/src/cpptraj/src/Traj_AmberNetcdf.cpp
++++ AmberTools/src/cpptraj/src/Traj_AmberNetcdf.cpp
+@@ -246,7 +246,7 @@ int AmberNetcdf::processWriteArgs(ArgList *argIn) {
+ /** Create Netcdf file specified by filename and set up dimension and
+   * variable IDs. 
+   */
+-int AmberNetcdf::setupWrite(AmberParm *trajParm) {
++int AmberNetcdf::setupWrite(AmberParm *trajParm,int NframesToWrite) {
+   int dimensionID[NC_MAX_VAR_DIMS];
+   size_t start[3], count[3];
+   char xyz[3];
+diff --git AmberTools/src/cpptraj/src/Traj_AmberNetcdf.h AmberTools/src/cpptraj/src/Traj_AmberNetcdf.h
+index 58610bf..df5a120 100644
+--- AmberTools/src/cpptraj/src/Traj_AmberNetcdf.h
++++ AmberTools/src/cpptraj/src/Traj_AmberNetcdf.h
+@@ -37,7 +37,7 @@ class AmberNetcdf : public TrajectoryIO {
+ 
+     // Inherited functions
+     int setupRead(AmberParm*);
+-    int setupWrite(AmberParm*);
++    int setupWrite(AmberParm*,int);
+     int openTraj();
+     void closeTraj();
+     int readFrame(int,double*,double*,double*,double*);
+diff --git AmberTools/src/cpptraj/src/Traj_AmberRestart.cpp AmberTools/src/cpptraj/src/Traj_AmberRestart.cpp
+index 2d9070d..d2a398a 100644
+--- AmberTools/src/cpptraj/src/Traj_AmberRestart.cpp
++++ AmberTools/src/cpptraj/src/Traj_AmberRestart.cpp
+@@ -119,7 +119,7 @@ int AmberRestart::processWriteArgs(ArgList *argIn) {
+ /** Allocate a character buffer based on number of coords and whether 
+   * velocities/box info is present.
+   */
+-int AmberRestart::setupWrite(AmberParm *trajParm) {
++int AmberRestart::setupWrite(AmberParm *trajParm,int NframesToWrite) {
+   int frame_lines;
+ 
+   restartAtoms=trajParm->natom;
+@@ -146,7 +146,7 @@ int AmberRestart::setupWrite(AmberParm *trajParm) {
+ 
+   // If number of frames to write == 1 set singleWrite so we dont append
+   // frame # to filename.
+-  if (trajParm->parmFrames==1) singleWrite=true;
++  if (NframesToWrite==1) singleWrite=true;
+ 
+   return 0;
+ }
+diff --git AmberTools/src/cpptraj/src/Traj_AmberRestart.h AmberTools/src/cpptraj/src/Traj_AmberRestart.h
+index 18b70f0..ba21b2a 100644
+--- AmberTools/src/cpptraj/src/Traj_AmberRestart.h
++++ AmberTools/src/cpptraj/src/Traj_AmberRestart.h
+@@ -17,7 +17,7 @@ class AmberRestart : public TrajectoryIO {
+ 
+     // Inherited functions
+     int setupRead(AmberParm*);
+-    int setupWrite(AmberParm*);
++    int setupWrite(AmberParm*,int);
+     int openTraj();
+     void closeTraj();
+     int readFrame(int,double*,double*,double*,double*);
+diff --git AmberTools/src/cpptraj/src/Traj_AmberRestartNC.cpp AmberTools/src/cpptraj/src/Traj_AmberRestartNC.cpp
+index d0d7eba..f65dca3 100644
+--- AmberTools/src/cpptraj/src/Traj_AmberRestartNC.cpp
++++ AmberTools/src/cpptraj/src/Traj_AmberRestartNC.cpp
+@@ -215,12 +215,12 @@ int AmberRestartNC::processWriteArgs(ArgList *argIn) {
+ 
+ // AmberRestartNC::setupWrite()
+ /** Setting up is done for each frame.  */
+-int AmberRestartNC::setupWrite(AmberParm *trajParm) {
++int AmberRestartNC::setupWrite(AmberParm *trajParm,int NframesToWrite) {
+   ncatom = trajParm->natom;
+   ncatom3 = ncatom * 3;
+   // If number of frames to write == 1 set singleWrite so we dont append
+   // frame # to filename.
+-  if (trajParm->parmFrames==1) singleWrite=true;
++  if (NframesToWrite==1) singleWrite=true;
+   return 0;
+ }
+ 
+diff --git AmberTools/src/cpptraj/src/Traj_AmberRestartNC.h AmberTools/src/cpptraj/src/Traj_AmberRestartNC.h
+index 960a90a..7da3756 100644
+--- AmberTools/src/cpptraj/src/Traj_AmberRestartNC.h
++++ AmberTools/src/cpptraj/src/Traj_AmberRestartNC.h
+@@ -32,7 +32,7 @@ class AmberRestartNC : public TrajectoryIO {
+ 
+     // Inherited functions
+     int setupRead(AmberParm*);
+-    int setupWrite(AmberParm*);
++    int setupWrite(AmberParm*,int);
+     int openTraj();
+     void closeTraj();
+     int readFrame(int,double*,double*,double*,double*);
+diff --git AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
+index c2ce4a3..9b57fa8 100644
+--- AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
++++ AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
+@@ -431,7 +431,7 @@ int CharmmDcd::processWriteArgs(ArgList *argIn) {
+   * Set is64bit and isBigEndian, although they are not currently used during
+   * writes; size and endianness will be OS default.
+   */
+-int CharmmDcd::setupWrite(AmberParm *trajParm) {
++int CharmmDcd::setupWrite(AmberParm *trajParm,int NframesToWrite) {
+   dcdatom = trajParm->natom;
+   // dcdframes = trajParm->parmFrames;
+   dcdframes = 0;
+diff --git AmberTools/src/cpptraj/src/Traj_CharmmDcd.h AmberTools/src/cpptraj/src/Traj_CharmmDcd.h
+index d978710..a907519 100644
+--- AmberTools/src/cpptraj/src/Traj_CharmmDcd.h
++++ AmberTools/src/cpptraj/src/Traj_CharmmDcd.h
+@@ -40,7 +40,7 @@ class CharmmDcd : public TrajectoryIO {
+ 
+     // Inherited functions
+     int setupRead(AmberParm *);
+-    int setupWrite(AmberParm *);
++    int setupWrite(AmberParm *,int);
+     int openTraj();
+     void closeTraj();
+     int readFrame(int,double*,double*,double*,double*);
+diff --git AmberTools/src/cpptraj/src/Traj_Conflib.cpp AmberTools/src/cpptraj/src/Traj_Conflib.cpp
+index 2a52dcd..77afb1b 100644
+--- AmberTools/src/cpptraj/src/Traj_Conflib.cpp
++++ AmberTools/src/cpptraj/src/Traj_Conflib.cpp
+@@ -55,7 +55,7 @@ int Conflib::readFrame(int set, double *X, double *V,double *box, double *T) {
+ }
+ 
+ // Conflib::setupWrite()
+-int Conflib::setupWrite(AmberParm *trajParm) {
++int Conflib::setupWrite(AmberParm *trajParm,int NframesToWrite) {
+   mprintf("Error: conflib writes not yet implemented.\n");
+   return 1;
+ }
+diff --git AmberTools/src/cpptraj/src/Traj_Conflib.h AmberTools/src/cpptraj/src/Traj_Conflib.h
+index 41b6cb0..7aae7a5 100644
+--- AmberTools/src/cpptraj/src/Traj_Conflib.h
++++ AmberTools/src/cpptraj/src/Traj_Conflib.h
+@@ -11,7 +11,7 @@ class Conflib: public TrajectoryIO {
+ 
+     // Inherited functions
+     int setupRead(AmberParm*);
+-    int setupWrite(AmberParm*);
++    int setupWrite(AmberParm*,int);
+     int openTraj();
+     void closeTraj();
+     int readFrame(int,double*,double*,double*,double*);
+diff --git AmberTools/src/cpptraj/src/Traj_Mol2File.cpp AmberTools/src/cpptraj/src/Traj_Mol2File.cpp
+index 189c7ca..772a940 100644
+--- AmberTools/src/cpptraj/src/Traj_Mol2File.cpp
++++ AmberTools/src/cpptraj/src/Traj_Mol2File.cpp
+@@ -142,10 +142,10 @@ void Mol2File::SetWriteMode(MOL2WRITEMODE modeIn) {
+ /** Set parm information required for write, and check write mode against
+   * number of frames to be written.
+   */
+-int Mol2File::setupWrite(AmberParm *trajParm) {
++int Mol2File::setupWrite(AmberParm *trajParm, int NframesToWrite) {
+   // If writing more than 1 frame and not writing 1 pdb per frame, 
+   // use @<TRIPOS>MOLECULE keyword to separate frames.
+-  if (mol2WriteMode==SINGLE && trajParm->parmFrames>1) mol2WriteMode=MOL;
++  if (mol2WriteMode==SINGLE && NframesToWrite>1) mol2WriteMode=MOL;
+ 
+   // Set # atoms; if more than 99999 atoms the file may not write correctly
+   mol2atom = trajParm->natom;
+diff --git AmberTools/src/cpptraj/src/Traj_Mol2File.h AmberTools/src/cpptraj/src/Traj_Mol2File.h
+index 75f3aa4..366bbc8 100644
+--- AmberTools/src/cpptraj/src/Traj_Mol2File.h
++++ AmberTools/src/cpptraj/src/Traj_Mol2File.h
+@@ -28,7 +28,7 @@ class Mol2File : public TrajectoryIO {
+ 
+     // Inherited functions
+     int setupRead(AmberParm *);
+-    int setupWrite(AmberParm *);
++    int setupWrite(AmberParm *,int);
+     int openTraj();
+     void closeTraj();
+     int readFrame(int,double*,double*,double*,double*);
+diff --git AmberTools/src/cpptraj/src/Traj_PDBfile.cpp AmberTools/src/cpptraj/src/Traj_PDBfile.cpp
+index 37d5de9..9949d8f 100644
+--- AmberTools/src/cpptraj/src/Traj_PDBfile.cpp
++++ AmberTools/src/cpptraj/src/Traj_PDBfile.cpp
+@@ -167,7 +167,7 @@ int PDBfile::processWriteArgs(ArgList *argIn) {
+ /** Set parm information needed for write, and check write mode against
+   * number of frames to be written.
+   */ 
+-int PDBfile::setupWrite(AmberParm *trajParm) {
++int PDBfile::setupWrite(AmberParm *trajParm, int NframesToWrite) {
+   pdbAtom = trajParm->natom;
+   pdbAtomNames = trajParm->AtomNames_ptr();
+   trajResNames = trajParm->ResidueNames_ptr();
+@@ -183,7 +183,7 @@ int PDBfile::setupWrite(AmberParm *trajParm) {
+ 
+   // If number of frames to write > 1 and not doing 1 pdb file per frame,
+   // set write mode to MODEL
+-  if (pdbWriteMode==SINGLE && trajParm->parmFrames>1) pdbWriteMode=MODEL;
++  if (pdbWriteMode==SINGLE && NframesToWrite>1) pdbWriteMode=MODEL;
+   // Check that all parm info needed is present
+   if (pdbAtomNames==NULL) {
+     mprinterr("Error: setupWrite [%s]: Atom names are NULL.\n",tfile->filename); 
+diff --git AmberTools/src/cpptraj/src/Traj_PDBfile.h AmberTools/src/cpptraj/src/Traj_PDBfile.h
+index 59ad131..17a823b 100644
+--- AmberTools/src/cpptraj/src/Traj_PDBfile.h
++++ AmberTools/src/cpptraj/src/Traj_PDBfile.h
+@@ -31,7 +31,7 @@ class PDBfile: public TrajectoryIO {
+ 
+     // Inherited functions
+     int setupRead(AmberParm*);
+-    int setupWrite(AmberParm*);
++    int setupWrite(AmberParm*,int);
+     int openTraj();
+     void closeTraj();
+     int readFrame(int,double*,double*,double*,double*);
+diff --git AmberTools/src/cpptraj/src/TrajectoryFile.cpp AmberTools/src/cpptraj/src/TrajectoryFile.cpp
+index 1e97d7a..e51b442 100644
+--- AmberTools/src/cpptraj/src/TrajectoryFile.cpp
++++ AmberTools/src/cpptraj/src/TrajectoryFile.cpp
+@@ -194,7 +194,7 @@ TrajectoryIO *TrajectoryFile::setupRemdTrajIO(char *lowestRepName, double remdtr
+       remdio->REMDtrajout.push_back( replica0 );
+       // Set up write here, trajParm will not change
+       replica0->hasBox = trajio->hasBox;
+-      if (replica0->setupWrite(trajParm)) {
++      if (replica0->setupWrite(trajParm, trajParm->parmFrames)) {
+         delete remdio;
+         return NULL;
+       }
+@@ -874,8 +874,12 @@ int TrajectoryFile::WriteFrame(int set, AmberParm *tparmIn, Frame &FrameOut) {
+         trajio->boxAngle[2]=trajParm->Box[5];
+       }
+     }
++    // Determine how many frames will be written
++    int NframesToWrite = trajParm->parmFrames;
++    if (FrameRange!=NULL)
++      NframesToWrite = FrameRange->Size();
+     // Set up write for the current parm file 
+-    if (trajio->setupWrite(trajParm)) return 1;
++    if (trajio->setupWrite(trajParm, NframesToWrite)) return 1;
+     // Open output traj and mark as set up.
+     if (trajio->openTraj()) return 1;
+     trajectoryIsOpen=true;
+diff --git AmberTools/src/cpptraj/src/TrajectoryIO.h AmberTools/src/cpptraj/src/TrajectoryIO.h
+index 412c813..af829a4 100644
+--- AmberTools/src/cpptraj/src/TrajectoryIO.h
++++ AmberTools/src/cpptraj/src/TrajectoryIO.h
+@@ -41,7 +41,7 @@ class TrajectoryIO {
+       * as an argument the AmberParm class that will be associated with this 
+       * trajectory. 
+       */
+-    virtual int setupWrite(AmberParm *) { return 1; }
++    virtual int setupWrite(AmberParm *,int) { return 1; }
+     /// Open traj, prepare for IO.
+     virtual int openTraj() { return 1; }
+     /// Read a frame from trajectory
+diff --git AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py
+index dba5969..dd010e7 100644
+--- AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py
++++ AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py
+@@ -89,7 +89,7 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+       else: mdin = '_MMPBSA_gb.mdin'
+ 
+       if 'mmpbsa_py_energy' in progs['gb']: incrd = '%scomplex.pdb' % prefix
+-      else: incrd = '%sdummycomplex.inpcrd.1' % prefix
++      else: incrd = '%sdummycomplex.inpcrd' % prefix
+ 
+       # The complex is ALWAYS calculated (since mutation must be there if
+       # this is the mutant calculation)
+@@ -118,7 +118,7 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+ 
+             if 'mmpbsa_py_energy' in progs['gb']:
+                incrd = '%sreceptor.pdb' % prefix
+-            else: incrd = '%sdummyreceptor.inpcrd.1' % prefix
++            else: incrd = '%sdummyreceptor.inpcrd' % prefix
+ 
+             calc = EnergyCalculation(progs['gb'], parmsystem.receptor_prmtop,
+                      incrd, '%sreceptor.%s.%d' % (prefix, trj_sfx, rank), mdin,
+@@ -139,7 +139,7 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+             else: mdin = '_MMPBSA_gb.mdin'
+    
+             if 'mmpbsa_py_energy' in progs['gb']: incrd = '%sligand.pdb' % prefix
+-            else: incrd = '%sdummyligand.inpcrd.1' % prefix
++            else: incrd = '%sdummyligand.inpcrd' % prefix
+    
+             calc = EnergyCalculation(progs['gb'], parmsystem.ligand_prmtop,
+                      incrd, '%sligand.%s.%d' % (prefix, trj_sfx, rank), mdin,
+@@ -162,7 +162,7 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+       else: mdin = '_MMPBSA_pb.mdin'
+ 
+       if 'mmpbsa_py_energy' in progs['pb']: incrd = '%scomplex.pdb' % prefix
+-      else: incrd = '%sdummycomplex.inpcrd.1' % prefix
++      else: incrd = '%sdummycomplex.inpcrd' % prefix
+ 
+       print '  calculating complex contribution...'
+ 
+@@ -186,7 +186,7 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+             else: mdin = '_MMPBSA_pb.mdin'
+    
+             if 'mmpbsa_py_energy' in progs['pb']: incrd = '%sreceptor.pdb' % prefix
+-            else: incrd = '%sdummyreceptor.inpcrd.1' % prefix
++            else: incrd = '%sdummyreceptor.inpcrd' % prefix
+    
+             calc = EnergyCalculation(progs['pb'], parmsystem.receptor_prmtop,
+                      incrd, '%sreceptor.%s.%d' % (prefix, trj_sfx, rank), mdin,
+@@ -205,7 +205,7 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+             if INPUT['decomprun']: mdin = '_MMPBSA_pb_decomp_lig.mdin'
+    
+             if 'mmpbsa_py_energy' in progs['pb']: incrd = '%sligand.pdb' % prefix
+-            else: incrd = '%sdummyligand.inpcrd.1' % prefix
++            else: incrd = '%sdummyligand.inpcrd' % prefix
+    
+             calc = EnergyCalculation(progs['pb'], parmsystem.ligand_prmtop,
+                      incrd, '%sligand.%s.%d' % (prefix, trj_sfx, rank), mdin,
+diff --git AmberTools/src/mmpbsa_py/MMPBSA_mods/make_trajs.py AmberTools/src/mmpbsa_py/MMPBSA_mods/make_trajs.py
+index fb0b974..3d7887d 100644
+--- AmberTools/src/mmpbsa_py/MMPBSA_mods/make_trajs.py
++++ AmberTools/src/mmpbsa_py/MMPBSA_mods/make_trajs.py
+@@ -342,7 +342,7 @@ def make_mutant_trajectories(INPUT, FILES, rank, cpptraj, norm_sys, mut_sys):
+                             '_MMPBSA_mutant_complex.%s.0' % trj_suffix, cpptraj)
+       com_traj.Setup(1,1,1)
+       com_traj.Outtraj('_MMPBSA_mutant_complex.pdb', frames='1', filetype='pdb')
+-      com_traj.Outtraj('_MMPBSA_mutant_dummycomplex.inpcrd.1' , frames='1',
++      com_traj.Outtraj('_MMPBSA_mutant_dummycomplex.inpcrd' , frames='1',
+                        filetype='restart')
+       com_traj.Run('_MMPBSA_mutant_complex_cpptraj.out')
+       if not stability:
+@@ -351,7 +351,7 @@ def make_mutant_trajectories(INPUT, FILES, rank, cpptraj, norm_sys, mut_sys):
+          rec_traj.Setup(1,1,1)
+          rec_traj.Outtraj('_MMPBSA_mutant_receptor.pdb', frames='1', 
+                           filetype='pdb')
+-         rec_traj.Outtraj('_MMPBSA_mutant_dummyreceptor.inpcrd.1' , frames='1',
++         rec_traj.Outtraj('_MMPBSA_mutant_dummyreceptor.inpcrd' , frames='1',
+                           filetype='restart')
+          rec_traj.Run('_MMPBSA_mutant_receptor_cpptraj.out')
+ 
+@@ -360,7 +360,7 @@ def make_mutant_trajectories(INPUT, FILES, rank, cpptraj, norm_sys, mut_sys):
+          lig_traj.Setup(1,1,1)
+          lig_traj.Outtraj('_MMPBSA_mutant_ligand.pdb', frames='1', 
+                           filetype='pdb')
+-         lig_traj.Outtraj('_MMPBSA_mutant_dummyligand.inpcrd.1' , frames='1',
++         lig_traj.Outtraj('_MMPBSA_mutant_dummyligand.inpcrd' , frames='1',
+                           filetype='restart')
+          lig_traj.Run('_MMPBSA_mutant_ligand_cpptraj.out')
+ 
+diff --git AmberTools/src/mmpbsa_py/MMPBSA_mods/utils.py AmberTools/src/mmpbsa_py/MMPBSA_mods/utils.py
+index fd36ca9..ef5de55 100644
+--- AmberTools/src/mmpbsa_py/MMPBSA_mods/utils.py
++++ AmberTools/src/mmpbsa_py/MMPBSA_mods/utils.py
+@@ -62,12 +62,12 @@ def remove(flag, mpi_size=0):
+                  '_MMPBSA_complex.nc', '_MMPBSA_mutant_complex.nc',
+                  '_MMPBSA_receptor.mdcrd', '_MMPBSA_mutant_receptor.mdcrd',
+                  '_MMPBSA_receptor.nc', '_MMPBSA_mutant_receptor.nc',
+-                 '_MMPBSA_dummycomplex.inpcrd.1', '_MMPBSA_complex.pdb',
+-                 '_MMPBSA_dummyreceptor.inpcrd.1','_MMPBSA_receptor.pdb',
+-                 '_MMPBSA_dummyligand.inpcrd.1','_MMPBSA_ligand.pdb',
+-                 '_MMPBSA_mutant_dummycomplex.inpcrd.1',
+-                 '_MMPBSA_mutant_dummyreceptor.inpcrd.1',
+-                 '_MMPBSA_mutant_dummyligand.inpcrd.1',
++                 '_MMPBSA_dummycomplex.inpcrd', '_MMPBSA_complex.pdb',
++                 '_MMPBSA_dummyreceptor.inpcrd','_MMPBSA_receptor.pdb',
++                 '_MMPBSA_dummyligand.inpcrd','_MMPBSA_ligand.pdb',
++                 '_MMPBSA_mutant_dummycomplex.inpcrd',
++                 '_MMPBSA_mutant_dummyreceptor.inpcrd',
++                 '_MMPBSA_mutant_dummyligand.inpcrd',
+                  '_MMPBSA_mutant_complex.pdb', '_MMPBSA_mutant_receptor.pdb',
+                  '_MMPBSA_mutant_ligand.pdb', '_MMPBSA_complex_nm.mdcrd',
+                  '_MMPBSA_complex_nm.nc', '_MMPBSA_mutant_complex_nm.mdcrd',
+diff --git AmberTools/src/mmpbsa_py/ante-MMPBSA.py AmberTools/src/mmpbsa_py/ante-MMPBSA.py
+index 089a81c..bb4c0a2 100644
+--- AmberTools/src/mmpbsa_py/ante-MMPBSA.py
++++ AmberTools/src/mmpbsa_py/ante-MMPBSA.py
+@@ -23,6 +23,11 @@ clparser.add_option('-m', '--receptor-mask', dest='receptor_mask', default=None,
+ clparser.add_option('-n', '--ligand-mask', dest='ligand_mask', default=None,
+          help='Amber mask of atoms needed to be stripped from COMPLEX to ' +
+               'create LIGAND. Cannot specify with -m/--receptor-mask')
++clparser.add_option('--radii', dest='radius_set', default=None,
++         help='PB/GB Radius set to set in the generated topology files. ' +
++              'This is equivalent to "set PBRadii <radius>" in LEaP. ' +
++              'Options are bondi, mbondi2, mbondi3, amber6, and mbondi ' +
++              'and the default is to use the existing radii.')
+ (opt, args) = clparser.parse_args()
+ 
+ # Check for illegal CL options
+@@ -62,9 +67,16 @@ if (opt.receptor and not opt.ligand) or (opt.ligand and not opt.receptor):
+ 
+ if not opt.ligand_mask and not opt.receptor_mask and not opt.strip_mask:
+    print >> sys.stderr, 'Error: You did not specify any masks -- I have ' + \
+-         'to do!'
++         'nothing to do!'
+    sys.exit(1)
+ 
++if opt.radius_set is not None:
++   allowed_radii = ('bondi', 'mbondi', 'mbondi2', 'mbondi3', 'amber6')
++   if not opt.radius_set.lower() in allowed_radii:
++      print >> sys.stderr, 'Error: Radius set must be one of %s' % (
++               ' '.join(allowed_radii))
++      sys.exit(1)
++
+ # Now load the unspecified mask (just !(specified_mask))
+ if opt.receptor_mask or opt.ligand_mask:
+    if not opt.receptor_mask: opt.receptor_mask = '!(%s)' % opt.ligand_mask
+@@ -82,6 +94,8 @@ if opt.strip_mask:
+    print 'Stripping %s (solvent) from original topology, output is %s' % (
+          opt.strip_mask, opt.complex)
+    parmed_commands  = "strip %s\n" % opt.strip_mask
++   if opt.radius_set is not None:
++      parmed_commands += "changeRadii %s\n" % opt.radius_set.lower()
+    parmed_commands += "parmout %s\n" % opt.complex
+    parmed_commands += "go\n"
+    process = Popen([parmed, '-n', '-q', opt.prmtop], stdout=PIPE, stderr=PIPE,
+@@ -102,6 +116,8 @@ if opt.receptor:
+          opt.ligand_mask, opt.complex)
+    
+    parmed_commands  = "strip %s\n" % opt.ligand_mask
++   if opt.radius_set is not None:
++      parmed_commands += "changeRadii %s\n" % opt.radius_set.lower()
+    parmed_commands += "parmout %s\n" % opt.receptor
+    parmed_commands += "go\n"
+    process = Popen([parmed, '-n', '-q', opt.complex], stdout=PIPE, stderr=PIPE,
+@@ -120,6 +136,8 @@ if opt.ligand:
+          opt.receptor_mask, opt.complex)
+ 
+    parmed_commands  = "strip %s\n" % opt.receptor_mask
++   if opt.radius_set is not None:
++      parmed_commands += "changeRadii %s\n" % opt.radius_set.lower()
+    parmed_commands += "parmout %s\n" % opt.ligand
+    parmed_commands += "go\n"
+    process = Popen([parmed, '-n', '-q', opt.complex], stdout=PIPE, stderr=PIPE,
+diff --git AmberTools/test/cpptraj/Test_Charmm/test.ala3.pdb.save AmberTools/test/cpptraj/Test_Charmm/test.ala3.pdb.save
+index 4c13f84..c1c151b 100644
+--- AmberTools/test/cpptraj/Test_Charmm/test.ala3.pdb.save
++++ AmberTools/test/cpptraj/Test_Charmm/test.ala3.pdb.save
+@@ -1,4 +1,3 @@
+-MODEL     1
+ ATOM      1  CAY ALA X   1       5.970   6.492   1.019  0.00  0.00              
+ ATOM      2  HY1 ALA X   1       4.860   6.444   1.024  0.00  0.00              
+ ATOM      3  HY2 ALA X   1       6.240   7.187   0.196  0.00  0.00              
+@@ -41,5 +40,4 @@ ATOM     39  CAT ALA X   3      13.240   5.427   5.505  0.00  0.00
+ ATOM     40  HT1 ALA X   3      13.976   4.860   4.896  0.00  0.00              
+ ATOM     41  HT2 ALA X   3      13.685   6.444   5.533  0.00  0.00              
+ ATOM     42  HT3 ALA X   3      13.269   5.116   6.571  0.00  0.00              
+-ENDMDL
+ END   

@@ -1,0 +1,42 @@
+*******>Bugfix 15:
+Author: Wesley Botello-Smith
+Date: 24 July 2012
+
+Program: pbsa
+
+Description: Fixes for pbsa version 1.0.16 to 1.0.17.
+   - Fixed bug missing newline bug when writing DX format files
+   - Units of potential maps written in DX format will now be properly
+     scaled to kcal/mol-e rather than the unscaled array values directly
+
+----------------------------------------------------------------------------
+
+ AmberTools/src/pbsa/gen_dx_file.F90 |    1 +
+ AmberTools/src/pbsa/pb_force.F90    |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git AmberTools/src/pbsa/gen_dx_file.F90 AmberTools/src/pbsa/gen_dx_file.F90
+index 475b6ef..d50e453 100644
+--- AmberTools/src/pbsa/gen_dx_file.F90
++++ AmberTools/src/pbsa/gen_dx_file.F90
+@@ -37,6 +37,7 @@ subroutine gen_dx_file(xm,ym,zm,h,gox,goy,goz,voldata,filename,fn,dataname)
+                         end if
+                     end do
+                 end do; end do
++                if (.not.(MOD(cnt,3).eq. 0) ) write(fn,*) ''
+                 write(fn,*) 'attribute "dep" string "positions"'
+                 write(fn,*) 'object "',dataname,'" class field'
+                 write(fn,*) 'component "positions" value 1'
+diff --git AmberTools/src/pbsa/pb_force.F90 AmberTools/src/pbsa/pb_force.F90
+index 37337bd..52f1edf 100644
+--- AmberTools/src/pbsa/pb_force.F90
++++ AmberTools/src/pbsa/pb_force.F90
+@@ -1399,7 +1399,7 @@ subroutine pb_fdfrc( pbverbose,pbprint,pbgrid,ifcap,ipb,imin,natom,atmlast,npdec
+                close(64)
+             elseif ( phiform == 2 ) then
+             !write dx format phi
+-               call gen_dx_file(xm,ym,zm,h,gox,goy,goz,phi(1:xmymzm),&
++               call gen_dx_file(xm,ym,zm,h,gox,goy,goz,frcfac*phi(1:xmymzm),&
+                            phifilename,phifilenum,phidataname)
+ !                write(6,*) 'writing potential map in dx format'
+ !                open(67,file='pbsa_phi.dx')

@@ -1,0 +1,21 @@
+********>Bugfix 28:
+Author: David Case
+Date: 25 October 2012
+Programs: none
+Description:  update the header to leaprc.ff12SB to indicate what files are 
+     used.
+--------------------------------------------------------------------------------
+
+diff --git dat/leap/cmd/leaprc.ff12SB dat/leap/cmd/leaprc.ff12SB
+index 81aa8c9..8d136b4 100644
+--- dat/leap/cmd/leaprc.ff12SB
++++ dat/leap/cmd/leaprc.ff12SB
+@@ -2,7 +2,7 @@ logFile leap.log
+ #
+ # ----- leaprc for loading the ff12SB force field
+ # ----- NOTE: this is designed for PDB format 3!
+-#       ff10 =  ff99SB for proteins; ff99bsc0 for DNA; ff99sbsc_chiOL3 for RNA
++#    Uses frcmod.ff12SB for proteins; ff99bsc0 for DNA; ff99bsc0_chiOL3 for RNA
+ #
+ #	load atom type hybridizations
+ #

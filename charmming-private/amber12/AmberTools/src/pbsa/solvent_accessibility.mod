@@ -1,0 +1,398 @@
+GFORTRAN module version '0' created from sa_driver.F90 on Wed Feb 13 16:59:42 2013
+MD5:23255fe0a88b3f07f71d685943d1db5e -- If you edit this, you'll get what you deserve.
+
+(() () () () () () () () () () () () () () () () () () () () () () ()
+() () () ())
+
+()
+
+()
+
+()
+
+()
+
+(2 'arcatm' 'solvent_accessibility' 'arcatm' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (INTEGER 4 0 0
+INTEGER ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+3 'arccrd' 'solvent_accessibility' 'arccrd' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+4 'arcres' 'solvent_accessibility' 'arcres' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 8 0 0 REAL ()) 0 0 () () 0 () () ()
+0 0)
+5 'avnexp' 'solvent_accessibility' 'avnexp' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+6 'avnmax' 'solvent_accessibility' 'avnmax' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+7 'done_sa_driver' 'solvent_accessibility' 'done_sa_driver' 1 ((
+VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (LOGICAL 4 0 0
+LOGICAL ()) 0 0 () () 0 () () () 0 0)
+8 'dotarc' 'solvent_accessibility' 'dotarc' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (INTEGER 4 0 0
+INTEGER ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+9 'dprob' 'solvent_accessibility' 'dprob' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 8 0 0 REAL ()) 0 0 () () 0 () () ()
+0 0)
+10 'expthresh' 'solvent_accessibility' 'expthresh' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 8 0 0 REAL ()) 0 0 ()
+() 0 () () () 0 0)
+11 'fstadot' 'solvent_accessibility' 'fstadot' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+INTEGER 4 0 0 INTEGER ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+12 'fstarc' 'solvent_accessibility' 'fstarc' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (INTEGER 4 0 0
+INTEGER ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+13 'fstsdot' 'solvent_accessibility' 'fstsdot' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+INTEGER 4 0 0 INTEGER ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+14 'iprob' 'solvent_accessibility' 'iprob' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 8 0 0 REAL ()) 0 0 () () 0 () () ()
+0 0)
+15 'knockout' 'solvent_accessibility' 'knockout' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+LOGICAL 4 0 0 LOGICAL ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+16 'knocktri' 'solvent_accessibility' 'knocktri' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+LOGICAL 4 0 0 LOGICAL ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+17 'lstadot' 'solvent_accessibility' 'lstadot' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+INTEGER 4 0 0 INTEGER ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+18 'lstarc' 'solvent_accessibility' 'lstarc' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (INTEGER 4 0 0
+INTEGER ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+19 'lstsdot' 'solvent_accessibility' 'lstsdot' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+INTEGER 4 0 0 INTEGER ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+20 'm2narc' 'solvent_accessibility' 'm2narc' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (INTEGER 4 0 0
+INTEGER ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+21 'marc' 'solvent_accessibility' 'marc' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (INTEGER 4 0 0
+INTEGER ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+22 'maxarc' 'solvent_accessibility' 'maxarc' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 ()
+() () 0 0)
+23 'maxarcdot' 'solvent_accessibility' 'maxarcdot' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ())
+0 0 () () 0 () () () 0 0)
+24 'maxsph' 'solvent_accessibility' 'maxsph' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 ()
+() () 0 0)
+25 'maxtri' 'solvent_accessibility' 'maxtri' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 ()
+() () 0 0)
+26 'mdsig' 'solvent_accessibility' 'mdsig' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+27 'narc' 'solvent_accessibility' 'narc' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 ()
+() () 0 0)
+28 'narcdot' 'solvent_accessibility' 'narcdot' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ())
+0 0 () () 0 () () () 0 0)
+29 'nexp' 'solvent_accessibility' 'nexp' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+30 'nmax' 'solvent_accessibility' 'nmax' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+31 'nsrfdot' 'solvent_accessibility' 'nsrfdot' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ())
+0 0 () () 0 () () () 0 0)
+32 'ntri' 'solvent_accessibility' 'ntri' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 ()
+() () 0 0)
+33 'nzratm' 'solvent_accessibility' 'nzratm' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (INTEGER 4 0 0
+INTEGER ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+34 'pb_aaradi' 'solvent_accessibility' 'pb_aaradi' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0
+UNKNOWN ()) 35 0 (36 37 38 39 40 41 42 43 44 45 46 47) () 0 () () () 0 0)
+48 'phi_aaradi' 'solvent_accessibility' 'phi_aaradi' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0
+UNKNOWN ()) 49 0 (50 51 52) () 0 () () () 0 0)
+53 'prtsas' 'solvent_accessibility' 'prtsas' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 8 0 0 REAL ()) 0 0 () () 0 () () ()
+0 0)
+54 'prtsav' 'solvent_accessibility' 'prtsav' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 8 0 0 REAL ()) 0 0 () () 0 () () ()
+0 0)
+55 'radi' 'solvent_accessibility' 'radi' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+56 'radinc' 'solvent_accessibility' 'radinc' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 8 0 0 REAL ()) 0 0 () () 0 () () ()
+0 0)
+57 'radiopt' 'solvent_accessibility' 'radiopt' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ())
+0 0 () () 0 () () () 0 0)
+58 'radip' 'solvent_accessibility' 'radip' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+59 'radip2' 'solvent_accessibility' 'radip2' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+60 'radip3' 'solvent_accessibility' 'radip3' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+61 'radiscale' 'solvent_accessibility' 'radiscale' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 8 0 0 REAL ()) 0 0 ()
+() 0 () () () 0 0)
+62 'rmin' 'solvent_accessibility' 'rmin' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+63 'sa_driver' 'solvent_accessibility' 'sa_driver' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0
+UNKNOWN ()) 64 0 (65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82)
+() 0 () () () 0 0)
+83 'sa_free' 'solvent_accessibility' 'sa_free' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0
+UNKNOWN ()) 84 0 (85 86 87) () 0 () () () 0 0)
+88 'sa_free_mb' 'solvent_accessibility' 'sa_free_mb' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0
+UNKNOWN ()) 89 0 (90 91) () 0 () () () 0 0)
+92 'sa_init' 'solvent_accessibility' 'sa_init' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0
+UNKNOWN ()) 93 0 (94 95 96 97 98 99 100 101 102 103) () 0 () () () 0 0)
+104 'sa_sphere' 'solvent_accessibility' 'sa_sphere' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0
+UNKNOWN ()) 105 0 (106 107) () 0 () () () 0 0)
+108 'savactr' 'solvent_accessibility' 'savactr' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+REAL 8 0 0 REAL ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+109 'savarc' 'solvent_accessibility' 'savarc' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+REAL 8 0 0 REAL ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+110 'scrd' 'solvent_accessibility' 'scrd' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 8 0 0 REAL ())
+0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+111 'solvent_accessibility' 'solvent_accessibility'
+'solvent_accessibility' 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN) (UNKNOWN 0 0 0 UNKNOWN ()) 0 0 () () 0 () () () 0 0)
+112 'spharc' 'solvent_accessibility' 'spharc' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+INTEGER 4 0 0 INTEGER ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+113 'spharc1' 'solvent_accessibility' 'spharc1' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+INTEGER 4 0 0 INTEGER ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+114 'sphcrd' 'solvent_accessibility' 'sphcrd' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+REAL 8 0 0 REAL ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+115 'sphcrd1' 'solvent_accessibility' 'sphcrd1' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+REAL 8 0 0 REAL ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+116 'sprob' 'solvent_accessibility' 'sprob' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 8 0 0 REAL ()) 0 0 () () 0 () () ()
+0 0)
+117 'srfcrd' 'solvent_accessibility' 'srfcrd' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+REAL 8 0 0 REAL ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+118 'sumnexp' 'solvent_accessibility' 'sumnexp' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+REAL 8 0 0 REAL ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+119 'sumnmax' 'solvent_accessibility' 'sumnmax' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+REAL 8 0 0 REAL ()) 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
+120 'triarc' 'solvent_accessibility' 'triarc' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+INTEGER 4 0 0 INTEGER ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+121 'triarc1' 'solvent_accessibility' 'triarc1' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+INTEGER 4 0 0 INTEGER ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+122 'triatm' 'solvent_accessibility' 'triatm' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+INTEGER 4 0 0 INTEGER ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+123 'triatm1' 'solvent_accessibility' 'triatm1' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+INTEGER 4 0 0 INTEGER ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+124 'tricrd' 'solvent_accessibility' 'tricrd' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+REAL 8 0 0 REAL ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+125 'tricrd1' 'solvent_accessibility' 'tricrd1' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (
+REAL 8 0 0 REAL ()) 0 0 () (2 DEFERRED () () () ()) 0 () () () 0 0)
+126 'triopt' 'solvent_accessibility' 'triopt' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ())
+0 0 () () 0 () () () 0 0)
+127 'vprob' 'solvent_accessibility' 'vprob' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 8 0 0 REAL ()) 0 0 () () 0 () () ()
+0 0)
+85 'dosas' '' 'dosas' 84 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
+86 'ndosas' '' 'ndosas' 84 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0
+0)
+87 'npsa' '' 'npsa' 84 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 () () () 0 0)
+90 'dosas' '' 'dosas' 89 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
+91 'ndosas' '' 'ndosas' 89 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0
+0)
+94 'verbose' '' 'verbose' 93 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 () () () 0
+0)
+95 'pbprint' '' 'pbprint' 93 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 () () () 0
+0)
+96 'natom' '' 'natom' 93 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
+97 'atmlast' '' 'atmlast' 93 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0
+0)
+98 'ifcap' '' 'ifcap' 93 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
+99 'prob' '' 'prob' 93 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (REAL 8 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
+100 'r' '' 'r' 93 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN
+DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 EXPLICIT (CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4 0 0 INTEGER ()) 0
+96 ())) 0 () () () 0 0)
+101 'rp' '' 'rp' 93 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 EXPLICIT (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4 0 0
+INTEGER ()) 0 96 ())) 0 () () () 0 0)
+102 'rp2' '' 'rp2' 93 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 EXPLICIT (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4 0 0
+INTEGER ()) 0 96 ())) 0 () () () 0 0)
+103 'outflag' '' 'outflag' 93 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DIMENSION DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () (1
+ASSUMED_SIZE (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () ()
+0 0)
+50 'natom' '' 'natom' 49 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
+51 'isymbl' '' 'isymbl' 49 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DIMENSION DUMMY) (CHARACTER 1 0 0 CHARACTER ((CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '4'))) 0 0 () (1 EXPLICIT (CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4 0 0 INTEGER ()) 0
+50 ())) 0 () () () 0 0)
+52 'radi' '' 'radi' 49 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 EXPLICIT (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4 0 0
+INTEGER ()) 0 50 ())) 0 () () () 0 0)
+36 'natom' '' 'natom' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
+37 'nbonh' '' 'nbonh' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
+38 'ibh' '' 'ibh' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () (1
+ASSUMED_SIZE (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () ()
+0 0)
+39 'jbh' '' 'jbh' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () (1
+ASSUMED_SIZE (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () ()
+0 0)
+40 'radi' '' 'radi' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 ASSUMED_SIZE (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () () 0 0)
+41 'acrg' '' 'acrg' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 ASSUMED_SIZE (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () () 0 0)
+42 'ucrgh' '' 'ucrgh' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 ASSUMED_SIZE (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () () 0 0)
+43 'ucrga' '' 'ucrga' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 ASSUMED_SIZE (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () () 0 0)
+44 'resid' '' 'resid' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER
+4 0 0 INTEGER ()) 0 '4'))) 0 0 () (1 ASSUMED_SIZE (CONSTANT (INTEGER 4 0
+0 INTEGER ()) 0 '1') ()) 0 () () () 0 0)
+45 'igraph' '' 'igraph' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DIMENSION DUMMY) (CHARACTER 1 0 0 CHARACTER ((CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '4'))) 0 0 () (1 ASSUMED_SIZE (CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () () 0 0)
+46 'isymbl' '' 'isymbl' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DIMENSION DUMMY) (CHARACTER 1 0 0 CHARACTER ((CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '4'))) 0 0 () (1 ASSUMED_SIZE (CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () () 0 0)
+47 'rin' '' 'rin' 35 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 ASSUMED_SIZE (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () () 0 0)
+106 'maxsph' '' 'maxsph' 105 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0
+0)
+107 'scrd' '' 'scrd' 105 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (2 ASSUMED_SIZE (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0
+INTEGER ()) 0 '3') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 ()
+() () 0 0)
+65 'verbose' '' 'verbose' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 () () () 0
+0)
+66 'pbprint' '' 'pbprint' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 () () () 0
+0)
+67 'ipb' '' 'ipb' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
+68 'inp' '' 'inp' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
+69 'natom' '' 'natom' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
+70 'atmlast' '' 'atmlast' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0
+0)
+71 'dosas' '' 'dosas' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
+72 'ndosas' '' 'ndosas' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0
+0)
+73 'npbstep' '' 'npbstep' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0
+0)
+74 'nsaslag' '' 'nsaslag' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0
+0)
+75 'ligand' '' 'ligand' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DUMMY) (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 () () () 0
+0)
+76 'outflag' '' 'outflag' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DIMENSION DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () (1
+EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER
+4 0 0 INTEGER ()) 0 69 ())) 0 () () () 0 0)
+77 'acrd' '' 'acrd' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (2 EXPLICIT (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0
+INTEGER ()) 0 '3') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
+VARIABLE (INTEGER 4 0 0 INTEGER ()) 0 69 ())) 0 () () () 0 0)
+78 'iar1pb' '' 'iar1pb' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DIMENSION DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () (2
+EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER
+4 0 0 INTEGER ()) 0 '4') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '0') (
+VARIABLE (INTEGER 4 0 0 INTEGER ()) 0 69 ())) 0 () () () 0 0)
+79 'iprshrt' '' 'iprshrt' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN UNKNOWN DIMENSION DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () (1
+ASSUMED_SIZE (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () ()
+0 0)
+80 'nex' '' 'nex' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () (1 EXPLICIT (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4 0 0
+INTEGER ()) 0 69 ())) 0 () () () 0 0)
+81 'iex' '' 'iex' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DIMENSION DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () (2 EXPLICIT (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0
+INTEGER ()) 0 '64') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (
+VARIABLE (INTEGER 4 0 0 INTEGER ()) 0 69 ())) 0 () () () 0 0)
+82 'npsa' '' 'npsa' 64 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+UNKNOWN DUMMY) (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 () () () 0 0)
+)
+
+('arcatm' 0 2 'arccrd' 0 3 'arcres' 0 4 'avnexp' 0 5 'avnmax' 0 6
+'done_sa_driver' 0 7 'dotarc' 0 8 'dprob' 0 9 'expthresh' 0 10 'fstadot'
+0 11 'fstarc' 0 12 'fstsdot' 0 13 'iprob' 0 14 'knockout' 0 15 'knocktri'
+0 16 'lstadot' 0 17 'lstarc' 0 18 'lstsdot' 0 19 'm2narc' 0 20 'marc' 0
+21 'maxarc' 0 22 'maxarcdot' 0 23 'maxsph' 0 24 'maxtri' 0 25 'mdsig' 0
+26 'narc' 0 27 'narcdot' 0 28 'nexp' 0 29 'nmax' 0 30 'nsrfdot' 0 31
+'ntri' 0 32 'nzratm' 0 33 'pb_aaradi' 0 34 'phi_aaradi' 0 48 'prtsas' 0
+53 'prtsav' 0 54 'radi' 0 55 'radinc' 0 56 'radiopt' 0 57 'radip' 0 58
+'radip2' 0 59 'radip3' 0 60 'radiscale' 0 61 'rmin' 0 62 'sa_driver' 0
+63 'sa_free' 0 83 'sa_free_mb' 0 88 'sa_init' 0 92 'sa_sphere' 0 104
+'savactr' 0 108 'savarc' 0 109 'scrd' 0 110 'solvent_accessibility' 0
+111 'spharc' 0 112 'spharc1' 0 113 'sphcrd' 0 114 'sphcrd1' 0 115 'sprob'
+0 116 'srfcrd' 0 117 'sumnexp' 0 118 'sumnmax' 0 119 'triarc' 0 120
+'triarc1' 0 121 'triatm' 0 122 'triatm1' 0 123 'tricrd' 0 124 'tricrd1'
+0 125 'triopt' 0 126 'vprob' 0 127)

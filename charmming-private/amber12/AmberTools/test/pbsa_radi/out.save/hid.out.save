@@ -1,0 +1,153 @@
+
+          -------------------------------------------------------
+          PBSA VERSION 2009                       UC Irvine
+          -------------------------------------------------------
+
+| Run on 03/01/2012 at 16:44:46
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: mdin                                                                  
+| MDOUT: hid.out                                                               
+|INPCRD: ./prmtop-inpcrd/hid.inpcrd                                            
+|  PARM: ./prmtop-inpcrd/hid.prmtop                                            
+|
+
+ Here is the input file:
+
+ test of PB reaction field on protein g solvated in a sphere                   
+ &cntrl                                                                        
+   ntx=1, imin=1, ipb=1, inp=2                                                 
+ /                                                                             
+ &pb                                                                           
+   npbverb=0, epsout=80.0, radiopt=1, space=0.5, dprob=1.6,                    
+   accept=1e-4, fillratio=6, sprob=1.6, smoothopt=0, arcres=0.0625             
+ /                                                                             
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags:                                                                        
+| New format PARM file being parsed.
+| Version =    1.000 Date = 09/03/04 Time = 15:47:07
+ NATOM  =      12 NTYPES =       7 NBONH =       6 MBONA  =       6
+ NTHETH =      12 MTHETA =       7 NPHIH =      18 MPHIA  =       8
+ NHPARM =       0 NPARM  =       0 NNB   =      50 NRES   =       1
+ NBONA  =       6 NTHETA =       7 NPHIA =       8 NUMBND =      10
+ NUMANG =      15 NPTRA  =       8 NATYP =      10 NPHB   =       0
+ IFBOX  =       0 NMXRS  =      12 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+
+|     Memory Use     Allocated
+|     Real                 485
+|     Hollerith             75
+|     Integer            18459
+|     Max Pairs              1
+|     Max Rstack             1
+|     Max Istack             1
+|       Total               76 kbytes
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+HID                                                                             
+
+General flags:
+     imin    =       1, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       1, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       1, ntpr    =      50, ntrx    =       1, ntwr    =     500
+     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       0, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       1, ipb     =       1, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =   8.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Energy minimization:
+     maxcyc  =       1, ncyc    =      10, ntmin   =       1
+     dx0     =   0.01000, drms    =   0.00010
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+HID                                                                             
+ begin time read from input coords =     0.000 ps
+
+ Number of triangulated 3-point waters found:        0
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+ Total surface charge      -0.0000
+ Reaction field energy     -9.0515
+ Cavity solvation energy     12.6608
+ Dispersion solvation energy     -8.4119
+
+ NSTEP =        1   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =         1.2796  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =        -0.1620
+ EELEC  =         6.2443  EPB     =        -9.0515  RESTRAINT  =         0.0000
+ ECAVITY=        12.6608  EDISPER =        -8.4119
+ ------------------------------------------------------------------------------
+
+
+
+  Maximum number of minimization cycles reached.
+
+
+                    FINAL RESULTS
+
+
+ NSTEP =        1   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =         1.2796  EKtot   =         0.0000  EPtot      =         0.0000
+ BOND   =         0.0000  ANGLE   =         0.0000  DIHED      =         0.0000
+ 1-4 NB =         0.0000  1-4 EEL =         0.0000  VDWAALS    =        -0.1620
+ EELEC  =         6.2443  EPB     =        -9.0515  RESTRAINT  =         0.0000
+ ECAVITY=        12.6608  EDISPER =        -8.4119
+ ------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+   5.  TIMINGS
+--------------------------------------------------------------------------------
+
+| Total time                     0.05
+| Read prm/crd time              0.00
+| Force time                     0.05
+| Nonbond force                  0.05
+| PB Nonbond                     0.05
+| PB FD grid                     0.00
+| PB Sasa                        0.00
+| PB FD force                    0.05
+| PB Set linear sys              0.02
+| PB Solver                      0.03
+| NP Nonbond                     0.00
+| NP Sasa                        0.00
+| PB SA srf                      0.00
+| PB SA arc                      0.00
+| PB exclude                     0.00
+| PB exmol                       0.02
+| PB exmol setup                 0.00
+| PB exmol part a                0.00
+| PB exmol part b                0.00
+| PB exmol part e                0.00
+| PB exmol part f                0.01
+| PB epsmap                      0.00
+|           Job began  at 16:44:46.249  on 03/01/2012
+|           Setup done at 16:44:46.251  on 03/01/2012
+|           Run   done at 16:44:46.300  on 03/01/2012
+|     wallclock() was called     100 times

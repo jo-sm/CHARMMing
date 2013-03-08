@@ -1,0 +1,21 @@
+#! /bin/csh -f
+
+echo " "
+echo "ptraj: calculate S^2 parameters and relaxation rates via IRED matrix"
+
+if( ! $?TESTptraj ) set TESTptraj = "../../bin/ptraj"
+
+$TESTptraj 1IEE_A_prot.prmtop ptraj_ired_step1.in >&  ptraj_ired_step1.out || goto error
+$TESTptraj 1IEE_A_prot.prmtop ptraj_ired_step2.in >&  ptraj_ired_step2.out || goto error
+
+../dacdif -r 1.e-5 orderparam.save orderparam
+../dacdif -r 1.e-5 noe.save noe
+
+/bin/rm -f ptraj_ired_step1.out ptraj_ired_step2.out ired.vec v0.cjt v0.cmt
+
+exit(0)
+
+error:
+echo "  ${0}:  Program error"
+echo " "
+exit(1)

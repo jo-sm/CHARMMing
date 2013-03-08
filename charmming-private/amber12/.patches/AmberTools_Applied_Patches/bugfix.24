@@ -1,0 +1,122 @@
+*******>bugfix.24
+
+Date: Sep. 3, 2012
+
+Author: Jason Swails
+
+Program: MMPBSA.py
+
+Description: This patch prints error messages emitted by PBSA that were
+             previously hidden. This should reveal problems, and make
+             debugging MMPBSA.py failures with PBSA much easier.
+
+--------------------------------------------------------------------------------
+
+ .../src/mmpbsa_py/MMPBSA_mods/calculation.py       | 64 ++++++++++++++++++++--
+ 1 file changed, 58 insertions(+), 6 deletions(-)
+
+diff --git AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py
+index dd010e7..b0d379d 100644
+--- AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py
++++ AmberTools/src/mmpbsa_py/MMPBSA_mods/calculation.py
+@@ -166,12 +166,12 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+ 
+       print '  calculating complex contribution...'
+ 
+-      calc = EnergyCalculation(progs['pb'], parmsystem.complex_prmtop,
++      calc = PBEnergyCalculation(progs['pb'], parmsystem.complex_prmtop,
+                    incrd, '%scomplex.%s.%d' % (prefix, trj_sfx, rank), mdin, 
+                    '%scomplex_pb.mdout.%d' % (prefix, rank), 
+                    '_MMPBSA_restrt.%d' % rank)
+       calc.Setup()
+-      calc.Run(stdout=os.devnull)
++      calc.Run()
+ 
+       if not stability:
+          if mutant and FILES.receptor_prmtop == FILES.mutant_receptor_prmtop:
+@@ -188,12 +188,12 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+             if 'mmpbsa_py_energy' in progs['pb']: incrd = '%sreceptor.pdb' % prefix
+             else: incrd = '%sdummyreceptor.inpcrd' % prefix
+    
+-            calc = EnergyCalculation(progs['pb'], parmsystem.receptor_prmtop,
++            calc = PBEnergyCalculation(progs['pb'], parmsystem.receptor_prmtop,
+                      incrd, '%sreceptor.%s.%d' % (prefix, trj_sfx, rank), mdin,
+                      '%sreceptor_pb.mdout.%d' % (prefix, rank),
+                      '_MMPBSA_restrt.%d' % rank)
+             calc.Setup()
+-            calc.Run(stdout=os.devnull)
++            calc.Run()
+ 
+          if mutant and FILES.ligand_prmtop == FILES.mutant_ligand_prmtop:
+             print '  no mutation found in ligand -- using unmutated files'
+@@ -207,12 +207,12 @@ def run_calculations(FILES, INPUT, rank, MMPBSA_Timer, extern_progs, prefix,
+             if 'mmpbsa_py_energy' in progs['pb']: incrd = '%sligand.pdb' % prefix
+             else: incrd = '%sdummyligand.inpcrd' % prefix
+    
+-            calc = EnergyCalculation(progs['pb'], parmsystem.ligand_prmtop,
++            calc = PBEnergyCalculation(progs['pb'], parmsystem.ligand_prmtop,
+                      incrd, '%sligand.%s.%d' % (prefix, trj_sfx, rank), mdin,
+                      '%sligand_pb.mdout.%d' % (prefix, rank),
+                      '_MMPBSA_restrt.%d' % rank)
+             calc.Setup()
+-            calc.Run(stdout=os.devnull)
++            calc.Run()
+ 
+       MMPBSA_Timer.StopTimer('pb')
+ 
+@@ -605,3 +605,55 @@ class QuasiHarmCalc(Calculation):
+       Calculation.Run(self, stdout=self.output)
+ 
+ #+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++
++class PBEnergyCalculation(EnergyCalculation):
++   """
++   Specially handle the PB calculations to extract warnings and errors PBSA
++   prints to stdout and redirect them to the user
++   """
++   def Run(self, stderr=sys.stderr):
++      """ Runs the program. All command-line arguments must be set before 
++          calling this method. Command-line arguments should be set in Setup()
++      """
++      import re
++      from subprocess import Popen, PIPE
++
++      # If this has not been set up yet
++      # then raise a stink
++      if not self.calc_setup:
++         raise CalcError('Cannot run a calculation without calling its' +
++                        ' its Setup() function!') 
++
++      errorre = re.compile('(pb (?:bomb)|(?:warning))', re.I)
++      # Here, make sure that we could pass a file *OR* a string as stderr.
++      if type(stderr).__name__ == 'str':
++         stderr_is_string = True
++         process_stderr = open(stderr, 'w', 0)
++      else:
++         stderr_is_string = False
++         process_stderr = stderr
++
++      # The Setup() method sets the command-line arguments and makes sure that
++      # all of the CL arguments are set. Now all we have to do is start the 
++      # process and monitor it for success.
++
++      # Popen can only take strings as command-line arguments, so convert 
++      # everything to a string here
++      for i in range(len(self.command_args)):
++         self.command_args[i] = str(self.command_args[i])
++
++      process = Popen(self.command_args, stdin=None, stdout=PIPE,
++                      stderr=process_stderr)
++
++      out, err = process.communicate('')
++      calc_failed = bool(process.wait())
++
++      if stderr_is_string: process_stderr.close()
++
++      if calc_failed:
++         error_list = [s.strip() for s in out.split('\n') 
++                                       if errorre.match(s.strip())]
++         raise CalcError('%s failed with prmtop %s!\n\t' % (self.program,
++                         self.prmtop) + '\n\t'.join(error_list) + '\n')
++
++#+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+

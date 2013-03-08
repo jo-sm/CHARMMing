@@ -1,0 +1,4 @@
+molecule m;
+
+m = getpdb( "gbrna.pdb" );
+putcif( "gbrna.cif", "1DAC", m );

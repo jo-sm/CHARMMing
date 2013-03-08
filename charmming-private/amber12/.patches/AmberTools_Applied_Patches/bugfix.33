@@ -1,0 +1,45 @@
+********>Bugfix 33:
+Author: Jason Swails
+
+Date: 11 January 2013
+
+Program: MMPBSA.py
+
+Description: Expands the list of recognized QM theories in MMPBSA.py's
+             QM/MMGBSA. It now recognizes all tokens that sqm recognizes.
+
+-----------------------------------------------------------------------------
+ AmberTools/src/mmpbsa_py/MMPBSA_mods/utils.py |   20 ++++++++++++++++----
+ 1 files changed, 16 insertions(+), 4 deletions(-)
+
+diff --git AmberTools/src/mmpbsa_py/MMPBSA_mods/utils.py AmberTools/src/mmpbsa_py/MMPBSA_mods/utils.py
+index ef5de55..fb713a3 100644
+--- AmberTools/src/mmpbsa_py/MMPBSA_mods/utils.py
++++ AmberTools/src/mmpbsa_py/MMPBSA_mods/utils.py
+@@ -164,10 +164,22 @@ def CheckIncomp(INPUT, stability):
+       raise InputError('USE_SANDER must be set to 0 or 1!')
+    if not INPUT['ifqnt'] in [0,1]: raise InputError('QMMM must be 0 or 1!')
+    if INPUT['ifqnt'] == 1:
+-      if not INPUT['qm_theory'] in ['PM3','AM1','MNDO','PDDG-PM3','PM3PDDG',
+-                                    'PDDG-MNDO','PDDGMNDO','PM3-CARB1',
+-                                    'PM3CARB1','DFTB','SCC-DFTB','RM1','PM6',
+-                                    'PM3-ZnB','PM3-MAIS']:
++      if not INPUT['qm_theory'] in ['PM3', 'AM1', 'AM1_D*', 'AM1-D*', 'AM1_DH+',
++                                    'AM1-DH+', 'AM1D', 'AM1_D', 'AM1/D', 'MNDO',
++                                    'MNDOD', 'MNDO_D', 'MNDO/D', 'PM3-PDDG',
++                                    'PM3PDDG', 'PM3_PDDG', 'PDDG-PM3',
++                                    'PDDGPM3', 'PDDG_PM3', 'MNDO-PDDG',
++                                    'MNDOPDDG', 'MNDO_PDDG', 'PDDG-MNDO',
++                                    'PDDGMNDO', 'PM3-CARB1', 'PM3CARB1',
++                                    'PM3_CARB1', 'PM3ZNB', 'PM3-ZNB', 'PM3_ZNB',
++                                    'PM3/ZNB', 'ZNB', 'DFTB', 'SCCDFTB',
++                                    'SCC-DFTB', 'SCC_DFTB', 'RM1', 'PM3-PDDG08',
++                                    'PM3PDDG08', 'PM3_PDDG08', 'PDDG-PM308',
++                                    'PDDGPM308', 'PDDG_PM308', 'PM3-PDDG-08',
++                                    'PDDGPM3_08', 'PDDG_PM3_08', 'PM3-PDDG_08',
++                                    'PM6', 'PM6_D', 'PM6-D', 'PM6_DH+',
++                                    'PM6-DH+', 'PM3-MAIS', 'PM3MAIS',
++                                    'PM3_MAIS', 'MAIS']:
+          raise InputError('Invalid QM_THEORY (%s)! ' % INPUT['qm_theory'] +
+                       'This variable must be set to allowable options.\n' +
+                       '       See the AmberTools manual for allowable options.')

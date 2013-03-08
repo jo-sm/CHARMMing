@@ -1,0 +1,93 @@
+********>Bugfix 10:
+Authors: Jason Swails
+Date: June 23, 2012
+Program: cpptraj
+
+Description: Correct how cpptraj handles DCD box information so that imaging is
+             performed correctly.  Also solves a possible situation in which
+             cpptraj hangs indefinitely when trying to image a DCD file with an
+             orthorhombic box.
+
+-----------------------------------------------------------------------------
+
+ AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp |   50 +++++++++++++++++++++++-
+ 1 files changed, 47 insertions(+), 3 deletions(-)
+
+diff --git AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
+index 9b57fa8..8563938 100644
+--- AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
++++ AmberTools/src/cpptraj/src/Traj_CharmmDcd.cpp
+@@ -1,6 +1,8 @@
+ // CharmmDcd
+ #include "Traj_CharmmDcd.h"
++#include "Constants.h"
+ #include "CpptrajStdio.h"
++#include <cmath>
+ #include <cstddef>
+ #include <cstring>
+ 
+@@ -384,10 +386,44 @@ int CharmmDcd::readDcdHeader() {
+ int CharmmDcd::readFrame(int set,double *X, double *V,double *box, double *T) {
+   // Load box info
+   if (hasBox) {
++    double *boxtmp = new double[6];
+     if ( ReadBlock(48) < 0) return 1;
+-    tfile->IO->Read(box, sizeof(double), 6);
+-    if (isBigEndian) endian_swap8(box,6);
++    tfile->IO->Read(boxtmp, 6*sizeof(double), 1);
++    if (isBigEndian) endian_swap8(boxtmp,6);
+     if ( ReadBlock(-1) < 0) return 1;
++    // For some reason, the box sides/angles are scrambled and must be converted
++    box[0] = boxtmp[0];
++    box[1] = boxtmp[2];
++    box[2] = boxtmp[5];
++    
++    /* Some versions of NAMD write the angles in degrees, other times it is
++       set in angle cosines (presumably to make some maths easier when imaging
++       inside CHARMM/NAMD). If we are in angle-cosines, take the acos.  For
++       numerical stability, we will special-case 90 degree angles.  We can tell
++       if we are in angle-cosine measurements if all box values are bounded
++       between -1 and 1
++     */
++    if ( boxtmp[4] >= -1.0 && boxtmp[4] <= 1.0 &&
++         boxtmp[3] >= -1.0 && boxtmp[3] <= 1.0 &&
++         boxtmp[1] >= -1.0 && boxtmp[1] <= 1.0  ) {
++      if (boxtmp[4] == 0) 
++        box[3] = 90.0;
++      else 
++        box[3] = acos(boxtmp[4]) * 180.0 / PI;
++      if (boxtmp[3] == 0) 
++        box[4] = 90.0;
++      else 
++        box[4] = acos(boxtmp[3]) * 180.0 / PI;
++      if (boxtmp[1] == 0) 
++        box[5] = 90.0;
++      else 
++        box[5] = acos(boxtmp[1]) * 180.0 / PI;
++   }else {
++      // We are already in degrees
++      box[3] = boxtmp[4];
++      box[4] = boxtmp[3];
++      box[5] = boxtmp[1];
++    }
+   } 
+   // Read X coordinates
+   ReadBlock(-1);
+@@ -532,8 +568,16 @@ int CharmmDcd::writeDcdHeader() {
+ int CharmmDcd::writeFrame(int set, double *X, double *V,double *box, double T) {
+   // Box coords - 6 doubles, 48 bytes
+   if (hasBox) {
++    // We need to convert the box back into CHARMM format
++    double *boxtmp = new double[6];
++    boxtmp[0] = box[0];
++    boxtmp[1] = cos(box[5] * PI / 180.0);
++    boxtmp[2] = box[1];
++    boxtmp[3] = cos(box[4] * PI / 180.0);
++    boxtmp[4] = cos(box[3] * PI / 180.0);
++    boxtmp[5] = box[2];
+     WriteBlock(48);
+-    tfile->IO->Write(box, sizeof(double), 6);
++    tfile->IO->Write(boxtmp, sizeof(double), 6);
+     WriteBlock(48);
+   }
+ 

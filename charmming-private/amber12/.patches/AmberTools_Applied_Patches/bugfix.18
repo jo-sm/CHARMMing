@@ -1,0 +1,57 @@
+********>Bugfix 18:
+Author: Daniel R. Roe
+Date: 31 July 2012
+Program: Cpptraj
+
+Description: Fix potential segfault in autoimage when preceded by a strip 
+             command that removes all solvent. Also add the charmm keyword 
+             back to trajout.
+
+-----------------------------------------------------------------------------
+ AmberTools/src/cpptraj/src/Action_AutoImage.cpp |    6 ++++--
+ AmberTools/src/cpptraj/src/TrajectoryFile.cpp   |    1 +
+ AmberTools/src/cpptraj/src/main.cpp             |    2 +-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git AmberTools/src/cpptraj/src/Action_AutoImage.cpp AmberTools/src/cpptraj/src/Action_AutoImage.cpp
+index 0260143..ca61dc6 100644
+--- AmberTools/src/cpptraj/src/Action_AutoImage.cpp
++++ AmberTools/src/cpptraj/src/Action_AutoImage.cpp
+@@ -155,8 +155,10 @@ int Action_AutoImage::setup() {
+       if (molnum != anchormolnum) { 
+         // Solvent and 1 atom molecules (prob. ions) go in mobile list,
+         // everything else into fixed list.
+-        if ( currentParm->solventMask[firstAtom] == 'T' || 
+-             (lastAtom - firstAtom) == 1 ) 
++        bool isSolventMol = false;
++        if ( currentParm->solventMask != NULL && currentParm->solventMask[firstAtom] == 'T' )
++          isSolventMol = true;
++        if ( isSolventMol || (lastAtom - firstAtom) == 1 ) 
+         {
+           if (mobileauto) {
+             mobileList_.push_back( firstAtom );
+diff --git AmberTools/src/cpptraj/src/TrajectoryFile.cpp AmberTools/src/cpptraj/src/TrajectoryFile.cpp
+index e51b442..1fb8d14 100644
+--- AmberTools/src/cpptraj/src/TrajectoryFile.cpp
++++ AmberTools/src/cpptraj/src/TrajectoryFile.cpp
+@@ -635,6 +635,7 @@ FileFormat TrajectoryFile::getFmtFromArg(ArgList *argIn, FileFormat def) {
+   else if ( argIn->hasKey("restartnc")) writeFormat=AMBERRESTARTNC;
+   else if ( argIn->hasKey("mol2")     ) writeFormat=MOL2FILE;
+   else if ( argIn->hasKey("dcd")      ) writeFormat=CHARMMDCD;
++  else if ( argIn->hasKey("charmm")   ) writeFormat=CHARMMDCD;
+   return writeFormat;
+ }
+ 
+diff --git AmberTools/src/cpptraj/src/main.cpp AmberTools/src/cpptraj/src/main.cpp
+index 3b889ae..297212d 100644
+--- AmberTools/src/cpptraj/src/main.cpp
++++ AmberTools/src/cpptraj/src/main.cpp
+@@ -9,7 +9,7 @@
+ #include <cstdio>
+ #include <cstdlib> // atoi
+ #ifndef CPPTRAJ_VERSION_STRING
+-#define CPPTRAJ_VERSION_STRING "V12.2"
++#define CPPTRAJ_VERSION_STRING "V12.3"
+ #define CPPTRAJ_INTERNAL_VERSION "V2.4.7b"
+ #endif
+ 

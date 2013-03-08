@@ -1,0 +1,10 @@
+prefix=/home/tim/amber12
+exec_prefix=${prefix}
+libdir=/home/tim/amber12/lib
+includedir=${prefix}/include
+
+Name: FFTW
+Description: fast Fourier transform library
+Version: 3.3
+Libs: -L${libdir} -lfftw3  -lm
+Cflags: -I${includedir}

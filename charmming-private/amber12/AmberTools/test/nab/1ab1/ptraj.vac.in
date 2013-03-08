@@ -1,0 +1,5 @@
+trajin prmcrd.x
+trajin min1.vac.x
+trajin min2.vac.x
+rms first out rms_vs_xray @CA
+go

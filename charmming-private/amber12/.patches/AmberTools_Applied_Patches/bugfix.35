@@ -1,0 +1,189 @@
+********>Bugfix 35:
+Author: Andreas W Goetz
+Date: 10 February 2013
+
+Program: SQMLIB
+
+Description: fix QM/MM Ewald for charged systems
+    - adds self-plasma term for charged systems
+    - improves default values for k space vectors
+    - note: affects bugfix.15 for AMBER
+
+-----------------------------------------------------------------------------
+ AmberTools/src/sqm/qm2_energy.F90            |   32 +++++++++++++-------------
+ AmberTools/src/sqm/qm2_read_nm_and_alloc.F90 |   10 +++++---
+ AmberTools/src/sqm/qmmm_module.F90           |    5 +++-
+ AmberTools/src/sqm/qmmm_nml_module.F90       |    4 +++
+ AmberTools/src/sqm/qmmm_struct_module.F90    |    3 ++
+ 5 files changed, 33 insertions(+), 21 deletions(-)
+
+diff --git AmberTools/src/sqm/qm2_energy.F90 AmberTools/src/sqm/qm2_energy.F90
+index 829fc7b..96d5caa 100644
+--- AmberTools/src/sqm/qm2_energy.F90
++++ AmberTools/src/sqm/qm2_energy.F90
+@@ -55,7 +55,7 @@ subroutine qm2_energy(escf,scf_mchg,natom,born_radii, one_born_radii, coords, sc
+       !Parallel
+       call qm_ewald_mm_pot(qmmm_struct%qm_xcrd, qmmm_struct%qm_mm_pairs, qmmm_struct%qm_coords, natom, &
+             qmmm_nml%qmmmrij_incore, qm2_rij_eqns%qmmmrijdata, &
+-            scaled_mm_charges,qmewald%kvec)
++            scaled_mm_charges, qmewald%kvec)
+ #ifdef MPI
+       if (qmmm_nml%qmtheory%DFTB) then
+         !At present only the master thread does DFTB calculations so if we are doing DFTB
+@@ -276,6 +276,21 @@ subroutine qm2_energy(escf,scf_mchg,natom,born_radii, one_born_radii, coords, sc
+       !==========================
+       ! End calculate SCF Energy
+       !==========================
++
++#ifndef SQM
++      if (qmmm_nml%qm_ewald>0) then
++
++         !We need to calculate the periodic interaction of QM core charges with MM Ewald potential
++         call timer_start(TIME_QMMMENERGYHCOREQMMM)
++         !In parallel all threads do 1->nquant in ewald core but have partial mmpot and qmpot arrays
++         !so return partial ewald_core energies. Gets reduced later in main sander.
++         call qm_ewald_core(qmewald%ewald_core,qm2_params%core_chg, qmewald%mmpot, qmewald%qmpot, scf_mchg, qmewald%coulpot)
++         !Need to adjust the SCF and enuclr_qmmm energies by the value qm_ewald_core returns.
++         qmmm_struct%enuclr_qmmm = qmmm_struct%enuclr_qmmm+qmewald%ewald_core
++         call timer_stop(TIME_QMMMENERGYHCOREQMMM)
++      end if
++#endif
++
+       !Add the nuclear-nuclear energy into the scf energy
+       escf = escf + (qmmm_struct%enuclr_qmqm+qmmm_struct%enuclr_qmmm)*EV_TO_KCAL
+       if (qmmm_opnq%useOPNQ) then
+@@ -299,21 +314,6 @@ subroutine qm2_energy(escf,scf_mchg,natom,born_radii, one_born_radii, coords, sc
+ 
+       call timer_stop(TIME_QMMMENERGYSCF)
+ 
+-#ifndef SQM
+-      if (qmmm_nml%qm_ewald>0) then
+-
+-         !We need to calculate the periodic interaction of QM core charges with MM Ewald potential
+-         call timer_start(TIME_QMMMENERGYHCOREQMMM)
+-         !In parallel all threads do 1->nquant in ewald core but have partial mmpot and qmpot arrays
+-         !so return partial ewald_core energies. Gets reduced later in main sander.
+-         call qm_ewald_core(qmewald%ewald_core,qm2_params%core_chg, qmewald%mmpot, qmewald%qmpot)
+-         !Need to adjust the SCF and enuclr_qmmm energies by the value qm_ewald_core returns.
+-         qmmm_struct%enuclr_qmmm = qmmm_struct%enuclr_qmmm+qmewald%ewald_core
+-         escf = escf + qmewald%ewald_core*EV_TO_KCAL
+-         call timer_stop(TIME_QMMMENERGYHCOREQMMM)
+-      end if
+-#endif
+-
+       if (qmmm_nml%peptide_corr) then  !Apply MM correction to peptide linkages
+          !Not available for DFTB
+          if (qmmm_nml%qmtheory%PM3 .OR. qmmm_nml%qmtheory%PDDGPM3 .OR. qmmm_nml%qmtheory%PM3CARB1 &
+diff --git AmberTools/src/sqm/qm2_read_nm_and_alloc.F90 AmberTools/src/sqm/qm2_read_nm_and_alloc.F90
+index 6b9de9f..005579d 100644
+--- AmberTools/src/sqm/qm2_read_nm_and_alloc.F90
++++ AmberTools/src/sqm/qm2_read_nm_and_alloc.F90
+@@ -116,6 +116,7 @@ parameter ( max_quantum_atoms = 10000 )
+                                 !1 (default) use PME to do the reciprocal sum.
+    integer :: kmaxqx, kmaxqy, kmaxqz !Maximum K space vectors
+    integer :: ksqmaxq !Maximum K squared values for spherical cutoff in k space.
++   _REAL_ :: kappa  ! the ewald coefficient for QM region ewald calculations
+    integer :: writepdb
+    integer :: qmmm_int !QM-MM interaction method
+    integer :: adjust_q
+@@ -178,7 +179,7 @@ parameter ( max_quantum_atoms = 10000 )
+                    qmqm_erep_incore, qmmmrij_incore, &
+                    lnk_dis, lnk_atomic_no, lnk_method, spin, pseudo_diag,   &
+                    pseudo_diag_criteria, &
+-                   qm_ewald, qm_pme, kmaxqx, kmaxqy, kmaxqz, ksqmaxq, &
++                   qm_ewald, qm_pme, kmaxqx, kmaxqy, kmaxqz, ksqmaxq, kappa, &
+                    writepdb, qmmm_int, adjust_q, diag_routine, &
+                    density_predict, fock_predict, &
+                    fockp_d1, fockp_d2, fockp_d3, fockp_d4, idc, divpb, &
+@@ -250,8 +251,9 @@ parameter ( max_quantum_atoms = 10000 )
+    pseudo_diag_criteria = 0.05d0
+    qm_ewald=1 !Default is to do QMEwald, with varying charges, if ntb=0 or use_pme=0 then this will get turned off
+    qm_pme = 1 !use pme for QM-MM
+-   kmaxqx=5; kmaxqy=5; kmaxqz=5    !Maximum K space vectors
+-   ksqmaxq=27 !Maximum K squared values for spherical cutoff in k space.
++   kmaxqx=8; kmaxqy=8; kmaxqz=8    !Maximum K space vectors
++   kappa=-1.0
++   ksqmaxq=100 !Maximum K squared values for spherical cutoff in k space.
+    writepdb = 0 !Set to 1 to write a pdb on the first step with just the QM region in it.
+    qmmm_int = 1 !Default, do full interaction without extra Gaussian terms for PM3 / AM1 etc.
+    adjust_q = 2 !Default adjust q over all atoms.
+@@ -654,6 +656,7 @@ parameter ( max_quantum_atoms = 10000 )
+    qmmm_nml%kmaxqx = kmaxqx
+    qmmm_nml%kmaxqy = kmaxqy
+    qmmm_nml%kmaxqz = kmaxqz
++   qmmm_nml%kappa = kappa
+    !If ntb=0 or use_pme =0 then we can't do qm_ewald so overide what the user may
+    !have put in the namelist and set the value to false.
+    if (ntb==0 .or. use_pme==0) then
+@@ -928,4 +931,3 @@ parameter ( max_quantum_atoms = 10000 )
+ 
+ end subroutine read_qmmm_nm_and_alloc
+ !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-
+diff --git AmberTools/src/sqm/qmmm_module.F90 AmberTools/src/sqm/qmmm_module.F90
+index 976da6a..2ff0733 100644
+--- AmberTools/src/sqm/qmmm_module.F90
++++ AmberTools/src/sqm/qmmm_module.F90
+@@ -198,10 +198,12 @@ module qmmm_module
+      _REAL_, dimension(:,:,:), pointer :: qmktable !As Ktable but stores the qmatom copies in a linear 1->nquant fashion.
+      _REAL_, dimension(:), pointer :: mmpot !Nquant long, stores the potential at each QM atom due to the MM field.
+      _REAL_, dimension(:), pointer :: qmpot  !Nquant long, stores the self energy of the QM atoms to avoid double counting
++     _REAL_, dimension(:), pointer :: coulpot  !Nquant long, stores the coulombic potential at each QM atom due to MM atoms.
+      _REAL_, dimension(:,:), pointer :: d_ewald_mm !3,natom long stores gradients on MM atoms due to QM-MM Ewald field.
+                                                    !Reciprocal forces.
+      _REAL_ :: ewald_core !Ewald Potential with QM CORE charges - energy in eV.
+      _REAL_ :: mm_recip_e !Reciprocal energy from MM atoms - qm_pme.
++     _REAL_ :: kappa ! the EWald coefficient--it should be different from the one sander uses-- by TL
+      integer :: totkq  !Total number of kspace vectors
+      integer :: natom  !Same as sander's natom, copied here by qm_mm for convenience.
+      logical :: ewald_startup !True if this is the very first MD step and we are doing qmewald.
+@@ -657,6 +659,8 @@ contains
+        REQUIRE(ier == 0)
+        deallocate ( qmewald%qmpot, stat = ier )
+        REQUIRE(ier == 0)
++       deallocate ( qmewald%coulpot, stat = ier )
++       REQUIRE(ier == 0)       
+     end if
+ 
+     !Deallocate QM-GB arrays - only used with qmgb=2.
+@@ -1194,4 +1198,3 @@ contains
+   
+   !END SUBROUTINES
+ end module qmmm_module
+-
+diff --git AmberTools/src/sqm/qmmm_nml_module.F90 AmberTools/src/sqm/qmmm_nml_module.F90
+index 7d37258..6e8d436 100644
+--- AmberTools/src/sqm/qmmm_nml_module.F90
++++ AmberTools/src/sqm/qmmm_nml_module.F90
+@@ -129,6 +129,9 @@ module qmmm_nml_module
+      ! Used for qmewald - Maximum K squared values for spherical cutoff in k space.
+      integer :: ksqmaxq
+ 
++     ! Used for qmewald - Kappa                    
++     _REAL_ :: kappa
++
+      ! Flag for doing an ewald sum for periodic QM-QM interactions - default = 1
+      integer :: qm_ewald
+ 
+@@ -397,6 +400,7 @@ end subroutine delete_qmmm_nml_type
+      call mpi_bcast(self%kmaxqy,               1, mpi_integer,          0, commsander, ier) 
+      call mpi_bcast(self%kmaxqz,               1, mpi_integer,          0, commsander, ier) 
+      call mpi_bcast(self%ksqmaxq,              1, mpi_integer,          0, commsander, ier) 
++     call mpi_bcast(self%kappa,                1, MPI_DOUBLE_PRECISION, 0, commsander, ier) 
+      call mpi_bcast(self%qmmm_int,             1, mpi_integer,          0, commsander, ier) 
+      call mpi_bcast(self%qmqm_analyt,          1, mpi_logical,          0, commsander, ier)
+      call mpi_bcast(self%tight_p_conv,         1, mpi_logical,          0, commsander, ier) 
+diff --git AmberTools/src/sqm/qmmm_struct_module.F90 AmberTools/src/sqm/qmmm_struct_module.F90
+index d6fccc0..91e4c77 100644
+--- AmberTools/src/sqm/qmmm_struct_module.F90
++++ AmberTools/src/sqm/qmmm_struct_module.F90
+@@ -49,6 +49,9 @@ module qmmm_struct_module
+ 
+      ! Electronic energy (in eV)
+      _REAL_ :: elec_eng
++     
++     ! Direct QM/MM electrostatic energy (in eV)
++     _REAL_ :: coulombic_eng
+ 
+      ! Dispersion and hydrogen bonding correction energies
+      ! as computed in dh_correction_module (kcal/mol)

@@ -1,0 +1,96 @@
+********>Bugfix 32:
+Author: Jason Swails
+
+Date: 3 January 2013
+
+Program: MMPBSA.py
+
+Description: Fixes three small issues with MMPBSA.py:
+               
+               - Updates APBS defaults for the latest version of iAPBS
+               - Fixes issue where 'inp' is not properly set for PB calculations
+                 using sander (mmpbsa_py_energy worked correctly).
+               - Fixes error message when incompatible topology files are used
+                 for alanine scanning calculations
+
+-----------------------------------------------------------------------------
+ AmberTools/src/mmpbsa_py/MMPBSA_mods/alamdcrd.py   |    8 ++++----
+ AmberTools/src/mmpbsa_py/MMPBSA_mods/cntrl.py      |    2 +-
+ .../src/mmpbsa_py/MMPBSA_mods/createinput.py       |    2 +-
+ AmberTools/src/mmpbsa_py/MMPBSA_mods/pb.py         |    7 ++++---
+ 4 files changed, 10 insertions(+), 9 deletions(-)
+
+diff --git AmberTools/src/mmpbsa_py/MMPBSA_mods/alamdcrd.py AmberTools/src/mmpbsa_py/MMPBSA_mods/alamdcrd.py
+index 8fd6840..2ebf261 100644
+--- AmberTools/src/mmpbsa_py/MMPBSA_mods/alamdcrd.py
++++ AmberTools/src/mmpbsa_py/MMPBSA_mods/alamdcrd.py
+@@ -194,7 +194,7 @@ class MutantMdcrd(object):
+       if len(origres) != len(newres):
+          raise MutateError(('Mutant prmtop (%s) has a different number of ' +
+                             'residues than the original (%s)!') %
+-                            (self.new_prm.name, self.orig_prm.name))
++                            (self.new_prm.prm_name, self.orig_prm.prm_name))
+ 
+       for i in range(len(origres)):
+          if origres[i] != newres[i]:
+@@ -206,11 +206,11 @@ class MutantMdcrd(object):
+ 
+       if diffs == 0:
+          raise MutateError(('Your mutant prmtop (%s) has the same sequence ' +
+-                            'as the original!') % (self.new_prm.name, 
+-                                                   self.orig_prm.name))
++                            'as the original!') % (self.new_prm.prm_name,
++                                                   self.orig_prm.prm_name))
+       elif diffs > 1:
+          raise MutateError('Your mutant prmtop (%s) can only have one mutation!'
+-                           % self.new_prm.name)
++                           % self.new_prm.prm_name)
+ 
+       return mutres
+ 
+diff --git AmberTools/src/mmpbsa_py/MMPBSA_mods/cntrl.py AmberTools/src/mmpbsa_py/MMPBSA_mods/cntrl.py
+index fb58443..bf3ab90 100644
+--- AmberTools/src/mmpbsa_py/MMPBSA_mods/cntrl.py
++++ AmberTools/src/mmpbsa_py/MMPBSA_mods/cntrl.py
+@@ -69,7 +69,7 @@ class cntrl:
+               'icnstph' : 0, 'solvph' : 7.0, 'ntcnstph' : 10, 'ifqnt' : 0, 
+               'ievb' : 0, 'ipimd' : 0, 'itimass' : 0, 'ineb' : 0,
+               'profile_mpi' : 0, 'ilscivr' : 0, 'icorf_lsc' : 0, 'ipb' : 0, 
+-              'inp' : 1, 'gbneckscale' : -999999.0, 'gbalphah' : 0.788440, 
++              'inp' : 2, 'gbneckscale' : -999999.0, 'gbalphah' : 0.788440, 
+               'gbbetah' : 0.798699, 'gbgammah' : 0.437334,  
+               'gbalphac' : 0.733756, 'gbbetac' : 0.506378, 
+               'gbgammac' : 0.205844, 'gbalphan' : 0.503364, 
+diff --git AmberTools/src/mmpbsa_py/MMPBSA_mods/createinput.py AmberTools/src/mmpbsa_py/MMPBSA_mods/createinput.py
+index 225bd65..1ccae9b 100644
+--- AmberTools/src/mmpbsa_py/MMPBSA_mods/createinput.py
++++ AmberTools/src/mmpbsa_py/MMPBSA_mods/createinput.py
+@@ -348,7 +348,7 @@ class SanderAPBSInput(SanderInput):
+    input_items = {'ntb':0, 'cut':999.0, 'nsnb':99999,
+                   'imin':5, 'maxcyc':1, 'igb':6,
+                   'apbs_print':1, 'calc_type':0, 'cmeth':1,
+-                  'bcfl':2, 'srfm':1, 'chgm':1, 'pdie':1.0,
++                  'bcfl':2, 'srfm':2, 'chgm':1, 'pdie':1.0,
+                   'sdie':80.0, 'srad':1.4, 'nion':2, 'ionq':'1.0,-1.0',
+                   'ionc':'0.0,0.0', 'ionrr':'2.0,2.0', 'radiopt':0,
+                   'calcforce':0, 'calcnpenergy':1, 'grid':'0.5,0.5,0.5',
+diff --git AmberTools/src/mmpbsa_py/MMPBSA_mods/pb.py AmberTools/src/mmpbsa_py/MMPBSA_mods/pb.py
+index 652405d..d613181 100644
+--- AmberTools/src/mmpbsa_py/MMPBSA_mods/pb.py
++++ AmberTools/src/mmpbsa_py/MMPBSA_mods/pb.py
+@@ -55,11 +55,12 @@ class pb:
+                          'calcnpenergy' : 1, 'cmeth' : 1, 'ccmeth' : 1,
+                          'fcmeth' : 1, 'ionq' : 'NO_DEFAULT',
+                          'ionc' : 'NO_DEFAULT', 'ionrr' : 'NO_DEFAULT',
+-                         'smvolume' : 0, 'smsize' : 0, 'srad' : 1.4,
+-                         'swin' : 0.3, 'calcenergy' : 1, 'calcforce' : 0,
++                         'smvolume' : 10, 'smsize' : 1000.0, 'srad' : 1.4,
++                         'swin' : 0.3, 'calcenergy' : 2, 'calcforce' : 2,
+                          'apbs_debug' : 0, 'sp_apbs' : '.false.',
+                          'apbs_print' : 1, 'wpot' : 0, 'wchg' : 0, 'wsmol' : 0,
+                          'ispara' : 0, 'radiopt' : 0, 'geom_upd_limit' : 0,
+                          'evdw_upd_limit' : 0, 'pqr' : 0, 'dime_updates' : 0,
+                          'wkappa' : 0, 'wdiel' : 0, 'rchg' : 0, 'rkappa' : 0,
+-                         'rdiel' : 0 }
++                         'rdiel' : 0, 'calcnpforce' : 2, 'watompot' : 0,
++                         'rpot' : 0 }

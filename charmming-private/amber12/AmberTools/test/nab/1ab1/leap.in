@@ -1,0 +1,9 @@
+source leaprc.ff94
+loadAmberParams frcmod.mod_phipsi.1
+x = loadpdb 1ab1.H.pdb
+bond x.3.SG x.40.SG
+bond x.4.SG x.32.SG
+bond x.16.SG x.26.SG
+set default PBradii mbondi2
+saveamberparm x prmtop prmcrd
+quit

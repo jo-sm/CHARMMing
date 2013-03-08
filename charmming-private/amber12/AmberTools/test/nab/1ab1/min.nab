@@ -1,0 +1,28 @@
+molecule m;
+float 	x[4000], v[4000];
+float 	fret;
+int 	i, natom, ier; 
+
+m = getpdb(argv[2] + ".pdb");
+readparm( m, "prmtop" );
+for( i=0; i<4000; i++ ) v[i] = 0.0;
+
+mm_options( "cut=999., ntpr=50, nsnb=99999, diel=R, gb=0" );
+mme_init( m, NULL, "::Z", x, NULL);
+
+getxv( argv[2] + ".x", m.natoms, fret, x, v );
+// setxyz_from_mol( m, NULL, x );
+ier = conjgrad(x, 3*m.natoms, fret, mme, 0.00001, 0.5, 200 );
+printf( "conjgrad returns %d\n", ier );
+
+// Write the result as a .pdb file, and as an Amber restart file.
+
+// setmol_from_xyz(m, NULL, x);
+// putpdb(argv[3] + ".vac.pdb", m);
+// putxv (argv[3] + ".vac.x", "crambin gb2", m.natoms, 0.0, x, v);
+
+// get the normal modes:
+
+ier = nmode( x, 3*m.natoms, mme2, 50);
+printf("nmode returns %d\n", ier );
+

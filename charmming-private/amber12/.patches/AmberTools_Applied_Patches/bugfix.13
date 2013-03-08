@@ -1,0 +1,46 @@
+*********>Bugfix 13:
+
+Authors: Jason Swails
+
+Date:   July 2, 2012
+
+Programs: Configure Script
+
+Description: In cases where a bug fix patched the patch_amber.py script directly,
+             configure will not apply every available patch before building. Now,
+             configure will continue to apply patches if given permission until all
+             patches have been applied.
+
+----------------------------------------------------------------------------
+ configure |   18 +++++++++++++-----
+ 1 files changed, 13 insertions(+), 5 deletions(-)
+
+diff --git configure configure
+index 26b06bf..7165b01 100755
+--- configure
++++ configure
+@@ -30,11 +30,19 @@ else
+       read answer
+ 
+       if [ "$answer" = "yes" -o "$answer" = "Yes" -o "$answer" = "YES" -o "$answer" = "y" -o "$answer" = "Y" ]; then
+-         ./patch_amber.py --update-tree
+-         if [ $? -ne 0 ]; then
+-            echo "Automatic patching failed! Check the errors before re-configuring"
+-            exit 1
+-         fi
++         # Since patch_amber may patch itself and quit before applying all patches,
++         # continue to check for updates and update the tree until they have all
++         # been applied.
++         while [ $ret_code -eq 2 ]
++         do
++            ./patch_amber.py --update-tree
++            if [ $? -ne 0 ]; then
++               echo "Automatic patching failed! Check the errors before re-configuring"
++               exit 1
++            fi
++            ./patch_amber.py --check-updates 2>&1 > /dev/null
++            ret_code=$?
++         done
+       else
+          echo "NOT updating your tree and continuing anyway."
+       fi

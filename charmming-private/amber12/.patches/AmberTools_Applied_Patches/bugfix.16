@@ -1,0 +1,1163 @@
+********>Bugfix 16:
+Author: Daniel R. Roe
+Date: 18 July 2012
+Program: Cpptraj
+
+Description: Add new action, autoimage. Performs automatic imaging of a system
+             with little to no additional input from user. 
+
+-----------------------------------------------------------------------------
+ AmberTools/src/cpptraj/src/ActionList.cpp       |    4 +-
+ AmberTools/src/cpptraj/src/Action_AutoImage.cpp |  271 +++++++++++++++++++++
+ AmberTools/src/cpptraj/src/Action_AutoImage.h   |   32 +++
+ AmberTools/src/cpptraj/src/Action_Center.cpp    |    9 +-
+ AmberTools/src/cpptraj/src/Action_Image.cpp     |  298 +++++++----------------
+ AmberTools/src/cpptraj/src/Action_Image.h       |   31 ++-
+ AmberTools/src/cpptraj/src/Frame.cpp            |  219 ++++++++++++++++-
+ AmberTools/src/cpptraj/src/Frame.h              |    8 +-
+ AmberTools/src/cpptraj/src/cpptrajdepend        |    5 +-
+ AmberTools/src/cpptraj/src/cpptrajfiles         |    6 +-
+ AmberTools/src/cpptraj/src/main.cpp             |    2 +-
+ 11 files changed, 639 insertions(+), 246 deletions(-)
+
+diff --git AmberTools/src/cpptraj/src/ActionList.cpp AmberTools/src/cpptraj/src/ActionList.cpp
+index db3a157..f999e7f 100644
+--- AmberTools/src/cpptraj/src/ActionList.cpp
++++ AmberTools/src/cpptraj/src/ActionList.cpp
+@@ -33,6 +33,7 @@
+ #include "Action_Rotdif.h"
+ #include "Action_RunningAvg.h"
+ #include "Action_RmsAvgCorr.h"
++#include "Action_AutoImage.h"
+ 
+ // CONSTRUCTOR
+ ActionList::ActionList() {
+@@ -77,7 +78,7 @@ int ActionList::AddAction(ArgList &argIn) {
+   else if (argIn.CommandIs("secstruct"))      {Act=new DSSP;    }
+   else if (argIn.CommandIs("center"))         {Act=new Center;  }
+   else if (argIn.CommandIs("hbond"))          {Act=new Hbond;   }
+-  else if (argIn.CommandIs("image"))          {Act=new Image;   }
++  else if (argIn.CommandIs("image"))          {Act=new Action_Image;   }
+   else if (argIn.CommandIs("surf"))           {Act=new Surf;    }
+   else if (argIn.CommandIs("radgyr"))         {Act=new Radgyr;  }
+   else if (argIn.CommandIs("mask"))           {Act=new ActionMask;}
+@@ -101,6 +102,7 @@ int ActionList::AddAction(ArgList &argIn) {
+   else if (argIn.CommandIs("runningaverage")) {Act=new RunningAvg;}
+   else if (argIn.CommandIs("runavg"))         {Act=new RunningAvg;}
+   else if (argIn.CommandIs("rmsavgcorr"))     {Act=new RmsAvgCorr;}
++  else if (argIn.CommandIs("autoimage"))      {Act=new Action_AutoImage;}
+   // PTRAJ
+   else if (argIn.CommandIs("atomicfluct") ||
+            argIn.CommandIs("atomicfluct3D") ||
+diff --git AmberTools/src/cpptraj/src/Action_AutoImage.cpp AmberTools/src/cpptraj/src/Action_AutoImage.cpp
+new file mode 100644
+index 0000000..0260143
+--- /dev/null
++++ AmberTools/src/cpptraj/src/Action_AutoImage.cpp
+@@ -0,0 +1,271 @@
++#include "Action_AutoImage.h"
++#include "CpptrajStdio.h"
++#include "DistRoutines.h"
++
++// CONSTRUCTOR
++Action_AutoImage::Action_AutoImage() :
++  origin_(false),
++  ortho_(false),
++  center_(false),
++  truncoct_(false),
++  triclinic_(OFF)
++{}
++
++// Action_AutoImage::init()
++/** Usage: autoimage <mask> | anchor <mask> [fixed <fmask>] [mobile <mmask>]
++  *                  [origin] [familiar | triclinic]
++  */
++int Action_AutoImage::init() {
++  // Get keywords
++  origin_ = actionArgs.hasKey("origin");
++  center_ = actionArgs.hasKey("center");
++  if (actionArgs.hasKey("familiar")) triclinic_ = FAMILIAR;
++  if (actionArgs.hasKey("triclinic")) triclinic_ = FORCE;
++  anchor_ = actionArgs.getKeyString("anchor",NULL);
++  fixed_  = actionArgs.getKeyString("fixed",NULL);
++  mobile_ = actionArgs.getKeyString("mobile",NULL);
++  // Get mask expression for anchor if none yet specified
++  if (anchor_==NULL)  
++    anchor_ = actionArgs.getNextMask();
++
++  mprintf("    AUTOIMAGE: To");
++  if (origin_)
++    mprintf(" origin");
++  else
++    mprintf(" box center");
++  mprintf(" based on");
++  if (center_)
++    mprintf(" center of mass");
++  else
++    mprintf(" first atom position");
++  if (anchor_!=NULL)
++    mprintf(", anchor mask is [%s]\n", anchor_);
++  else
++    mprintf(", anchor is first molecule.\n");
++  if (fixed_!=NULL)
++    mprintf("\tAtoms in mask [%s] will be fixed to anchor region.\n", fixed_);
++  if (mobile_!=NULL)
++    mprintf("\tAtoms in mask [%s] will be imaged independently of anchor region.\n",
++            mobile_);
++
++  return 0;
++}
++
++// Action_AutoImage::SetupAtomRanges()
++/** Based on the given atom mask expression determine what molecules are
++  * selected by the mask.
++  * \return A list of atom pairs that mark the beginning and end of each
++  *         selected molecule.
++  */
++Action_AutoImage::pairList Action_AutoImage::SetupAtomRanges( const char* maskexpr )
++{
++  pairList imageList;
++  AtomMask Mask1;
++  if (Mask1.SetMaskString( (char*)maskexpr )) return imageList;
++
++  if (currentParm->SetupCharMask( Mask1, activeReference )) return imageList;
++  if (Mask1.None()) return imageList;
++
++  int* AtomsPerMol = currentParm->AtomsPerMol_ptr();
++  int firstAtom = 0;
++  int lastAtom = 0;
++  for (int molnum = 0; molnum < currentParm->Nmol(); ++molnum)
++  {
++    firstAtom = lastAtom;
++    lastAtom += AtomsPerMol[ molnum ];
++    // Check that each atom in the range is in Mask1
++    bool rangeIsValid = true;
++    for (int atom = firstAtom; atom < lastAtom; ++atom) {
++      if (!Mask1.AtomInCharMask(atom)) {
++        rangeIsValid = false;
++        break;
++      }
++    }
++    if (rangeIsValid) {
++      imageList.push_back( firstAtom );
++      imageList.push_back( lastAtom );
++    }
++  }
++  mprintf("\tMask [%s] corresponds to %zu molecules\n", Mask1.MaskString(), imageList.size()/2);
++  return imageList;
++}
++
++// Action_AutoImage::setup()
++int Action_AutoImage::setup() {
++  bool fixedauto = false;
++  bool mobileauto = false;
++
++  // Require molecule info
++  int* AtomsPerMol = currentParm->AtomsPerMol_ptr();
++  if (AtomsPerMol == NULL) {
++    mprinterr("Error: AutoImage: No molecule information in %s\n", currentParm->parmName);
++    return 1;
++  }
++  // Determine Box info
++  if (currentParm->boxType==NOBOX) {
++    mprintf("Warning: Image::setup: Parm %s does not contain box information.\n",
++            currentParm->parmName);
++    return 1;
++  }
++  ortho_ = false;
++  if (currentParm->boxType==ORTHO && triclinic_==OFF) ortho_=true;
++  // If box is originally truncated oct and not forcing triclinic, 
++  // turn familiar on.
++  if (AmberIfbox( currentParm->Box[4] )==2 && triclinic_!=FORCE && triclinic_!=FAMILIAR) {
++    mprintf("\tOriginal box is truncated octahedron, turning on 'familiar'.\n");
++    triclinic_=FAMILIAR;
++  }
++
++  // Set up anchor region
++  if (anchor_!=NULL) {
++    anchorList_ = SetupAtomRanges( anchor_ );
++  } else {
++    anchorList_.clear();
++    anchorList_.push_back( 0 );
++    anchorList_.push_back( AtomsPerMol[0] );
++  }
++  if (anchorList_.empty() || anchorList_.size() > 2) {
++    mprinterr("Error: Anchor mask [%s] corresponds to %zu mols, should only be 1.\n",
++              anchor_, anchorList_.size() / 2);
++    return 1;
++  }
++  // Set up mask for centering anchor
++  anchorMask_.AddAtomRange( anchorList_[0], anchorList_[1] );
++  int anchormolnum = currentParm->atomToMolecule( anchorList_[0] );
++  mprintf("\tAnchor molecule is %i\n", anchormolnum+1);
++  // Set up fixed region
++  if (fixed_!=NULL) 
++    fixedList_ = SetupAtomRanges( fixed_ );
++  else 
++    fixedauto = true;
++  // Set up mobile region
++  if (mobile_!=NULL)
++    mobileList_ = SetupAtomRanges( mobile_ );
++  else
++    mobileauto = true;
++  // Automatic search through molecules for fixed/mobile
++  if (fixedauto || mobileauto) {
++    int firstAtom = 0;
++    int lastAtom = 0;
++    for (int molnum = 0; molnum < currentParm->Nmol(); ++molnum)
++    {
++      firstAtom = lastAtom;
++      lastAtom += AtomsPerMol[ molnum ];
++      // Skip the anchor molecule
++      if (molnum != anchormolnum) { 
++        // Solvent and 1 atom molecules (prob. ions) go in mobile list,
++        // everything else into fixed list.
++        if ( currentParm->solventMask[firstAtom] == 'T' || 
++             (lastAtom - firstAtom) == 1 ) 
++        {
++          if (mobileauto) {
++            mobileList_.push_back( firstAtom );
++            mobileList_.push_back( lastAtom  );
++          }
++        } else {
++          if (fixedauto) {
++            fixedList_.push_back( firstAtom );
++            fixedList_.push_back( lastAtom  );
++          }
++        }
++      }
++    }
++  }
++  // DEBUG: Print fixed and mobile lists
++  if (!fixedList_.empty()) {
++    mprintf("\tThe following molecules are fixed to anchor:");
++    for (pairList::iterator atom = fixedList_.begin(); 
++                            atom != fixedList_.end(); atom += 2)
++      mprintf(" %i", currentParm->atomToMolecule( *atom ) + 1 );
++    mprintf("\n");
++  }
++  mprintf("\t%zu molecules are mobile.\n", mobileList_.size() / 2 );
++  //mprintf("\tThe following molecules are mobile:\n");
++  //for (pairList::iterator atom = mobileList_.begin(); 
++  //                        atom != mobileList_.end(); atom += 2)
++  //  mprintf("\t\t%i\n", (*currentParm)[ *atom ].Mol()+1 );
++
++  truncoct_ = (triclinic_==FAMILIAR);
++
++  return 0;
++}
++
++// Action_AutoImage::action()
++int Action_AutoImage::action() {
++  double center[3], ucell[9], recip[9], imagedcenter[3], framecenter[3];
++  double fcom[3];
++  double bp[3], bm[3];
++  double Trans[3];
++
++  // Center w.r.t. anchor
++  currentFrame->Center( anchorMask_, origin_, useMass);
++  // Determine whether anchor center is at box center or coordinate origin
++  if (origin_) {
++    center[0] = 0;
++    center[1] = 0;
++    center[2] = 0;
++  } else {
++    center[0] = currentFrame->box[0] / 2;
++    center[1] = currentFrame->box[1] / 2;
++    center[2] = currentFrame->box[2] / 2;
++  }
++
++  // Setup imaging, and image everything in currentFrame 
++  // according to mobileList. 
++  if (ortho_) {
++    currentFrame->SetupImageOrtho(bp, bm, origin_);
++    currentFrame->ImageOrtho(bp, bm, center_, useMass, mobileList_);
++  } else {
++    currentFrame->BoxToRecip(ucell, recip);
++    if (truncoct_)
++      currentFrame->SetupImageTruncoct( fcom, NULL, useMass, origin_ );
++    currentFrame->ImageNonortho(origin_, fcom, ucell, recip, truncoct_,
++                                center_, useMass, mobileList_);
++  }  
++
++  // For each molecule defined by atom pairs in fixedList, determine if the
++  // imaged position is closer to anchor center than the current position.
++  // Always use molecule center when imaging fixedList.
++  for (pairList::iterator atom1 = fixedList_.begin();
++                          atom1 != fixedList_.end(); ++atom1)
++  {
++    int firstAtom = *atom1;
++    ++atom1;
++    int lastAtom = *atom1;
++    Trans[0] = 0;
++    Trans[1] = 0;
++    Trans[2] = 0;
++    if (useMass) 
++      currentFrame->CenterOfMass(framecenter, firstAtom, lastAtom);
++    else
++      currentFrame->GeometricCenter(framecenter, firstAtom, lastAtom);
++    // NOTE: imaging routines will modify input coords.
++    imagedcenter[0] = framecenter[0];
++    imagedcenter[1] = framecenter[1];
++    imagedcenter[2] = framecenter[2];
++    if (ortho_)
++      currentFrame->ImageOrtho(Trans, imagedcenter, bp, bm);
++    else
++      currentFrame->ImageNonortho(Trans, imagedcenter, truncoct_, origin_, ucell, recip, fcom);
++    // If molecule was imaged, determine whether imaged position is closer to anchor.
++    if (Trans[0] != 0 || Trans[1] != 0 || Trans[2] != 0) {
++      imagedcenter[0] = framecenter[0] + Trans[0];
++      imagedcenter[1] = framecenter[1] + Trans[1];
++      imagedcenter[2] = framecenter[2] + Trans[2];
++      double framedist2 = DIST2_NoImage( center, framecenter );
++      double imageddist2 = DIST2_NoImage( center, imagedcenter );
++      //mprintf("DBG: [%5i] Fixed @%i-%i frame dist2=%lf, imaged dist2=%lf\n", frameNum,
++      //        firstAtom+1, lastAtom+1,
++      //        framedist2, imageddist2);
++      if (imageddist2 < framedist2) {
++        // Imaging these atoms moved them closer to anchor. Update coords in currentFrame.
++        currentFrame->Translate(Trans, firstAtom, lastAtom);
++        //for (int idx = firstAtom*3; idx < lastAtom*3; ++idx)
++        //  (*currentFrame)[idx] = fixedFrame[idx];
++      }
++    }
++  }
++    
++  return 0;
++}
++
+diff --git AmberTools/src/cpptraj/src/Action_AutoImage.h AmberTools/src/cpptraj/src/Action_AutoImage.h
+new file mode 100644
+index 0000000..5ee24d6
+--- /dev/null
++++ AmberTools/src/cpptraj/src/Action_AutoImage.h
+@@ -0,0 +1,32 @@
++#ifndef INC_ACTION_AUTOIMAGE_H
++#define INC_ACTION_AUTOIMAGE_H
++#include "Action.h"
++class Action_AutoImage : public Action {
++  public:
++    Action_AutoImage();
++
++  private:
++    int init();
++    int setup();
++    int action();
++
++    AtomMask anchorMask_; ///< Used to center anchor region.
++    char* anchor_;  ///< Mask expression for anchor region.
++    char* fixed_;   ///< Mask expression for fixed region.
++    char* mobile_;  ///< Mask expression for mobile region.
++
++    bool origin_;         ///< If true imaging occurs w.r.t. coordinate origin.
++    bool ortho_;          ///< If true imaging is orthogonal.
++    bool center_;         ///< If true imaging of mobile region uses molecule center.
++    bool truncoct_;
++    enum TriclinicArg {OFF, FORCE, FAMILIAR};
++    TriclinicArg triclinic_; ///< Determine whether triclinic code should be used.
++
++    typedef std::vector<int> pairList;
++    pairList anchorList_;
++    pairList fixedList_;
++    pairList mobileList_;
++
++    pairList SetupAtomRanges(const char*);
++};
++#endif
+diff --git AmberTools/src/cpptraj/src/Action_Center.cpp AmberTools/src/cpptraj/src/Action_Center.cpp
+index a496a7f..cb841b8 100644
+--- AmberTools/src/cpptraj/src/Action_Center.cpp
++++ AmberTools/src/cpptraj/src/Action_Center.cpp
+@@ -68,14 +68,7 @@ int Center::setup() {
+   */
+ int Center::action() {
+ 
+-  // Set up box
+-  if (!origin) {
+-    box[0] = currentFrame->box[0] / 2.0;
+-    box[1] = currentFrame->box[1] / 2.0;
+-    box[2] = currentFrame->box[2] / 2.0;
+-  }
+-  
+-  currentFrame->Center(&Mask1, box, useMass);
++  currentFrame->Center(Mask1, origin, useMass);
+ 
+   return 0;
+ } 
+diff --git AmberTools/src/cpptraj/src/Action_Image.cpp AmberTools/src/cpptraj/src/Action_Image.cpp
+index 023b26a..5e1dec8 100644
+--- AmberTools/src/cpptraj/src/Action_Image.cpp
++++ AmberTools/src/cpptraj/src/Action_Image.cpp
+@@ -1,26 +1,26 @@
+-// Image 
+-#include <cmath> //for floor
++// Action_Image 
+ #include "Action_Image.h"
+-#include "DistRoutines.h"
+ #include "CpptrajStdio.h"
+ 
+ // CONSTRUCTOR
+-Image::Image() {
++Action_Image::Action_Image() :
++  ComMask_(NULL),
++  origin_(false),
++  center_(false),
++  ortho_(false),
++  truncoct_(false),
++  triclinic_(OFF)
++{
+   //fprintf(stderr,"Image Con\n");
+-  ComMask=NULL;
+-  origin = false;
+-  center = false;
+-  ortho = false;
+   useMass = true;
+-  triclinic = OFF;
+ } 
+ 
+ // DESTRUCTOR
+-Image::~Image() {
+-  if (ComMask!=NULL) delete ComMask;
++Action_Image::~Action_Image() {
++  if (ComMask_!=NULL) delete ComMask_;
+ }
+ 
+-// Image::init()
++// Action_Image::init()
+ /** Expected call: image [origin] [center] [triclinic | familiar [com <mask>]] <mask>  
+   * - origin: center at 0.0, 0.0, 0.0, otherwise center at box center.
+   * - center: Use center of mass for imaging, otherwise use first atom.
+@@ -33,86 +33,86 @@ Image::~Image() {
+ // Check order is:
+ //    1) Keywords
+ //    2) Masks
+-int Image::init() {
++int Action_Image::init() {
+   char *mask1;
+ 
+   // Get keywords
+-  origin = actionArgs.hasKey("origin");
+-  center = actionArgs.hasKey("center");
+-  if (actionArgs.hasKey("familiar")) triclinic = FAMILIAR;
+-  if (actionArgs.hasKey("triclinic")) triclinic = FORCE;
++  origin_ = actionArgs.hasKey("origin");
++  center_ = actionArgs.hasKey("center");
++  if (actionArgs.hasKey("familiar")) triclinic_ = FAMILIAR;
++  if (actionArgs.hasKey("triclinic")) triclinic_ = FORCE;
+ 
+   // Get Masks
+-  if (triclinic == FAMILIAR) {
++  if (triclinic_ == FAMILIAR) {
+     mask1 = actionArgs.getKeyString("com",NULL);
+     if (mask1!=NULL) {
+-      ComMask = new AtomMask();
+-      ComMask->SetMaskString(mask1);
++      ComMask_ = new AtomMask();
++      ComMask_->SetMaskString(mask1);
+     }
+   }
+   mask1 = actionArgs.getNextMask();
+-  Mask1.SetMaskString(mask1);
++  Mask1_.SetMaskString(mask1);
+   
+   mprintf("    IMAGE: To");
+-  if (origin)
++  if (origin_)
+     mprintf(" origin");
+   else
+     mprintf(" box center");
+   mprintf(" based on");
+-  if (center)
++  if (center_)
+     mprintf(" center of mass");
+   else
+     mprintf(" first atom position");
+-  mprintf(" using atoms in mask %s\n",Mask1.MaskString());
+-  if (triclinic == FORCE)
++  mprintf(" using atoms in mask %s\n",Mask1_.MaskString());
++  if (triclinic_ == FORCE)
+     mprintf( "           Triclinic On.\n");
+-  else if (triclinic == FAMILIAR) {
++  else if (triclinic_ == FAMILIAR) {
+     mprintf( "           Triclinic On, familiar shape");
+-    if (ComMask!=NULL) 
+-      mprintf( " centering on atoms in mask %s", ComMask->MaskString());
++    if (ComMask_!=NULL) 
++      mprintf( " centering on atoms in mask %s", ComMask_->MaskString());
+     mprintf(".\n");
+   }
+ 
+   return 0;
+ }
+ 
+-// Image::setup()
++// Action_Image::setup()
+ /** Set Imaging up for this parmtop. Get masks etc.
+   * currentParm is set in Action::Setup
+   */
+-int Image::setup() {
+-  atomPair apair;
++int Action_Image::setup() {
++  //atomPair apair;
+ 
+-  if ( currentParm->SetupCharMask( Mask1, activeReference ) ) return 1;
+-  if (Mask1.None()) {
++  if ( currentParm->SetupCharMask( Mask1_, activeReference ) ) return 1;
++  if (Mask1_.None()) {
+     mprintf("Warning: Image::setup: Mask contains 0 atoms.\n");
+     return 1;
+   }
+ 
+-  if (currentParm->boxType==NOBOX) {
++  if (currentParm->boxType == NOBOX) {
+     mprintf("Warning: Image::setup: Parm %s does not contain box information.\n",
+             currentParm->parmName);
+     return 1;
+   }
+ 
+-  ortho = false;  
+-  if (currentParm->boxType==ORTHO && triclinic==OFF) ortho=true;
++  ortho_ = false;  
++  if (currentParm->boxType == ORTHO && triclinic_==OFF) ortho_=true;
+ 
+   // If box is originally truncated oct and not forcing triclinic, 
+   // turn familiar on.
+-  if (AmberIfbox(currentParm->Box[5])==2 && triclinic!=FORCE && triclinic!=FAMILIAR) {
++  if ( AmberIfbox( currentParm->Box[4] ) == 2 && triclinic_!=FORCE && triclinic_!=FAMILIAR) {
+     mprintf("\tOriginal box is truncated octahedron, turning on 'familiar'.\n");
+-    triclinic=FAMILIAR;
++    triclinic_=FAMILIAR;
+   }
+ 
+-  if (triclinic == FAMILIAR) {
+-    if (ComMask!=NULL) {
+-      if ( currentParm->SetupIntegerMask( *ComMask, activeReference) ) return 1;
+-      if (ComMask->None()) {
++  if (triclinic_ == FAMILIAR) {
++    if (ComMask_!=NULL) {
++      if ( currentParm->SetupIntegerMask( *ComMask_, activeReference ) ) return 1;
++      if (ComMask_->None()) {
+         mprintf("Warning: Image::setup: Mask for 'familiar com' contains no atoms.\n");
+         return 1;
+       }
+-      mprintf("\tcom: mask [%s] contains %i atoms.\n",ComMask->MaskString(),ComMask->Nselected);
++      mprintf("\tcom: mask [%s] contains %i atoms.\n",ComMask_->MaskString(),ComMask_->Nselected);
+     }
+   }
+ 
+@@ -120,178 +120,64 @@ int Image::setup() {
+   // Currently imaging by molecule only, so each pair will be the first and
+   // last atom of each molecule. Check that all atoms between first and last
+   // are actually in the mask.
+-  imageList.clear();
+-  imageList.reserve( currentParm->Nmol() );
+-  apair.firstAtom = 0;
+-  apair.lastAtom = 0;
+-  for (int mol = 0; mol < currentParm->Nmol(); mol++) {
+-    apair.firstAtom = apair.lastAtom;
+-    apair.lastAtom = apair.firstAtom + currentParm->AtomsPerMol(mol);
++  imageList_.clear();
++  imageList_.reserve( currentParm->Nmol() );
++  int* AtomsPerMol = currentParm->AtomsPerMol_ptr();
++  if (AtomsPerMol == NULL) {
++    mprinterr("Error: Image: No molecule information in %s\n", currentParm->parmName);
++    return 1;
++  } 
++  int firstAtom = 0;
++  int lastAtom = 0;
++  
++  for (int molnum = 0; molnum < currentParm->Nmol(); ++molnum) 
++  {
++    firstAtom = lastAtom;
++    lastAtom += AtomsPerMol[ molnum ];
+     // Check that each atom in the range is in Mask1
+     bool rangeIsValid = true;
+-    for (int atom = apair.firstAtom; atom < apair.lastAtom; atom++)
+-      if (!Mask1.AtomInCharMask(atom)) {rangeIsValid = false; break;}
+-    if (rangeIsValid) imageList.push_back( apair );
++    for (int atom = firstAtom; atom < lastAtom; atom++) {
++      if (!Mask1_.AtomInCharMask(atom)) {
++        rangeIsValid = false; 
++        break;
++      }
++    }
++    if (rangeIsValid) {
++      imageList_.push_back( firstAtom );
++      imageList_.push_back( lastAtom );
++    }
+   }
+-  mprintf("\tNumber of molecules to be imaged is %u based on mask [%s]\n", imageList.size(),
+-           Mask1.MaskString()); 
++  mprintf("\tNumber of molecules to be imaged is %u based on mask [%s]\n", imageList_.size()/2,
++           Mask1_.MaskString()); 
+   // DEBUG: Print all pairs
+-  //for (std::vector<atomPair>::iterator ap = imageList.begin();
+-  //                                     ap != imageList.end();
+-  //                                     ap++)
+-  //{
+-  //  mprintf("\tPair: %i - %i\n",(*ap).firstAtom+1,(*ap).lastAtom);
+-  //}
++  if (debug>0) {
++    for (std::vector<int>::iterator ap = imageList_.begin();
++                                    ap != imageList_.end(); ap+=2)
++      mprintf("\t\tMol First-Last atom#: %i - %i\n", (*ap)+1, *(ap+1) );
++  }
++
++  // Truncoct flag
++  truncoct_ = (triclinic_==FAMILIAR);
+ 
+   return 0;  
+ }
+ 
+-// Image::action()
+-int Image::action() {
+-  // Orthorhombic
+-  double bp[3];
+-  double bm[3];
+-  // Non-orthorhombic
+-  double ucell[9];
+-  double recip[9];
+-  double fc[3], ffc[3];
+-  // Familiar
+-  double fcom[3];
+-  int ixyz[3];
+-  // General
+-  double boxTrans[3];
+-  double Coord[3];
+-
+-  // Set up information for orthorhombic cell
+-  if (ortho) {
+-    if ( origin ) {
+-      bp[0] = currentFrame->box[0] / 2.0;
+-      bp[1] = currentFrame->box[1] / 2.0;
+-      bp[2] = currentFrame->box[2] / 2.0;
+-      bm[0] = -bp[0]; 
+-      bm[1] = -bp[1];
+-      bm[2] = -bp[2]; 
+-    } else {
+-      bp[0] = currentFrame->box[0];
+-      bp[1] = currentFrame->box[1];
+-      bp[2] = currentFrame->box[2];
+-      bm[0] = 0.0;
+-      bm[1] = 0.0; 
+-      bm[2] = 0.0; 
+-    }
+-
+-  // Set up information for non-orthorhombic cell
++// Action_Image::action()
++int Action_Image::action() {
++  // Ortho
++  double bp[3], bm[3];
++  // Nonortho
++  double ucell[9], recip[9], fcom[3];
++  
++  if (ortho_) {
++    currentFrame->SetupImageOrtho(bp, bm, origin_);
++    currentFrame->ImageOrtho(bp, bm, center_, useMass, imageList_);
+   } else {
+-    // NOTE: Does this need to be done every time?
+-    currentFrame->BoxToRecip(ucell, recip);
+-    // Set up centering if putting nonortho cell into familiar trunc. oct. shape
+-    if (triclinic == FAMILIAR) {
+-      // Use center of mask of atoms in mask
+-      if (ComMask!=NULL) {
+-        if (useMass)
+-          currentFrame->CenterOfMass(ComMask, fcom);
+-        else
+-          currentFrame->GeometricCenter(ComMask,fcom);
+-      // Use origin
+-      } else if (origin) {
+-        fcom[0]=0.0;
+-        fcom[1]=0.0;
+-        fcom[2]=0.0;
+-      // Use box center
+-      } else {
+-        fcom[0]=currentFrame->box[0] / 2.0; 
+-        fcom[1]=currentFrame->box[1] / 2.0; 
+-        fcom[2]=currentFrame->box[2] / 2.0;
+-      }
+-      //fprintf(stdout,"DEBUG: fcom = %lf %lf %lf\n",fcom[0],fcom[1],fcom[2]);
+-    } 
++    currentFrame->BoxToRecip( ucell, recip );
++    if (truncoct_)
++      currentFrame->SetupImageTruncoct( fcom, ComMask_, useMass, origin_ );
++    currentFrame->ImageNonortho(origin_, fcom, ucell, recip, truncoct_,
++                                center_, useMass, imageList_);
+   }
+-
+-  // Loop over Atom pairs
+-  for (std::vector<atomPair>::iterator apair = imageList.begin();
+-                                       apair != imageList.end();
+-                                       apair++)
+-  {
+-    int firstAtom = (*apair).firstAtom;
+-    int lastAtom  = (*apair).lastAtom;
+-
+-    //if (debug>2)
+-    //  mprintf( "  IMAGE processing atoms %i to %i\n", firstAtom+1, lastAtom); 
+-
+-    // boxTrans will hold calculated translation needed to move atoms back into box
+-    boxTrans[0] = 0.0;
+-    boxTrans[1] = 0.0;
+-    boxTrans[2] = 0.0;
+-
+-    // Set up position based on first atom or center of mass
+-    if (center) { 
+-      if (useMass)
+-        currentFrame->CenterOfMass(Coord,firstAtom,lastAtom);
+-      else
+-        currentFrame->GeometricCenter(Coord,firstAtom,lastAtom);
+-    } else
+-      currentFrame->GetCoord(Coord,firstAtom);
+-
+-    // ORTHORHOMBIC
+-    if (ortho) {
+-      // Determine how far coords are out of box
+-      for (int i=0; i<3; i++) {
+-        while (Coord[i] < bm[i]) {
+-          Coord[i] += currentFrame->box[i];
+-          boxTrans[i] += currentFrame->box[i];
+-        }
+-        while (Coord[i] > bp[i]) {
+-          Coord[i] -= currentFrame->box[i];
+-          boxTrans[i] -= currentFrame->box[i];
+-        }
+-      }
+-
+-    // NON-ORTHORHOMBIC    
+-    } else {
+-      fc[0]=(Coord[0]*recip[0]) + (Coord[1]*recip[1]) + (Coord[2]*recip[2]);
+-      fc[1]=(Coord[0]*recip[3]) + (Coord[1]*recip[4]) + (Coord[2]*recip[5]);
+-      fc[2]=(Coord[0]*recip[6]) + (Coord[1]*recip[7]) + (Coord[2]*recip[8]);
+-
+-      if ( origin ) {
+-        fc[0] += 0.5;
+-        fc[1] += 0.5;
+-        fc[2] += 0.5;
+-      }
+-
+-      ffc[0] = floor(fc[0]);
+-      ffc[1] = floor(fc[1]);
+-      ffc[2] = floor(fc[2]);
+-
+-      boxTrans[0] -= (ffc[0]*ucell[0] + ffc[1]*ucell[3] + ffc[2]*ucell[6]);
+-      boxTrans[1] -= (ffc[0]*ucell[1] + ffc[1]*ucell[4] + ffc[2]*ucell[7]);
+-      boxTrans[2] -= (ffc[0]*ucell[2] + ffc[1]*ucell[5] + ffc[2]*ucell[8]);
+-
+-      // Put into familiar trunc. oct. shape
+-      if (triclinic == FAMILIAR) {
+-        Coord[0] += boxTrans[0];
+-        Coord[1] += boxTrans[1];
+-        Coord[2] += boxTrans[2];
+-        MinImageNonOrtho2(Coord, fcom, currentFrame->box, (int)origin, ixyz, ucell, recip);
+-        if (ixyz[0] != 0 || ixyz[1] != 0 || ixyz[2] != 0) {
+-          boxTrans[0] += (ixyz[0]*ucell[0] + ixyz[1]*ucell[3] + ixyz[2]*ucell[6]);
+-          boxTrans[1] += (ixyz[0]*ucell[1] + ixyz[1]*ucell[4] + ixyz[2]*ucell[7]);
+-          boxTrans[2] += (ixyz[0]*ucell[2] + ixyz[1]*ucell[5] + ixyz[2]*ucell[8]);
+-
+-          //if (debug > 2)
+-          //  mprintf( "  IMAGING, FAMILIAR OFFSETS ARE %i %i %i\n", 
+-          //          ixyz[0], ixyz[1], ixyz[2]);
+-        }
+-      }  
+-    }    
+-   
+-    //fprintf(stdout,"DEBUG: BoxTrans: %lf %lf %lf\n",boxTrans[0],boxTrans[1],boxTrans[2]);
+-
+-    // Translate atoms back into the box
+-    currentFrame->Translate(boxTrans,firstAtom,lastAtom);
+-
+-  } // END loop over atom pairs 
+-
+   return 0;
+ } 
+-
+-
+diff --git AmberTools/src/cpptraj/src/Action_Image.h AmberTools/src/cpptraj/src/Action_Image.h
+index ba233c1..139246e 100644
+--- AmberTools/src/cpptraj/src/Action_Image.h
++++ AmberTools/src/cpptraj/src/Action_Image.h
+@@ -1,31 +1,28 @@
+ #ifndef INC_ACTION_IMAGE_H
+ #define INC_ACTION_IMAGE_H
+-// Class: Image
++// Class: Action_Image
+ /// Action to wrap coordinates back into primary box
+ #include "Action.h"
+-class Image: public Action {
++class Action_Image: public Action {
++  public:
++    Action_Image();
++    ~Action_Image();
++  private:
+     /// Only atoms in Mask1 will be imaged
+-    AtomMask Mask1;
++    AtomMask Mask1_;
+     /// If defined, image w.r.t. the center of atoms in ComMask.
+-    AtomMask *ComMask;
++    AtomMask *ComMask_;
+     /// If true image w.r.t. coordinate origin, otherwise box center
+-    bool origin;
++    bool origin_;
+     /// If true molecules will be imaged w.r.t. their center, otherwise first atom will be used
+-    bool center;
++    bool center_;
+     /// True if orthorhombic cell, false otherwise.
+-    bool ortho;
++    bool ortho_;
++    bool truncoct_;
+     enum TriclinicArg {OFF, FORCE, FAMILIAR};
+-    TriclinicArg triclinic;
+-    struct atomPair {
+-      int firstAtom;
+-      int lastAtom;
+-    };
++    TriclinicArg triclinic_;
+     /// Vector containing atom ranges to be imaged (first to last)
+-    std::vector<atomPair> imageList; 
+-
+-  public:
+-    Image();
+-    ~Image();
++    std::vector<int> imageList_; 
+ 
+     int init();
+     int setup();
+diff --git AmberTools/src/cpptraj/src/Frame.cpp AmberTools/src/cpptraj/src/Frame.cpp
+index 3a8add6..0adbe67 100644
+--- AmberTools/src/cpptraj/src/Frame.cpp
++++ AmberTools/src/cpptraj/src/Frame.cpp
+@@ -462,20 +462,29 @@ void Frame::InverseRotate(double *T) {
+   * or box center. Use geometric center if mass is NULL, otherwise center 
+   * of mass will be used.
+   */
+-void Frame::Center(AtomMask *Mask, double *boxcoord, bool useMassIn) {
++void Frame::Center(AtomMask& Mask, bool origin, bool useMassIn) {
+   double center[3];
+ 
+   if (useMassIn)
+-    this->CenterOfMass(Mask, center);
++    this->CenterOfMass(&Mask, center);
+   else
+-    this->GeometricCenter(Mask, center);
++    this->GeometricCenter(&Mask, center);
+   //mprinterr("  FRAME CENTER: %lf %lf %lf\n",center[0],center[1],center[2]); //DEBUG
+ 
+-  // Shift to whatever is in boxcoord (origin or center of box in Action_Center) 
+-  center[0] = boxcoord[0] - center[0]; 
+-  center[1] = boxcoord[1] - center[1]; 
+-  center[2] = boxcoord[2] - center[2];
++  if (origin) {
++    // Shift to coordinate origin (0,0,0)
++    center[0] = -center[0];
++    center[1] = -center[1];
++    center[2] = -center[2];
++  } else {
++    // Shift to box center
++    center[0] = (box[0] / 2) - center[0];
++    center[1] = (box[1] / 2) - center[1];
++    center[2] = (box[2] / 2) - center[2];
++  }
++
+   this->Translate(center);
++
+ }
+ 
+ // Frame::CenterReference()
+@@ -510,6 +519,202 @@ void Frame::ShiftToGeometricCenter( ) {
+   this->Translate(frameCOM);
+ }
+ 
++void Frame::SetupImageTruncoct( double* fcom, AtomMask* ComMask, bool useMass, bool origin )
++{
++  // Set up centering if putting nonortho cell into familiar trunc. oct. shape
++  //if (truncoct) {
++    if (ComMask!=NULL) {
++      // Use center of atoms in mask
++      if (useMass)
++        CenterOfMass(ComMask, fcom);
++      else
++        GeometricCenter(ComMask, fcom);
++    } else if (origin) {
++      // Use origin
++      fcom[0] = 0;
++      fcom[1] = 0;
++      fcom[2] = 0;
++    } else {
++      // Use box center
++      fcom[0] = box[0] / 2;
++      fcom[1] = box[1] / 2;
++      fcom[2] = box[2] / 2;
++    }
++    //fprintf(stdout,"DEBUG: fcom = %lf %lf %lf\n",fcom[0],fcom[1],fcom[2]);
++  //}
++}
++
++// Frame::ImageNonortho()
++void Frame::ImageNonortho(bool origin, double* fcom, double* ucell, double* recip,
++                          bool truncoct, bool center,
++                          bool useMass, std::vector<int> &AtomPairs)
++{
++  //double ucell[9], recip[9], 
++  double boxTrans[3], Coord[3];
++  // fcom and ixyz only needed for truncoct
++  //double fcom[3];
++
++  //BoxToRecip(ucell, recip);
++
++  // Loop over atom pairs
++  for (std::vector<int>::iterator atom = AtomPairs.begin();
++                                  atom != AtomPairs.end();
++                                  atom++)
++  {
++    int firstAtom = *atom;
++    ++atom;
++    int lastAtom = *atom;
++    //if (debug>2)
++    //  mprintf( "  IMAGE processing atoms %i to %i\n", firstAtom+1, lastAtom);
++    // boxTrans will hold calculated translation needed to move atoms back into box
++    boxTrans[0] = 0;
++    boxTrans[1] = 0;
++    boxTrans[2] = 0;
++    // Set up Coord with position to check for imaging based on first atom or 
++    // center of mass of atoms first to last.
++    if (center) {
++      if (useMass)
++        CenterOfMass(Coord,firstAtom,lastAtom);
++      else
++        GeometricCenter(Coord,firstAtom,lastAtom);
++    } else {
++      int atomidx = firstAtom * 3;
++      Coord[0] = X[atomidx];
++      ++atomidx;
++      Coord[1] = X[atomidx];
++      ++atomidx;
++      Coord[2] = X[atomidx];
++    }
++
++    ImageNonortho(boxTrans, Coord, truncoct, origin,
++                  ucell, recip, fcom);
++
++    Translate(boxTrans, firstAtom, lastAtom);
++
++  } // END loop over atom pairs
++}
++
++// Frame::ImageNonortho()
++void Frame::ImageNonortho(double* boxTrans, double* Coord,
++                          bool truncoct, bool origin,
++                          double* ucell, double* recip, double* fcom)
++{
++  double fc[3], ffc[3];
++  int ixyz[3];
++
++  fc[0]=(Coord[0]*recip[0]) + (Coord[1]*recip[1]) + (Coord[2]*recip[2]);
++  fc[1]=(Coord[0]*recip[3]) + (Coord[1]*recip[4]) + (Coord[2]*recip[5]);
++  fc[2]=(Coord[0]*recip[6]) + (Coord[1]*recip[7]) + (Coord[2]*recip[8]);
++
++  if ( origin ) {
++    fc[0] += 0.5;
++    fc[1] += 0.5;
++    fc[2] += 0.5;
++  }
++
++  ffc[0] = floor(fc[0]);
++  ffc[1] = floor(fc[1]);
++  ffc[2] = floor(fc[2]);
++
++  boxTrans[0] -= (ffc[0]*ucell[0] + ffc[1]*ucell[3] + ffc[2]*ucell[6]);
++  boxTrans[1] -= (ffc[0]*ucell[1] + ffc[1]*ucell[4] + ffc[2]*ucell[7]);
++  boxTrans[2] -= (ffc[0]*ucell[2] + ffc[1]*ucell[5] + ffc[2]*ucell[8]);
++
++  // Put into familiar trunc. oct. shape
++  if (truncoct) {
++    Coord[0] += boxTrans[0];
++    Coord[1] += boxTrans[1];
++    Coord[2] += boxTrans[2];
++    MinImageNonOrtho2(Coord, fcom, box, (int)origin, ixyz, ucell, recip);
++    if (ixyz[0] != 0 || ixyz[1] != 0 || ixyz[2] != 0) {
++      boxTrans[0] += (ixyz[0]*ucell[0] + ixyz[1]*ucell[3] + ixyz[2]*ucell[6]);
++      boxTrans[1] += (ixyz[0]*ucell[1] + ixyz[1]*ucell[4] + ixyz[2]*ucell[7]);
++      boxTrans[2] += (ixyz[0]*ucell[2] + ixyz[1]*ucell[5] + ixyz[2]*ucell[8]);
++
++      //if (debug > 2)
++      //  mprintf( "  IMAGING, FAMILIAR OFFSETS ARE %i %i %i\n", 
++      //          ixyz[0], ixyz[1], ixyz[2]);
++    }
++  }
++}
++
++void Frame::SetupImageOrtho(double* bp, double* bm, bool origin) {
++  // Set up boundary information for orthorhombic cell
++  if (origin) {
++    bp[0] = box[0] / 2;
++    bp[1] = box[1] / 2;
++    bp[2] = box[2] / 2;
++    bm[0] = -bp[0];
++    bm[1] = -bp[1];
++    bm[2] = -bp[2];
++  } else {
++    bp[0] = box[0];
++    bp[1] = box[1];
++    bp[2] = box[2];
++    bm[0] = 0;
++    bm[1] = 0;
++    bm[2] = 0;
++  }
++}
++
++// Frame::ImageOrtho()
++void Frame::ImageOrtho(double* bp, double* bm, bool center, bool useMass,
++                       std::vector<int> &AtomPairs)
++{
++  double boxTrans[3], Coord[3];
++
++  // Loop over atom pairs
++  for (std::vector<int>::iterator atom = AtomPairs.begin();
++                                  atom != AtomPairs.end();
++                                  atom++)
++  {
++    int firstAtom = *atom;
++    ++atom;
++    int lastAtom = *atom;
++    //if (debug>2)
++    //  mprintf( "  IMAGE processing atoms %i to %i\n", firstAtom+1, lastAtom);
++    // boxTrans will hold calculated translation needed to move atoms back into box
++    boxTrans[0] = 0;
++    boxTrans[1] = 0;
++    boxTrans[2] = 0;
++    // Set up Coord with position to check for imaging based on first atom or 
++    // center of mass of atoms first to last.
++    if (center) {
++      if (useMass)
++        CenterOfMass(Coord,firstAtom,lastAtom);
++      else
++        GeometricCenter(Coord,firstAtom,lastAtom);
++    } else {
++      int atomidx = firstAtom * 3;
++      Coord[0] = X[atomidx];
++      ++atomidx;
++      Coord[1] = X[atomidx];
++      ++atomidx;
++      Coord[2] = X[atomidx];
++    }
++    ImageOrtho(boxTrans, Coord,bp,bm);
++
++    // Translate atoms according to Coord
++    Translate(boxTrans,firstAtom,lastAtom);
++  } // END loop over atom pairs
++}
++
++void Frame::ImageOrtho(double* boxTrans, double* Coord, double* bp, double* bm)
++{
++    // Determine how far Coord is out of box
++    for (int i=0; i < 3; i++) {
++      while (Coord[i] < bm[i]) {
++        Coord[i] += box[i];
++        boxTrans[i] += box[i];
++      }
++      while (Coord[i] > bp[i]) {
++        Coord[i] -= box[i];
++        boxTrans[i] -= box[i];
++      }
++    }
++}
++
++
+ /* -------------- Coordinate Assignment/Extraction Routines ----------------- */
+ // Frame::printAtomCoord()
+ /** Print XYZ coords of given atom */
+diff --git AmberTools/src/cpptraj/src/Frame.h AmberTools/src/cpptraj/src/Frame.h
+index fb9be8b..b24f86c 100644
+--- AmberTools/src/cpptraj/src/Frame.h
++++ AmberTools/src/cpptraj/src/Frame.h
+@@ -53,9 +53,15 @@ class Frame {
+     void Trans_Rot_Trans(double *, double *);
+     void Rotate(double *);
+     void InverseRotate(double *);
+-    void Center(AtomMask *, double *,bool);
++    void Center(AtomMask&, bool,bool);
+     void CenterReference(double *, bool);
+     void ShiftToGeometricCenter();
++    void SetupImageTruncoct(double*, AtomMask*,bool,bool);
++    void ImageNonortho(bool, double*, double*, double*, bool, bool, bool, std::vector<int> &);
++    void ImageNonortho(double*, double*, bool, bool, double*, double*, double*);
++    void SetupImageOrtho(double*, double*, bool);
++    void ImageOrtho(double*,double*, bool, bool, std::vector<int> &);
++    void ImageOrtho(double*, double*, double*, double*);
+     // Coordinate assignment/extraction
+     void printAtomCoord(int);
+     void GetCoord(double *, int);
+diff --git AmberTools/src/cpptraj/src/cpptrajdepend AmberTools/src/cpptraj/src/cpptrajdepend
+index c8a9751..27016ab 100644
+--- AmberTools/src/cpptraj/src/cpptrajdepend
++++ AmberTools/src/cpptraj/src/cpptrajdepend
+@@ -38,13 +38,14 @@ Action_Center.o : Action_Center.cpp Action.h Action_Center.h AmberParm.h ArgList
+ FileIO_Bzip2.o : FileIO_Bzip2.cpp CpptrajStdio.h FileIO.h FileIO_Bzip2.h
+ Action_Hbond.o : Action_Hbond.cpp Action.h Action_Hbond.h AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h Constants.h CpptrajFile.h CpptrajStdio.h DataFile.h DataFileList.h DataSet.h DataSetList.h FileIO.h FileRoutines.h Frame.h FrameList.h Name.h ParmFileList.h
+ DataSet_integer.o : DataSet_integer.cpp CharBuffer.h CpptrajStdio.h DataSet.h DataSet_integer.h MpiRoutines.h
+-Action_Image.o : Action_Image.cpp Action.h Action_Image.h AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h CpptrajFile.h CpptrajStdio.h DataFile.h DataFileList.h DataSet.h DataSetList.h DistRoutines.h FileIO.h FileRoutines.h Frame.h FrameList.h Name.h ParmFileList.h
++Action_Image.o : Action_Image.cpp Action.h Action_Image.h AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h CpptrajFile.h CpptrajStdio.h DataFile.h DataFileList.h DataSet.h DataSetList.h FileIO.h FileRoutines.h Frame.h FrameList.h Name.h ParmFileList.h
+ Action_Surf.o : Action_Surf.cpp Action.h Action_Surf.h AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h Constants.h CpptrajFile.h CpptrajStdio.h DataFile.h DataFileList.h DataSet.h DataSetList.h FileIO.h FileRoutines.h Frame.h FrameList.h Name.h ParmFileList.h
+ Action_Radgyr.o : Action_Radgyr.cpp Action.h Action_Radgyr.h AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h CpptrajFile.h CpptrajStdio.h DataFile.h DataFileList.h DataSet.h DataSetList.h FileIO.h FileRoutines.h Frame.h FrameList.h Name.h ParmFileList.h
+ Action_Mask.o : Action_Mask.cpp Action.h Action_Mask.h AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h CpptrajFile.h CpptrajStdio.h DataFile.h DataFileList.h DataSet.h DataSetList.h FileIO.h FileRoutines.h Frame.h FrameList.h Name.h ParmFileList.h ProgressBar.h Range.h TrajectoryFile.h TrajectoryIO.h
+ Action_Closest.o : Action_Closest.cpp Action.h Action_Closest.h AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h CpptrajFile.h CpptrajStdio.h DataFile.h DataFileList.h DataSet.h DataSetList.h FileIO.h FileRoutines.h Frame.h FrameList.h Name.h ParmFile.h ParmFileList.h
+ NetcdfRoutines.o : NetcdfRoutines.cpp CpptrajStdio.h NetcdfRoutines.h
+ CpptrajStdio.o : CpptrajStdio.cpp MpiRoutines.h
++Action_AutoImage.o : Action_AutoImage.cpp Action.h Action_AutoImage.h AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h CpptrajFile.h CpptrajStdio.h DataFile.h DataFileList.h DataSet.h DataSetList.h DistRoutines.h FileIO.h FileRoutines.h Frame.h FrameList.h Name.h ParmFileList.h
+ Mol2FileRoutines.o : Mol2FileRoutines.cpp CharBuffer.h CpptrajFile.h CpptrajStdio.h FileIO.h FileRoutines.h Mol2FileRoutines.h Name.h
+ Action_NAstruct.o : Action_NAstruct.cpp Action.h Action_NAstruct.h AmberParm.h ArgList.h AtomMask.h AxisType.h Bonds.h BoxType.h CharBuffer.h Constants.h CpptrajFile.h CpptrajStdio.h DataFile.h DataFileList.h DataSet.h DataSetList.h DistRoutines.h FileIO.h FileRoutines.h Frame.h FrameList.h Name.h ParmFileList.h Range.h vectormath.h
+ DistRoutines.o : DistRoutines.cpp Constants.h DistRoutines.h
+@@ -80,7 +81,7 @@ Action_Jcoupling.o : Action_Jcoupling.cpp Action.h Action_Jcoupling.h AmberParm.
+ TriangleMatrix.o : TriangleMatrix.cpp CpptrajStdio.h TriangleMatrix.h
+ Action_Clustering.o : Action_Clustering.cpp Action.h Action_Clustering.h AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h ClusterList.h CpptrajFile.h CpptrajStdio.h DataFile.h DataFileList.h DataSet.h DataSetList.h FileIO.h FileRoutines.h Frame.h FrameList.h Name.h ParmFileList.h ProgressBar.h Range.h TrajectoryFile.h TrajectoryIO.h TriangleMatrix.h
+ ClusterList.o : ClusterList.cpp CharBuffer.h ClusterList.h CpptrajFile.h CpptrajStdio.h FileIO.h FileRoutines.h TriangleMatrix.h
+-Traj_CharmmDcd.o : Traj_CharmmDcd.cpp AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h CpptrajFile.h CpptrajStdio.h FileIO.h FileRoutines.h Name.h Traj_CharmmDcd.h TrajectoryIO.h
++Traj_CharmmDcd.o : Traj_CharmmDcd.cpp AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h Constants.h CpptrajFile.h CpptrajStdio.h FileIO.h FileRoutines.h Name.h Traj_CharmmDcd.h TrajectoryIO.h
+ Bonds.o : Bonds.cpp Bonds.h CpptrajStdio.h Name.h
+ FileRoutines.o : FileRoutines.cpp FileRoutines.h
+ Action_Pairwise.o : Action_Pairwise.cpp Action.h Action_Pairwise.h AmberParm.h ArgList.h AtomMask.h Bonds.h BoxType.h CharBuffer.h CpptrajFile.h CpptrajStdio.h DataFile.h DataFileList.h DataSet.h DataSetList.h FileIO.h FileRoutines.h Frame.h FrameList.h Name.h ParmFileList.h ProgressBar.h Range.h TrajectoryFile.h TrajectoryIO.h vectormath.h
+diff --git AmberTools/src/cpptraj/src/cpptrajfiles AmberTools/src/cpptraj/src/cpptrajfiles
+index f7ecc50..9c05282 100644
+--- AmberTools/src/cpptraj/src/cpptrajfiles
++++ AmberTools/src/cpptraj/src/cpptrajfiles
+@@ -10,7 +10,7 @@ SOURCE=main.cpp AmberParm.cpp \
+        Action_DSSP.cpp DataSet_string.cpp Action_Center.cpp FileIO_Bzip2.cpp \
+        Action_Hbond.cpp DataSet_integer.cpp Action_Image.cpp Action_Surf.cpp \
+        Action_Radgyr.cpp Action_Mask.cpp Action_Closest.cpp \
+-       NetcdfRoutines.cpp CpptrajStdio.cpp \
++       NetcdfRoutines.cpp CpptrajStdio.cpp Action_AutoImage.cpp \
+        Mol2FileRoutines.cpp Action_NAstruct.cpp DistRoutines.cpp AxisType.cpp \
+        TorsionRoutines.cpp Action_Pucker.cpp Range.cpp Action_Outtraj.cpp \
+        Action_Rms2d.cpp ProgressBar.cpp TrajectoryIO.cpp \
+@@ -42,7 +42,7 @@ OBJECTS=main.o AmberParm.o \
+         Action_DSSP.o DataSet_string.o Action_Center.o FileIO_Bzip2.o \
+         Action_Hbond.o DataSet_integer.o Action_Image.o Action_Surf.o \
+         Action_Radgyr.o Action_Mask.o Action_Closest.o \
+-        NetcdfRoutines.o CpptrajStdio.o \
++        NetcdfRoutines.o CpptrajStdio.o Action_AutoImage.o \
+         Mol2FileRoutines.o Action_NAstruct.o DistRoutines.o AxisType.o \
+         TorsionRoutines.o Action_Pucker.o Range.o Action_Outtraj.o \
+         Action_Rms2d.o ProgressBar.o TrajectoryIO.o \
+@@ -74,7 +74,7 @@ HEADERS=AmberParm.h \
+         Action_DSSP.h DataSet_string.h Action_Center.h FileIO_Bzip2.h \
+         Action_Hbond.h DataSet_integer.h Action_Image.h Action_Surf.h \
+         Action_Radgyr.h Action_Mask.h Action_Closest.h \
+-        NetcdfRoutines.h CpptrajStdio.h \
++        NetcdfRoutines.h CpptrajStdio.h Action_AutoImage.h \
+         Mol2FileRoutines.h Action_NAstruct.h DistRoutines.h AxisType.h \
+         TorsionRoutines.h Action_Pucker.h Range.h Action_Outtraj.h \
+         Action_Rms2d.h ProgressBar.h TrajectoryIO.h \
+diff --git AmberTools/src/cpptraj/src/main.cpp AmberTools/src/cpptraj/src/main.cpp
+index 23f290e..3b889ae 100644
+--- AmberTools/src/cpptraj/src/main.cpp
++++ AmberTools/src/cpptraj/src/main.cpp
+@@ -9,7 +9,7 @@
+ #include <cstdio>
+ #include <cstdlib> // atoi
+ #ifndef CPPTRAJ_VERSION_STRING
+-#define CPPTRAJ_VERSION_STRING "V12.1"
++#define CPPTRAJ_VERSION_STRING "V12.2"
+ #define CPPTRAJ_INTERNAL_VERSION "V2.4.7b"
+ #endif
+ 

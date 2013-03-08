@@ -1,0 +1,26 @@
+  This is a slightly modified version of the "cifparse" library from
+the Nucleic Acid Database.  It is based on cifparse-prod-v2.  The "real"
+version of this, along with documentation, is available from:
+
+    http://ndbserver.rutgers.edu:80/mmcif/software/CIFPARSE/index.html
+
+This library is *only* needed if you want to read and write (primitive)
+mmCIF-formatted files in NAB, using the "getcif" and "putcif" modules.
+If you need this capability:  (1) do a "make install" in this directory;
+(2) edit the Makefile in ../src to add -DMMCIF to the CFLAGS variable;
+(3) link in $NABHOME/lib/$ARCH/cifparse.a  when you compile NAB programs
+that access cif functionality; you can put this library into your FLIBS
+variable if you wish.
+
+  This is only a temporary expedient to "get started" with the mmCIF format.
+In particular, the "getcif" function ignores much of what might be in an
+mmCIF file, and the "putcif" function writes out an incomplete (but
+hopefully useable) file.  Users are stronly encouraged to track the Web
+site listed above, since significant extensions of the library are planned.
+
+  The "cif2cif.c" code gives an idea of how the library is used: it simply
+reads an mmCIF file on stdin, creating an in-memory version of the data,
+then writes this back out to stdout.
+
+  Thanks to John Westbrook for valuable advice, and for permission to 
+re-distribute this library.

@@ -1,0 +1,28 @@
+********>Bugfix 34:
+Author: Jason Swails
+
+Date:   Feb. 7, 2012
+
+Programs: ParmEd, xParmEd
+
+Description: Fix a bug when you want to strip atoms in the middle of a topology
+             file AND write out a restart file.
+
+------------------------------------------------------------------------------
+
+ AmberTools/src/parmed/chemistry/amber/readparm.py |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git AmberTools/src/parmed/chemistry/amber/readparm.py AmberTools/src/parmed/chemistry/amber/readparm.py
+index 5204633..29141e7 100644
+--- AmberTools/src/parmed/chemistry/amber/readparm.py
++++ AmberTools/src/parmed/chemistry/amber/readparm.py
+@@ -233,7 +233,7 @@ class _Atom(object):
+       else:
+          self.radii = 0.0 # dummy number
+       # Load the positions and velocities if the amberParm object them
+-      if hasattr(self.parm, 'coords'):
++      if hasattr(self.parm, 'coords') and not hasattr(self, 'xx'):
+          self.xx = self.parm.coords[self.starting_index*3  ]
+          self.xy = self.parm.coords[self.starting_index*3+1]
+          self.xz = self.parm.coords[self.starting_index*3+2]

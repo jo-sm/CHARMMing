@@ -61,7 +61,7 @@ been created it will never be altered.
    => versions c28a1 through c31a2
  toppar/toppar_history/c31b1
    => version c31b1 
-
+ 
 5) Extended atom parameter sets for proteins and nucleic acids
 (toph19.inp, param19.inp, toprna10r_22.inp and pardna10_22.inp) are
 included in the toppar directory.  These parameters are stable, have
@@ -85,10 +85,54 @@ par_all30_cheq_prot.inp).  These should be considered a preliminary
 polarizable force field for proteins.  Additional refinement in
 progress.
 
-9) Polarizable model based on a classical Drude oscillator is in
-progress.  To date the integrator for extended Lagrangian Simulations
-and a water model, SWM4-DP have been published. Please contact adm
-jr. or Benoit Roux for more information.
+9) A polarizable model based on a classical Drude oscillator is in
+progress.  A drude subdirectory has been created that contains the
+toppar files along with example inputs. See the 00readme file for
+details.  Note that the Drude model is developmental and significant
+additions and changes in the format are expected.  However, the
+parameters included in this subdirectory are published and not
+anticipated to change in the near future.
+
+10) Parameters for silicate surfaces have been added to CHARMM.  These
+have been placed in the subdirectory, silicates, which contains code
+and examples to generate silicate surfaces.
+
+11) Parmaters for ethers added to CHARMM. See top_all34_ethers.rtf and
+par_all34_ethers.prm
+
+12) non_charmm: Contains toppar files for AMBER, Bristol-Myers Squibb
+(BMS) and OPLS force fields along with a stream file for the SPC and
+SPC/E water models.  These files have been tested to the extent that
+they may be considered reliable representations of the original force
+fields, though potentially not exact representations.  These files are
+NOT maintained and, thus, use at your own risk.  See the 00readme
+files and note that AMBER requires a special version of CHARMM as
+described in the 00readme file.
+
+13) subdirectory tamdfff: An internal coordinate force field (ICFF)
+that was built based on the CHARMM 22 protein force field.
+Specifically, it provides a backbone covalent geometry suitable for
+torsion angle molecular dynamics (TAMD) and the necessary CMAP
+cross-term corrections to suppress distortions of the potential energy
+surface due to rigid covalent geometry.  Additional details can be
+found in tamd.doc.
+
+14) subdirectory rush: A simple implicit-solvent protein force-field
+that adds terms to the bonded portion (bond + angle + dihe + impr +
+urey) of the all-atom CHARMM22 force field to account for
+volume-exclusion (_R_epulsion), the hydrophobic effect (_U_nburied
+_S_urface), and intra-molecular and protein-solvent hydrogen-bonding
+(_H_ydrogen-bonding) (hence _R_ _U_ _S_ _H_). Usage instructions are
+in doc/rush.doc
+
+15) subdirectory gbsw: Optimized protein backbone parameters
+(par_all22_prot_gbsw.inp) and atomic input radii (radius_gbsw.str) for
+a balanced GBSW implicit solvent force field.  The backbone phi/psi
+cross-term (CMAP) and the atomic input radii have been re-optimized
+specifically to balance the solvation and intramolecular interactions
+and to capture experimental conformational equilibria of both helical
+peptides and beta-hairpins. Additional information can be found in
+gbsw.doc.
 
 questions to www.charmm.org, Parameter Discussion Forum
 
@@ -97,7 +141,6 @@ School of Pharmacy
 University of Maryland, Baltimore
 20 Penn Street
 Baltimore, MD  21201
-410-706-7442
 
 Summary of c22g2 to c22g3 topology and parameter file changes
  
@@ -648,7 +691,132 @@ par_opls_ligand.inp)
 
 Summary of changes in version c32 
 
-lipid:
+Polarizable force field: see directory toppar/drude
+ 
+  1) Model based on classical Drude oscillator added. Model under
+developement; see 00readme for details.
 
-  1) New alkane and alkene dihedral parameters added yielding
-top_all32_lipid.rtf and par_all32_lipid.prm
+External force fields supported by charmm: see directory toppar/non_charmm
+
+  1) toppar_water_misc.str contains SPC and SPC/E water models
+
+Silicate surfaces (Quartz, Kaolinite): toppar/silicates
+
+  1) Force field for silicate surfaces added.  Additive model
+developed to be consistent with the CHARMM22 and 27 force fields.
+Code for generation of extended surfaces included.
+
+Lipids:
+
+* 1) Missing improper added to EST1 and EST2 patches
+
+Proteins:
+
+  1) Retinol and related compound parameters added in
+stream/toppar_all22_prot_retinol.str.  additional atoms types added to
+parent protein topology and parameter files to accomidate new
+compounds.
+
+* 2) Correction to toppar_amines.str internal terms
+
+Nucleic acids:
+
+  1) Peptide nucleic acid parameters from L. Nilsson and coworkers
+added to toppar_all27_na_bkb_modifications.str
+
+  2) Corrections to ACCE O1P2 bugs.
+
+Summary of changes in version c33
+
+* 1) CMAP term for protonated histidine (RESI HSP) was omitted from
+the topology files containing proteins.  This was corrected in the
+c33b1 release.
+  
+  2) Special parameters for gbsw model added.  See gbsw subdirectory
+and parmfile.doc for details.
+
+Summary of changes in version c34
+
+  1) Ether parameters added. See top_all34_ethers.rtf and
+par_all34_ethers.prm
+
+  2) Drude command revised and toppar format updated and additional
+residues/parameters added.  See drude.tar.gz
+
+  3) rush parameters for protein folding added.  See rush subdirectory
+and parmfile.doc for details.
+
+  4) tamdfff parameters added for internal coordinate dynamics.  See
+tamdfff subdirectory and parmfile.doc for details.
+
+Summary of changes in version C35
+
+  1) New carbohydrate force field parameters added. This includes an
+extensive set of monosaccharides, acyclic analogs and glycosyl
+linkages.  The parameters are designed to be compatible with the
+CHARMM22 and 27 additive force fields.
+
+  2) Lipids: Minor corrections to several residues used for generation
+of lipids.  Myristic acid added to allow for creation of DMPC. New
+model compounds added to toppar_all27_lipid_model.str.
+
+  3) Proteins: Neutral N- and C-terminal patches added: NNEU and CNEU. 
+
+  4) Proteins: Topology and parameter files WITHOUT CMAP no longer the
+default and not included in the toppar directory. Note that the
+original CHARMM22 model may be reproduced by including the SKIPE CMAP
+command in the charmm input script.
+
+  5) Lipids: New generation lipid topology and parameter files,
+top_all32_lipid.rtf and par_all32_lipid.prm added.  These include
+update of the lipid order parameters that yield improvements in the
+lipid order parameters.
+
+  6) Ethers: Modification of selected ether dihedral performed to yield 
+top_all35_ethers.rtf and par_all35_ethers.prm
+
+Summary of changes in version C36
+
+  1) Lipids: New generation lipid topology and parameter files,
+top_all36_lipid.rtf and par_all36_lipid.prm added. These include
+additional optimization of the dihedral parameters and adjustments of
+the nonbond parameters for the ester moieties in the esterified
+glycerol linker region. Note that as of January 2010, the lipids that
+contain inositol are NOT based on the all36* carbohydrates parameters
+and have not been validated.
+
+  2) Carbohydrates: Ongoing extensions of the carbohydrate parameters
+to include furanoses, non-hydroxyl substituents and so on.  This is
+the *all36* set.
+
+  3) CHARMM General FF (CGenFF): Initial release of CGenFF.
+
+  4) Revised additive protein FF completed; top_all36_prot.rtf and 
+par_all36_prot.prm.  Initial release to developers with inclusion
+in CHARMM distribution version in C37
+
+  5) Revised additive nucleic acid FF completed; top_all36_na.rtf and 
+par_all36_na.prm.  Initial release to developers with inclusion
+in CHARMM distribution version in C37.
+
+  6) Toppar files formats changed to allow individual toppar files 
+to be combined without creation of explicit combined files. Changes 
+are described in 00toppar_file_format.txt
+
+Summary of changes in version C37
+
+  1) Full "C36" release of additive force field including most recent
+  protein, nucleic acid, lipid, carbohydrate and CGenFF parameters.
+
+  2) Revised additive protein FF completed; top_all36_prot.rtf and
+par_all36_prot.prm included in distribution version.
+
+  3) Revised additive nucleic FF completed; top_all36_na.rtf and
+par_all36_na.prm included in distribution version.
+
+  4) Modification to C36 lipids
+     i) PUFA based alkene parameters modified (will change energies)
+     ii) New cholesterol parameters (toppar_all36_lipid_cholesterol.str, will change energies)
+     iii) Additional bacterial lipids added (toppar_all36_lipid_bacterial.str)
+
+
