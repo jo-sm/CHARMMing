@@ -1,13 +1,5 @@
 <head>
-<script type="text/javascript" src="/charmming/js/jsmol/JSmoljQuery.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/JSmolCore.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/JSmolApplet.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/JSmolApi.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/j2s/j2sjmol.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/JSmol.js"></script>
-  <script type="text/javascript" src="/charmming/js/custom.js"></script>
-  <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
-
+  <script type="text/javascript" src="/charmming-static/jsmol/JSmol.min.js"></script>
 </head>
 <body>
 
@@ -26,12 +18,12 @@
         Jmol._getElement(applet, "appletdiv").style.border="1px solid blue"
 }
     var Info = {
-        width: 680,
-        height: 680,
+        width: "70%",
+        height: "95%",
         debug: false,
         color: "black",
         use: "HTML5",
-        j2sPath: "/charmming/js/jsmol/j2s",
+        j2sPath: "/charmming-static/jsmol/j2s",
         readyFunction: jmol_isReady,
         script: "set antialiasDisplay;"
 }
