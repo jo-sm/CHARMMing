@@ -70,6 +70,10 @@ function download_charmming {
     cd /tmp/charmming/charmming/mytemplates/js/
     unzip glmol.zip 
     unzip jsmol-13.1.13.zip
+    tmpdir=`dirname  $charmming_path`
+    static="$tmpdir/charmming-static"
+    sudo mkdir "$static" 
+    sudo mv jsmol "$static"
     cd /tmp/charmming/
  
 #move charmming and charmming utils to final location.. 
