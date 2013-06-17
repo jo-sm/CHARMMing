@@ -37,5 +37,13 @@ body {
     font-size:        76%;
     font-style:       normal;
     font-weight:      normal;
+    background:#000000 url("/charmming/images/leebg.gif") repeat;
+    margin:0;
+    padding:0;
+    color:#000;
+    font-size:small;
+    /*      background:#C3D9FF;*/
+    /*background:#DCE0E7;*/
+
 }
 
