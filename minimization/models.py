@@ -40,7 +40,7 @@ class minimizeTask(Task):
         wfinp.path = loc + '/' + bnm + '-minimize' + '.inp'
         wfinp.canonPath = wfinp.path
         wfinp.type = 'inp'
-        wfinp.description = 'minimization script output'
+        wfinp.description = 'minimization script input'
         wfinp.save()
 
 
