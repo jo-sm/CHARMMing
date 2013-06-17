@@ -21,7 +21,7 @@ div.col1 {
 }
 
 div.col2 {
- position absolute;
+ position: absolute;
  left: 205px;
  top: 0;
  width: 200px;
@@ -151,5 +151,22 @@ border-right: #000000 0px solid;
 border-bottom: #000000 0px solid;
 background: #e2e9fe;
 }
+
+/* CSS declarations for ligand design */
+
+#jsmol_ligand{
+  width:600px;
+  float:right;
+  display:inline;
+}
+
+#mol_actions{
+  clear:right;
+  display:inline;
+}
+
+ 
+  
+
 
 
