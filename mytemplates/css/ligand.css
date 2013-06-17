@@ -1,0 +1,31 @@
+/* CSS file for ligand_design.html 
+ * Sets 1000px total area and marginalizes
+ * Also adds background to fit the rest of CHARMMing. */
+
+#jsmol_ligand{
+  width:600px;
+  float:right;
+  display:inline;
+  }
+  
+#mol_actions{
+  clear:right;
+  display:inline;
+  }
+
+body{
+  width:1060px;
+  margin-left:auto;
+  margin-right:auto;
+  background-color:#FFFFFF;
+  color:#000000;
+  background:#000000 url("/charmming/images/leebg.gif") repeat; 
+  font-family:arial,helvetica,sans-serif;
+  font-size:76%;
+  font-style:normal;
+  font-weight:normal;
+}
+
+
+
+
