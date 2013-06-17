@@ -16,6 +16,9 @@ function send_delete_form(filename) {
    new Ajax.Request("/charmming/deletefile/", {method:'post', asynchronous:false, parameters: {'filename':filename}});
 }
 
+function send_ligand(){
+  window.location = "/charmming/ligand_design/";
+}
 
 // The following is taken from fileuploadform...
 var last_option_id ="";
@@ -532,7 +535,22 @@ function checkDisplayFile(filename)
   return 1;
 }
 
+function hideFileList(header)
+{
+  var filediv = document.getElementById(header);
+  var fileheader = document.getElementById("collapse-" + header); 
+  if (filediv.style.display == "block")
+    {
+      filediv.style.display = "none";
+      fileheader.innerHTML = "<h2><button onclick=\"hideFileList('" + header + "');\">+</button>" + header + " files</h2>";
+  }else{
+      filediv.style.display = "block";
+      fileheader.innerHTML = "<h2><button onclick=\"hideFileList('" + header + "');\">-</button>" + header + " files</h2>";
+    }
+}
+      
 
+//These are from the Build structure page.
 function showHideDisul()
 {
  if(document.getElementById('disul_box').checked) {
@@ -550,6 +568,7 @@ function showHideProto()
     setVisible("protonation","none");
  }
 }
+
 
 
 //for use with Normal modes
