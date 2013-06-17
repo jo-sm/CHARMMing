@@ -144,7 +144,7 @@ def rmsformdisplay(request):
         return output.returnSubmission("RMS calculation", error="Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     feedback = ''
-    tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+    tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
 
     rmsd_list = []
     for t in tasks:
