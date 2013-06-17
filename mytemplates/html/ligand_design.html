@@ -18,8 +18,13 @@
   <div id="top_of_page">
     <h1 align="center">Build a {% if structname %} Ligand for Structure {{ structname }} {% else %} Custom Ligand{% endif %}</h1>
   <hr />
-    <form id="ligand_form" method="post" action="/charmming/ligand_design/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/ligand_design/',makeUniqueDiv('Build Ligand'));" >
-      <div style="background-color: #919f86;"><b>Please choose a name for the new ligand:&nbsp;&nbsp;</b><input type="text" name="LigName" id="LigName" value="{% if molname %} {{molname}} {% endif %}"><br />
+  <form id="ligand_form" method="post" action="/charmming/ligand_design/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/ligand_design/',makeUniqueDiv('Build Ligand'));" > 
+    <div style="background-color: #919f86;"><b>Please choose a name for the new ligand:&nbsp;&nbsp;</b>
+      {% if molname %}
+      <input type="text" name="LigName" id="LigName" value="{{ molname }}"><br />
+      {% else %}
+      <input type="text" name="LigName" id="LigName" value="{{ molname }}"><br />
+      {% endif %}
         (only the first 3 characters will be used as a residue name)<br />
         <p>Attach this ligand to the current structure&nbsp;&nbsp;<input type="checkbox" name="attach_check" id="attach_check" {% if attach_check %} checked {% endif %}></div></p>
       <input type="text" name="molinfo" id="molinfo" value="" style="display:none"> <!-- This holds the MOL output from Jmol to spit back out into django -->
@@ -84,7 +89,7 @@
               }
             }
           });
-        });
+          });
       }
       if(same_residue){
       $(function($) {
@@ -170,12 +175,11 @@
     <script type="text/javascript">
       //We use a jQuery UI thing because using prototypejs makes things silly.
         var initialscript = 'set antialiasDisplay;set atompicking on;set picking assignatom_C;'
-        var moldata = (document.getElementById("molinfo").value != "");
-        if(!(moldata)){
+        {% if not moldata %}
           initialscript = initialscript + "load /charmming/js/jsmol/methane.xyz";
-        }else{
+        {% else %}
           initialscript = initialscript + "load {{filepath}}moldata.pdb;";
-        }
+        {% endif %}
         var jmolApplet;
         jmol_isReady = function(applet) {
           Jmol._getElement(applet, "appletdiv".style.border="1px solid blue");
