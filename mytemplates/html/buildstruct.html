@@ -3,7 +3,7 @@
 {% block content %}
 <div id="mainpage">
 
-  <h2 align="center">Editing structure {{ structname }}</h2>
+  <h1 align="center">Editing structure {{ structname }}</h1>
   <hr />
 
   {% if haveworkingstruct %}
@@ -19,7 +19,6 @@
       </form>
     </div>
   {% endif %}
-
   <div id="newbuild">
      <h2>Build A New Working Structure</h2>
 
@@ -73,7 +72,7 @@
                       Choose:
                       <select name="toppar_{{ seg.name }}">
                         <option value="upload">Upload my own topology/parameters</option>
-                        <option value="autogen">Attempt to automatically generate parameters</option>
+                        <option value="autogen" selected="selected">Attempt to automatically generate parameters</option>
                         {% if seg.fes4 %}
                            <option value="redox">Use only for REDOX calculations</option>
                         {% endif %}
@@ -130,10 +129,10 @@
                       </select>
                     </td>
                 </tr>
-                </div>
                {% endfor %}
-               </table>
-           {% endif %}
+             </table>
+                </div>
+               {% endif %}
            </div>
 
         </div></div>

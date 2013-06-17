@@ -6,10 +6,12 @@
 <hr width="50%">
 
 <center>
-<form method="post" action=".">
-   {% for header in headers %}
-     <h2>{{ header }} files</h2>
-
+  <!-- <form method="post" action=".">  Why is this a form? django doesn't need it... -->
+  {% for header in headers %}
+  <div id="collapse-{{ header }}">
+    <h2><button onclick="hideFileList('{{ header }}');">+</button>{{ header }} files</h2>
+    </div>
+   <div id={{ header }} style="display:none">
      <table class="sortable resizable" border="2" width="98%">
        {% for file in files %}
           {% ifequal file.0 header %}
@@ -20,9 +22,9 @@
           {% endifequal %}
        {% endfor %}
      </table>
+    </div>
    {% endfor %}
-
-</form>
+<!-- </form> -->
 </center>
 </div>
 {% endblock %}

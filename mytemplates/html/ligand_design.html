@@ -1,0 +1,270 @@
+{% extends 'html/skeleton.html' %}
+{% block content %}
+<script type="text/javascript" src="/charmming/js/jsmol/js/JSmoljQuery.js"></script>
+<script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
+<script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
+<script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
+<script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
+<script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
+<script type="text/javascript" src="/charmming/js/ligand.js"></script>
+<link rel="stylesheet" href="/charmming/js/jquery-ui/jquery-ui.css"></script>
+<script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
+
+
+<link rel="icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico">
+<link rel="shortcut icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico">
+
+
+  <div id="top_of_page">
+    <h1 align="center">Build a {% if structname %} Ligand for Structure {{ structname }} {% else %} Custom Ligand{% endif %}</h1>
+  <hr />
+    <form id="ligand_form" method="post" action="/charmming/ligand_design/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/ligand_design/',makeUniqueDiv('Build Ligand'));" >
+      <div style="background-color: #919f86;"><b>Please choose a name for the new ligand:&nbsp;&nbsp;</b><input type="text" name="LigName" id="LigName" value="{% if molname %} {{molname}} {% endif %}"><br />
+        (only the first 3 characters will be used as a residue name)<br />
+        <p>Attach this ligand to the current structure&nbsp;&nbsp;<input type="checkbox" name="attach_check" id="attach_check" {% if attach_check %} checked {% endif %}></div></p>
+      <input type="text" name="molinfo" id="molinfo" value="" style="display:none"> <!-- This holds the MOL output from Jmol to spit back out into django -->
+      <input type="text" name="force_charge" id="force_charge" value="false" style="display:none">
+      <input type="text" name="force_custom" id="force_custom" value="false" style="display:none"> <!-- Bypasses SDF check in PDB.org -->
+    </form>
+  </div>
+  <div id="ligbuild_options">
+    <div id="jsmol_ligand">
+      {% if same_residue %}
+      <div id="dialog_sameres_alert" title="Name error">
+        <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 7px 20px 0;"></span>There is 
+        already a residue with this name on the current structure. Please choose a different name for your ligand.</p>
+      </div>
+      {% endif %}
+      {% if sdf_link %} 
+      <div id="dialog_confirm_PDB" title="Found residue on PDB.org">
+        <p><span class="ui icon ui-icon-alert"></span></p>
+      </div>
+      <div id="dialog_name_alert" title="Name error">
+        <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 7px 20px 0;"></span>
+        Please choose a different name for your ligand.</p>
+      </div>
+      {% endif %}
+      {% if charge_alert %}
+      <div id="dialog_charge_alert" title="Charge error">
+        <p><span class="ui-icon ui-icon alert" style='float:left;margin 0 7px 20px 0;'></span>
+        Your molecule has an odd number of electrons. Are you sure you want to submit this ligand?
+        </p>
+      </div>
+      {% endif %}
+      {% if struct_error %}
+      <div id="dialog_struct_error" title="Bad residue name">
+      </div>
+      {% endif %}
+    <script type="text/javascript">
+      //Incoming block is confirmation dialogs.
+      //Remember to include the divs with this stuff in a script BEFORE JSmol but AFTER these declarations.
+      var molname = document.getElementById("LigName").value;
+      molname = molname.substr(0,3).toUpperCase();
+      var sdf_link = (document.getElementById("dialog_confirm_PDB") != null);
+      var same_residue = (document.getElementById("dialog_sameres_alert") != null);
+      var charge_alert = (document.getElementById("dialog_charge_alert") != null);
+      var struct_error = (document.getElementById("dialog_struct_error") != null);
+      if(sdf_link){ //hack so that django reloads properly
+        //Since JS is cached, but HTML is reloaded on the fly by django, we use django's templating presence
+        //to tell the JS on the page what to do
+        document.getElementById("dialog_confirm_PDB").innerHTML =  '<p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 7px 20px 0;"></span>Your ligand has been found on PDB.org under the identifier ' + molname +  '. Are you sure you want this to be the name of your ligand?</p>';
+      }
+      if(struct_error){
+        document.getElementById("dialog_confirm_PDB").innerHTML =  '<p><span class="ui-icon ui-icon alert" style="float:left;margin 0 7px 20px 0;"></span>There already exists a ligand named ' + molname + ' in your current working structure. Please choose a different name for your ligand.';
+        
+        $(function($){
+            $( "#dialog_struct_error").dialog({
+              resizable:false,
+              height:300,
+              width:600,
+              modal:true,
+              buttons:{
+              "OK":function(){
+              $(this).dialog("close");
+              }
+            }
+          });
+        });
+      }
+      if(same_residue){
+      $(function($) {
+          $( "#dialog_sameres_alert").dialog({
+            resizable:false,
+            height:300,
+            width:300,
+            modal:true,
+            buttons:{
+            "OK":function(){
+              $(this).dialog("close");
+              }
+          }
+        });
+      });
+      }
+
+      if(sdf_link){
+      //For some reason unknown to me, putting these dialogs in reverse order
+      //makes them be shown bottom-up.
+      $(function($) {
+          $( "#dialog_name_alert").dialog({
+            resizable:false,
+            height:300,
+            width:300,
+            modal:true,
+            autoOpen:false,
+            buttons:{
+            "OK":function(){
+            $(this).dialog("close");
+            }
+          }
+        });
+      });
+      $(function($) {
+          $( "#dialog_confirm_PDB" ).dialog({
+            resizable:false,
+            height:300,
+            width:300,
+            modal:true,
+            buttons:{
+            "Yes, I'm sure": function() {
+              document.getElementById("force_custom").value = "true";
+              {% if not charge_alert %}
+                document.getElementById("molinfo").value = "{{ moldata }}".replace("\n","\\n","gi"); //Python passes it escaped, no issues here
+                normalFormSubmit(true);
+              {% endif %}
+              $( this ).dialog( "close" );  
+            },
+            "No, I'm not": function() { 
+              $( this ).dialog( "close" );
+              $("#dialog_name_alert").dialog("open");
+              }
+            }  
+          });
+      });
+      }
+      
+      if(charge_alert){
+      $(function($) { 
+          $( "#dialog_charge_alert" ).dialog({
+            resizable:false,
+            height:300,
+            width:300,
+            modal:true,
+            buttons:{
+            "Yes, I'm sure": function() {
+              document.getElementById("force_charge").value = "true";
+              document.getElementById("LigName").value = "{{ molname }}";
+              document.getElementById("molinfo").value = "{{ moldata }}".replace("\n","\\n","gi"); //Python passes it escaped, no issues here
+              normalFormSubmit(true);
+            },
+            "No, I'm not": function() {
+              $(this).dialog("close");
+              }
+            }
+          });
+          });
+      }
+      </script>
+      
+  
+    <script type="text/javascript">
+      //We use a jQuery UI thing because using prototypejs makes things silly.
+        var initialscript = 'set antialiasDisplay;set atompicking on;set picking assignatom_C;'
+        var moldata = (document.getElementById("molinfo").value != "");
+        if(!(moldata)){
+          initialscript = initialscript + "load /charmming/js/jsmol/methane.xyz";
+        }else{
+          initialscript = initialscript + "load {{filepath}}moldata.pdb;";
+        }
+        var jmolApplet;
+        jmol_isReady = function(applet) {
+          Jmol._getElement(applet, "appletdiv".style.border="1px solid blue");
+        }
+        var debug_on = {% if super_user %}false {% else %} true {% endif %};
+        var Info = {
+          width: 600,
+          height: 600,
+          debug: false, //Only turn this on when something's wrong with JSmol itself
+          color: 'black',
+          use: 'HTML5',
+          j2sPath: '/charmming/js/jsmol/j2s/',
+          readyFunction: jmol_isReady,
+          script: initialscript, //Auto-enables drawing CH3's.
+          disableJ2SLoadMonitor: debug_on,
+          disableInitialConsole: debug_on,
+          console: 'jmolApplet_infodiv'
+          }
+        jmolApplet = Jmol.getApplet("jmolApplet", Info);
+        // Now jmolApplet can be referenced from all the other stuff on this page.
+        jQuery.noConflict()
+      </script>
+    </div>
+    <div id="mol_actions">
+        <div id="default_mols">
+          <h3>Load Starting Molecules</h3>
+          <hr />
+            <button onclick="load(jmolApplet, 'benzene')">Benzene</button>&nbsp;
+            <button onclick="load(jmolApplet, 'methane')">Methane</button>&nbsp;
+            <br /><br />
+        </div>
+        <div id="actions">
+          <h3>Structure Actions</h3>
+          <hr />
+            <button onclick="action_save(jmolApplet);">Save</button>&nbsp;
+            <button onclick="action_restore(jmolApplet);">Restore</button>&nbsp;
+            <br /><br />
+        </div>
+        <div id="mol_edit">
+          <h3>Atom Manipulation</h3>
+          <hr />
+          <button id="off" onclick="off(jmolApplet);">Off</button>&nbsp;
+          <button id="drag" onclick="drag(jmolApplet);">Drag</button>&nbsp;
+          <button id="del" onclick="del(jmolApplet);">Delete</button>&nbsp;
+          
+          <br /><br />
+          <h3>Atom picking</h3>
+          <hr />
+          <!-- Replace these with radio buttons maybe? ~VS -->
+          <button id="H" onclick="pickAtom(jmolApplet, this);">H</button>&nbsp;
+          <button id="C" onclick="pickAtom(jmolApplet, this);">C</button>&nbsp;
+          <button id="N" onclick="pickAtom(jmolApplet, this);">N</button>&nbsp;
+          <button id="O" onclick="pickAtom(jmolApplet, this);">O</button>&nbsp;
+          <button id="S" onclick="pickAtom(jmolApplet, this);">S</button>&nbsp;
+          <button id="P" onclick="pickAtom(jmolApplet, this);">P</button>&nbsp;
+          <button id="Li" onclick="pickAtom(jmolApplet,this);">Li</button>&nbsp;
+          <button id="Na" onclick="pickAtom(jmolApplet,this);">Na</button>&nbsp;
+          <button id="Mg" onclick="pickAtom(jmolApplet,this);">Mg</button>&nbsp;
+          <br /><br />
+          <button id="K" onclick="pickAtom(jmolApplet,this);">K</button>&nbsp;
+          <button id="Ca" onclick="pickAtom(jmolApplet,this);">Ca</button>&nbsp;
+          <button id="Rb" onclick="pickAtom(jmolApplet,this);">Rb</button>&nbsp;
+          <button id="Cs" onclick="pickAtom(jmolApplet,this);">Cs</button>&nbsp;
+          <button id="Ba" onclick="pickAtom(jmolApplet,this);">Ba</button>&nbsp;
+          <button id="Zn" onclick="pickAtom(jmolApplet,this);">Zn(II)</button>&nbsp;
+          <button id="Cd" onclick="pickAtom(jmolApplet,this);">Cd(II)</button>&nbsp;
+          <button id="Cl" onclick="pickAtom(jmolApplet,this);">Cl</button>&nbsp;
+          <br /><br />
+          <button id="Pl" onclick="pickAtom(jmolApplet,this);">Increase Charge</button>&nbsp;
+          <button id="Mi" onclick="pickAtom(jmolApplet,this);">Decrease Charge</button>&nbsp;
+          <br /><br />
+        </div>
+        <div id="mol_bonds">
+          <h3>Bond Manipulation</h3>
+          <hr />
+          <button id="n" onclick="setbonds(jmolApplet,this);">Off</button>&nbsp;
+          <button id="0" onclick="setbonds(jmolApplet,this);">Break</button>&nbsp;
+          <button id="1" onclick="setbonds(jmolApplet,this);">Single</button>&nbsp;
+          <button id="2" onclick="setbonds(jmolApplet,this);">Double</button>&nbsp;
+          <button id="3" onclick="setbonds(jmolApplet,this);">Triple</button>&nbsp;
+          <br /><br />
+        </div>
+        <hr />
+        <button id="submit" onclick="normalFormSubmit();">Upload New Ligand</button>
+        <form method="link" action="/charmming/">
+          <input type="submit" value="Return to CHARMMing">
+     </form> 
+      </div>
+  </div>
+</body>
+</html>
+{% endblock %}

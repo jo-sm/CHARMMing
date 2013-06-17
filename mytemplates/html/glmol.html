@@ -192,8 +192,9 @@ $.get("/charmming/pdbuploads/{{filepath}}", function(ret) {
 $("#glmol01_src").val(ret);
 var text_area = document.getElementById("glmol01_src").value;
 var no_end = text_area.replace("END","");
-no_end += "{{helix_info}}";
+no_end += "{{ helix_info }}";
 no_end += "END";
+no_end = no_end.replace("\n","\n\r");
 $("#glmol01_src").val(no_end);
 glmol01.loadMolecule();
 });

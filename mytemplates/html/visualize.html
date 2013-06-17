@@ -9,7 +9,7 @@
      <table class="sortable resizable" border=2>
         <tr><th>Filename</th><th>Description</th><th>View in JSmol</th><th>View in GLmol</th></tr>
         {% for file in filelst %}
-           <tr><td>{{ file.0 }}</td><td>{{ file.1 }}</td><td><a target="_blank" href="/charmming/jmolview/{{ file.0 }}">View</a></td><td><a target="_blank" href="/charmming/glmolview/{{ file.0 }}">View</a> </td></tr>
+        <tr><td>{{ file.0 }}</td><td>{{ file.1 }}</td><td><a target="_blank" href="/charmming/jmolview/{{ file.0 }}">View</a></td><td><a target="_blank" href="/charmming/glmolview/{{ file.0 }}">View</a> </td></tr>
         {% endfor %}
      </table>
   </form>

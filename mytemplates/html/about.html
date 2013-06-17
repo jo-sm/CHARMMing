@@ -17,19 +17,17 @@ and Modeling. 48(9), 1920-1929. 2008.</i><br />(<a href="http://pubs.acs.org/cgi
 <h2 class="intro"><p class="padding">Source Code</p></h2>
 
 <p class="intro">The source code for CHARMMing can be found at <a href="http://source.charmming.org">source.charmming.org</a>
-or at <a href="http://charmming.googlecode.com">CHARMMing's Google Code site<a>.</p>
+or at <a href="http://charmming.googlecode.com">CHARMMing's Google Code site</a>.</p>
 
 
 <h2 class="intro"><p class="padding">Using the site</p></h2>
 
 <p class="intro">
-CHARMMing has been tested with Mozilla Firefox versions 2 and 3-beta. The browser must be set to accept
+CHARMMing has been tested with Mozilla Firefox versions 2+ (up to and including 21). The browser must be set to accept
 cookies. It should also work with Internet Explorer 7+ and recent versions of Safari, but these have not
-been tested as thoroughly.</p>
+been tested as thoroughly. It should also work well with recent versions of Google Chrome, including the
+mobile versions for Android phones; it is the preferred browser for visualizing molecules with GLmol.</p>
 <br />
-<p class="intro">To view structures with Jmol, the free Java browser plug-in is required. It may be downloaded from
-<a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.java.com/en/download/index.jsp">Sun Microsystems</a>.</p>
-<br /></p>
 <p class="intro">To report bugs, please e-mail btmiller@helix.nih.gov or RishiSingh@gmail.com, but please check the known problem
 list below to make sure it's not a duplicate of an issue we already know about.</p>
 
@@ -41,9 +39,9 @@ list below to make sure it's not a duplicate of an issue we already know about.<
   <li><p class="introlist">Antechamber will combine all &quot;bad&quot; hetero-atoms into a single residue when it is used.</p></li>
   <li><p class="introlist">GENRTF also combines all &quot;bad&quot; hetero-atoms into a single residue when hydrogens are generated.</p></li>
   <li><p class="introlist">Generating hydrogens for &quot;bad&quot; hetero-atoms can cause problems with Antechamber.</p></li>
-  <li><p class="introlist">The Jmol Java applet requires Sun's java browser plugin to function correctly. The GNU java plugin 
-      is known not to work.</p></li> 
-  <li><p class="introlist">Visualizing custom sequences does not work until a CHARMM operation is performed on them (since coordinates must be built).</p></li>
+      <li><p class="introlist">Visualizing custom sequences does not work until a CHARMM operation is performed on them (since coordinates must be built).</p></li>
+      <li><p class="introlist">Downloading screenshots taken with GLmol can cause severe glitches in Firefox. It is recommended to 
+      instead copy the image to the clipboard and paste it into an image editing program or similar for local storage.</p></li>
 </ul>
 
 <h2 class="intro"><p class="padding">Report a bug</p></h2>
@@ -72,14 +70,17 @@ list below to make sure it's not a duplicate of an issue we already know about.<
 CHARMMing makes use of a variety of additional software.
 
 <ul>
-  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.fueledsoftware.com/ajax-tabs-reloaded-based-on-the-havoc-studios-arti#more251">Ajax Tabs</a>: an Ajax tabbing script.</p></li>
-  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://web-graphics.com/mtarchive/001717.php">Bubble tooltips</a>: provides context-sensitive help.</p></li>
-  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.djangoproject.org">Django</a>: an open source Web application framework.</p></li>
-  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.orangoo.com/labs/GreyBox/">GreyBox</a>: for various display functionality.</p></li>
-  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.prototypejs.org/">Protoype</a>: javascript framework.</p></li>
-  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.dynamicdrive.com/dynamicindex1/slashdot.htm">SD Menu</a>: used to create the sidebar.</p></li>
-  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.millstream.com.au/view/code/tablekit">TableKit</a>: For table sorting.</p></li>
-  <li><p class="introlist"><a href="http://dir.nhlbi.nih.gov/cgi-bin/redir.asp?http://www.openbabel.org">Open Babel</a>: Generates hydrogens for bad heteroatoms.</p></li>
+  <li><p class="introlist"><a href="http://www.fueledsoftware.com/ajax-tabs-reloaded-based-on-the-havoc-studios-arti#more251">Ajax Tabs</a>: an Ajax tabbing script.</p></li>
+  <li><p class="introlist"><a href="http://web-graphics.com/mtarchive/001717.php">Bubble tooltips</a>: provides context-sensitive help.</p></li>
+  <li><p class="introlist"><a href="http://www.djangoproject.org">Django</a>: an open source Web application framework.</p></li>
+  <li><p class="introlist"><a href="http://www.orangoo.com/labs/GreyBox/">GreyBox</a>: for various display functionality.</p></li>
+  <li><p class="introlist"><a href="http://www.prototypejs.org/">Protoype</a>: a general javascript framework.</p></li>
+  <li><p class="introlist"><a href="http://www.dynamicdrive.com/dynamicindex1/slashdot.htm">SD Menu</a>: used to create the sidebar.</p></li>
+  <li><p class="introlist"><a href="http://www.millstream.com.au/view/code/tablekit">TableKit</a>: for table sorting.</p></li>
+  <li><p class="introlist"><a href="http://www.openbabel.org">Open Babel</a>: generates hydrogens for bad heteroatoms and generates SDF files for parameter fitting.</p></li>
+  <li><p class="introlist"><a href="http://sourceforge.net/projects/jsmol/">JSmol</a>: for visualization of molecules and custom ligand building.</p></li>
+  <li><p class="introlist"><a href="http://webglmol.sourceforge.jp/index-en.html">GLmol</a>: for fast visualization of molecules on machines with limited resources, such as phones.</p></li>
+  <li><p class="introlist"><a href="http://jquery.com">jQuery</a>: included as part of JSmol, and used for various displays.</p></li>
 </ul>
 </p>
 

@@ -2,9 +2,9 @@
   <head>
     <!-- this is for ChemDoodle -->
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link rel="stylesheet" href="/charmming/css/ChemDoodleWeb.css" type="text/css">
-    <script type="text/javascript" src="/charmming/js/ChemDoodleWeb-libs.js"></script>
-    <script type="text/javascript" src="/charmming/js/ChemDoodleWeb.js"></script>
+    <link rel="stylesheet" href="/charmming/css/chemdoodle/ChemDoodleWeb.css" type="text/css">
+    <script type="text/javascript" src="/charmming/js/chemdoodle/ChemDoodleWeb-libs.js"></script>
+    <script type="text/javascript" src="/charmming/js/chemdoodle/ChemDoodleWeb.js"></script>
   </head>
 
 <body>
@@ -20,15 +20,16 @@
            alert(message);
          }
 
-         var transformBallAndStick = new ChemDoodle.TransformCanvas3D('transformBallAndStick',520,520);
-         transformBallAndStick.specs.set3DRepresentation('Ball and Stick');
-         transformBallAndStick.specs.proteins_ribbonCartoonize = false;
-         //tranbsformBallAndStick.specs.atoms_useJMOLColors = true;
+         var transformBallAndStick = new ChemDoodle.TransformCanvas3D('ribbonTransformer',520,520);
+     //    transformBallAndStick.specs.set3DRepresentation('Ball and Stick');
+         transformBallAndStick.specs.proteins_ribbonCartoonize = true;
+        // This was set to false even though JSmol and GLmol both do cartoonize...why?
+//         transformBallAndStick.specs.atoms_useJMOLColors = true;
          transformBallAndStick.specs.backgroundColor = 'black';
          //transformBallAndStick.specs.projectionPerspectiveWidthHeightRatio_3D = 1.5;
          //transformBallAndStick.specs.projectionPerspective_3D = false;
 
-         var PDBFile  = "{{ content }}";
+         var PDBFile  = "{{ content }}"
          var molecule = ChemDoodle.readPDB(PDBFile);
 
          transformBallAndStick.loadMolecule(molecule);

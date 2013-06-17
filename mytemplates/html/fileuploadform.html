@@ -32,6 +32,11 @@
             <td><a href="" title="You can define your own sequence by typing in the amino acids you want. Use the three letter abbreviation followed by a space (e.g. ALA GLY TYR).">?</a></td>
          </tr>
          <tr><td colspan=3><hr width="100%"></td></tr>
+        <tr>
+          <td><p class="frontlarge">Build a custom ligand using JSmol</p> </td><td><input type="radio" name="submit_structure_option" id="make_ligand" onclick="setOptionId(this);send_ligand();"></td>
+          <td><a href="" title="You can define your own ligand by clicking atoms and bonds on a 3D canvas.">?</a></td>
+        </tr>
+        <tr><td colspan=3><hr width="100%"></td></tr> 
       </table>
    </form>
 
@@ -46,6 +51,7 @@
             <div id='crd_upload' style="display:none"><p><label for="id_pdb"> CRD File Uploader </label> {{ form.pdbupload }} {{ form.pdbupload_file }}</div>
             <div id='psf_upload' style="display:none"><p><label for="id_psf"> PSF File Uploader </label> {{ form.psfupload }} {{ form.psfupload_file }}</div>
             <div id='pdb_download' style="display:none"><p><label for="id_pdbid"> PDB.org ID </label> {{ form.pdbid }} {{ form.proto }} </div>
+            <div id='ligand_make' style="display:none"></div> <!-- This div is only here to make the scripts on this page work with the custom ligand builder -->
             <div id='pdb_make' style="display:none">
                  <label for="id_sequ">Custom Sequence </label>{{ form.sequ }} 
 	         <br>
