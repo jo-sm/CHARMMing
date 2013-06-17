@@ -29,7 +29,7 @@ from pychm.cg.sansombln import SansomBLN
 from httplib import HTTPConnection
 import charmming_config, input
 import commands, datetime, sys, re, os, glob, shutil
-import normalmodes, dynamics, minimization
+import normalmodes, dynamics, minimization, mutation
 import solvation, lessons.models, apbs, lesson1, lesson2, lesson3, lesson4, lesson, lessonaux
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
@@ -39,6 +39,7 @@ import pychm.future.lib.toppar as pychm_toppar
 from pychm.future.io.charmm import open_rtf, open_prm
 from pychm.io.mol2 import MOL2File
 from tempfile import NamedTemporaryFile
+import openbabel
 
 class Structure(models.Model):
 
@@ -247,6 +248,7 @@ class Segment(models.Model):
     stream_list = models.CharField(max_length=500, null=True)
     is_working  = models.CharField(max_length=1,default='n')
     fes4        = models.BooleanField(default=False) # a bit of a hack, but it makes the views code easier
+    is_custom   = models.BooleanField(default=False) # Bypasses PDB.org SDF file check when building structure
 
     def set_default_patches(self,firstres):
         if self.type == 'pro':
@@ -415,72 +417,79 @@ class WorkingSegment(Segment):
                 filename_pdb = self.structure.location + '/' + self.name + '-badres-h-' + residue.resName + ".pdb"
                 filename_h = self.structure.location + '/' + self.name + '-badres-h-' + residue.resName + ".mol2"
                 residue.write(filename_noh, outformat='pdborg')
-
-
+                mylogfp = open('/tmp/sdf.txt',"w")
+                mylogfp.write(str(self.is_custom) + "\n")
                 # shiv to try to get an SDF file for the residue
                 conn = HTTPConnection("www.pdb.org")
-                mylogfp = open('/tmp/sdf.txt', 'w')
                 reqstring = "/pdb/files/ligand/%s_ideal.sdf" % residue.resName.upper()
                 mylogfp.write("reqstring = %s\n" % reqstring)
                 conn.request("GET", reqstring)
                 resp = conn.getresponse()
-                if resp.status == 200:
+                if resp.status == 200 and not(self.is_custom):
                     mylogfp.write('OK\n')
+                    mylogfp.flush()
                     sdf_file = resp.read()
-
                     outfp = open(filename_sdf, 'w')
                     outfp.write(sdf_file)
                     outfp.close()
+                #If you can't find it in PDB.org do the conversion
+                        ## Covert sdf to pdb so atom names map ...
+                        ##os.system("babel --title %s -isdf %s -opdb %s" % (residue.resName,filename_sdf,filename_pdb))
+                        ##tmpmol = pychm.io.pdb.get_molFromPDB(filename_pdb)
+                        ##for ta in tmpmol:
+                         ##    master_mol.append(ta)
 
-                    ## Covert sdf to pdb so atom names map ...
-                    ##os.system("babel --title %s -isdf %s -opdb %s" % (residue.resName,filename_sdf,filename_pdb))
-                    ##tmpmol = pychm.io.pdb.get_molFromPDB(filename_pdb)
-                    ##for ta in tmpmol:
-                    ##    master_mol.append(ta)
+                        ## BTM 20130213 -- With Lee's new workflow, I think that we can just dispense
+                        ## with this whole bunch of logic. Each individual toppar-making mechanism will decide
+                        ## for itself what it wants to do with the SDF file.
 
-                    ## BTM 20130213 -- With Lee's new workflow, I think that we can just dispense
-                    ## with this whole bunch of logic. Each individual toppar-making mechanism will decide
-                    ## for itself what it wants to do with the SDF file.
+                        #pdb_rewrite = self.structure.location + '/segment-' + seg.segid + '.pdb'
+                        #os.system("babel --title %s -isdf %s -omol2 %s" % (residue.resName,filename_sdf,filename_h))
+                        #os.system("sed -i.bak -e 's/LIG1/HET%d/' %s" % (btmcount,filename_h))
 
-                    #pdb_rewrite = self.structure.location + '/segment-' + seg.segid + '.pdb'
-                    #os.system("babel --title %s -isdf %s -omol2 %s" % (residue.resName,filename_sdf,filename_h))
-                    #os.system("sed -i.bak -e 's/LIG1/HET%d/' %s" % (btmcount,filename_h))
+                        # try to convert the names in the MOL2 to match those in the PDB.
 
-                    # try to convert the names in the MOL2 to match those in the PDB.
+                        # BTM -- is this even necessary at the moment? Will the rename_dupes stuff I've been working
+                        # on fix this?
+                        #pdbmol = pychm.io.pdb.get_molFromPDB(self.structure.location + '/segment-' + self.name + '.pdb')
+                        #mymol2 = MOL2File(filename_h)
+                        #molmol = mymol2.mol
 
-                    # BTM -- is this even necessary at the moment? Will the rename_dupes stuff I've been working
-                    # on fix this?
+                        #mylogfp.write('Lengths: pdbmol %d molmol %d\n' % (len(pdbmol),len(molmol))
+                        #mylogfp.flush()
 
-                    #pdbmol = pychm.io.pdb.get_molFromPDB(self.structure.location + '/segment-' + self.name + '.pdb')
-                    #mymol2 = MOL2File(filename_h)
-                    #molmol = mymol2.mol
+                        #j = 0
+                        #for i, pdbatom in enumerate(pdbmol):
+                        #    if pdbatom.resName != residue.resName.lower():
+                        #        continue
+                        #    if pdbatom.atomType.startswith('H'):
+                        #        break
+                        #    molatom = molmol[j]
+                        #    j = j + 1
 
-                    #mylogfp.write('Lengths: pdbmol %d molmol %d\n' % (len(pdbmol),len(molmol))
-                    #mylogfp.flush()
+                        #    # This is for debug purposes only
+                        #    if pdbatom.atomType.strip()[0] != molatom.atomType.strip()[0]:
+                        #        raise(Exception('Mismatched atom types'))
+                        #    molatom.atomType = pdbatom.atomType.strip()
+                        #molmol.write(filename_h, outformat='mol2', header=mymol2.header, bonds=mymol2.bonds)
 
-                    #j = 0
-                    #for i, pdbatom in enumerate(pdbmol):
-                    #    if pdbatom.resName != residue.resName.lower():
-                    #        continue
-                    #    if pdbatom.atomType.startswith('H'):
-                    #        break
-                    #    molatom = molmol[j]
-                    #    j = j + 1
-
-                    #    # This is for debug purposes only
-                    #    if pdbatom.atomType.strip()[0] != molatom.atomType.strip()[0]:
-                    #        raise(Exception('Mismatched atom types'))
-                    #    molatom.atomType = pdbatom.atomType.strip()
-
-                    #molmol.write(filename_h, outformat='mol2', header=mymol2.header, bonds=mymol2.bonds)
-
-                    ##os.system("babel --title %s -isdf %s -opdb %s" % (residue.resName,filename_sdf,pdb_rewrite))
+                        ##os.system("babel --title %s -isdf %s -opdb %s" % (residue.resName,filename_sdf,pdb_rewrite))
                 else:
                     mylogfp.write('No: use PDB\n')
+                    mylogfp.flush()
                     ##os.system("babel -h --title %s -ipdb %s -omol2 %s" % (residue.resName,filename_noh,filename_h))
-                    os.system("babel -h --title %s -ipdb %s -osdf %s" % (residue.resName,filename_noh,filename_sdf))
-                mylogfp.close()
-          
+                    obconv = openbabel.OBConversion()
+                    mol = openbabel.OBMol()
+                    obconv.SetInAndOutFormats("pdb","sdf")
+                    obconv.ReadFile(mol, filename_noh.encode("utf-8"))
+                    if not(self.is_custom):
+                        mol.AddHydrogens()
+                    mol.SetTitle(residue.resName)
+                    obconv.WriteFile(mol, filename_sdf.encode("utf-8"))
+                    mylogfp.write('cwd: %s' % os.getcwd())
+                    mylogfp.flush()
+            mylogfp.close()
+
         logfp.close()
         return badResList
 
@@ -635,11 +644,19 @@ class WorkingSegment(Segment):
         header = '# USER_IP 165.112.184.52 USER_LOGIN %s\n\n' % self.structure.owner.username
         for badRes in badResList:
             # make a mol2 file out of the SDF.
+            #Note: if custom residue we have to use different methodology or risk getting wrong ligands
             filebase = '%s/%s-badres-h-%s' % (self.structure.location,self.name,badRes)
             filename_sdf = filebase + '.sdf'
             filename_mol2 = filebase + '.mol2'
-            os.system("babel --title %s -isdf %s -omol2 %s" % (badRes,filename_sdf,filename_mol2))
-
+            obconv = openbabel.OBConversion()
+            mol = openbabel.OBMol()
+            obconv.SetInAndOutFormats("sdf", "mol2")
+            obconv.ReadFile(mol, filename_sdf.encode("UTF-8"))
+            mol.SetTitle(badRes)
+            obconv.WriteFile(mol, filename_mol2.encode("UTF-8"))
+            #Why do we make the mol2 file if the PDBFile object is going to mess with it anyway?
+#            os.system("babel --title %s -isdf %s -omol2 %s" % (badRes,filename_sdf,filename_mol2))
+            #TODO: Replace this with openbabel python bindings
             # The following nasty crap attempts to make the names in the MOL2 file the same as those
             # in the PDB.
             pdbmol = pychm.io.pdb.get_molFromPDB(self.structure.location + '/segment-' + self.name + '.pdb')
@@ -1106,6 +1123,9 @@ class WorkingStructure(models.Model):
     finalTopology = models.CharField(max_length=50,null=True)
     finalParameter = models.CharField(max_length=50,null=True)
 
+    #Points to NULL (default) or to local pickle file (if mutated struct)
+    localpickle = models.CharField(max_length=500,null=True)
+
     # see if we have any toppar stream files
     topparStream = models.CharField(max_length=500,null=True)
 
@@ -1129,8 +1149,10 @@ class WorkingStructure(models.Model):
         segnamelist = []
         for wseg in self.segments.all():
             segnamelist.append(wseg.name)
-
-        pickle = open(self.structure.pickle,'r')
+        if self.localpickle:
+            pickle = open(self.localpickle,'r')
+        else:
+            pickle = open(self.structure.pickle,'r')
         pdb = cPickle.load(pickle)
         pickle.close()
 
@@ -1171,6 +1193,7 @@ class WorkingStructure(models.Model):
             wseg.structure = segobj.structure
             wseg.name = segobj.name
             wseg.type = segobj.type
+            wseg.is_custom = segobj.is_custom
             wseg.default_patch_first = segobj.default_patch_first
             wseg.default_patch_last = segobj.default_patch_last
             wseg.stream_list = segobj.stream_list
@@ -1363,7 +1386,10 @@ class WorkingStructure(models.Model):
         return task
 
     def addCRDToPickle(self,fname,fkey):
-        pickleFile = open(self.structure.pickle, 'r+')
+        if self.localpickle:
+            pickleFile = open(self.localpickle, 'r+')
+        else:
+            pickleFile = open(self.structure.pickle, 'r+')
         pdb = cPickle.load(pickleFile)
         pickleFile.close()
 
@@ -1390,6 +1416,7 @@ class WorkingStructure(models.Model):
             try:
                 os.stat(self.structure.location + '/' + self.identifier + '-build.psf')
                 os.stat(self.structure.location + '/' + self.identifier + '-build.crd')
+                os.stat(self.structure.location + '/' + self.identifier + '-build.pdb')
             except:
                 pass
             else:
@@ -1406,6 +1433,7 @@ class WorkingStructure(models.Model):
                 wfinp.path = loc + '/' + bnm + '-build.inp'
                 wfinp.canonPath = wfinp.path
                 wfinp.type = 'inp'
+                wfinp.description = 'Build script input'
                 wfinp.save()
 
                 wfout = WorkingFile()
@@ -1413,6 +1441,7 @@ class WorkingStructure(models.Model):
                 wfout.path = loc + '/' + bnm + '-build.out'
                 wfout.canonPath = wfout.path
                 wfout.type = 'out'
+                wfout.description = 'Build script output'
                 wfout.save()
 
                 wfpsf = WorkingFile()
@@ -1420,6 +1449,7 @@ class WorkingStructure(models.Model):
                 wfpsf.path = loc + '/' + bnm + '-build.psf'
                 wfpsf.canonPath = wfpsf.path
                 wfpsf.type = 'psf'
+                wfpsf.description = 'Build script PSF'
                 wfpsf.save()
 
                 wfpdb = WorkingFile()
@@ -1427,6 +1457,7 @@ class WorkingStructure(models.Model):
                 wfpdb.path = loc + '/' + bnm + '-build.pdb'
                 wfpdb.canonPath = wfpdb.path
                 wfpdb.type = 'pdb'
+                wfpdb.description = 'Build script PDB'
                 wfpdb.save()
 
                 wfcrd = WorkingFile()
@@ -1435,6 +1466,7 @@ class WorkingStructure(models.Model):
                 wfcrd.canonPath = wfcrd.path
                 wfcrd.type = 'crd'
                 wfcrd.pdbkey = 'append_' + self.identifier
+                wfcrd.description = 'Build script CRD'
                 wfcrd.save()
 
                 buildtask.status = 'C'
@@ -1476,6 +1508,8 @@ class WorkingStructure(models.Model):
                 elif t.action == 'redox':
                     t2 = apbs.models.redoxTask.objects.get(id=t.id)
                     if lesson_obj:lessonaux.doLessonAct(self.structure,"onRedoxDone",t)
+                elif t.action == 'mutation':
+                    t2 = mutation.models.mutateTask.objects.get(id=t.id)
                 else:
                     t2 = t
 
@@ -1508,7 +1542,7 @@ class CGWorkingStructure(WorkingStructure):
 
     def associate(self,structref,segids,**kwargs):
         """
-        This method builds the CG model from the AA coordinates. Note
+        This method buildg the CG model from the AA coordinates. Note
         that the kwargs is designed to hold CG-model specific parameters,
         e.g. nscale etc. These get passed directly to the pychm
         constructor of the CG model.
@@ -1821,6 +1855,12 @@ class energyTask(Task):
         loc = self.workstruct.structure.location
         bnm = self.workstruct.identifier
 
+        try:
+            os.stat(loc + '/' + bnm + '-ener.out')
+        except:
+            self.status = 'F'
+            return
+
         # There's always an input file, so create a WorkingFile
         # for it.
         wfinp = WorkingFile()
@@ -1828,24 +1868,22 @@ class energyTask(Task):
         wfinp.path = loc + '/' + bnm + '-ener.inp'
         wfinp.canonPath = wfinp.path
         wfinp.type = 'inp'
-        wfinp.description = 'energy input script'
+        wfinp.description = 'Energy input script'
         wfinp.save()
+        logfp = open("/tmp/woof.txt","a+")
+        logfp.write(wfinp.description + "\n")
+        logfp.close()
 
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
-        try:
-            os.stat(loc + '/' + bnm + '-ener.out')
-        except:
-            self.status = 'F'
-            return
 
         wfout = WorkingFile()
         wfout.task = self
         wfout.path = loc + '/' + bnm + '-ener.out'
         wfout.canonPath = wfout.path
         wfout.type = 'out'
-        wfout.description = 'energy output'
+        wfout.description = 'Energy output'
         wfout.save()
 
         if self.status == 'F':

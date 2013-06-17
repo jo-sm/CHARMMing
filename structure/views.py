@@ -42,12 +42,12 @@ from lessons.models import LessonProblem
 from structure.qmmm import makeQChem_tpl, makeQchem_val
 import output, lesson1, lesson2, lesson3, lesson4, lessonaux
 import structure.models, input
-import re
+import subprocess
 # import all created lessons by importing lesson_config
 # also there is a dictionary called 'file_type' in lesson_config.py specififying the file type of files uploaded by the lessons  
 from lesson_config import *
 import os, sys, re, copy, datetime, time, stat
-import mimetypes, string, random, glob, traceback, commands
+import mimetypes, string, random, glob, traceback
 import pychm.io, charmming_config, minimization
 import cPickle
 
@@ -86,7 +86,8 @@ def deleteFile(request):
 
     for s in total_files[::-1]:
         os.chdir(charmming_config.user_home + '/' + request.user.username)
-        os.system("rm -rf " + s.name)
+        subprocess.call(["rm","-rf",s.name])
+#        os.system("rm -rf " + s.name)
 
         if s.selected == 'y' and deleteAll == 0:
             s.selected = ''
@@ -169,13 +170,11 @@ def downloadFilesPage(request,mimetype=None):
     tasks = structure.models.Task.objects.filter(workstruct=ws,active='y')
     for task in tasks:
         headers.append(task.action)
-
         # get a list of all of the files associated with this task
         files = structure.models.WorkingFile.objects.filter(task=task)
         for file in files:
             basename = file.canonPath.split('/')[-1]
             filelst.append((task.action, basename, file.description))
-
     return render_to_response('html/downloadfiles.html', {'filelst': filelst, \
                                                           'headers': headers, \
                                                           'wsname': wsname})
@@ -196,14 +195,21 @@ def downloadTarFile(request,mimetype=None):
         pass
 
     # remove condor logs and error files
-    os.system('rm -f ' + struct.name + '/*.{err,log}')
-
-    os.system('cp ' + charmming_config.data_home + '/solvation/water.crd ' + struct.name)
-    os.system('cp ' + charmming_config.data_home + '/calcewald.pl ' + struct.name)
-    os.system('cp ' + charmming_config.data_home + '/savegv.py ' + struct.name)
-    os.system('cp ' + charmming_config.data_home + '/savechrg.py ' + struct.name)
-    os.system('cp ' + charmming_config.data_home + '/toppar/top_all36_prot.rtf ' + charmming_config.data_home + '/toppar/par_all36_prot.prm ' + struct.name)
-    os.system('tar -czf ' + tar_filename + ' ' + struct.name)
+    #Now with 100% more subprocess
+    subprocess.call(["rm","-f",(struct.name + '/*.{err,log}')])
+#    os.system('rm -f ' + struct.name + '/*.{err,log}')
+    subprocess.call(["cp", (charmming_config.data_home + '/solvation/water.crd'), struct.name])
+    subprocess.call(["cp", (charmming_config.data_home + '/calcewald.pl'), struct.name])
+    subprocess.call(["cp", (charmming_config.data_home + '/savegv.py'), struct.name])
+    subprocess.call(["cp", (charmming_config.data_home + '/savechrg.py'), struct.name])
+#    os.system('cp ' + charmming_config.data_home + '/solvation/water.crd ' + struct.name)
+#    os.system('cp ' + charmming_config.data_home + '/calcewald.pl ' + struct.name)
+#    os.system('cp ' + charmming_config.data_home + '/savegv.py ' + struct.name)
+#    os.system('cp ' + charmming_config.data_home + '/savechrg.py ' + struct.name)
+    subprocess.call(["cp",(charmming_config.data_home + '/toppar/top_all36_prot.rtf'),(charmming_config.data_home + '/toppar/par_all36_prot.prm'),struct.name])
+    subprocess.call(["tar","-czf",tar_filename,struct.name])
+#    os.system('cp ' + charmming_config.data_home + '/toppar/top_all36_prot.rtf ' + charmming_config.data_home + '/toppar/par_all36_prot.prm ' + struct.name)
+#    os.system('tar -czf ' + tar_filename + ' ' + struct.name)
     statinfo = os.stat(tar_filename)
     if mimetype is None:
         mimetype,encoding = mimetypes.guess_type("%s/%s/%s" % (charmming_config.user_home,username,tar_filename))
@@ -357,7 +363,7 @@ def viewProcessFiles(request):
 
 def visualize(request,filename):
     """
-    Allows the user to visualize their structure via Jmol
+    Allows the user to visualize their structure via various visualization methods.
     """
 
     if not request.user.is_authenticated():
@@ -393,7 +399,7 @@ def visualize(request,filename):
     return render_to_response('html/visualize.html', {'filelst': filelst,'lesson_ok':lesson_ok,'dd_ok':dd_ok})
 
 
-#Let's user view PDB through ChemDoodle
+#Lets user view PDB through ChemDoodle
 def chemdoodle(request,filename):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
@@ -402,25 +408,39 @@ def chemdoodle(request,filename):
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse('No structure')
+
     orgfname = struct.location + '/' + filename
     newfname = struct.location + '/tmp-' + filename
+    woof = open(struct.location + "/pdbpickle.dat") #THis will get modified once chemdoodle actually works...remember the localpickle!
+    pdbfile = cPickle.load(woof)
+    helix_info = ""
+    woof.close()
+    try:
+        for line in pdbfile.get_metaData()['helix']: #Print out the helices/sheets
+            helix_info = helix_info + "HELIX" + (" "*((67-len(line))+4)) +  line.upper() + "\n"
+    except KeyError:
+        pass
     pdb = pychm.io.pdb.PDBFile(orgfname)
-    pdb[0].write(newfname,outformat="pdborg",ter=True,end=True)
-
+#    woof = open(struct.location + "/" + "pdbpickle.dat")
+#    pdb = cPickle.load(woof)
+    pdb[0].write(newfname,outformat="pdborg",ter=True,end=False)
+    woof.write("\n")
+    woof = open(newfname,"a+")
+    woof.write(helix_info)
+    woof.write("END\n")
+    woof.close()
     mycontent = ''
     fp = open(newfname, 'r')
     for line in fp:
-        line = line.strip() + '\\n'
-        if line.startswith('REMARK') or line.startswith('Remark') or line.startswith('remark'): 
+        line = line.strip() + '\\n' #Otherwise the JS part of this will get literal newlines in the template rather than \n characters
+        if line.startswith('REMARK') or line.startswith('Remark') or line.startswith('remark'):
             continue
         mycontent += line
     fp.close()
-
     os.unlink(newfname)
     return render_to_response('html/chemdoodle.html', {'content': mycontent})
 
-
-#Let's user view PDB through jmol
+#Lets user view PDB through jsmol - same functions and scripting
 def jmol(request,filename):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
@@ -432,10 +452,14 @@ def jmol(request,filename):
     filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
     filename_end = filename.rsplit('/',1)[1] #i.e., "a-pro-5.pdb", etc.
     lesson_ok, dd_ok = checkPermissions(request)
-    isProtein = "-pro-" in filename_end or "-build" in filename_end or "-minimization" in filename_end or "-solvation" in filename_end or "-neutralization" in filename_end
-    return render_to_response('html/jmol.html', {'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok, 'isProtein':isProtein})
+    super_user = request.user.is_superuser
+    structname = filename_end.split('.',1)[0] #a-pro-5
+    isProtein = not("-good-" in filename_end or "-bad-" in filename_end or filename_end[3] == "-")
+    #Assume everything that isn't a good/bad hetatm segment to be a protein for the purposes of rendering, that way we deal with mutations
+    #Also assume anything that has 3 letters followed by a dash at the start to be a ligand file.
+    return render_to_response('html/jmol.html', {'structname':structname, 'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok, 'isProtein':isProtein, 'super_user':super_user})
 
-
+#I haven't the foggiest idea where this function is called, but I assume it works fine with JSmol. ~VS
 def jmolHL(request,filename,segid,resid):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
@@ -457,19 +481,44 @@ def glmol(request,filename):
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return HttpResponse('No structure')
-    filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
-    
+    try:
+        ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        return HttpResponse('No working structure selected.')
+
+    filepath = struct.location.replace(charmming_config.user_home,'') #ws is always in same dir as struct...
+    filename = filepath + "/" + filename
     filename_end = filename.rsplit('/',1)[1]
-    m = re.match(r'^/[^\/]+/(....)', filename) #Finds the 4-char protein filename from the file path given to this function
-    original_pdb_filename = charmming_config.charmming_root + "/pdbuploads" + struct.location.replace(charmming_config.user_home,'') + '/' + m.group(1) + ".pdb" #gets the protein file's absolute path, i.e. "/charmming/pdbuploads/admin/6pti-1/6pti.pdb"
-    readFile = open(original_pdb_filename, "r")
-    helix_info = ""
-    for line in readFile.readlines():
-    	if ("HELIX" in line) or ("SHEET" in line):
-		helix_info += line #Required for GLmol rendering
-    helix_info = helix_info.replace("\n", "\\n")
+
+    helix_info = "" #Holds helix/sheet info for GLmol to read off the textbox
+    #We make a check for localpickle so we don't load the wrong thing...
+    if ws.localpickle: #ws is only called so that we can get its localpickle object.
+        datafile = open(ws.localpickle)
+    else:
+        datafile = open(struct.pickle)
+    pdbfile = cPickle.load(datafile) #Get the PDB file...
+    datafile.close()
+    try:
+        for line in pdbfile.get_metaData()['helix']: #Print out the helices/sheets
+            helix_info = helix_info + "HELIX" + (" "*((67-len(line))+4)) +  line.upper() + "\\n" 
+    except KeyError:
+        pass
+    try:
+        for line in pdbfile.get_metaData()['sheet']:
+            if len(line) < 60: #i.e. if it's a "starting" record
+                helix_info = helix_info + "SHEET" + (" "*((31-len(line))+4)) + line.upper() + "\\n"
+            else:
+                helix_info = helix_info + "SHEET" + (" "*((60-len(line))+4)) + line.upper() + "\\n"
+    except KeyError:
+        pass
+    #There really isn't anything to be done if there's no helix/sheet info present because while it might mean that we need to run STRIDE it also might just mean there isn't any (like in 1yjp). Running STRIDE is cheap but it would probably be best to do it at the pychm/PDBFile I/O level rather than up here to guarantee everything is stored in the pickle's metadata
+    #Since our PDBPickle doesn't know about the spacing and just stores the numbers, we need to "shift" the spaces to the left such that a 1-character sheet/helix number takes up 4 spaces after the HELIX/SHEET identifier, a 2-character number takes up 3 spaces, etc. 
+    #The length of a "basic" HELIX line (1-character number) is 67, so we subtract from 67, then add 4 to get the correct number of spaces
+    #Similarly the length of a basic SHEET line is 60.
+    #Now we have the helix information for GLmol stored. 
+    # WARNING! We always take model00. Does this ever matter? I have no idea!
     lesson_ok, dd_ok = checkPermissions(request)
-    isProtein = "-pro-" in filename_end or "-build" in filename_end or "-minimization" in filename_end or "-solvation" in filename_end or "-neutralization" in filename_end
+    isProtein = not("-good-" in filename_end or "-bad-" in filename_end or filename_end[3] == "-")
     return render_to_response('html/glmol.html', {'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok, 'isProtein':isProtein, 'helix_info':helix_info})
 
 
@@ -824,12 +873,16 @@ def parseEnergy(workstruct,output_filename,enerobj=None):
 
     return render_to_response('html/displayenergy.html',{'linelist':energy_lines})
 
-def getSegs(Molecule,Struct,auto_append=False):
+def getSegs(Molecule,Struct,auto_append):
+    #auto_append is never used so I will use it for the custom ligand build...
+    #True means normal build, False means custom build
     Struct.save()
 
     logfp = open('/tmp/getsegs.txt', 'w')
     logfp.write('In getSegs\n')
-
+    sl = []
+    sl.extend(structure.models.Segment.objects.filter(structure=Struct))
+    append = True
     for seg in Molecule.iter_seg():
         logfp.write('Found segment %s\n' % seg.segid)
 
@@ -841,6 +894,17 @@ def getSegs(Molecule,Struct,auto_append=False):
         newSeg.is_working = 'n'
         newSeg.name = seg.segid
         newSeg.type = seg.segType
+        newSeg.is_custom = not(auto_append) #False if auto_append is True, and vice-versa.
+        logfp.write("auto_append = " + str(newSeg.is_custom) + "\n")
+
+        foo = map(lambda x: x.name,sl)
+        bar = map(lambda x: x.structure,sl)
+        logfp.write("\nAppend:  " + str(append) + "\n")
+        logfp.write(str(foo) + "\n" + str(bar)) 
+
+        if (append) and newSeg.name in map(lambda x: x.name,sl) and newSeg.structure in map(lambda x: x.structure,sl):
+            logfp.write("Segment " + newSeg.name + " skipped\n")#If a segment with that name already exists in that structure, skip it and keep going.
+            continue
         logfp.write('new seg object in charmming created\n')
 
         if seg.segType in ['pro','rna','dna']:
@@ -942,13 +1006,14 @@ def newupload(request, template="html/fileupload.html"):
         os.chmod(struct.location, 0775)
         fullpath = struct.location + '/sequ.pdb'
         struct.putSeqOnDisk(request.POST['sequ'], fullpath)
-
+ 
         pdb = pychm.io.pdb.PDBFile(fullpath)
         mol = pdb[0]
         mol.parse()
-        getSegs(mol,struct)
+        getSegs(mol,struct,auto_append=True)
 
         # store the pickle file containing the structure
+        #TODO: Add dname-pdpickle.dat as filename. Do once the rest of the infrastructure is complete...
         pfname = location + dname + '/' + 'pdbpickle.dat'
         pickleFile = open(pfname,'w')
         cPickle.dump(pdb,pickleFile)
@@ -1053,10 +1118,11 @@ def newupload(request, template="html/fileupload.html"):
 
             for thisMol in pdb.iter_models():
                 thisMol.parse()
-                if mnum == 1: getSegs(thisMol,struct)
+                if mnum == 1: getSegs(thisMol,struct,auto_append=True) #Leave these as True.
                 mnum += 1
 
         # store the pickle file containing the structure
+        #TODO: Add dname-pdbpickle.dat as filename. DO once infrastructure is complete.
         pfname = location + dname + '/' + 'pdbpickle.dat'
         pickleFile = open(pfname,'w')
         cPickle.dump(pdb,pickleFile)
@@ -1140,17 +1206,16 @@ def buildstruct(request):
     pdb = cPickle.load(fp)
     fp.close()
     tdict['model_list'] = pdb.keys()
-
     sl = []
     sl.extend(structure.models.Segment.objects.filter(structure=struct,is_working='n'))
-    sl.sort()
+    sl = sorted(sl,key=lambda x: x.name)
     tdict['seg_list'] = sl
     tdict['disulfide_list'] = struct.getDisulfideList()
     tdict['proto_list'] = []
     tdict['super_user'] = request.user.is_superuser
     for seg in sl:
         tdict['proto_list'].extend(seg.getProtonizableResidues())
-
+    tdict['structname'] = struct.name
     tdict['lesson_ok'], tdict['dd_ok'] = checkPermissions(request)
     return render_to_response('html/buildstruct.html', tdict)
 
