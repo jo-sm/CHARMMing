@@ -1,0 +1,122 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+{% block title %} MINGLIANG Tan 01-07-2007
+* MODIFIED BY BSP 05/29/13
+* MODIFIED BY VS  05/29/13
+* Mutation{% endblock %} blankme
+
+{% block body %}
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+!  This script uses CHARMMing's generic loading script to load in
+!  the PSF file before performing operations on it.
+!  The original script by MINGLIANG TAN works only for a specific
+!  case, much of that script was removed since it created structures
+!  which CHARMMing loads automatically.
+! 
+!  Here is the approach we used for the mutation:
+!  
+!  1. Delete the coordinates of all the atoms beyond Cb for the
+!  residue to be mutated.  Use the remaining coordinates of equivalent
+!  atoms for the new residue.
+!  
+!  2. Change this residue name to new residue name.
+!  
+!  3. Build up missed coordinates using IC BUILD for the new residue.
+!  
+!  4. Perform 50 steps of energy minimization on all residues with any
+!  atoms within a 10 Angstrom sphere centered on the Calpha of the
+!  mutated residue while constraining all other residues and solvent
+!  molecules.
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+set NewResn {{ NewResn }}                          ! New Residue Name
+set MutResi {{ MutResi }}                          ! Residue ID
+set MutSegi {{ MutSegi }}                          ! Segment Name
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! APPLY MUTATION
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! MUTATION STEP 1
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    if @NewResn .eq. GLY define backbone sele type C .or. type CA - 
+                         .or. type N .or. type O .or. type H  .or. type HN end
+    if @NewResn .ne. GLY define backbone sele type C .or. type CA -                 
+                         .or. type N .or. type O .or. type H  .or. type HN - 
+                         .or. type CB .or. type HB* end
+    dele atom sele segid @MutSegi .and. resi @MutResi .and. .not. backbone end 
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! MUTATION STEP 2
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    rename resn @NewResn sele segid @MutSegi .and. resi @MutResi end
+    
+    ioformat noextend
+    
+    write coor card name tmp.crd
+    * temp rename
+    *
+    
+    ! delete everything
+    delete atom
+    
+    open unit 90 read card name tmp.crd
+    read sequ coor unit 90
+    
+    generate {{ MutSegi }} setup
+    rewind unit 90
+    read coor card unit 90
+    close unit 90
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! MUTATION STEP 3
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    ! Build any needed coordinate file
+    ic fill preserve
+    ic parameters
+    ic build
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! MUTATION STEP 4
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    ! Set up nonbond and hydrogen bond lists:
+    update  inbfrq -1  imgfrq 1  fswi  vfswi  atom  vatom  -
+           ctonnb 10.0  ctofnb 14.0  cutnb 15.0
+
+    ! Hold all bonds to hydrogen fixed within the given constraint:
+    shake bonh para tol 1.0e-7
+    
+    !Strong energy constraint...
+    CONS HARM BEST FORCE 5000 MAIN    
+
+    !Hold protein and solvent 10A away from CA of 68
+    coor stat sele segid @MutSegi .and. resi @MutResi .and. type CA end
+    cons fix sele .byres. (.not. (POIN ?XAVE ?YAVE ?ZAVE CUT 10 PERI )) END
+    ! Minimize selected protien and solvent.
+    mini sd nstep 50 tolgrd 0.0001 nprint 10
+
+    ! get energy terms
+    gete
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! WRITE CRD, PSF, PDB
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+write psf  card name {{ MutFile }}.psf
+* psf for mutated protein
+*
+
+write coor card name {{ MutFile }}.crd
+* crd for mutated protein
+*
+
+write coor pdb  name {{ MutFile }}.pdb
+* pdb for mutated protein from base {{ BaseStruct }}
+*
+{% endblock %}
