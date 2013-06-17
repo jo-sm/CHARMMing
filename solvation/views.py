@@ -19,6 +19,7 @@ from django.template.loader import get_template
 from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
+from django.db.models import Q
 from structure.models import Structure, WorkingStructure, WorkingFile, Task
 from solvation.ionization import neutralize_tpl
 from solvation.models import solvationTask
@@ -72,7 +73,7 @@ def solvationformdisplay(request):
         return solvate_tpl(request,st,pTaskID)
     else:
         # get all completed tasks associated with this struct
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
 
         lesson_ok, dd_ok = checkPermissions(request)
         return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
@@ -127,10 +128,6 @@ def solvate_tpl(request,solvTask,pTaskID):
     template_dict['angles'] = "%5.2f %5.2f %5.2f" % (solvTask.angles[0],solvTask.angles[1],solvTask.angles[2])
     template_dict['topology_list'], template_dict['parameter_list'] = workingstruct.getTopparList()
     template_dict['solvation_structure'] = solvTask.solvation_structure
-    if workingstruct.topparStream:
-        template_dict['tpstream'] = workingstruct.topparStream.split()
-    else:
-        template_dict['tpstream'] = []
 
     pTask = Task.objects.get(id=pTaskID)
     template_dict['input_file'] = solvTask.workstruct.identifier + '-' + pTask.action
@@ -150,6 +147,19 @@ def solvate_tpl(request,solvTask,pTaskID):
         maxl = max(template_dict['xtl_x'], template_dict['xtl_y'], template_dict['xtl_z'])
         template_dict['spradius'] = math.sqrt(3*maxl**2)/2.0
 
+    # make sure that toppar_water_ions.str is in the TopparList
+    if workingstruct.topparStream:
+        if not 'toppar_water_ions.str' in workingstruct.topparStream:
+            workingstruct.topparStream += ' %s/toppar/toppar_water_ions.str' % charmming_config.data_home
+    else:
+        workingstruct.topparStream = '%s/toppar/toppar_water_ions.str' % charmming_config.data_home
+
+    workingstruct.save() # probably isn't necessary -- being safe
+    if workingstruct.topparStream:
+        template_dict['tpstream'] = workingstruct.topparStream.split()
+    else:
+        template_dict['tpstream'] = []
+
     t = get_template('%s/mytemplates/input_scripts/solvation_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     
@@ -162,14 +172,6 @@ def solvate_tpl(request,solvTask,pTaskID):
     #change the status of the file regarding solvation
     solvTask.scripts += ',%s' % solvate_input_filename
     solvTask.save()
-
-    # make sure that toppar_water_ions.str is in the TopparList
-    if not 'toppar_water_ions.str' in workingstruct.topparStream:
-        if workingstruct.topparStream:
-            workingstruct.topparStream = '%s/toppar/toppar_water_ions.str' % chamming_config.data_home
-        else:
-            workingstruct.topparStream += ' %s/toppar/toppar_water_ions.str' % chamming_config.data_home
-        workingstruct.save() # probably isn't necessary -- being safe
 
     doneut = postdata.has_key('salt') and postdata['salt'] != 'none'
     if doneut:
