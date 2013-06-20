@@ -535,7 +535,13 @@ function send_form_energy(form,divupdate,filenames)
 {
     divid = document.getElementById(divupdate);
     divid.innerHTML = 'Calculating Energy...';
-    new Ajax.Updater(divupdate,'/charmming/energy/', {method:'post', asynchronous:true, parameters:Form.serialize(form)});
+    $.ajax({
+        url: "/charmming/energy/",
+        type:"post",
+        data:$(form).serialize(),
+        success: function(){
+        $(divupdate).innerHTML = });
+//    new Ajax.Updater(divupdate,'/charmming/energy/', {method:'post', asynchronous:true, parameters:Form.serialize(form)});
 }
 
 function send_form_oxired(form,link,divchange,divupdate,filenames)

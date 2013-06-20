@@ -1,10 +1,18 @@
 {% if tasks %}
   <table>
   {% for task in tasks %}
-    {% if forloop.first %}
-       <tr><td><input type="radio" name="ptask" value="{{ task.id }}" checked /></td><td>Coordinates from {{ task.action }}</td></tr>
-    {% else %}
-       <tr><td><input type="radio" name="ptask" value="{{ task.id }}" /></td><td>Coordinates from {{ task.action }}</td></tr>
+    {% if selection %}
+      {% if task == selection.task %}
+      <tr><td><input type="radio" name="ptask" value="{{ task.id }}" checked /></td><td>Coordinates from {{ task.action }} {{selection.selectionstring}}</td></tr>
+      {% else %}
+        <tr><td><input type="radio" name="ptask" value="{{ task.id }}"  /></td><td>Coordinates from {{ task.action }}</td></tr>
+      {% endif %}  
+    {% else %}    
+      {% if forloop.first %}
+         <tr><td><input type="radio" name="ptask" value="{{ task.id }}" checked /></td><td>Coordinates from {{ task.action }}</td></tr>
+      {% else %}
+         <tr><td><input type="radio" name="ptask" value="{{ task.id }}" /></td><td>Coordinates from {{ task.action }}</td></tr>
+         {% endif %}
     {% endif %}
   {% endfor %}
   </table>

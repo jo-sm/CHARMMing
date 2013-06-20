@@ -1,41 +1,37 @@
+{% extends 'html/skeleton.html' %}
 {% block content %}
-<html>
-<head>
-<title>Visualization of {{ structname }}</title>
-</head>
-<body>
-<!-- REMEMBER! Make new menu. -->
+<!-- REMEMBER! Make new menu. Add atom selection buttons. -->
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmoljQuery.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
+  <link rel="icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
+  <link rel="shortcut icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
   
-  <link rel="icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico">
-  <link rel="shortcut icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico">
-  <link rel="stylesheet" type="text/css" href="/charmming/css/charmming.css" media="all" />
-  <center>
-    <h1>Visualization</h1>
-    <br />
-    <script type="text/javascript">
+  <div id="jsmol" align="center">
+    <h1>Visualization of structure {{structname}}</h1>
+  <hr />
+  <br />
+  <script type="text/javascript">
     var jmolApplet;
     jmol_isReady = function(applet) {
     Jmol._getElement(applet, "appletdiv".style.border="1px solid blue");
     }		
     var debug_on = {% if super_user %} false {% else %} true {% endif %}
     var Info = {
-	width: "70%",
-	height: "95%",
+	width: "600",
+	height: "600",
 	debug: false,
 	color: "black",
 	use: "HTML5",
-	j2sPath: "/charmming-static/jsmol/j2s",
+	j2sPath: "/charmming/js/jsmol/j2s",
 	readyFunction: jmol_isReady,
   script: "set antialiasDisplay;",
   disableJ2SLoadMonitor: debug_on,
   disableInitialConsole: debug_on,
-  console: "jmolApplet_infodiv"
+//  console: "jmolApplet_infodiv"
   //Apparently the DEFAULT setting is to have debug on. Thus the awkwardness.
 }
     </script>
@@ -47,8 +43,8 @@
        Jmol.script(jmolApplet, "load /charmming/pdbuploads/{{filepath}};anim mode palindrome 2 2; anim on; {{resid}}; cpk 30%; wireframe 55; select {{resid}} and ( _O or _N ); label %a, %n");
        {% endif %}
        var count = 0;
+      jQuery.noConflict();
      </script>
-   </center>
- </body>
-</html>
+     <br />
+</div>
 {% endblock %}

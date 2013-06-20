@@ -36,22 +36,22 @@
     <div id="jsmol_ligand">
       {% if same_residue %}
       <div id="dialog_sameres_alert" title="Name error">
-        <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 7px 20px 0;"></span>There is 
+        <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>There is 
         already a residue with this name on the current structure. Please choose a different name for your ligand.</p>
       </div>
       {% endif %}
       {% if sdf_link %} 
       <div id="dialog_confirm_PDB" title="Found residue on PDB.org">
-        <p><span class="ui icon ui-icon-alert"></span></p>
+        <p><span class="ui icon ui-icon-alert"></span>Your residue has been found on PDB.org at <a href="{{sdf_link}}">this link.</a> Is this the same molecule you built?</p>
       </div>
       <div id="dialog_name_alert" title="Name error">
-        <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 7px 20px 0;"></span>
+        <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
         Please choose a different name for your ligand.</p>
       </div>
       {% endif %}
       {% if charge_alert %}
       <div id="dialog_charge_alert" title="Charge error">
-        <p><span class="ui-icon ui-icon alert" style='float:left;margin 0 7px 20px 0;'></span>
+        <p><span class="ui-icon ui-icon alert" style='float:left;margin 0 auto auto 0;'></span>
         Your molecule has an odd number of electrons. Are you sure you want to submit this ligand?
         </p>
       </div>
@@ -69,18 +69,13 @@
       var same_residue = (document.getElementById("dialog_sameres_alert") != null);
       var charge_alert = (document.getElementById("dialog_charge_alert") != null);
       var struct_error = (document.getElementById("dialog_struct_error") != null);
-      if(sdf_link){ //hack so that django reloads properly
-        //Since JS is cached, but HTML is reloaded on the fly by django, we use django's templating presence
-        //to tell the JS on the page what to do
-        document.getElementById("dialog_confirm_PDB").innerHTML =  '<p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 7px 20px 0;"></span>Your ligand has been found on PDB.org under the identifier ' + molname +  '. Are you sure you want this to be the name of your ligand?</p>';
-      }
       if(struct_error){
-        document.getElementById("dialog_confirm_PDB").innerHTML =  '<p><span class="ui-icon ui-icon alert" style="float:left;margin 0 7px 20px 0;"></span>There already exists a ligand named ' + molname + ' in your current working structure. Please choose a different name for your ligand.';
+        document.getElementById("dialog_struct_error").innerHTML =  '<p><span class="ui-icon ui-icon alert" style="float:left;margin 0 auto auto 0;"></span>There already exists a ligand named ' + molname + ' in your current working structure.<br />&nbsp;&nbsp;&nbsp;&nbsp;Please choose a different name for your ligand.';
         
         $(function($){
             $( "#dialog_struct_error").dialog({
               resizable:false,
-              height:300,
+              height:200,
               width:600,
               modal:true,
               buttons:{
@@ -95,8 +90,8 @@
       $(function($) {
           $( "#dialog_sameres_alert").dialog({
             resizable:false,
-            height:300,
-            width:300,
+            height:200,
+            width:600,
             modal:true,
             buttons:{
             "OK":function(){
@@ -113,8 +108,8 @@
       $(function($) {
           $( "#dialog_name_alert").dialog({
             resizable:false,
-            height:300,
-            width:300,
+            height:200,
+            width:600,
             modal:true,
             autoOpen:false,
             buttons:{
@@ -127,11 +122,11 @@
       $(function($) {
           $( "#dialog_confirm_PDB" ).dialog({
             resizable:false,
-            height:300,
-            width:300,
+            height:200,
+            width:600,
             modal:true,
             buttons:{
-            "Yes, I'm sure": function() {
+            "Yes, this is correct": function() {
               document.getElementById("force_custom").value = "true";
               {% if not charge_alert %}
                 document.getElementById("molinfo").value = "{{ moldata }}".replace("\n","\\n","gi"); //Python passes it escaped, no issues here
@@ -139,7 +134,7 @@
               {% endif %}
               $( this ).dialog( "close" );  
             },
-            "No, I'm not": function() { 
+            "No, it's not": function() { 
               $( this ).dialog( "close" );
               $("#dialog_name_alert").dialog("open");
               }
@@ -152,8 +147,8 @@
       $(function($) { 
           $( "#dialog_charge_alert" ).dialog({
             resizable:false,
-            height:300,
-            width:300,
+            height:200,
+            width:600,
             modal:true,
             buttons:{
             "Yes, I'm sure": function() {
@@ -232,6 +227,7 @@
           <button id="H" onclick="pickAtom(jmolApplet, this);">H</button>&nbsp;
           <button id="C" onclick="pickAtom(jmolApplet, this);">C</button>&nbsp;
           <button id="N" onclick="pickAtom(jmolApplet, this);">N</button>&nbsp;
+
           <button id="O" onclick="pickAtom(jmolApplet, this);">O</button>&nbsp;
           <button id="S" onclick="pickAtom(jmolApplet, this);">S</button>&nbsp;
           <button id="P" onclick="pickAtom(jmolApplet, this);">P</button>&nbsp;
@@ -264,11 +260,7 @@
         </div>
         <hr />
         <button id="submit" onclick="normalFormSubmit();">Upload New Ligand</button>
-        <form method="link" action="/charmming/">
-          <input type="submit" value="Return to CHARMMing">
-     </form> 
       </div>
+      <br />
   </div>
-</body>
-</html>
 {% endblock %}

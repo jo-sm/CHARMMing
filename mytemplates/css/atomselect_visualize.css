@@ -1,0 +1,23 @@
+#jsmol_window{
+  width:600px;
+  float:right;
+  display:inline;
+  }
+  
+#atomselect{
+  clear:right;
+  display:inline;
+  }
+
+#jsmol{
+  width:1060px;
+  margin-left:auto;
+  margin-right:auto;
+  background-color:#FFFFFF;
+  color:#000000;
+  background:#000000 url("/charmming/images/leebg.gif") repeat; 
+  font-family:arial,helvetica,sans-serif;
+  font-size:76%;
+  font-style:normal;
+  font-weight:normal;
+}

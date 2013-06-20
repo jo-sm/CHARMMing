@@ -1,0 +1,129 @@
+{% extends 'html/skeleton_no_prototype.html' %}
+{% block content %}
+<!-- REMEMBER! Make new menu. Add atom selection buttons. -->
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmoljQuery.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
+  <link rel="stylesheet" href="/charmming/js/jquery-ui/jquery-ui.css" />
+  <link rel="stylesheet" href="/charmming/css/atomselect_visualize.css" />
+  
+  <link rel="icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
+  <link rel="shortcut icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
+  <link rel="stylesheet" type="text/css" href="/charmming/css/charmming.css" media="all" />
+  <script type="text/javascript" src="/charmming/js/custom.js"></script>
+  <h1 align="center">Visualization</h1>
+  <hr />
+  <br />
+<div id="jsmol">
+  <form id="atomselect_form" method="post" action="/charmming/selection/" enctype="multipart/form-data"> 
+    <input type="hidden" name="atomselection" id="atomselection"  value="">
+    <input type="hidden" name="source" id="source" value="{{source}}">
+    <input type="hidden" name="task_id" id="task_id" value="{{task_id}}">
+  </form>
+  <div id="dialog_noatoms_alert" title="No atoms chosen">
+    <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+    Please select at least one atom.</p>
+  </div>
+  <script type="text/javascript"> 
+        $(function($){
+              $( "#dialog_noatoms_alert").dialog({
+                resizable:false,
+                height:200,
+                width:600,
+                modal:true,
+                autoOpen:false,
+                buttons:{
+                "OK":function(){
+                $(this).dialog("close");
+                }
+              }
+            });
+          });
+  </script>
+  <div id="jsmol_window">
+  <script type="text/javascript">
+    var jmolApplet;
+    jmol_isReady = function(applet) {
+    Jmol._getElement(applet, "appletdiv".style.border="1px solid blue");
+    }		
+    var debug_on = {% if super_user %} false {% else %} true {% endif %}
+    var Info = {
+	width: "600",
+	height: "600",
+	debug: false,
+	color: "black",
+	use: "HTML5",
+	j2sPath: "/charmming/js/jsmol/j2s",
+	readyFunction: jmol_isReady,
+  script: "set antialiasDisplay;",
+  disableJ2SLoadMonitor: debug_on,
+  disableInitialConsole: debug_on,
+//  console: "jmolApplet_infodiv"
+  //Apparently the DEFAULT setting is to have debug on. Thus the awkwardness.
+}
+    </script>
+  <script>
+      jmolApplet = Jmol.getApplet("jmolApplet", Info);
+      Jmol.script(jmolApplet,  "load /charmming/pdbuploads/{{filepath}}; slab off; spin off; trace off; set ambient 40; set specpower 40;");
+      Jmol.script(jmolApplet, "select none;selectionHalos on");
+     </script>
+     <br />
+  </div>
+  <script>
+      function submit_atomselect(){
+          var atominfo = Jmol.getPropertyAsArray(jmolApplet, "atominfo", "selected");
+          if (atominfo.length == 0){
+            //Display fancy box. For now we don't do it.
+            $("#dialog_noatoms_alert").dialog("open");
+            return false;
+          }
+          var atomsele = "bynum " + atominfo[0].atomno;
+          var i=1;//Hack because forloops crash firefox via allocation overflow somehow
+          var start_range = atominfo[0].atomno;
+          var end_range = start_range; // Add 1 every time
+          while(i <= atominfo.length){ //Atominfo is sorted! This is important.
+            if((i < atominfo.length) && (atominfo[i].atomno == (atominfo[i - 1].atomno + 1))){ //IF there's a run, keep looping.
+              end_range = end_range + 1;
+            }else{
+              if(end_range > start_range){ //i.e. if there's a run at all
+                if(start_range == atominfo[0].atomno){ //If it's the first...
+                  atomsele = atomsele + ":" + end_range;
+                }else{
+                  atomsele = atomsele + " .or. bynum " + start_range + ":" + end_range;
+                }
+              }else{
+                atomsele = atomsele + " .or. bynum " + start_range;
+              }
+              if(i < atominfo.length){
+                start_range = atominfo[i].atomno;
+                end_range = start_range;
+              }
+          }
+          i = i + 1;
+        }
+        //The logic is a little screwy but it should work.
+        document.getElementById("atomselection").value = atomsele;
+        document.getElementById("atomselect_form").submit();
+      }
+  </script>
+  <!-- Buttons go under "atomselect_buttons" div, buttons themselves go in "selectbuttons" div class
+  TODO: "grey out" buttons if certain conditions are not met (i.e. no chains, therefore grey out chain button -->
+  <div id="atomselect_buttons">
+    <h2>Atom Selection Options</h3>
+    <hr />
+    <h3>Select by: </h3>
+    <br />
+    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking atom')">Atom</button><br />
+    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking molecule')">Molecule</button><br />
+    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking element')">Element</button><br />
+    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking chain')">Chain</button><br />
+    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking group')">Residue</button><br />
+    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking site')">Site</button><br />
+    <button class="selectbutton" onclick="submit_atomselect()">Submit</button>
+  </div>
+  </div>
+{% endblock %}

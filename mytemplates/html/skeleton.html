@@ -5,23 +5,20 @@
 
     <!-- this is for ChemDoodle -->
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-
-    <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
-    <link href="/charmming/css/charmming.css" rel="stylesheet" type="text/css" />
-<!--    <link href="/charmming/css/windows2/default.css" rel="stylesheet" type="text/css"/>
-    <link href="/charmming/css/windows2/spread.css" rel="stylesheet" type="text/css"/>
-    <link href="/charmming/css/windows2/alert.css" rel="stylesheet" type="text/css"/> -->
-    <link href="/charmming/css/sdmenu/sdmenu.css" rel="stylesheet" type="text/css" />
-
     <script src="/charmming/js/ajax.js" type="text/javascript"></script>
     <script src="/charmming/js/sdmenu/sdmenu.js" type="text/javascript"></script>
     <script type="text/javascript" src="/charmming/js/custom.js"></script>
     <script type="text/javascript" src="/charmming/js/emap.js"></script>
-    <!--    <script type="text/javascript" src="/charmming/js/windows2/window.js"></script> -->
-    <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
-    <script src="/charmming/js/tablekit/fastinit.js" type="text/javascript"></script>
-    <script src="/charmming/js/tablekit/tablekit.js" type="text/javascript"></script>
-
+    <script type="text/javascript" src="/charmming/js/protoculous-1.0.2-packed.js"></script>
+    <script type="text/javascript" src="/charmming/js/tablekit.js"></script>
+    
+    <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+    <link href="/charmming/css/charmming.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/sdmenu/sdmenu.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" media="all" href="/chermming/css/tabs.css">
+    <link rel="stylesheet" href="/charmming/css/tablekit.css" type="text/css" />
     <link rel="icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon"> 
 
@@ -45,7 +42,7 @@
        myMenu = new SDMenu("my_menu");
        myMenu.init();
 
-       new Ajax.PeriodicalUpdater('statusreport', '/charmming/status/', {method: 'post', frequency: 2})
+       new Ajax.PeriodicalUpdater('statusreport', '/charmming/status/', {method: 'post', frequency:2});
     }
 
     function showLesson(lesson)
@@ -55,7 +52,7 @@
       currperiodicalupdater.stop();
      }
      if(lesson != "nolesson" && lesson != 'None')
-      currperiodicalupdater = new Ajax.PeriodicalUpdater('lessonreport', '/charmming/lessons/lessonstatus/', {method: 'post', frequency: 5});
+       Ajax.PeriodicalUpdater('lessonreport', '/charmming/lessons/lessonstatus/', {method: 'post', frequency:2});
      else
      {
       document.getElementById('lessonreport').innerHTML = '';
