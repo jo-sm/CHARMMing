@@ -42,6 +42,7 @@ from lessons.models import LessonProblem
 from structure.qmmm import makeQChem_tpl, makeQchem_val
 import output, lesson1, lesson2, lesson3, lesson4, lessonaux
 import structure.models, input
+import selection.models
 import subprocess
 # import all created lessons by importing lesson_config
 # also there is a dictionary called 'file_type' in lesson_config.py specififying the file type of files uploaded by the lessons  
@@ -653,6 +654,8 @@ def energyform(request):
          ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
         return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before attempting an energy calculation")
+    tdict = {}
+    tdict['ws_identifier'] = ws.identifier
 
     os.chdir(struct.location)
 
@@ -663,6 +666,8 @@ def energyform(request):
         energyfp.close()
     except:
         pass
+
+    tdict['energy_lines'] = energy_lines
 
     if request.POST.has_key('form_submit'):
         try:
@@ -689,9 +694,17 @@ def energyform(request):
     else:
         # get all workingFiles associated with this struct
         tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
+        tdict['tasks'] = tasks
 
-        lesson_ok, dd_ok = checkPermissions(request)
-        return render_to_response('html/energyform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'energy_lines': energy_lines, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+        #Also get the atom selection, if any
+        try:
+            atomselection = selection.models.AtomSelection.objects.filter(workstruct=ws)[0]
+            tdict['atomselection'] = atomselection
+        except:
+            pass
+
+        tdict['lesson_ok', 'dd_ok'] = checkPermissions(request)
+        return render_to_response('html/energyform.html', tdict)
 
 
 def calcEnergy_tpl(request,workstruct,pTaskID,eobj): 
