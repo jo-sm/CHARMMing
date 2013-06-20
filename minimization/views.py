@@ -29,6 +29,7 @@ from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from minimization.models import minimizeTask
 from solvation.models import solvationTask
+from selection.models import AtomSelection
 import charmming_config, input, output, lessonaux, lessons, lesson1, lesson2, lesson3, lesson4
 import re, copy
 import os, shutil
@@ -48,7 +49,6 @@ def minimizeformdisplay(request):
        ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
-
     if request.POST.has_key('sdsteps') or request.POST.has_key('abnrsteps'):
         #deals with changing the selected minimize_params
         try:
@@ -77,16 +77,29 @@ def minimizeformdisplay(request):
                 
         return minimize_tpl(request,mp,pTaskID)
     else:
+        tdict = {}
+        tdict['ws_identifier'] = ws.identifier
         # get all workingFiles associated with this struct
         tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
 
+        tdict['tasks'] = tasks
         # segments are also needed for QM/MM
         seg_list = []
         for seg in ws.segments.all():
             seg_list.append(seg.name)       
 
+        tdict['seg_list'] = seg_list
+
+        try:
+            atomselection = AtomSelection.objects.filter(workstruct=ws)[0]
+            tdict['atomselection'] = atomselection
+        except:
+            pass
+
         lesson_ok, dd_ok = checkPermissions(request)
-        return render_to_response('html/minimizeform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'seg_list': seg_list, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+        tdict['lesson_ok'] = lesson_ok
+        tdict['dd_ok'] = dd_ok
+        return render_to_response('html/minimizeform.html', tdict)
 
 def minimize_tpl(request,mp,pTaskID):
     postdata = request.POST
