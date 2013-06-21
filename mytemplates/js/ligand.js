@@ -57,7 +57,8 @@ function normalFormSubmit(input){
       alert("Please build a ligand.");
       return;
     }else{
-      document.getElementById("molinfo").value = MOLdata.replace("\n","\\n","gi"); 
+      var regex = new RegExp("\n", "gi");
+      document.getElementById("molinfo").value = MOLdata.replace(regex,"\\n"); 
     }
   }
   document.getElementById("ligand_form").submit(); //This sends it and hands it off to django/Python for processing
