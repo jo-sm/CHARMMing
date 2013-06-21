@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="/charmming/js/jquery-ui/jquery-ui.css"></script>
 <script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
 
-
+<link rel="stylesheet" href="/charmming/css/ligand.css" type="text/css"/>
 <link rel="icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico">
 <link rel="shortcut icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico">
 
@@ -27,9 +27,9 @@
       {% endif %}
         (only the first 3 characters will be used as a residue name)<br />
         <p>Attach this ligand to the current structure&nbsp;&nbsp;<input type="checkbox" name="attach_check" id="attach_check" {% if attach_check %} checked {% endif %}></div></p>
-      <input type="text" name="molinfo" id="molinfo" value="" style="display:none"> <!-- This holds the MOL output from Jmol to spit back out into django -->
-      <input type="text" name="force_charge" id="force_charge" value="false" style="display:none">
-      <input type="text" name="force_custom" id="force_custom" value="false" style="display:none"> <!-- Bypasses SDF check in PDB.org -->
+      <input type="text" name="molinfo" id="molinfo" value="{{moldata}}" style="display:none"> <!-- This holds the MOL output from Jmol to spit back out into django -->
+      <input type="hidden" name="force_charge" id="force_charge" value="false">
+      <input type="hidden" name="force_custom" id="force_custom" value="false"> <!-- Bypasses SDF check in PDB.org -->
     </form>
   </div>
   <div id="ligbuild_options">
@@ -42,7 +42,11 @@
       {% endif %}
       {% if sdf_link %} 
       <div id="dialog_confirm_PDB" title="Found residue on PDB.org">
-        <p><span class="ui icon ui-icon-alert"></span>Your residue has been found on PDB.org at <a href="{{sdf_link}}">this link.</a> Is this the same molecule you built?</p>
+        <p><span class="ui icon ui-icon-alert"></span>Your residue has been found on PDB.org at <a href="{{sdf_link}}">this link.</a> Do you still wish to build this ligand under this name?</p>
+        <br />
+        <center>
+          <img src="http://www.rcsb.org/pdb/images/{{mol_short}}_270.gif"></img>
+        </center>
       </div>
       <div id="dialog_name_alert" title="Name error">
         <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
@@ -118,23 +122,23 @@
             }
           }
         });
-      });
+          });
       $(function($) {
           $( "#dialog_confirm_PDB" ).dialog({
             resizable:false,
-            height:200,
+            height:470,
             width:600,
             modal:true,
             buttons:{
-            "Yes, this is correct": function() {
+            "Yes, build anyway": function() {
               document.getElementById("force_custom").value = "true";
               {% if not charge_alert %}
-                document.getElementById("molinfo").value = "{{ moldata }}".replace("\n","\\n","gi"); //Python passes it escaped, no issues here
+//                document.getElementById("molinfo").value = "{{ moldata }}".replace("\n","\\n","gi"); //Python passes it escaped, no issues here
                 normalFormSubmit(true);
               {% endif %}
               $( this ).dialog( "close" );  
             },
-            "No, it's not": function() { 
+            "No, change name": function() { 
               $( this ).dialog( "close" );
               $("#dialog_name_alert").dialog("open");
               }
@@ -153,8 +157,8 @@
             buttons:{
             "Yes, I'm sure": function() {
               document.getElementById("force_charge").value = "true";
-              document.getElementById("LigName").value = "{{ molname }}";
-              document.getElementById("molinfo").value = "{{ moldata }}".replace("\n","\\n","gi"); //Python passes it escaped, no issues here
+//              document.getElementById("LigName").value = "{{ molname }}";
+//              document.getElementById("molinfo").value = "{{ moldata }}".replace("\n","\\n","gi"); //Python passes it escaped, no issues here
               normalFormSubmit(true);
             },
             "No, I'm not": function() {
@@ -184,6 +188,7 @@
           width: 600,
           height: 600,
           debug: false, //Only turn this on when something's wrong with JSmol itself
+          addSelectionOptions:true,
           color: 'black',
           use: 'HTML5',
           j2sPath: '/charmming/js/jsmol/j2s/',
@@ -192,20 +197,37 @@
           disableJ2SLoadMonitor: debug_on,
           disableInitialConsole: debug_on,
           console: 'jmolApplet_infodiv'
-          }
+        }
+        Jmol.setGrabberOptions([
+            ["$", "small molecules at NCI"],
+            [":", "small molecules at PubChem"],
+            ["==", "ligands at PDB"],
+        ]);
         jmolApplet = Jmol.getApplet("jmolApplet", Info);
         // Now jmolApplet can be referenced from all the other stuff on this page.
-        jQuery.noConflict()
+        jQuery.noConflict();
       </script>
     </div>
     <div id="mol_actions">
         <div id="default_mols">
-          <h3>Load Starting Molecules</h3>
+          <h3>Load Default Starting Molecules</h3>
           <hr />
-            <button onclick="load(jmolApplet, 'benzene')">Benzene</button>&nbsp;
-            <button onclick="load(jmolApplet, 'methane')">Methane</button>&nbsp;
-            <br /><br />
-        </div>
+            <button id="Benzene" onclick="load(jmolApplet, 'benzene')">Benzene</button>&nbsp;
+            <button id="Methane" onclick="load(jmolApplet, 'methane')">Methane</button>
+            <br />
+            <br />
+          </div>
+<!--        <div id="database_mols">
+          <h3>Load Starting Molecule from Database</h3>
+          <hr />
+            <script>
+              
+              $("#jmolApplet_query").appendTo("#database_mols");
+              $("#jmolApplet_select").appendTo("#database_mols");
+              $("#jmolApplet_submit").appendTo("#database_mols");
+            </script>
+            <br />
+          </div> -->
         <div id="actions">
           <h3>Structure Actions</h3>
           <hr />

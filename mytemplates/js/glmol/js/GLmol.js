@@ -247,7 +247,8 @@ GLmol.prototype.parsePDB2 = function(str) {
 	 if (line.substr(13, 2) == "OH"){ elem = "O";}
          else if (line.substr(13, 1) == "H"){ elem = "H"}
 	 else{ 
-	  elem = line.substr(13, 2).replace(/ /g,"");} //This catches stuff that isn't water.
+	  elem = line.substr(12, 3).replace(/[0-9]/g, "");
+    elem = elem.trim();} //This catches stuff that isn't water.
       //   }
         if(line.substr(72,4) == "BWAT"){
 		hetflag = true; solvflag = true; }
