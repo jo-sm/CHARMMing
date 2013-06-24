@@ -1,0 +1,63 @@
+#! /usr/bin/perl -w
+# stride2pdb version 0.01
+# converts stride type output to HELIX/SHEET lines for PDB files
+
+if (! $ARGV[0]) {
+  print <<EOF ;
+
+************************************************************************
+** stride2pdb version 0.01
+************************************************************************
+** converts stride type output to HELIX/SHEET lines for PDB files
+************************************************************************
+** usage: stride2pdb stridefile.txt > pdbfile.txt
+************************************************************************
+
+EOF
+  exit ;
+}
+
+$stridefile = $ARGV[0] ;
+
+print <<EOF ;
+REMARK   1 secondary structure assigned by stride 
+REMARK   2 stride output converted by stride2pdb version 0.01
+EOF
+
+open (STRIDE, $stridefile) or die "Could not open file \"$stridefile\"\n" ;
+
+$helixcount = 0 ;
+$sheetcount = 0 ;
+
+while () {
+  $line = <STRIDE> ;
+  if (! $line) {last} ;
+  if ($line =~ /^LOC/i) {
+    @fields = split (/\s+/, $line) ;
+    if ($fields[1] eq "AlphaHelix") {
+      $helixcount++ ;
+      $restype1 = $fields[2] ;
+      $resnum1 = $fields[3] ;
+      $reschain1 = $fields[4] ;
+      $restype2 = $fields[5] ;
+      $resnum2 = $fields[6] ;
+      $reschain2 = $fields[7] ;
+      $length = $resnum2 - $resnum1 + 1 ;
+      printf "HELIX %4d %3d $restype1 $reschain1%5d  $restype2 $reschain2%5d%3d                                 %3d\n",
+             ($helixcount, $helixcount, $resnum1, $resnum2, 1, $length) ;
+    }
+    if ($fields[1] eq "Strand") {
+      $sheetcount++ ;
+      $restype1 = $fields[2] ;
+      $resnum1 = $fields[3] ;
+      $reschain1 = $fields[4] ;
+      $restype2 = $fields[5] ;
+      $resnum2 = $fields[6] ;
+      $reschain2 = $fields[7] ;
+      printf "SHEET %4d %3d 1 $restype1 $reschain1%4d  $restype2 $reschain2%4d  0\n",
+             ($sheetcount, $sheetcount, $resnum1, $resnum2) ;
+    }
+  }
+}
+
+exit ;
