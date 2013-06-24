@@ -23,6 +23,7 @@ import os, copy, shutil
 import subprocess
 from subprocess import Popen
 import cPickle
+import charmming_config
 
 class mutateTask(Task):
     MutResi = models.PositiveIntegerField(default=0)
@@ -123,7 +124,7 @@ class mutateTask(Task):
 #            os.system("stride -o " + pdbloc + " > tmp.tmp")
             logfp.write("STRIDE ran successfully.\n")
             f = open("tmp.ss","w")
-            p = Popen(["stride2pdb","tmp.tmp"],stdout=f)
+            p = Popen([charmming_config.data_home + "/stride2pdb","tmp.tmp"],stdout=f)
             f.close()
 #            os.system("stride2pdb tmp.tmp > tmp.ss")
             logfp.write("stride2pdb conversion complete.\n")
