@@ -1,0 +1,19 @@
+<table border=1><tr><th width="200" align="left">Ligand Name</th><th align="left" width="400">Ligand Description</th><th width="400" align="left">File Description</th><th width="80" align="right">3D</th><th align="left" width="50"><input id="dsfligandscheckall" type="checkbox" name="dsfligandscheckall" onclick='DSFLigands_CheckUncheck();'></th></tr></table>
+<div name="ligandsinsidediv" id="ligandsinsidediv" style="overflow:auto;width:99%;height:260px;border:0px solid #336699;padding-left:5px;text-align:left">
+Count: {{count}}
+<table class="sortable resizable" border=2>
+<tr>
+<!--<th width="200">Ligand Name</th><th width="400"><th>Ligand Description</th><th width="500">File Description</th><th>3D View</th><th>Select</th>-->
+</tr>
+<font size="2">
+<!--{% for ligand in ligands %}
+        <tr><td width="130"><font size="2">{{ ligand.commonname }}</font></td><td width="300"><font size="2">{{ ligand.smiles }}</font></td>
+	<td width="700" span="3"> 
+        <img src="{{ ligand.imageurl}}" height="100" width="100"  /> 
+	</td>
+        <td width="10" align="left"> <input id="id_ligand_file" type="checkbox" name="ligand_{{ligand_file_object.file.id}}" onchange="getCheckedDSFLigands(); UpdateEstimate();"/> </td>
+        </tr>
+{% endfor %}-->
+</font>
+</table>
+</div>

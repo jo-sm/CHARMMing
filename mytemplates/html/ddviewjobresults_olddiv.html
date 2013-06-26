@@ -1,0 +1,16 @@
+<h3>Results</h3><table class="sortable resizable" border=2>
+<script type="text/javascript" src="/charmming/js/custom.js"></script>
+<tr><td>
+<div style="overflow:auto;width:100%;height:200px;border:1px solid #336699;padding-left:5px;text-align:left">
+<table>
+<tr><th>Rank</th><th>Ligand Name</th><th>Score</th><th>Download File</th><th>View File</th><th>View Pose</th></tr>
+{% for pose in result_poses %}
+	<tr>
+           <td align = "center" width ="50">{{ pose.rank }}</td><td align = "center" width ="50">{{ pose.ligand_name }}</td><td align = "center" width ="50">{{ pose.score }}</td><td align = "center" width ="140"><a href="/charmming/dd_infrastructure/downloadfile/{{pose.file_id}}">Download File</a></td><td align = "center" width ="100"><a target = "_blank" href="/charmming/dd_infrastructure/viewfile/{{pose.file_id}}">View File</a></td><td td align = "center" width ="100"><a href="#" onclick="window.open('/charmming/dd_infrastructure/viewresultpose/{{pose.file_id}}/{{job.job_scheduler_id}}/', 'View Pose', 'height=700, width=700');">View Pose</a></td>
+	</tr>
+{% endfor %}
+<table>
+<div>
+</td><tr>
+</table>
+

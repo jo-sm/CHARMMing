@@ -1,0 +1,129 @@
+<head>
+    <title>View Drug Design Jobs</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+    <script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+    <script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+    <link href="/charmming/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/sdmenu/sdmenu.css" rel="stylesheet" type="text/css" />
+    <script src="/charmming/js/ajax.js" type="text/javascript"></script>
+    <script src="/charmming/js/sdmenu/sdmenu.js" type="text/javascript"></script>
+    <script src="/charmming/js/tabs.js" type="text/javascript"></script>
+    {% if trusted %}
+     <script src="/charmming/js/trusted.js" type="text/javascript"></script>
+    {% endif %}
+    <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+    <script type="text/javascript" src="/charmming/js/emap.js"> </script>
+    <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
+    <script>
+      var GB_ROOT_DIR = "/charmming/greybox/greybox/";
+    </script>
+    <link href="/charmming/css/windows2/default.css" rel="stylesheet" type="text/css"/>
+    <link href="/charmming/css/windows2/spread.css" rel="stylesheet" type="text/css"/>
+    <link href="/charmming/css/windows2/alert.css" rel="stylesheet" type="text/css"/>
+    <link href="/charmming/css/greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
+    <script type="text/javascript" src="/charmming/js/greybox/AJS.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS_fx.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/gb_scripts.js"></script>
+
+    <script type="text/javascript" src="/charmming/js/BubbleTooltips.js"> </script>
+    <link href="/charmming/css/bt.css" rel="stylesheet" type="text/css" />
+
+    <link rel="icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon"> 
+
+    <script type="text/javascript">
+
+
+
+    /***********************************************
+    * DHTML Window Widget- © Dynamic Drive (www.dynamicdrive.com)
+    * This notice must stay intact for legal use.
+    * Visit http://www.dynamicdrive.com/ for full source code
+    ***********************************************/
+
+    var myMenu;
+    var tabCounter = -1;
+    var jmolCounter = -1;
+    var selected_div = "";
+    var currperiodicalupdater = null;
+    function refreshToolTips()
+    {
+
+       enableTooltips();
+    }
+
+    function send_select_form(form) {
+       new Ajax.Request("/select/"+form.id, {method:'post', asynchronous:true});
+    }
+
+    function getDocWidth() {
+       return document.documentElement.clientWidth *.82;
+    }
+
+    function doOnLoad() {
+       AjaxTabs.OpenTab(getUniqueId("tab_page"), "Introduction", "/charmming/html/intro.html", true, '');
+       myMenu = new SDMenu("my_menu");
+       myMenu.init();
+
+       enableTooltips("sidebar");
+
+       new Ajax.PeriodicalUpdater('statusreport', '/charmming/vcsstatus/', {method: 'post', frequency: 5})
+       //new Ajax.PeriodicalUpdater('statusreport', '/charmming/status/', {method: 'post', frequency: 5})
+
+       {% if lessontype %}
+          currperiodicalupdater = new Ajax.PeriodicalUpdater('lessonreport', '/charmming/lessons/lessonstatus/', {method: 'post', frequency: 5});
+          currperiodicalupdater.start();
+       {% else %}
+          currperiodicalupdater = new Ajax.PeriodicalUpdater('lessonreport', '/charmming/lessons/lessonstatus/', {method: 'post', frequency: 5});
+          //currperiodicalupdater.stop();
+          currperiodicalupdater.start();
+       {% endif %}
+    }
+
+    function showLesson(lesson)
+    {
+     if(currperiodicalupdater)
+     {
+      currperiodicalupdater.stop();
+     }
+     if(lesson != "nolesson" && lesson != 'None')
+      currperiodicalupdater = new Ajax.PeriodicalUpdater('lessonreport', '/charmming/lessons/lessonstatus/', {method: 'post', frequency: 5});
+     else
+     {
+      document.getElementById('lessonreport').innerHTML = '';
+     }
+    }
+
+</script>
+</head>
+<body>
+
+<center>
+<h1>Drug Design Jobs History</h1>
+</center>
+<div class='status'>
+<body>
+<center>
+
+<form method="post" action=".">
+<table class="sortable resizable" border=2>
+<tr><th>Job ID</th><th>Description</th><th>Current Status</th><th>Submitted</th><th>Wait time</th><th>Running time</th></tr>
+{% for job in jobs %}
+           <tr>
+           <td align = "center" width ="50"><a href="/charmming/dd_infrastructure/viewjobdetails/{{job.id}}" title="Edit:{{ job.description}}" ');">{{ job.owner_index }}</a></td>
+           <td><font size='2'><a href="/charmming/dd_infrastructure/viewjobdetails/{{job.id}}" title="Edit:{{ job.description}}" ');">{{job.description}}</a></font></td> 
+           <td align="center" width = "80">{{ job.status|safe }}</td>
+	   <td align="center"><font size='2'>{{ job.queued }}</font></td>
+	   <td align="center"><font size='2'>{{ job.waited }}</font></td>
+	   <td align="center"><font size='2'>{{ job.runtime }}</font></td>
+	   </tr>
+{% endfor %}
+</table>
+</form>
+</div>
+</center>
+</body>

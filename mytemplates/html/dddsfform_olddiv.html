@@ -1,0 +1,252 @@
+<head>
+<link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+<link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+<link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="/charmming/js/protoculous-1.0.2-packed.js"></script>
+<script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+<script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS_fx.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/gb_scripts.js"></script>
+    <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+    <script src="/charmming/js/tabs.js" type="text/javascript"></script>
+    <link href="/charmming/css/greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
+    <title>VCS Dock</title>
+    <script type="text/javascript">
+
+	/*
+        function secondsToString(seconds)
+	{
+
+	var numhours = Math.floor((seconds % 86400) / 3600);
+	var numminutes = Math.floor(((seconds % 86400) % 3600) / 60);
+	var numseconds = ((seconds % 86400) % 3600) % 60;
+        var result='';
+        if hours==0 {
+		result=numminutes + " minutes " + numseconds + " seconds";
+ 	}else{
+		result=numhours + " hours " + numminutes + " minutes " + numseconds + " seconds";
+	}
+	return result;
+
+	}
+	*/
+        function UpdateEstimate()
+	{
+          //alert ('Performance metric is {{performance_metric}}' + ', mois are ' + getCheckedMOIs() + ', gridcount is ' + countCheckedGrids());
+	  //alert ('checked mois are ' + getCheckedMOIs());
+          var code = "p_metric={{performance_metric}}&mois=" + getCheckedMOIs() + "&grids=" + countCheckedGrids();
+	  //alert (code);
+	  var myAjax = new Ajax.Updater('estimatediv', '/charmming/vcsjobestimate/', {method: 'post', parameters: code})
+
+	}
+
+
+        function countCheckedMOIs()
+	{
+	  var nodes=document.getElementsByName("moisdiv")[0].childNodes;
+	  var checkedvalues="";
+          var checkedcount=0;
+	  var checkboxes = nodes[1].getElementsByTagName('input');
+	  //alert (checkboxes);
+	  for(j = 0;j < checkboxes.length;++j){
+		    //alert(checkboxes[j].name);
+		    //alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
+		    //alert("j " + j);
+		    if (checkboxes[j].checked){
+			if (checkedvalues=='') {
+		           checkedvalues=checkboxes[j].name;
+		           
+			}
+			else {
+			   checkedvalues=checkedvalues + ',' + checkboxes[j].name;
+			}
+			checkedcount=checkedcount+1;
+			//alert(checkedvalues);
+		    }
+		}
+	  return checkedcount;
+	}
+	function getCheckedMOIs()
+	{
+	  var nodes=document.getElementsByName("moisdiv")[0].childNodes;
+	  var checkedvalues="";
+          var checkedcount=0;
+	  var checkboxes = nodes[1].getElementsByTagName('input');
+	  //alert (checkboxes);
+	  for(j = 0;j < checkboxes.length;++j){
+		    //alert(checkboxes[j].name);
+		    //alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
+		    //alert("j " + j);
+		    if (checkboxes[j].checked){
+			if (checkedvalues=='') {
+		           checkedvalues=checkboxes[j].name;
+		           
+			}
+			else {
+			   checkedvalues=checkedvalues + ',' + checkboxes[j].name;
+			}
+			checkedcount=checkedcount+1;
+			//alert(checkedvalues);
+		    }
+		}
+	  /*
+	  for(i = 0;i < nodes.length;++i)
+	    alert(nodes[i].id);
+	    if(nodes[i].id=="managesetsinsidediv"){
+		var checkboxes = nodes[i].getElementsByTagName('input');
+		alert(checkboxes.length);
+	  	for(j = 0;j < checkboxes.length;++j){
+		    alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
+		    //alert("j " + j);
+		    if (checkboxes[j].checked){
+			if (checkedvalues=='') {
+		           checkedvalues=checkboxes[j].name;
+		           
+			}
+			else {
+			   checkedvalues=checkedvalues + ',' + checkboxes[j].name;
+			}
+			//alert(checkedvalues);
+		    }
+		}
+	    }
+	    */
+	  //alert(checkedvalues);
+          //UpdateEstimate();
+	  return checkedvalues;
+	}
+
+    function RefreshLigands()
+	{
+	//alert (document.getElementById("Receptor").value);
+	//var code = "ptid=" + $("protein_types").getValue() + "&setid=" + $("gridsets").getValue();
+	//alert (code);
+	var myAjax = new Ajax.Updater('ligandsdiv', '/charmming/dd_infrastructure/updatedsfligands/'+$("ligandsets").getValue()+'', {method: 'post'})
+
+	//alert(document.getElementById('conformations').style)
+	}
+
+        
+        function countCheckedGrids()
+	{
+	   var gridcount=0;
+	   if ( document.forms['vcsdock'].elements['gridfileid'].length )
+	   {
+	      for (var x = 0; x < document.forms['vcsdock'].elements['gridfileid'].length; x++)
+	      {
+		 if (document.forms['vcsdock'].elements['gridfileid'][x].checked)
+		 {
+		    gridcount=gridcount+1;
+		 }
+		 
+	      }
+	   }
+	   
+	
+	return gridcount;
+
+	}
+
+	function CheckUncheck()
+	{
+	   //alert(document.forms['vcsdock'].elements['checkall']);
+	   if ( document.forms['vcsdock'].elements['gridfileid'].length )
+	   {
+	      for (var x = 0; x < document.forms['vcsdock'].elements['gridfileid'].length; x++)
+	      {
+		 if (document.forms['vcsdock'].elements['checkall'].checked)
+		 {
+		    document.forms['vcsdock'].elements['gridfileid'][x].checked = true;   
+		 }
+		 else
+		 {
+		    document.forms['vcsdock'].elements['gridfileid'][x].checked = false;
+		 }
+		 
+	      }
+	   }
+	   else
+	   {
+	      if (document.forms['vcsdock'].elements['checkall'].checked)
+	      {
+		 document.forms['vcsdock'].elements['gridfileid'].checked = true;            
+	      }
+	      else
+	      {
+		 document.forms['vcsdock'].elements['gridfileid'].checked = false;
+	      }
+	   }
+           //UpdateEstimate();
+	}
+
+</script>
+    
+</head>
+<body onload="RefreshLigands();">
+<center>
+<h3>Select Target Conformation(s)</h1>
+</center>
+<div class='status'>
+
+<center>
+<p><font size="3" color="{{message_color}}"><strong>{{message}}</strong></font></p>
+<form id="dsfform" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/dsfform/">
+<div name="conformationsdiv" id="conformationsdiv" style="overflow:auto;width:95%;height:150px;border:1px solid #336699;padding-left:5px;text-align:left">
+<table class="sortable resizable" border=2>
+<tr><th>Conformation Name</th><th>Conformation Description</th><th>Target PDB</th><th>Select</th></tr>
+{% for conformation in conformations %}
+        <tr><td>{{ conformation.name }}</td><td>{{ conformation.description }}</td><td>{{ conformation.target_pdb_code }}{{conformation.id}}</td>
+	<td> 
+	    <table width="100%">
+	    {% for conformation_file_object in conformation.file_objects_list %}
+	      <tr><td>{{ conformation_file_object.file.description}}</td><td width=10 align="left"> <input id="id_conformation_file" type="checkbox" name="conformation_{{ conformation_file_object.file.id }}" onchange="getCheckedConformations(); UpdateEstimate();"/> </td><tr>
+	    {% endfor %}	
+	    </table>
+	</td>
+{% endfor %}  
+</table>
+</div>
+<div id='native_ligand_upload' style="display:block">
+<p>
+<table>
+<tr><td><label for="id_native_ligand"> Native Ligand File Uploader </label></td><td><input type="file" name="native_ligand_file" id="id_native_ligand_file" /></td></tr>
+</table>
+</div>
+<p align="center"><h3>Select Initial Ligand Structures</h4></p>
+<table>
+<tr>
+<td>
+<font size="2">Select Grid Set:</font>
+<select name="ligandsets" id="ligandsets" onchange="RefreshLigands();">
+{% for set in existingsets %}
+<option value='{{ set.id }}'>{{set.name}} ({{set.ligand_count}} ligands)</option>
+{% endfor %}
+</select>
+</td>
+</tr>
+<tr><td colspan=2>
+<div name="ligandsdiv" id="ligandsdiv" style="overflow:auto;width:100%;height:160px;border:1px solid #336699;padding-left:5px;text-align:left">
+</div>
+</td></tr>
+</table>
+<hr noshade width="80%" size=3%>
+       <br/>
+<div name="estimatediv" id="estimatediv">
+</div>
+       
+       <p align="center">Please enter a short description for this job<br>
+       <input type="text" name="job_description" id="job_description"></input>
+       </p>
+       <input type="submit" value="Submit Drug Design Job"/>
+       <br>
+       <br>
+</form>
+</div>
+</center>
+</body>
+
+
+
+
+

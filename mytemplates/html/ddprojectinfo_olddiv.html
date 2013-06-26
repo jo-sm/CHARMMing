@@ -1,0 +1,40 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+<link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="/charmming/js/protoculous-1.0.2-packed.js"></script>
+<script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+<script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS_fx.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/gb_scripts.js"></script>
+    <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+    <script src="/charmming/js/tabs.js" type="text/javascript"></script>
+    <link href="/charmming/css/greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
+	 <script type="text/javascript">
+	
+	
+	
+</script>
+</head>
+
+<form id="insideprojectform" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastucture/updateprojectinfo/">
+<font color="{{ messagecolor }}">{{ message }}</font>
+<table width=78% align="center">
+ <tr>
+<td valign="top">Project Name:<br>
+       <input type="text" name="project_name" id="project_name" value="{{ project.project_name }}"size="30"></input></td>
+<td>Project Description:<br>
+       <textarea name="project_description" id="project_description" cols=50 rows=3>{{ project.description }}</textarea>
+</td>
+</tr>
+</table>
+<!--<button type="button" onclick="CheckRedirect();">Update Project Info</button>-->
+<button type="button" onclick="RefreshProjectInfo();">Update Project Info</button><br><br>
+{% ifequal message "Project was successfully created" %}
+<a href="/charmming/dd_infrastructure/projectdetails/{{project.id}}" title="Add Target to this Project" ');"><font size="3">Add Target to this Project</font></a>
+{% endifequal %}
+<!--<input type=submit id="submitAddNewSet" name="submitAddNewSet" value="Save New Set" onClick="CheckRedirect();"></input>-->
+</form>
+</div>
+

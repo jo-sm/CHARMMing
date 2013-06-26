@@ -1,0 +1,62 @@
+<head>
+<link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+    <script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+    <script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+    <link href="/charmming/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
+    <link href="/charmming/css/sdmenu/sdmenu.css" rel="stylesheet" type="text/css" />
+    <script src="/charmming/js/ajax.js" type="text/javascript"></script>
+    <script src="/charmming/js/sdmenu/sdmenu.js" type="text/javascript"></script>
+    <script src="/charmming/js/tabs.js" type="text/javascript"></script>
+    {% if trusted %}
+     <script src="/charmming/js/trusted.js" type="text/javascript"></script>
+    {% endif %}
+    <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+    <script type="text/javascript" src="/charmming/js/emap.js"> </script>
+    <script type="text/javascript" src="/charmming/js/windows2/window.js"> </script>
+    <title>VCS Dock</title>
+    <script type="text/javascript">
+
+
+  function RefreshProjectInfo(projectid,action)
+	{
+	//alert (document.getElementById("gridset_name").value);
+	var code = 'name=' + document.getElementById("project_name").value + '&description=' + document.getElementById("project_description").value;
+	//alert (code);
+	var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/'+projectid+'/'+action+'/', {method: 'post', parameters: code})
+	}
+        
+	function DisplayBlankForm()
+	{
+	//alert (document.getElementById("gridset_name").value);
+	//var code = codestring;
+	//alert (code);
+	var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/0/refresh/', {method: 'post'})
+	}
+        
+</script>
+    
+</head>
+<body onload="DisplayBlankForm();">
+<center>
+<h2>Create Project</h1>
+</center>
+<div class='status'>
+
+<center>
+<form id="ddprojectsaddnew" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/projectsaddnew/">
+<div name="projectinfodiv" id="projectinfodiv">
+</div>
+
+
+</form>
+</div>
+</center>
+</body>
+
+
+
+
+

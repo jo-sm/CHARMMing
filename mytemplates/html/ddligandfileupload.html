@@ -13,6 +13,21 @@ All Fields are Required
 		<p>
 		<table width="100%">
 		<tr><td><label for="id_ligand"> Ligand File<br> (mol2 format) </label></td><td> {{ form.ligand_file }} {{ form.ligand_file_file }}</td></tr>
+                <tr><td colspan="2" align="center">
+                      Choose atomtyping option:<br>
+                      <select name="tpmeth">
+                        <option value="autogen">Attempt to automatically generate parameters</option>
+                        {% if seg.fes4 %}
+                           <option value="redox">Use only for REDOX calculations</option>
+                        {% endif %}
+                        {% if super_user %}
+                           <option value="dogmans">Force Dogmans</option>
+                           <option value="match">Force MATCH</option>
+                           <option value="antechamber">Force Antechamber</option>
+                           <option value="genrtf">Force GENRTF</option>
+                        {% endif %}
+                      </select>
+                </td></tr>    
 		</table>
 		</div>
 		<div id='ligand_draw' style="display:none">

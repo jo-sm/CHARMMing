@@ -1,11 +1,11 @@
-<center><h3>Results</h3><table class="sortable resizable" border=2></center> 
-<table width="100%" border="1" style="background-color:#eeeee0;" >
-<tr><th>Rank</th><th>Ligand Name</th><th>Score</th><th>Download File</th><th>View File</th><th>View Pose</th></tr>
+<center><h3>Results</h3><table class="sortable resizable" border="1"></center> 
+<table  class="sortable resizable" width="100%" border="1" style="background-color:#eeeee0;" >
+<tr><th>Rank</th><th>Ligand Name</th><th>DSFC Average</th><th>DSFC Median</th><th>CHARMM Energy</th><th>SEED Score</th><th>FFLD Score</th><th>Download File</th><th>View File</th><th>View Pose</th></tr>
 {% for pose in result_poses %}
 	<tr>
-           <td align = "center" width ="50">{{ pose.rank }}</td><td align = "center" width ="300">{{ pose.ligand_name }}</td><td align = "center" width ="50">{{ pose.score }}</td><td align = "center" width ="140"><a href="/charmming/dd_infrastructure/downloadfile/{{pose.file_id}}">Download File</a></td><td align = "center" width ="100"><a target = "_blank" href="/charmming/dd_infrastructure/viewfile/{{pose.file_id}}">View File</a></td><td td align = "center" width ="100"><a href="#" onclick="window.open('/charmming/dd_infrastructure/viewresultpose/{{pose.file_id}}/{{job.job_scheduler_id}}/', 'View Pose', 'height=700, width=700');">View Pose</a></td>
+           <td align = "center" width ="50">{{ pose.rank }}</td><td align = "center" width ="300">{{ pose.ligand_name }}</td><td align = "center" width ="50">{{ pose.average_score }}</td><td align = "center" width ="50">{{ pose.median_score }}</td><td align = "center" width ="50">{{ pose.charmm_energy }}</td><td align = "center" width ="50">{{ pose.seed_score }}</td><td align = "center" width ="50">{{ pose.ffld_score }}</td><td align = "center" width ="140"><a href="/charmming/dd_infrastructure/downloadfile/{{pose.file_id}}">Download File</a></td><td align = "center" width ="100"><a target = "_blank" href="/charmming/dd_infrastructure/viewfile/{{pose.file_id}}">View File</a></td><td td align = "center" width ="100"><a href="#" onclick="window.open('/charmming/dd_infrastructure/viewresultpose/{{pose.file_id}}/{{job.job_scheduler_id}}/', 'View Pose', 'height=700, width=700');">View Pose</a></td>
 	</tr>
 {% endfor %}
-<table>
-
+</table>
+</table>
 

@@ -1,0 +1,127 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <title>View Drug Design Job Details</title>
+
+    <script type="text/javascript">
+var tabCounter = -1;
+        var GB_ROOT_DIR = "/greybox/greybox/";
+function send_select_form(form) {
+   new Ajax.Request("/select/"+form.id, {method:'post', asynchronous:true});
+}
+
+    function doOnLoad(){
+               
+	//var code = "jobid={{job.id}}";
+	currperiodicalupdater = new Ajax.Updater('jobinfo', '/charmming/dd_infrastructure/viewjobinfo/{{job.id}}', {method: 'post'});
+	//code="jobid={{job.owner_id}}";
+
+        
+    currperiodicalupdater2 = new Ajax.PeriodicalUpdater('resultsdiv', '/charmming/dd_infrastructure/viewjobresults/{{job.id}}', {method: 'post', frequency: 5});
+	setVisible('resultsdiv','none');
+
+        //alert ("blah");
+
+    }
+
+    function UpdateResultList(){
+	code="jobid={{job.owner_id}}";
+  //currperiodicalupdater2 = new Ajax.Updater('resultsdiv', '/charmming/vcsjobhits/', {method: 'post', parameters: code});
+
+
+    }
+    function view_results(job_id) {
+
+           var params = 'jobid='+job_id;
+	   var link=$("viewhideresults");
+	   //alert (document.getElementById('resultsdiv').style.display);
+	   if ((document.getElementById('resultsdiv').style.display=='none')){
+		setVisible('resultsdiv','block')
+	   	new Ajax.Updater('resultsdiv',"/charmming/dd_infrastructure/viewjobresults/{{job.id}}", {method:'post', asynchronous:true});
+        //link.innerHTML="Hide Results"
+	   }
+	   else if (document.getElementById('resultsdiv').style.display=='block'){
+	  	setVisible('resultsdiv','none')
+	  	//link.innerHTML="View Results"
+	
+	   }
+	   
+    }
+    </script>
+
+<link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+<link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="/charmming/js/protoculous-1.0.2-packed.js"></script>
+<script type="text/javascript" src="/charmming/js/tablekit/fastinit.js"></script>
+<script type="text/javascript" src="/charmming/js/tablekit/tablekit.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/AJS_fx.js"></script>
+    <script type="text/javascript" src="/charmming/js/greybox/gb_scripts.js"></script>
+    <script type="text/javascript" src="/charmming/js/custom.js"> </script>
+    <script src="/charmming/js/tabs.js" type="text/javascript"></script>
+    <link href="/charmming/css/greybox/gb_styles.css" rel="stylesheet" type="text/css" media="all" />
+</head>
+<body onload="doOnLoad()">
+
+<center>
+<h1>Drug Design Job Details</h1>
+</center>
+<div class='status'>
+<body>
+<center>
+
+<form method="post" action=".">
+<div id="jobinfo" name="jobinfo">
+</div>
+<div id="resultsdiv" name="resultsdiv">
+</div>
+<hr>
+<h3>Target Conformations Used</h3>
+<div style="overflow:auto;width:95%;height:150px;border:1px solid #336699;padding-left:5px;text-align:left">
+<table class="sortable resizable" border=2>
+<tr><th>Protein</th><th>PDB Code</th><th>Conformation</th><th>View File</th><th>Download File</th></tr>
+{% for conformation in job_conformations %}
+           <tr>
+           <td align="center" width = "100">{{ conformation.pdb_code }}</td>
+           <td align="center" width = "500">{{ conformation.protein_name }}</td>
+           <td align="center" width = "500">{{ conformation.conformation_name }}</td>
+           <td align="center" width = "200"><a target="_blank" href="/charmming/dd_infrastructure/viewfile/{{conformation.file_id}}">View File</a></td></td>
+           <td align="center" width = "240"><a href="/charmming/dd_infrastructure/downloadfile/{{conformation.file_id}}">Download File</a></td></td>
+           </tr>
+{% endfor %}
+</table>
+</div>
+<hr>
+<h3>Ligands Docked</h3>
+<div style="overflow:auto;width:95%;height:300px;border:1px solid #336699;padding-left:5px;text-align:left">
+<table class="sortable resizable" border=2>
+<tr><th>Ligand Name</th><th>Ligand Description</th><th>View File</th><th>Download File</th></tr>
+{% for ligand in job_ligands %}
+           <tr>
+           <td align="center" width = "300">{{ ligand.ligand_name }}</td>
+           <td align="center" width = "500">{{ ligand.description }}</td>
+           <td align="center" width = "100"><a target="_blank" href="/charmming/dd_infrastructure/viewfile/{{ligand.file_id}}">View File</a></td></td>
+           <td align="center" width = "140"><a href="/charmming/dd_infrastructure/downloadfile/{{ligand.file_id}}">Download File</a></td></td>
+           </tr>
+{% endfor %}
+</table>
+</div>
+<hr>
+<h3>Job Files</h3>
+<div style="overflow:auto;width:95%;height:105px;border:1px solid #336699;padding-left:5px;text-align:left">
+<p align="center">
+<table align="center" class="sortable resizable" border=2>
+<tr><th>File Description</th><th>View File</th><th>Download File</th></tr>
+{% for file in job_files %}
+           <tr>
+           <td align="center" width = "500">{{ file.description }}</td>
+           <td align="center" width = "100"><a target="_blank" href="/charmming/dd_infrastructure/viewfile/{{file.id}}">View File</a></td></td>
+           <td align="center" width = "140"><a href="/charmming/dd_infrastructure/downloadfile/{{file.id}}">Download File</a></td></td>
+           </tr>
+{% endfor %}
+</table>
+</p>
+</div>
+</form>
+</div>
+</center>
+</body>

@@ -4,6 +4,14 @@
 <div id="mainpage">
   <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
 <p><font size="3" color="{{message_color}}"><strong>{{message}}</strong></font></p>
+<table  class="sortable resizable" width="100%" border="1" style="background-color:#eeeee0;" >
+{% for tarfile in tarfiles %}
+ <tr>
+   <td><a href="/charmming/dd_infrastructure/downloadfile/{{tarfile.id}}">{{ tarfile.name }}</a></td>
+ </tr>
+{% endfor %}
+</table>
+
 {% ifequal message '' %}
 <form id="dsfform" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/dsfform/">
 <center>
@@ -35,7 +43,7 @@
 <center>
 <h3>Native Ligand</h2>
 
-    {% include "html/abadfiles.html" %}
+    {% include "html/anativefiles.html" %}
 <!--<table>
 <tr><td><label for="id_native_ligand"> Upload Native Ligand in <u>PDB</u> Format: </label></td><td><input type="file" name="native_ligand_file" id="id_native_ligand_file" /></td></tr>
 </table>-->
