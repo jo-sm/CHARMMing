@@ -59,3 +59,10 @@ def doLessonAct(file,postdata,function,filename=None):
      elif function == 'onMDSubmit':
          lesson_obj.onMDSubmit(postdata,filename)
          return True
+     elif function == 'onRedoxSubmit':
+         lesson_obj.onRedoxSubmit(postdata,filename)
+         return True
+     elif function == 'onRedoxDone':
+         lesson_obj.onRedoxDone(postdata,filename)
+         return True
+
