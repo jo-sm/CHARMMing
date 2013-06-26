@@ -9,7 +9,7 @@ read coor card name {{input_file}}.crd
 
 open unit 50 write card name {{ enefile }}
 
-{% if site_only %}dele atoms sele all .and. .not. resi {{siteid}} end{% endif %}
+{% if site_only %}if ?NRES .ne. 1 then dele atoms sele .not. resi {{siteid}} end{% endif %}
 
 stream {{ filebase }}-griddim.str
 
