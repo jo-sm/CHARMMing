@@ -639,8 +639,14 @@ class WorkingSegment(Segment):
         """
         logfp = open('/tmp/makecgenff.txt', 'w')
         logfp.write('Try to use CGenFF\n')
-        self.rtf_list = '%s/toppar/top_all36_cgenff.rtf' % charmming_config.data_home
-        self.prm_list = '%s/toppar/par_all36_cgenff.prm' % charmming_config.data_home
+        if self.rtf_list:
+            self.rtf_list += ' %s/toppar/top_all36_cgenff.rtf' % charmming_config.data_home
+        else:
+            self.rtf_list = '%s/toppar/top_all36_cgenff.rtf' % charmming_config.data_home
+        if self.prm_list:
+            self.prm_list += ' %s/toppar/par_all36_cgenff.prm' % charmming_config.data_home
+        else:
+            self.prm_list = '%s/toppar/par_all36_cgenff.prm' % charmming_config.data_home
  
 
         header = '# USER_IP 165.112.184.52 USER_LOGIN %s\n\n' % self.structure.owner.username
@@ -1100,11 +1106,23 @@ class WorkingSegment(Segment):
             final_pfile.import_from_toppar(final_toppar)
             final_tfile.write_all()
             final_pfile.write_all()
-            self.rtf_list = 'genrtf-%s.rtf' % self.name
-            self.prm_list = 'genrtf-%s.prm' % self.name
+            if self.rtf_list:
+                self.rtf_list += ' genrtf-%s.rtf' % self.name
+            else:
+                self.rtf_list = 'genrtf-%s.rtf' % self.name
+            if self.prm_list:
+                self.prm_list += ' genrtf-%s.prm' % self.name
+            else:
+                self.prm_list = 'genrtf-%s.prm' % self.name
         else:
-            self.rtf_list = my_gentop[0]
-            self.prm_list = my_genpar[0]
+            if self.rtf_list:
+                self.rtf_list += ' %s' % my_gentop[0]
+            else:
+                self.rtf_list = my_gentop[0]
+            if self.prm_list:
+                self.prm_list += ' %s' % my_genpar[0]
+            else:
+                self.prm_list = my_genpar[0]
 
         logfp = open('/tmp/lengthlist.txt', 'w')
         logfp.write('%s\n' % self.rtf_list)
