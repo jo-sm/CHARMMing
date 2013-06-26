@@ -76,6 +76,11 @@ class Lesson(models.Model):
     def onSGLDDone(self,file):
         return True
 
+    def onBuildStructureSubmit(self,postdata):
+        return True
+
+    def onBuildStructureDone(self,file):
+        return True
 """
 Eventually this should be included as its own model but temporarily 
 this will be left here:
