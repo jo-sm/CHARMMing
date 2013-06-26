@@ -1288,6 +1288,7 @@ function RefreshSetLigands(set_id,addedids,removedids)
     //var code = "project_id={{ project_id }}&addedids=" + addedids + "&removedids=" + removedids;
         //var code = 'ptid=' + $("protein_types").getValue();
     //alert('/charmming/dd_infrastructure/projectconformations/{{project_id}}/'+addedids+'/'+removedids);
+    //alert('/charmming/dd_substrate/setligands/'+set_id+'/'+addedids+'/'+removedids+'/');
     var myAjax = new Ajax.Updater('setligandsdiv', '/charmming/dd_substrate/setligands/'+set_id+'/'+addedids+'/'+removedids+'/', {method: 'post'})
 
     //alert(document.getElementById('conformations').style)
