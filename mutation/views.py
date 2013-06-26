@@ -197,6 +197,8 @@ def selectstructure(request):
         ws = structure.models.WorkingStructure.objects.get(structure=struct,selected='y')
     except:
         return HttpResponse("You must first build a working structure.")
+    if ws.isBuilt != "t":
+        return HttpResponse("Please perform a calculation on this structure first (e.g. Energy, Minimization)")
     #This way we need less JS black magic
     tdict = {}
     tdict['proposedname'] = proposedname
