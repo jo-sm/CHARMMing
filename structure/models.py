@@ -254,6 +254,8 @@ class Segment(models.Model):
         if self.type == 'pro':
             if firstres == 'gly':
                 self.default_patch_first = 'GLYP'
+            elif firstres == 'pro':
+                self.default_patch_first = 'PROP'
             else:
                 self.default_patch_first = 'NTER'
             self.default_patch_last  = 'CTER'
@@ -801,6 +803,13 @@ class WorkingSegment(Segment):
                 logfp.close()
                 return -1
 
+            ###YP call script to restore coordinates in badres-h to the ones in badres
+            awk_script="awk 'FNR==NR{x[NR]=$7; y[NR]=$8; z[NR]=$9; next}{$6=x[FNR]; $7=y[FNR]; $8=z[FNR]; if ($6==\"\" && $2!=\"\") {$6=\"9999.000\"} if ($7==\"\" && $2!=\"\") {$7=\"9999.000\"} if ($8==\"\" && $2!=\"\") {$8=\"9999.000\"}printf \"%%-6s %%4s  %%-4s %%-4s %%3s %%11s%%8s%%8s %%5s %%5s %%9s\\n\", $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11}' %s.pdb %s_tmp.pdb > %s.pdb" % (filebase.replace("-h-","-"),filebase,filebase)
+            logfp.write ("mv %s.pdb %s_tmp.pdb\n" % (filebase,filebase))
+            logfp.write("restore coordinates awk script: %s\n" % awk_script) 
+            os.system ("mv %s.pdb %s_tmp.pdb" % (filebase,filebase))
+            os.system(awk_script)
+            ####
             # add atoms from our PDB into magic_mol and renumber them.
             myown_mol = pychm.io.pdb.get_molFromPDB('%s.pdb' % filebase)
             for atom in myown_mol:
