@@ -157,7 +157,6 @@ def viewUpdateProjectInfo(request,projectid,action):
 
         project = projects.objects.get(owner=request.user,id=project_id)
         return render_to_response('html/ddprojectinfo.html', {'project':project, 'message':message, 'messagecolor':'Green'})
-
     #no action, just display blank or populated form
     else: 
         if (projectid!='0'):
@@ -409,7 +408,7 @@ def projectConformations(request,project_id,addedids,removedids):
 #    return render_to_response('html/dddsfcontainer.html')
 
 #displays the daim/seed/ffld job initiation form
-def DSFFormDisplay(request):
+def DSFFormDisplay_old(request):
     dsflog=open("/tmp/dsf.log",'w')
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
@@ -454,14 +453,17 @@ def DSFFormDisplay(request):
        
     cursor = dba.cursor(MySQLdb.cursors.DictCursor) 
     public_user=User.objects.get(username='public')
-    setssql="select '0' as setid, 'All Available' as setname, 'All Ligands available to the user' as setdescription, " \
+    setssql="select '00' as setid, 'All User Uploaded' as setname, 'All Ligands available to the user' as setdescription, " \
+            "(select count(distinct id) from dd_substrate_ligands where owner_id in (%s)) as ligandcount " \
+            " union " \
+            "select '0' as setid, 'All Available' as setname, 'All Ligands available to the user' as setdescription, " \
             "(select count(distinct id) from dd_substrate_ligands where owner_id in (%s,%s)) as ligandcount " \
 	        " union " \
 	        "select ls.id as setid, ls.ligand_set_name as setname, ls.description as setdescription, " \
             "(select count(distinct ligands_id) from dd_substrate_ligand_sets_ligands where " \
             "ligands_set_id=ls.id and owner_id in (%s,%s)) as ligandcount " \
 	        "from dd_substrate_ligand_sets ls where ls.owner_id in (%s,%s) and ls.ligand_set_name<>'All Available'" \
-	        % (request.user.id,public_user.id,request.user.id,public_user.id,request.user.id,public_user.id)
+	        % (request.user.id,request.user.id,public_user.id,request.user.id,public_user.id,request.user.id,public_user.id)
     #setssql="select '0' as setid, gs.name as setname from vcs_gridsets gs"
     
     cursor.execute(setssql)
@@ -489,12 +491,27 @@ def DSFFormDisplay(request):
 
         #try:
         abadfiles=[]
-        for file in glob.glob(struct.location + '/a-bad*.pdb'):
+        os.chdir(struct.location)
+        start=""
+        end=""
+        nativefilename=""
+        os.system("rm *-native-*.pdb")
+        for file in glob.glob(struct.location + '/*-bad*.pdb'):
+            dsflog.write("file is %s\n" % file)
+            if not "badres" in file and not "segment" in file:
+                
+                os.system("awk '{if($4!=$res && $1==\"ATOM\") {res=$4; print >> \"%s-native-\"res\".pdb\";}}' %s" % (os.path.basename(file)[0:1],os.path.basename(file)))
+        for native_lig_file in glob.glob(struct.location + '/*-native-*.pdb'):
+            nativefilename=os.path.basename(native_lig_file)
             abadfile=common.objFile()
-            abadfile.fullpath=file
-            abadfile.name=os.path.basename(file)
+            abadfile.fullpath=native_lig_file
+            abadfile.name=nativefilename
+            abadfile.tag=nativefilename[0+len("a-native-"):nativefilename.index(".pdb",0+len("a-native-"))]
+            #abadfile.tag=nativefilename[nativefilename.index("a-native-")+len("a-native-"):nativefilename.index(".pdb",nativefilename.index("a-native-")+len("a-native-"))]
+            dsflog.write("adding native ligand: %s\n" % abadfile.tag)
             abadfiles.append(abadfile)
             
+        dsflog.write("native ligands: %s\n" % str(abadfiles[0].name))
         #except:
         #    return HttpResponse("No native ligands found in the structure. Cannot identify binding site")
 
@@ -504,10 +521,11 @@ def DSFFormDisplay(request):
     
     #####this block contains the actions taking place when the form gets submitted
     ##### i.e. the job gets launched
-    
+    tar_files=[]
     job_owner_id=common.getNewJobOwnerIndex(u)
     dsflog.write("job_owner_id: %s\n" % (job_owner_id) )
-    job_folder = charmming_config.user_dd_jobs_home + '/' + username + '/' + 'dd_job_' + str(job_owner_id)
+    job_basename='dd_job_' + str(job_owner_id)
+    job_folder = charmming_config.user_dd_jobs_home + '/' + username + '/' + job_basename
     os.system("mkdir %s" % (job_folder))
     os.system("chmod -R g+w %s" % (job_folder))
     os.chdir(job_folder)
@@ -533,9 +551,38 @@ def DSFFormDisplay(request):
     os.system('cp %s/add_lig_substructure.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
     os.system('cp %s/Run_FFLD_FLEA_yp.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
     os.system('cp %s/num_substructures.pl %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/pdb2mol.in %s\n' % (charmming_config.dd_scripts_home,job_folder))
+
+    #####charmm stuff
+    os.system("mkdir %s/charmm_mini" % (job_folder))
+    os.system("mkdir %s/charmm_mini/lig" % (job_folder))
+    os.system("mkdir %s/charmm_mini/combined" % (job_folder))
+    os.system("mkdir %s/charmm_mini/target" % (job_folder))
+    os.system("mkdir %s/charmm_mini/poses" % (job_folder))
+    os.system("mkdir %s/charmm_mini/minimized" % (job_folder))
+    os.system("cp %s* %s/charmm_mini/\n" % (charmming_config.charmm_files,job_folder))
+    os.system("cp %s/*.inp %s/charmm_mini/\n" % (charmming_config.dd_scripts_home,job_folder))
+    os.system("cp %s/mol2crd %s/charmm_mini/\n" % (charmming_config.dd_scripts_home,job_folder))
+    os.system("cp %s/run_mini.sh %s/charmm_mini/\n" % (charmming_config.dd_scripts_home,job_folder))
+    os.system("cp %s/pdb2mol.sh  %s/charmm_mini/\n" % (charmming_config.dd_scripts_home,job_folder))
+    ####end charmm stuff
+
+    ####ffld scoring stuff
+    os.system("mkdir %s/ffld_eval" % (job_folder))
+    os.system("mkdir %s/ffld_eval/poses" % (job_folder))
+    os.system("mkdir %s/ffld_eval/ligands" % (job_folder))
+    os.system("cp %s/run_ffld_eval.sh  %s/ffld_eval/\n" % (charmming_config.dd_scripts_home,job_folder))
+    ####
+
+    ####seed scoring stuff
+    os.system("mkdir %s/seed_eval" % (job_folder))
+    os.system("mkdir %s/seed_eval/poses" % (job_folder))
+    os.system("cp %s/run_seed_eval.sh  %s/seed_eval/\n" % (charmming_config.dd_scripts_home,job_folder))
+    os.system("cp %s/make_inp.sh  %s/seed_eval/\n" % (charmming_config.dd_scripts_home,job_folder))
+    ####
+
     os.system("chmod -R g+w %s" % (job_folder))
     os.system("chmod -R g+x %s" % (job_folder))
-    
     #copy native ligand into the job folder
     #native_ligand_destination = open(job_folder + "/native_ligand.pdb", 'w')
     try:
@@ -579,6 +626,29 @@ def DSFFormDisplay(request):
                                             job_folder, ligand_file.file_name))
                     os.system("cp %s%s %s/%s_%s" % (ligand_file.file_location, ligand_file.file_name,\
                                             job_folder, ligand_file.owner_id,ligand_file.file_name))
+                    strfile=("%s%s" % (ligand_file.file_location, ligand_file.file_name.replace(".mol2",".str")))
+                    psffile=("%s%s" % (ligand_file.file_location, ligand_file.file_name.replace(".mol2",".psf")))
+                    rtffile=("%s%s" % (ligand_file.file_location, ligand_file.file_name.replace(".mol2",".rtf")))
+                    dsflog.write("checking for str: %s\n" % (strfile))
+                    if (os.path.isfile(strfile)):
+                        os.system("cp %s %s/%s_%s" % (strfile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".str")))
+                        dsflog.write("cp %s %s/%s_%s" % (strfile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".str")))
+                        os.system("cp %s %s/%s_%s" % (rtffile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".rtf")))
+                        dsflog.write("cp %s %s/%s_%s" % (rtffile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".rtf")))
+                        os.system("cp %s %s/charmm_mini/lig/%s_%s" % (strfile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".str")))
+                        dsflog.write("cp %s %s/charmm_mini/lig/%s_%s" % (strfile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".str")))
+                        os.system("cp %s %s/charmm_mini/lig/%s_%s" % (psffile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".psf")))
+                        dsflog.write("cp %s %s/charmm_mini/lig/%s_%s" % (psffile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".psf")))
+                       
+
                     ligandcount=ligandcount+1
                     ligandfile_list.append(str(ligand_file.owner_id)+"_"+ligand_file.file_name)
                     daim_ligands_list_file.write(str(ligand_file.owner_id)+"_"+ligand_file.file_name + '\n')
@@ -717,16 +787,28 @@ def DSFFormDisplay(request):
     
     pro_segment=Segment.objects.filter(structure=dsftask.workstruct.structure,type="pro",is_working="y")[0] #filter[0] is on purpose
     pro_name=pro_segment.name + '-' + str(pro_segment.id)
+    #pro_name=dsftask.workstruct.identifier + '-' + pTask.action
     dsflog.write("cp %s/%s.pdb %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
     dsflog.write("cp %s/%s.psf %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    dsflog.write("cp %s/%s.crd %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    dsflog.write("cp %s/%s.psf %s/charmm_mini/target/" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    dsflog.write("cp %s/%s.crd %s/charmm_mini/target/" % (dsftask.workstruct.structure.location,pro_name,job_folder))
 
-
-    os.system("cp %s/%s.pdb %s" % (dsftask.workstruct.structure.location,pro_segment.name + '-' + str(pro_segment.id),job_folder))
-    os.system("cp %s/%s.psf %s" % (dsftask.workstruct.structure.location,pro_segment.name + '-'+ str(pro_segment.id),job_folder))
-
+    os.system("cp %s/%s.pdb %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    os.system("cp %s/%s.psf %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    os.system("cp %s/%s.crd %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    os.system("cp %s/%s.psf %s/charmm_mini/target/" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    os.system("cp %s/%s.crd %s/charmm_mini/target" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    #os.system("cp %s/%s_vmd.mol2 %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    #os.system("cp %s/%s.pdb %s" % (dsftask.workstruct.structure.location,pro_segment.name + '-' + str(pro_segment.id),job_folder))
+    #os.system("cp %s/%s.psf %s" % (dsftask.workstruct.structure.location,pro_segment.name + '-'+ str(pro_segment.id),job_folder))
+    #os.system("cp %s/%s.crd %s" % (dsftask.workstruct.structure.location,pro_segment.name + '-'+ str(pro_segment.id),job_folder))
+    #os.system("cp %s/%s.psf %s/charmm_mini/target/" % (dsftask.workstruct.structure.location,pro_segment.name + '-'+ str(pro_segment.id),job_folder))
+    #os.system("cp %s/%s.crd %s/charmm_mini/target" % (dsftask.workstruct.structure.location,pro_segment.name + '-'+ str(pro_segment.id),job_folder))
     #os.system("cp %s/%s.pdb %s" % (dsftask.workstruct.structure.location, dsftask.workstruct.identifier + '-' + pTask.action,job_folder))
     #os.system("cp %s/%s.psf %s" % (dsftask.workstruct.structure.location, dsftask.workstruct.identifier + '-' + pTask.action,job_folder))
     
+    submitscript.write("%s -dispdev text -e pdb2mol.in -args %s >> pdb2mol.out\n" % (charmming_config.vmd_exe,pro_name))
     submitscript.write("%s/targetprep.sh %s/%s\n" % (job_folder,job_folder,pro_name))
     submitscript.write("cd %s\n" % (job_folder))
     submitscript.write("while [ ! -s %s/%s.mol2 ]\n" % (job_folder,pro_name))
@@ -738,7 +820,7 @@ def DSFFormDisplay(request):
     submitscript.write(charmming_config.daim_exe + " --seed --receptor " + \
                       pro_name + ".mol2 --native " + "native_ligand.mol2" + \
                       " -c " + str(ligandcount) + " < " + job_folder + "/ligands\n")
-    submitscript.write ("sed -i 's/\\sp\\s/ b /g' a-pr_seed.inp\n")
+    submitscript.write ("sed -i 's/\\sp\\s/ b /g' %s_seed.inp\n" % (pro_name[:4]))
     submitscript.write("cp %s/%s.mol2 %s/Inputs/\n" % (job_folder,pro_name,job_folder))
     submitscript.write("%s/add_lig_substructure.sh\n" % (job_folder))
 
@@ -794,10 +876,18 @@ def DSFFormDisplay(request):
     submitscript.write('%s/cgenff.sh %s\n' % (job_folder,job_folder))
     submitscript.write('%s/cgenff_lig.sh %s\n' % (job_folder,job_folder))
     submitscript.write("perl ffld_paramconvert.pl > FFLD_param_cgenff\n")    
-    submitscript.write('%s a-pr_seed.inp > %s/seed.out\n' % (charmming_config.seed_exe,job_folder))
+    submitscript.write('%s %s_seed.inp > %s/seed.out\n' % (charmming_config.seed_exe,pro_name[:4],job_folder))
     submitscript.write('cp %s/outputs/* %s/Inputs/\n' % (job_folder,job_folder))
     submitscript.write('cp `more %s/ligands` %s/ligands_to_dock/\n' % (job_folder,job_folder))
     submitscript.write('%s/Run_FFLD_FLEA_yp.sh\n' % (job_folder))
+    submitscript.write('cd %s/charmm_mini/\n' % (job_folder))
+    submitscript.write('sh run_mini.sh %s %s\n' % (pro_name,charmming_config.charmm_exe))
+    submitscript.write('cd %s/seed_eval/\n' % (job_folder))
+    submitscript.write('sh run_seed_eval.sh %s %s\n' % (charmming_config.seed_exe,pro_name))
+    submitscript.write('cd %s/ffld_eval/\n' % (job_folder))
+    submitscript.write('sh run_ffld_eval.sh %s %s\n' % (charmming_config.ffld_exe,pro_name))
+   
+
     #submitscript.write('if [ "$(ls -A \'%s/clustering/clusters\')" ]; then\n' % (job_folder))
     #submitscript.write('    echo "NORMAL TERMINATION"\n')
     #submitscript.write('fi\n')
@@ -819,6 +909,7 @@ def DSFFormDisplay(request):
     os.system("chmod g+w -R %s" % (job_folder))
     os.system("chmod g+x %s" % (job_folder + "/submitscript.inp"))
 
+    
     scriptlist=[]
     scriptlist.append(job_folder + "/submitscript.inp")
     exedict={job_folder + "/submitscript.inp": 'sh'}
@@ -830,26 +921,624 @@ def DSFFormDisplay(request):
     #newSchedulerJobID = si.submitJob(request.user.id,job_folder,scriptlist,exedict)
     #dsflog.write("schedulerid: %s\n" % (newSchedulerJobID))
     
-    ####CHARMMING integrated association of job with task of the target structure                                                                                            
-    #dsftask=dsfdockingtask()
-    dsftask.parent=pTask
-    dsftask.start(job_folder,scriptlist,exedict)
-    dsftask.save()
-    dsftask.workstruct.save()
-
     NewJob=jobs()
     NewJob.owner=request.user
     NewJob.job_owner_index=job_owner_id
     NewJob.description=request.POST['job_description']
-    NewJob.job_scheduler_id=dsftask.jobID
     NewJob.job_start_time=datetime.datetime.now()
     jobtype=job_types.objects.get(job_type_name='DAIM/SEED/FFLD Docking')
     NewJob.job_type=jobtype
+    NewJob.save()
     
+    ######### Create downloadable job folder
+    os.chdir(charmming_config.user_dd_jobs_home + '/' + username)
+    os.system("tar -zcvf %s.tar.gz %s" % (job_folder,job_basename))
+    dsflog.write("tar -zcvf %s.tar.gz %s" % (job_folder,job_basename))
+    #####create associate tar file with the job                                                                                       
+    tar_file=files()
+    tar_file.owner=u
+    tar_file.file_name=job_basename+".tar.gz"
+    tar_file.file_location=charmming_config.user_dd_jobs_home + '/' + username
+    tar_file.description = "Archived Downloadable Drug Design Job " + str(job_owner_id) 
+    tar_file.save()
+
+    tarfile=common.objFile()
+    tarfile.fullpath=tar_file.file_location
+    tarfile.name=tar_file.file_name
+    tarfile.id=tar_file.id
+    #tarfile.tag=nativefilename[0+len("a-native-"):nativefilename.index(".pdb",0+len("a-native-"))]
+    tar_files.append(tarfile)
+    dsflog.write("appending tarfile %s\n" % (tarfile.name))
     
+    new_job_tar_file_object=files_objects()
+    new_job_tar_file_object.owner=u
+    new_job_tar_file_object.file_id=tar_file.id
+    new_job_tar_file_object.object_table_name='dd_infrastructure_jobs'
+    new_job_tar_file_object.object_id=NewJob.id
+    new_job_tar_file_object.save()
+    ######### End of downloadable job folder creation    
+
+    ####CHARMMING integrated association of job with task of the target structure
+    dsftask.parent=pTask
+    dsftask.start(job_folder,scriptlist,exedict)
+    dsftask.save()
+    dsftask.workstruct.save()
+ 
+    NewJob.job_scheduler_id=dsftask.jobID
     NewJob.save()
     
     new_job = jobs.objects.filter(owner=u).order_by("-id")[0]
+    
+    
+    #####associate conformation files with this job in the database
+    #for job_conformation_file_id in job_conformation_file_ids:
+    #    new_job_conformation_file_object=files_objects()
+    #    new_job_conformation_file_object.owner=u
+    #    new_job_conformation_file_object.file_id=job_conformation_file_id
+    #    new_job_conformation_file_object.object_table_name='dd_infrastructure_jobs'
+    #    new_job_conformation_file_object.object_id=new_job.id
+    #    new_job_conformation_file_object.save()
+        
+    
+
+    #for job_conformation_file_id in job_conformation_file_ids:
+    #    new_job_conformation_file_object=files_objects()
+    #    new_job_conformation_file_object.owner=u
+    #    new_job_conformation_file_object.file_id=job_conformation_file_id
+    #    new_job_conformation_file_object.object_table_name='dd_infrastructure_jobs'
+    #    new_job_conformation_file_object.object_id=new_job.id
+    #    new_job_conformation_file_object.save()
+    
+
+    ######
+
+    #####associate ligand files with this job in the database
+    for job_ligand_file_id in job_ligand_file_ids:
+        new_job_ligand_file_object=files_objects()
+        new_job_ligand_file_object.owner=u
+        new_job_ligand_file_object.file_id=job_ligand_file_id
+        new_job_ligand_file_object.object_table_name='dd_infrastructure_jobs'
+        new_job_ligand_file_object.object_id=new_job.id
+        new_job_ligand_file_object.save()
+        
+    #####create associate run.out file with the job
+    output_file=files()
+    output_file.owner=u
+    output_file.file_name="run.out"
+    output_file.file_location=job_folder
+    output_file.description = "Job execution output for job dd_job_" + str(job_owner_id)
+    output_file.save()
+    
+    new_output_file = files.objects.filter(owner=u).order_by("-id")[0]
+    
+    new_job_output_file_object=files_objects()
+    new_job_output_file_object.owner=u
+    new_job_output_file_object.file_id=new_output_file.id
+    new_job_output_file_object.object_table_name='dd_infrastructure_jobs'
+    new_job_output_file_object.object_id=new_job.id
+    new_job_output_file_object.save()
+    #####End of job launching code
+    
+    
+    
+    message="New DAIM/SEED/FFLD Docking job (Job Code: dd_job_%s)\n " \
+            "was successuflly submitted! Use the link below to download the job files\n" % (job_owner_id)
+    message_color = 'green'
+    
+    dsflog.close()
+
+    lesson_ok, dd_ok = checkPermissions(request)    
+    return render_to_response('html/dddsfform.html',{'conformations':conformation_info_list, 'message':message, 'message_color':message_color,'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'tarfiles':tar_files})
+
+
+def DSFFormDisplay(request):
+    dsflog=open("/tmp/dsf.log",'w')
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+
+    lesson_ok, dd_ok = checkPermissions(request)
+    if not dd_ok:
+        return render_to_response('html/unauthorized.html')
+
+
+    dsflog.write("authenticated\n") 
+    message=""
+    username=request.user.username
+    u = User.objects.get(username=username)   
+
+    lesson_ok, dd_ok = checkPermissions(request)
+    try:
+        conformation_info_list=[]
+        project = projects.objects.filter(owner=request.user,selected='y')[0]
+        project_conformations = projects_protein_conformations.objects.filter(owner=request.user,project=project).select_related()
+        for project_conformation in project_conformations:
+            conformation_info=target_common.TargetConformationInfo()
+            conformation_info.id=project_conformation.protein_conformation.id
+            conformation_info.name=project_conformation.protein_conformation.conformation_name
+            conformation_info.description=project_conformation.protein_conformation.description
+            conformation_info.target_pdb_code=project_conformation.protein_conformation.protein.pdb_code
+            
+            conformation_info.file_objects_list = files_objects.objects.filter\
+                                        (owner=request.user,object_table_name="dd_target_protein_conformations", \
+                                        object_id=project_conformation.protein_conformation.id).select_related()
+                                        
+            conformation_info_list.append(conformation_info)
+    except:
+        pass
+        
+    #dsflog.write("got conformations\n")
+    try:
+        dba = MySQLdb.connect("localhost", user=settings.DATABASE_USER, passwd=settings.DATABASE_PASSWORD, \
+                             db=settings.DATABASE_NAME, compress=1)
+
+    except:
+        pass
+       
+    cursor = dba.cursor(MySQLdb.cursors.DictCursor) 
+    public_user=User.objects.get(username='public')
+    setssql="select '00' as setid, 'All User Uploaded' as setname, 'All Ligands available to the user' as setdescription, " \
+            "(select count(distinct id) from dd_substrate_ligands where owner_id in (%s)) as ligandcount " \
+            " union " \
+            "select '0' as setid, 'All Available' as setname, 'All Ligands available to the user' as setdescription, " \
+            "(select count(distinct id) from dd_substrate_ligands where owner_id in (%s,%s)) as ligandcount " \
+	        " union " \
+	        "select ls.id as setid, ls.ligand_set_name as setname, ls.description as setdescription, " \
+            "(select count(distinct ligands_id) from dd_substrate_ligand_sets_ligands where " \
+            "ligands_set_id=ls.id and owner_id in (%s,%s)) as ligandcount " \
+	        "from dd_substrate_ligand_sets ls where ls.owner_id in (%s,%s) and ls.ligand_set_name<>'All Available'" \
+	        % (request.user.id,request.user.id,public_user.id,request.user.id,public_user.id,request.user.id,public_user.id)
+    #setssql="select '0' as setid, gs.name as setname from vcs_gridsets gs"
+    
+    cursor.execute(setssql)
+    rows = cursor.fetchall()
+    sets=[]
+
+    for row in rows:
+        set=substrate_common.LigandSetObj()
+        set.id=row['setid']
+        set.name=row['setname']
+        set.ligand_count=row['ligandcount']
+        sets.append(set)
+        
+    if not (request.POST):
+
+        try:
+            struct = Structure.objects.get(owner=request.user,selected='y')
+        except:
+            return HttpResponse("Please submit a structure first.")
+        
+        try:
+            ws = WorkingStructure.objects.get(structure=struct,selected='y')
+        except:
+            return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+
+        #try:
+        abadfiles=[]
+        os.chdir(struct.location)
+        start=""
+        end=""
+        nativefilename=""
+        os.system("rm *-native-*.pdb")
+        for file in glob.glob(struct.location + '/*-bad*.pdb'):
+            dsflog.write("file is %s\n" % file)
+            if not "badres" in file and not "segment" in file:
+                
+                os.system("awk '{if($4!=$res && $1==\"ATOM\") {res=$4; print >> \"%s-native-\"res\".pdb\";}}' %s" % (os.path.basename(file)[0:1],os.path.basename(file)))
+        for native_lig_file in glob.glob(struct.location + '/*-native-*.pdb'):
+            nativefilename=os.path.basename(native_lig_file)
+            abadfile=common.objFile()
+            abadfile.fullpath=native_lig_file
+            abadfile.name=nativefilename
+            abadfile.tag=nativefilename[0+len("a-native-"):nativefilename.index(".pdb",0+len("a-native-"))]
+            #abadfile.tag=nativefilename[nativefilename.index("a-native-")+len("a-native-"):nativefilename.index(".pdb",nativefilename.index("a-native-")+len("a-native-"))]
+            dsflog.write("adding native ligand: %s\n" % abadfile.tag)
+            abadfiles.append(abadfile)
+            
+        dsflog.write("native ligands: %s\n" % str(abadfiles[0].name))
+        #except:
+        #    return HttpResponse("No native ligands found in the structure. Cannot identify binding site")
+
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
+        return render_to_response('html/dddsfform.html', {'abadfiles':abadfiles,'ws_identifier':ws.identifier,'tasks':tasks, 'conformations':conformation_info_list,'existingsets':sets,'message':message,'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    
+    
+    #####this block contains the actions taking place when the form gets submitted
+    ##### i.e. the job gets launched
+    tar_files=[]
+    job_owner_id=common.getNewJobOwnerIndex(u)
+    dsflog.write("job_owner_id: %s\n" % (job_owner_id) )
+    job_basename='dd_job_' + str(job_owner_id)
+    job_folder = charmming_config.user_dd_jobs_home + '/' + username + '/' + job_basename
+    os.system("mkdir %s" % (job_folder))
+    os.system("chmod -R g+w %s" % (job_folder))
+    os.chdir(job_folder)
+    #os.system("pwd > pwd") 
+    os.system("touch %s/ligands" % (job_folder))
+    os.system("mkdir %s/Inputs" % (job_folder))
+    os.system("chmod -R g+w %s/Inputs" % (job_folder))
+    os.system("chown schedd %s/Inputs" % (job_folder))
+    os.system("mkdir %s/Results" % (job_folder))
+    os.system("chmod -R g+w %s/Results" % (job_folder))
+    os.system("chown schedd %s/Results" % (job_folder))
+    os.system("mkdir %s/ligands_to_dock" % (job_folder))
+    os.system("chmod -R g+w %s/ligands_to_dock" % (job_folder))
+    os.system("chown schedd %s/ligands_to_dock" % (job_folder))
+    os.system("cp %s/charmm_prot_convert.sh %s\n" % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/cgenff_convert.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/targetprep.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/typeassign.py %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/ffld_paramconvert.pl %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/cgenff.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/cgenff_lig.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/add_substructure.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/add_lig_substructure.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/Run_FFLD_FLEA_yp.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/num_substructures.pl %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/pdb2mol.in %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/run.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    #os.system("cp %s/dodsfc.sh %s" % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/split_seed_input.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/run_seed.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/dock_and_score.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/submit_dock_and_score.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    os.system('cp %s/submit_dock_iteration.sh %s\n' % (charmming_config.dd_scripts_home,job_folder))
+    
+    #####charmm stuff
+    os.system("mkdir %s/charmm_mini" % (job_folder))
+    os.system("mkdir %s/charmm_mini/lig" % (job_folder))
+    os.system("mkdir %s/charmm_mini/combined" % (job_folder))
+    os.system("mkdir %s/charmm_mini/target" % (job_folder))
+    os.system("mkdir %s/charmm_mini/poses" % (job_folder))
+    os.system("mkdir %s/charmm_mini/minimized" % (job_folder))
+    os.system("cp %s* %s/charmm_mini/" % (charmming_config.charmm_files,job_folder))
+    os.system("cp %s/*.inp %s/charmm_mini/" % (charmming_config.dd_scripts_home,job_folder))
+    os.system("cp %s/mol2crd %s/charmm_mini/" % (charmming_config.dd_scripts_home,job_folder))
+    os.system("cp %s/run_mini_ligand.sh %s/charmm_mini/" % (charmming_config.dd_scripts_home,job_folder))
+    os.system("cp %s/pdb2mol.sh  %s/charmm_mini/" % (charmming_config.dd_scripts_home,job_folder))
+    
+    ####end charmm stuff
+
+    ####ffld scoring stuff
+    os.system("mkdir %s/ffld_eval" % (job_folder))
+    os.system("mkdir %s/ffld_eval/poses" % (job_folder))
+    os.system("mkdir %s/ffld_eval/ligands" % (job_folder))
+    os.system("cp %s/run_ffld_eval_ligand.sh  %s/ffld_eval/\n" % (charmming_config.dd_scripts_home,job_folder))
+    ####
+
+    ####seed scoring stuff
+    os.system("mkdir %s/seed_eval" % (job_folder))
+    os.system("mkdir %s/seed_eval/poses" % (job_folder))
+    os.system("cp %s/run_seed_eval_ligand.sh  %s/seed_eval/\n" % (charmming_config.dd_scripts_home,job_folder))
+    os.system("cp %s/make_seed_inp_ligand.sh  %s/seed_eval/\n" % (charmming_config.dd_scripts_home,job_folder))
+    ####
+
+    os.system("chmod -R g+w %s" % (job_folder))
+    os.system("chmod -R g+x %s" % (job_folder))
+    #copy native ligand into the job folder
+    #native_ligand_destination = open(job_folder + "/native_ligand.pdb", 'w')
+    try:
+        struct = Structure.objects.get(owner=request.user,selected='y')
+    except:
+        return HttpResponse('No structure')
+    
+    filename = struct.location + '/' + request.POST['native_ligand']
+    shutil.copy2(filename,job_folder + "/native_ligand.pdb")
+    
+    #for fchunk in request.FILES['native_ligand_file'].chunks():
+    #for fchunk in request.POST['native_ligand'].chunks():
+    #native_ligand_destination.write(fchunk)
+    
+    daim_ligands_list_file=open(job_folder + "/ligands",'w')
+
+    user_ligands=ligands.objects.filter(Q(owner=request.user) | Q(owner=public_user))
+    user_ligand_ids=[]
+    wnp_ligprep_string=""
+    for user_ligand in user_ligands:
+        user_ligand_ids.append(user_ligand.id)
+        
+
+    dsflog.write("userligands: %s\n" % user_ligand_ids)
+    ligandcount=0
+    ligandfile_list=[]
+    try:
+        user_ligand_file_objects=files_objects.objects.filter(Q(owner=request.user) | Q(owner=public_user), \
+                                                     object_table_name='dd_substrate_ligands', \
+                                                     object_id__in=user_ligand_ids)
+        dsflog.write("ligand file objects: %s\n" % user_ligand_file_objects)                                             
+        job_ligand_file_ids=[]                                      
+        for user_ligand_file_object in user_ligand_file_objects:
+            try:
+                dsflog.write("dbligandfile: %s\n" % str(user_ligand_file_object.file_id))
+                dsflog.write("request ligand %s: %s\n" % (str(user_ligand_file_object.file_id),request.POST["ligand_" + str(user_ligand_file_object.file_id)]))
+                if (request.POST["ligand_" + str(user_ligand_file_object.file_id)]=='on'):
+                    ligand_file=files.objects.get(id=user_ligand_file_object.file_id)
+                    job_ligand_file_ids.append(ligand_file.id)
+                    dsflog.write("cp %s%s %s/%s\n" % (ligand_file.file_location, ligand_file.file_name,\
+                                            job_folder, ligand_file.file_name))
+                    os.system("cp %s%s %s/%s_%s" % (ligand_file.file_location, ligand_file.file_name,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name))
+                    strfile=("%s%s" % (ligand_file.file_location, ligand_file.file_name.replace(".mol2",".str")))
+                    psffile=("%s%s" % (ligand_file.file_location, ligand_file.file_name.replace(".mol2",".psf")))
+                    rtffile=("%s%s" % (ligand_file.file_location, ligand_file.file_name.replace(".mol2",".rtf")))
+                    dsflog.write("checking for str: %s\n" % (strfile))
+                    if (os.path.isfile(strfile)):
+                        os.system("cp %s %s/%s_%s" % (strfile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".str")))
+                        dsflog.write("cp %s %s/%s_%s" % (strfile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".str")))
+                        os.system("cp %s %s/%s_%s" % (rtffile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".rtf")))
+                        dsflog.write("cp %s %s/%s_%s" % (rtffile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".rtf")))
+                        os.system("cp %s %s/charmm_mini/lig/%s_%s" % (strfile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".str")))
+                        dsflog.write("cp %s %s/charmm_mini/lig/%s_%s" % (strfile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".str")))
+                        os.system("cp %s %s/charmm_mini/lig/%s_%s" % (psffile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".psf")))
+                        dsflog.write("cp %s %s/charmm_mini/lig/%s_%s" % (psffile,\
+                                            job_folder, ligand_file.owner_id,ligand_file.file_name.replace(".mol2",".psf")))
+                       
+
+                    ligandcount=ligandcount+1
+                    ligandfile_list.append(str(ligand_file.owner_id)+"_"+ligand_file.file_name)
+                    daim_ligands_list_file.write(str(ligand_file.owner_id)+"_"+ligand_file.file_name + '\n')
+                    # """
+                    # wnp_ligprep_string=wnp_ligprep_string + "read mol2 /var/tmp/dd/jobs/root/dd_job_1/%s\n" % (ligand_file.file_name.replace(".mol2",""))
+                    # wnp_ligprep_string=wnp_ligprep_string + "modi hydrogen *
+                    # wnp_ligprep_string=wnp_ligprep_string + "atom lig current *
+                    # wnp_ligprep_string=wnp_ligprep_string + "atom charge auto *
+                    # wnp_ligprep_string=wnp_ligprep_string + "atom type auto charmm *
+                    # wnp_ligprep_string=wnp_ligprep_string + "done
+                    # wnp_ligprep_string=wnp_ligprep_string + "atom name frag -done -auto seq
+                    # wnp_ligprep_string=wnp_ligprep_string + "atom q * -done mpeoe
+                    # wnp_ligprep_string=wnp_ligprep_string + "done
+                    # wnp_ligprep_string=wnp_ligprep_string + "write mol2 /var/tmp/dd/jobs/root/dd_job_1/3_ligand_1_1 ZINC02796227
+                    # """
+            except:
+                pass
+    except:
+        pass
+          
+    daim_ligands_list_file.close()                   
+    settings_file=open(job_folder + "/settings.cfg",'w')
+    settings_file.write("#! /bin/bash\n")
+                                  
+    current_project=projects.objects.get(owner=request.user,selected='y')
+    #project_conformations=projects_protein_conformations.objects.filter(owner=request.user, \
+    #                                                          project=current_project)
+    conformation_ids=[]
+    for conformation in project_conformations:
+        conformation_ids.append(conformation.protein_conformation_id)
+                                                                  
+    dsflog.write("confids: " + str(conformation_ids) + "\n")
+    #DAIM
+    job_conformation_file_ids=[]                                                 
+    #try:
+    '''
+    conformations_file_objects=files_objects.objects.filter(owner=request.user, \
+                                                 object_table_name='dd_target_protein_conformations', \
+                                                 object_id__in=conformation_ids)
+    for conformation_file_object in conformations_file_objects:
+        try:
+            dsflog.write("dbconffile: %s\n" % str(conformation_file_object.file_id))
+            if (request.POST["conformation_" + str(conformation_file_object.file_id)]=='on'):
+                conformation_file=files.objects.get(id=conformation_file_object.file_id)
+                job_conformation_file_ids.append(conformation_file.id)
+                dsflog.write("cp %s%s %s/%s" % (conformation_file.file_location, conformation_file.file_name,\
+                                            job_folder, conformation_file.file_name))
+                dsflog.write("cp %s%s %s/%s" % (conformation_file.file_location, conformation_file.file_name.replace(".pdb",".psf"),\
+                                            job_folder, conformation_file.file_name.replace(".pdb",".psf")))
+                os.system("cp %s%s %s/%s" % (conformation_file.file_location, conformation_file.file_name,\
+                                            job_folder, conformation_file.file_name))
+                os.system("cp %s%s %s/%s" % (conformation_file.file_location, conformation_file.file_name.replace(".pdb",".psf"),\
+                                            job_folder, conformation_file.file_name.replace(".pdb",".psf")))
+                #SEED wants the receptor file to be in ./Inputs
+                #os.system("cp %s%s %s/Inputs/%s" % (conformation_file.file_location, conformation_file.file_name,\
+                #                            job_folder, conformation_file.file_name))
+                #####os.system("cp %s%s %s/Inputs/%s\n" % (conformation_file.file_location, conformation_file.file_name,\
+                #####                   job_folder, conformation_file.file_name))                            
+                ###submitscript.write(charmming_config.daim_exe + " --seed --receptor " + \
+                ###                  conformation_file.file_name + " --native " + str(ligand_file.owner_id)+"_"+ligand_file.file_name + \
+                ###                  " -c " + str(ligandcount) + " < ligands\n")
+                submitscript.write("%s/targetprep.sh %s/%s\n" % (job_folder,job_folder,os.path.splitext(conformation_file.file_name)[0]))
+                submitscript.write("cd %s\n" % (job_folder))
+                submitscript.write("while [ ! -s %s/%s.mol2 ]\n" % (job_folder,os.path.splitext(conformation_file.file_name)[0]))
+                submitscript.write("do\n")
+                submitscript.write("sleep 5\n")
+                submitscript.write("echo 'waiting for target'\n") 
+                submitscript.write("done\n")
+                submitscript.write("echo 'found %s.mol2'\n"  % (os.path.splitext(conformation_file.file_name)[0]))
+                submitscript.write(charmming_config.daim_exe + " --seed --receptor " + \
+                                  os.path.splitext(conformation_file.file_name)[0] + ".mol2 --native " + "native_ligand.mol2" + \
+                                  " -c " + str(ligandcount) + " < " + job_folder + "/ligands\n")
+                submitscript.write ("sed -i 's/\\sp\\s/ b /g' targ_seed.inp\n")
+                submitscript.write("cp %s/%s.mol2 %s/Inputs/\n" % (job_folder,os.path.splitext(conformation_file.file_name)[0],job_folder))
+                submitscript.write("%s/add_lig_substructure.sh\n" % (job_folder))  
+                               
+        except:
+            pass
+    
+    '''
+    ##################
+    #CHARMMING integrated target
+
+
+    try:
+        struct = Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return HttpResponse("Please submit a structure first.")
+    try:
+        ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+
+    
+    try:
+        oldtsk = dsfdockingtask.objects.filter(workstruct=ws,active='y')[0]
+        oldtsk.active = 'n'
+        oldtsk.save()
+    except:
+         pass
+
+    dsftask = dsfdockingtask()
+    dsftask.setup(ws)
+    dsftask.active = 'y'
+    dsftask.action = 'dsfdocking'
+    dsftask.save()
+
+    if ws.isBuilt != 't':
+        isBuilt = False
+        pTask = ws.build(dsftask)
+        pTaskID = pTask.id
+    else:
+        isBuilt = True
+        pTaskID = int(request.POST['ptask'])
+
+
+    pTask=Task.objects.get(id=pTaskID)
+    dsflog.write("location : %s\n" % (dsftask.workstruct.structure.location))
+    dsflog.write("identifier: %s\n" % (dsftask.workstruct.identifier))
+    dsflog.write("identifier action: %s\n" % (dsftask.workstruct.identifier + '-' + pTask.action))
+    dsflog.write("job folder: %s\n" % (job_folder))
+    #struct=Structure.objects.get(id=t.id)
+    
+    pro_segment=Segment.objects.filter(structure=dsftask.workstruct.structure,type="pro",is_working="y")[0] #filter[0] is on purpose
+    pro_name=pro_segment.name + '-' + str(pro_segment.id)
+    #pro_name=dsftask.workstruct.identifier + '-' + pTask.action
+    
+    settings_file.write('protein="%s"\n' % (pro_name))
+    settings_file.write('vmd_exe="%s"\n' % (charmming_config.vmd_exe))
+    settings_file.write('daim_exe="%s"\n' % (charmming_config.daim_exe))
+    settings_file.write('seed_exe="%s"\n' % (charmming_config.seed_exe))
+    settings_file.write('ffld_exe="%s"\n' % (charmming_config.ffld_exe))
+    settings_file.write('flea_exe="%s"\n' % (charmming_config.flea_exe))
+    settings_file.write('charmm_exe="%s"\n' % (charmming_config.charmm_exe))
+    settings_file.write('submit="%s" #serial execution of docking commands\n' % (charmming_config.dd_submit_serial))
+    settings_file.write('#submit="%s" #parallel execution of docking commands\n' % (charmming_config.dd_submit_parallel))
+    settings_file.write('docking_iterations=%s\n' % (charmming_config.docking_iterations))
+    settings_file.write('clustering_energy_cutoff=%s\n' % (charmming_config.clustering_energy_cutoff))
+    settings_file.write('num_energy_evaluations=%s\n' % (charmming_config.ffld_energy_evaluations))
+    settings_file.write('num_generations=%s\n' % (charmming_config.ffld_generations))
+    settings_file.close()
+
+    dsflog.write("cp %s/%s.pdb %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    dsflog.write("cp %s/%s.psf %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    dsflog.write("cp %s/%s.crd %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    dsflog.write("cp %s/%s.psf %s/charmm_mini/target/" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    dsflog.write("cp %s/%s.crd %s/charmm_mini/target/" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+
+    os.system("cp %s/%s.pdb %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    os.system("cp %s/%s.psf %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    os.system("cp %s/%s.crd %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    os.system("cp %s/%s.psf %s/charmm_mini/target/" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    os.system("cp %s/%s.crd %s/charmm_mini/target" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    #os.system("cp %s/%s_vmd.mol2 %s" % (dsftask.workstruct.structure.location,pro_name,job_folder))
+    #os.system("cp %s/%s.pdb %s" % (dsftask.workstruct.structure.location,pro_segment.name + '-' + str(pro_segment.id),job_folder))
+    #os.system("cp %s/%s.psf %s" % (dsftask.workstruct.structure.location,pro_segment.name + '-'+ str(pro_segment.id),job_folder))
+    #os.system("cp %s/%s.crd %s" % (dsftask.workstruct.structure.location,pro_segment.name + '-'+ str(pro_segment.id),job_folder))
+    #os.system("cp %s/%s.psf %s/charmm_mini/target/" % (dsftask.workstruct.structure.location,pro_segment.name + '-'+ str(pro_segment.id),job_folder))
+    #os.system("cp %s/%s.crd %s/charmm_mini/target" % (dsftask.workstruct.structure.location,pro_segment.name + '-'+ str(pro_segment.id),job_folder))
+    #os.system("cp %s/%s.pdb %s" % (dsftask.workstruct.structure.location, dsftask.workstruct.identifier + '-' + pTask.action,job_folder))
+    #os.system("cp %s/%s.psf %s" % (dsftask.workstruct.structure.location, dsftask.workstruct.identifier + '-' + pTask.action,job_folder))
+
+    #end Charmming integrated target
+    #################
+
+
+    #except:
+    #    pass
+        
+    #os.system("cp %s %s" % (charmming_config.daim_param,job_folder))
+    #os.system("cp %s %s" % (charmming_config.daim_prop,job_folder))
+    
+    os.system("cp %s %s\n" % (charmming_config.daim_param,job_folder))
+    os.system("cp %s %s\n" % (charmming_config.daim_prop,job_folder))
+    
+    
+    #os.system("cp %s %s/Inputs/seed.par" % (charmming_config.seed_param, job_folder))
+    os.system("cp %s %s/FFLD_param_cgenff_base" % (charmming_config.ffld_param, job_folder))
+    os.system("cp %s %s/Inputs/seed.par\n" % (charmming_config.seed_param, job_folder))
+    #os.system("cp %s %s/FFLD_param_cgenff\n" % (charmming_config.ffld_param, job_folder))
+    os.system("cp %s %s\n" % (charmming_config.flea_param, job_folder))
+    os.system("cp %s %s/\n" % (charmming_config.charmm_param, job_folder))    
+    #os.system("chmod -R g+w %s/Inputs" % (job_folder))
+        
+    #for ligandfile in ligandfile_list:
+        #submitscript.write('cp %s/INFO/%s %s/%s\n' % (job_folder,ligandfile.replace(".mol2","_mis.info"), \
+        #                                           job_folder,ligandfile.replace(".mol2",".info")))
+        #submitscript.write('%s --outputname ffld_out_%s.pdb %s\n' % (charmming_config.ffld_exe,ligandfile.replace(".mol2",""),ligandfile))
+        
+        #submitscript.write("count=`tail -1 %s/ffld_out_%s.pdb | awk '{print $5}'`\n" % (job_folder,ligandfile.replace(".mol2","")))
+        #submitscript.write("mkdir %s/Results/%s\n" % (job_folder,ligandfile.replace(".mol2","")))
+        #submitscript.write('for i in `seq 0 1 $count`; do grep "     *$i      " %s/ffld_out_%s.pdb > %s/Results/%s/ffld_out_$i.pdb; done\n' \
+        #                % (job_folder,ligandfile.replace(".mol2",""),job_folder,ligandfile.replace(".mol2","")))
+        
+    os.system("chmod g+w -R %s" % (job_folder))
+    #os.system("chmod g+x %s" % (job_folder + "/run.sh"))
+
+    
+    scriptlist=[]
+    os.system("touch %s/run.inp" % (job_folder))
+    scriptlist.append(job_folder + "/run.inp")
+    #exedict={job_folder + "/run.inp": 'bash'}
+    exedict={job_folder + "/run.inp": job_folder + '/run.sh'}
+    #exedict={"": "bash " + job_folder + "/run.inp >& " + job_folder + "/run.out"}
+    ######uncomment this block to turn on job launching
+    
+    ####Job launching code
+    #si = schedInterface()
+    #newSchedulerJobID = si.submitJob(request.user.id,job_folder,scriptlist,exedict)
+    #dsflog.write("schedulerid: %s\n" % (newSchedulerJobID))
+    
+    NewJob=jobs()
+    NewJob.owner=request.user
+    NewJob.job_owner_index=job_owner_id
+    NewJob.description=request.POST['job_description']
+    NewJob.job_start_time=datetime.datetime.now()
+    jobtype=job_types.objects.get(job_type_name='DAIM/SEED/FFLD Docking')
+    NewJob.job_type=jobtype
+    NewJob.save()
+    
+    ######### Create downloadable job folder
+    os.chdir(charmming_config.user_dd_jobs_home + '/' + username)
+    os.system("tar -zcvf %s.tar.gz %s" % (job_folder,job_basename))
+    dsflog.write("tar -zcvf %s.tar.gz %s" % (job_folder,job_basename))
+    #####create associate tar file with the job                                                                                       
+    tar_file=files()
+    tar_file.owner=u
+    tar_file.file_name=job_basename+".tar.gz"
+    tar_file.file_location=charmming_config.user_dd_jobs_home + '/' + username
+    tar_file.description = "Archived Downloadable Drug Design Job " + str(job_owner_id) 
+    tar_file.save()
+
+    tarfile=common.objFile()
+    tarfile.fullpath=tar_file.file_location
+    tarfile.name=tar_file.file_name
+    tarfile.id=tar_file.id
+    #tarfile.tag=nativefilename[0+len("a-native-"):nativefilename.index(".pdb",0+len("a-native-"))]
+    tar_files.append(tarfile)
+    dsflog.write("appending tarfile %s\n" % (tarfile.name))
+    
+    new_job_tar_file_object=files_objects()
+    new_job_tar_file_object.owner=u
+    new_job_tar_file_object.file_id=tar_file.id
+    new_job_tar_file_object.object_table_name='dd_infrastructure_jobs'
+    new_job_tar_file_object.object_id=NewJob.id
+    new_job_tar_file_object.save()
+    ######### End of downloadable job folder creation    
+
+    ####CHARMMING integrated association of job with task of the target structure
+    dsftask.parent=pTask
+    dsftask.start(job_folder,scriptlist,exedict)
+    dsftask.save()
+    dsftask.workstruct.save()
+ 
+    NewJob.job_scheduler_id=dsftask.jobID
+    NewJob.save()
+    
+    new_job = jobs.objects.filter(owner=u).order_by("-id")[0]
+    
     
     #####associate conformation files with this job in the database
     #for job_conformation_file_id in job_conformation_file_ids:
@@ -885,7 +1574,7 @@ def DSFFormDisplay(request):
     #####create associate submitscript.out file with the job
     output_file=files()
     output_file.owner=u
-    output_file.file_name="submitscript.out"
+    output_file.file_name="run.out"
     output_file.file_location=job_folder
     output_file.description = "Job execution output for job dd_job_" + str(job_owner_id)
     output_file.save()
@@ -903,13 +1592,15 @@ def DSFFormDisplay(request):
     
     
     message="New DAIM/SEED/FFLD Docking job (Job Code: dd_job_%s)\n " \
-            "was successuflly submitted!" % (job_owner_id)
+            "was successuflly submitted! Use the link below to download the job files\n" % (job_owner_id)
     message_color = 'green'
     
     dsflog.close()
 
     lesson_ok, dd_ok = checkPermissions(request)    
-    return render_to_response('html/dddsfform.html',{'conformations':conformation_info_list, 'message':message, 'message_color':message_color,'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    return render_to_response('html/dddsfform.html',{'conformations':conformation_info_list, 'message':message, 'message_color':message_color,'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'tarfiles':tar_files})
+
+
 
 def updateDSFLigands(request,selected_set_id):
     if not request.user.is_authenticated():
@@ -923,7 +1614,7 @@ def updateDSFLigands(request,selected_set_id):
     log=open("/tmp/dsfligands.txt",'w')
     log.write("selecte_set_id: %s\n" % (selected_set_id))
     ligand_info_list=[]
-    project = projects.objects.filter(owner=request.user,selected='y')[0]
+    #project = projects.objects.filter(owner=request.user,selected='y')[0]
     user_ligands = ligands.objects.filter(owner=request.user).select_related()
     log.write("user_ligands: %s" % (str(user_ligands)))
     public_user=User.objects.get(username='public')
@@ -951,12 +1642,25 @@ def updateDSFLigands(request,selected_set_id):
                                         object_id=ligand.id).select_related()
                                         
             ligand_info_list.append(ligand_info)
+
+    elif (selected_set_id=='00'): #user ligands
+        for ligand in user_ligands:
+            ligand_info=substrate_common.LigandInfo()
+            ligand_info.id=ligand.id
+            ligand_info.name=ligand.ligand_name
+            ligand_info.description=ligand.description
+            ligand_info.file_objects_list = files_objects.objects.filter\
+                                        (owner=request.user,object_table_name="dd_substrate_ligands", \
+                                        object_id=ligand.id).select_related()
+                                        
+            ligand_info_list.append(ligand_info)
+            
     else:
         selected_set_ligands=ligands.objects.filter().extra \
-        (where=["dd_substrate_ligands.id IN (select ligands_id from dd_substrate_ligand_sets_ligands where owner_id=%s " \
-        " and ligands_set_id=%s)" % (request.user.id,selected_set_id)]).select_related()
-        log.write("id IN (select ligands_id from dd_substrate_ligand_sets_ligands where owner_id=%s " \
-        " and ligands_set_id=%s)" % (request.user.id,selected_set_id))
+        (where=["dd_substrate_ligands.id IN (select ligands_id from dd_substrate_ligand_sets_ligands where owner_id in (%s,%s) " \
+        " and ligands_set_id=%s)" % (request.user.id,public_user.id,selected_set_id)]).select_related()
+        log.write("id IN (select ligands_id from dd_substrate_ligand_sets_ligands where owner_id in (%s,%s) " \
+        " and ligands_set_id=%s)" % (request.user.id,public_user.id,selected_set_id))
         log.write("selected_set_ligands: %s" % (str(user_ligands)))
         for ligand in selected_set_ligands:
             log.write("ligand id: %s" % (ligand.id))
@@ -966,7 +1670,10 @@ def updateDSFLigands(request,selected_set_id):
             ligand_info.description=ligand.description
             ligand_info.file_objects_list = files_objects.objects.filter\
                                         (object_table_name="dd_substrate_ligands", \
-                                        object_id=ligand.id).select_related()                                
+                                        object_id=ligand.id).select_related()
+            #ligand_info.file_objects_list = files_objects.objects.filter\
+            #                            (object_table_name="dd_substrate_ligands", \
+            #                            object_id=ligand.id).select_related()                                
             ligand_info_list.append(ligand_info)
 
     lesson_ok, dd_ok = checkPermissions(request)        
@@ -1148,7 +1855,7 @@ def viewJobDetails(request,job_id):
     cursor.close()
 
     job_files=[]
-    job_files=files.objects.filter(owner=request.user,file_name__iendswith='.out').extra(where=["id IN (select file_id from dd_infrastructure_files_objects where owner_id=%s and object_table_name='dd_infrastructure_jobs' and object_id=%s)" % (request.user.id,job.dj_id)])
+    job_files=files.objects.filter(Q(file_name__iendswith='.out') | Q(file_name__iendswith='.tar.gz'), owner=request.user).extra(where=["id IN (select file_id from dd_infrastructure_files_objects where owner_id=%s and object_table_name='dd_infrastructure_jobs' and object_id=%s)" % (request.user.id,job.dj_id)])
 
 
     lesson_ok, dd_ok = checkPermissions(request)    
@@ -1207,7 +1914,7 @@ def viewJobInfo(request,job_id):
     lesson_ok, dd_ok = checkPermissions(request)
     return render_to_response('html/ddviewjobinfo.html', {'job':job, 'results':results,'lesson_ok': lesson_ok, 'dd_ok': dd_ok })
 
-@transaction.commit_manually    
+#@transaction.commit_manually    
 def viewJobResults(request,job_id):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
@@ -1219,7 +1926,7 @@ def viewJobResults(request,job_id):
 
     username=request.user.username
     u = User.objects.get(username=username)
-    transaction.commit()
+    #transaction.commit()
     result_poses=[]
     resultslog=open("/tmp/results.log","w")
     ###check if result files are in the database
@@ -1227,10 +1934,10 @@ def viewJobResults(request,job_id):
     #
     resultslog.write("job id: %s\n" % job_id)
     job=jobs.objects.get(owner=request.user,job_scheduler_id=job_id.replace("/",""))
-    transaction.commit()
+    #transaction.commit()
     try:
         new_source=sources.objects.get(source_object_table_name="dd_infrastructure_jobs",source_object_id=job.id)
-        transaction.commit()
+        #transaction.commit()
     except:
         new_source=sources()
         new_source.source_name="DSF Docking Job"
@@ -1238,9 +1945,20 @@ def viewJobResults(request,job_id):
         new_source.source_object_table_name = "dd_infrastructure_jobs"
         new_source.source_object_id = job.id
         new_source.save()
-        transaction.commit()
+        #transaction.commit()
+
     path = charmming_config.user_dd_jobs_home + '/' + username + '/' + 'dd_job_' + \
            str(job.job_owner_index) + "/clustering/clusters/" 
+    
+    charmm_mini_path = charmming_config.user_dd_jobs_home + '/' + username + '/' + 'dd_job_' + \
+           str(job.job_owner_index) + "/charmm_mini/"
+
+    seed_eval_path = charmming_config.user_dd_jobs_home + '/' + username + '/' + 'dd_job_' + \
+           str(job.job_owner_index) + "/seed_eval/"
+
+    ffld_eval_path = charmming_config.user_dd_jobs_home + '/' + username + '/' + 'dd_job_' + \
+           str(job.job_owner_index) + "/ffld_eval/"
+    
     #
     ##try:
         #result_files=files.objects.filter(description='Docking By Decomposition Ligand Pose File') \
@@ -1285,26 +2003,35 @@ def viewJobResults(request,job_id):
     #if len(result_poses)<len(glob.glob( os.path.join(path, '*_clus0.mol2') )):
     if 1==1:
         resultslog.write("result files\n")
-        resultslog.write("ospathjoin: " + os.path.join(path, '*_clus0.mol2') + "\n")
-        for file in glob.glob( os.path.join(path, '*_clus0.mol2') ):
+        resultslog.write("ospathjoin: " + os.path.join(path, '*_clus*.mol2') + "\n")
+        for file in glob.glob( os.path.join(path, '*_clus*.mol2') ):
             try:
                 
                 posefiles=files.objects.filter(owner=request.user,file_name=os.path.basename(file),file_location=os.path.dirname(file))
                 resultslog.write("for file %s posefile: %s\n" % (os.path.basename(file),str(posefiles)))
                 if len(posefiles)!=0:
                     continue
+                    #i=1
             except:
                 #resultslog.write("continuing\n")
                 #continue
                 pass
             #fileobject=files_objects.objects.get
-            resultslog.write("file: " + file + "\n")
+           
+            
+            posefile=os.path.basename(file)
+            posename=posefile.replace(".mol2","")
+            ligname=posename[:posename.index("_clus")]
+            #ligname=os.path.basename(file).replace("_clus0.mol2","")
+              
+            resultslog.write("file: " + file + " ligname: " + ligname + "\n")
+            resultslog.write("posefile: " + file + " posename: " + posename + "\n")
             new_file=files()
             new_file.owner=u
             new_file.file_name=os.path.basename(file)
             new_file.file_location=os.path.dirname(file)
             new_file.description="Docking By Decomposition Ligand Pose File"
-            new_file.save()
+            #new_file.save()
             
             resultslog.write("new_file saved\n")
             #associate result file with the job
@@ -1314,10 +2041,10 @@ def viewJobResults(request,job_id):
             new_file_object.file_id=new_file.id
             new_file_object.object_table_name="dd_infrastructure_jobs"
             new_file_object.object_id=job.id
-            new_file_object.save()
+            #new_file_object.save()
             
             resultslog.write("new_file_object saved\n")
-            transaction.commit()
+            #transaction.commit()
             #create a pose object
             new_pose_object=poses()
             new_pose_object.owner=u
@@ -1326,10 +2053,10 @@ def viewJobResults(request,job_id):
             file_owner_id=int(filename[:filename.find("_")])
             file_ligand_index=int(filename[filename.find("_",filename.find("_")+1)+1:filename.find("_",filename.find("_",filename.find("_")+1)+1)])
             ligand=ligands.objects.get(owner=file_owner_id,ligand_owner_index=file_ligand_index)
-            transaction.commit()
+            #transaction.commit()
             new_pose_object.pose_object_id=ligand.id
             new_pose_object.source=new_source
-            new_pose_object.save()
+            #new_pose_object.save()
 
             ##transaction.commit()
             resultslog.write("new_pose_object saved\n")
@@ -1341,7 +2068,7 @@ def viewJobResults(request,job_id):
             new_object_attribute.object_table_name="dd_substrate_poses"
             new_object_attribute.object_id=new_pose_object.id
             new_object_attribute.value=common.GetEnergyFromFLEAMol(new_file.file_location + "/" + new_file.file_name)
-            new_object_attribute.save()
+            #new_object_attribute.save()
 
             resultslog.write("new_object_attribute saved\n")
             #link result file with the pose object
@@ -1350,12 +2077,217 @@ def viewJobResults(request,job_id):
             new_file_object1.file_id=new_file.id
             new_file_object1.object_table_name="dd_substrate_poses"
             new_file_object1.object_id=new_pose_object.id
-            new_file_object1.save()
+            #new_file_object1.save()
             ##transaction.commit()
+
+            
+            ######if charmm minimized pose exists
+            if 1==1:
+            #try:
+                min_posefiles=files.objects.filter(owner=request.user,file_name=posename+"_min.mol2",file_location=charmm_mini_path + "minimized/")
+                resultslog.write("for charmm mini file %s \n" % str(min_posefiles))
+                if len(min_posefiles)!=0:
+                    continue
+                    #i=1
+            #except:
+            #     pass
+ 
+            ###save minimized pose file and create all the objects for it
+            
+            new_min_file=files()
+            new_min_file.owner=u
+            new_min_file.file_name=posename+"_min.mol2"
+            new_min_file.file_location=charmm_mini_path + "minimized/"
+            new_min_file.description="Docking By Decomposition CHARMM Minimized Ligand Pose File"
+            new_min_file.save()
+
+            resultslog.write("new_min_file with id: %s saved\n" % (new_min_file.id))
+
+            new_min_file_object=files_objects()
+            new_min_file_object.owner=u
+            new_min_file_object.file_id=new_min_file.id
+            new_min_file_object.object_table_name="dd_infrastructure_jobs"
+            new_min_file_object.object_id=job.id
+            new_min_file_object.save()
+
+            resultslog.write("new_min_file_object saved\n")
+            #transaction.commit()
+
+            #create a pose object                                                                                                                                             
+            new_min_pose_object=poses()
+            new_min_pose_object.owner=u
+            new_min_pose_object.pose_object_table_name="dd_substrate_ligands"
+            filename=new_min_file.file_name
+            file_owner_id=int(filename[:filename.find("_")])
+            file_ligand_index=int(filename[filename.find("_",filename.find("_")+1)+1:filename.find("_",filename.find("_",filename.find("_")+1)+1)])
+            ligand=ligands.objects.get(owner=file_owner_id,ligand_owner_index=file_ligand_index)
+            #transaction.commit()
+            new_min_pose_object.pose_object_id=ligand.id
+            new_min_pose_object.source=new_source
+            new_min_pose_object.save()
+            resultslog.write("new_min_pose_object for ligand %s saved\n" % (ligand.ligand_name))
+
+            #link result file with the pose object                                                                                                                                             
+            new_min_file_object1=files_objects()
+            new_min_file_object1.owner=u
+            new_min_file_object1.file_id=new_min_file.id
+            new_min_file_object1.object_table_name="dd_substrate_poses"
+            new_min_file_object1.object_id=new_min_pose_object.id
+            new_min_file_object1.save()
+            resultslog.write("new_min_file_object1 for file %s representing min_pose saved\n" % (new_min_file.file_name))
+
+            ##transaction.commit()                                                                                                                                                             
+            #create an attribute for the pose energy and link it with the pose object
+            #CHARMM minimization
+            charmm_vdw,charmm_elec,charmm_tot=common.GetEnergyFromCHARMMMini(charmm_mini_path,posename)
+            resultslog.write("charmm_vdw: %s, charmm_elec: %s, charmm_tot: %s\n" % (charmm_vdw,charmm_elec,charmm_tot))
+
+            attribute=attributes.objects.get(attribute_short_name="CHARMM VDW Energy")
+            new_min_object_attribute=object_attributes()
+            new_min_object_attribute.owner=u
+            new_min_object_attribute.attribute_id=attribute.id
+            new_min_object_attribute.object_table_name="dd_substrate_poses"
+            new_min_object_attribute.object_id=new_min_pose_object.id
+            new_min_object_attribute.value=charmm_vdw
+            new_min_object_attribute.save()
+            resultslog.write("new object attribute: %s with value: %s for pose of the ligand: %s\n" % (attribute.attribute_short_name,new_min_object_attribute.value,ligand.ligand_name))
+
+            attribute=attributes.objects.get(attribute_short_name="CHARMM Electrostatics")
+            new_min_object_attribute=object_attributes()
+            new_min_object_attribute.owner=u
+            new_min_object_attribute.attribute_id=attribute.id
+            new_min_object_attribute.object_table_name="dd_substrate_poses"
+            new_min_object_attribute.object_id=new_min_pose_object.id
+            new_min_object_attribute.value=charmm_elec
+            new_min_object_attribute.save()                                                                                                                        
+
+            resultslog.write("new object attribute: %s with value: %s for ligand: %s\n" % (attribute.attribute_short_name,new_min_object_attribute.value,ligand.ligand_name))
+
+            attribute=attributes.objects.get(attribute_short_name="CHARMM Total Energy")
+            new_min_object_attribute=object_attributes()
+            new_min_object_attribute.owner=u
+            new_min_object_attribute.attribute_id=attribute.id
+            new_min_object_attribute.object_table_name="dd_substrate_poses"
+            new_min_object_attribute.object_id=new_min_pose_object.id
+            new_min_object_attribute.value=charmm_tot
+            new_min_object_attribute.save()                                                                                                                       
+
+            resultslog.write("new object attribute: %s with value: %s for ligand: %s\n" % (attribute.attribute_short_name,new_min_object_attribute.value,ligand.ligand_name))
+
+
+            #CHARMM minimization end
+
+            #SEED evaluation                                                                                              
+            seed_vdw,seed_elec,seed_tot=common.GetEnergyFromSeedEval(seed_eval_path,posename)
+            resultslog.write("seed_vdw: %s, seed_elec: %s, seed_tot: %s\n" % (seed_vdw,seed_elec,seed_tot))
+
+            attribute=attributes.objects.get(attribute_short_name="SEED VDW Score")
+            new_min_object_attribute=object_attributes()
+            new_min_object_attribute.owner=u
+            new_min_object_attribute.attribute_id=attribute.id
+            new_min_object_attribute.object_table_name="dd_substrate_poses"
+            new_min_object_attribute.object_id=new_min_pose_object.id
+            new_min_object_attribute.value=seed_vdw
+            new_min_object_attribute.save()
+            resultslog.write("new object attribute: %s with value: %s for pose of the ligand: %s\n" % (attribute.attribute_short_name,new_min_object_attribute.value,ligand.ligand_name))
+            
+            attribute=attributes.objects.get(attribute_short_name="SEED Electrostatics")
+            new_min_object_attribute=object_attributes()
+            new_min_object_attribute.owner=u
+            new_min_object_attribute.attribute_id=attribute.id
+            new_min_object_attribute.object_table_name="dd_substrate_poses"
+            new_min_object_attribute.object_id=new_min_pose_object.id
+            new_min_object_attribute.value=seed_elec
+            new_min_object_attribute.save()                                                                                                                                                        
+            resultslog.write("new object attribute: %s with value: %s for ligand: %s\n" % (attribute.attribute_short_name,new_min_object_attribute.value,ligand.ligand_name))
+
+            attribute=attributes.objects.get(attribute_short_name="SEED Total Score")
+            new_min_object_attribute=object_attributes()
+            new_min_object_attribute.owner=u
+            new_min_object_attribute.attribute_id=attribute.id
+            new_min_object_attribute.object_table_name="dd_substrate_poses"
+            new_min_object_attribute.object_id=new_min_pose_object.id
+            new_min_object_attribute.value=seed_tot
+            new_min_object_attribute.save()                                                                                                                                                       
+                                                                                                                      
+            resultslog.write("new object attribute: %s with value: %s for ligand: %s\n" % (attribute.attribute_short_name,new_min_object_attribute.value,ligand.ligand_name))
+            #SEED evaluation end
+
+            #FFLD evaluation
+
+            ffld_vdw,ffld_elec,ffld_tot=common.GetEnergyFromFFLDEval(ffld_eval_path,posename)
+            resultslog.write("ffld_vdw: %s, ffld_elec: %s, ffld_tot: %s\n" % (ffld_vdw,ffld_elec,ffld_tot))
+
+            attribute=attributes.objects.get(attribute_short_name="FFLD VDW Score")
+            new_min_object_attribute=object_attributes()
+            new_min_object_attribute.owner=u
+            new_min_object_attribute.attribute_id=attribute.id
+            new_min_object_attribute.object_table_name="dd_substrate_poses"
+            new_min_object_attribute.object_id=new_min_pose_object.id
+            new_min_object_attribute.value=ffld_vdw
+            new_min_object_attribute.save()
+            resultslog.write("new object attribute: %s with value: %s for pose of the ligand: %s\n" % (attribute.attribute_short_name,new_min_object_attribute.value,ligand.ligand_name))
+
+            attribute=attributes.objects.get(attribute_short_name="FFLD Electrostatics")
+            new_min_object_attribute=object_attributes()
+            new_min_object_attribute.owner=u
+            new_min_object_attribute.attribute_id=attribute.id
+            new_min_object_attribute.object_table_name="dd_substrate_poses"
+            new_min_object_attribute.object_id=new_min_pose_object.id
+            new_min_object_attribute.value=ffld_elec
+            new_min_object_attribute.save()                                                                                                                        
+
+            resultslog.write("new object attribute: %s with value: %s for ligand: %s\n" % (attribute.attribute_short_name,new_min_object_attribute.value,ligand.ligand_name))
+
+            attribute=attributes.objects.get(attribute_short_name="FFLD Total Score")
+            new_min_object_attribute=object_attributes()
+            new_min_object_attribute.owner=u
+            new_min_object_attribute.attribute_id=attribute.id
+            new_min_object_attribute.object_table_name="dd_substrate_poses"
+            new_min_object_attribute.object_id=new_min_pose_object.id
+            new_min_object_attribute.value=ffld_tot
+            new_min_object_attribute.save()                                                                                                                        
+
+            resultslog.write("new object attribute: %s with value: %s for ligand: %s\n" % (attribute.attribute_short_name,new_min_object_attribute.value,ligand.ligand_name))
+
+            #FFLD evaluation end
+
+            #create unified scoring attribute
+            scores=[]
+            scores.extend([float(seed_vdw),float(seed_elec),float(seed_tot),float(ffld_vdw),float(ffld_elec),float(ffld_tot),float(charmm_vdw),float(charmm_elec),float(charmm_tot)])
+            resultslog.write("Scores: %s\n" % (scores))
+            scores.sort(key=float)
+            median_score=scores[4]
+            average_score=sum(scores)/len(scores)
+            resultslog.write("Median is: %s and Average is: %s\n" % (median_score,average_score))           
+ 
+            attribute=attributes.objects.get(attribute_short_name="DSF Median Score")
+            new_min_object_attribute=object_attributes()
+            new_min_object_attribute.owner=u
+            new_min_object_attribute.attribute_id=attribute.id
+            new_min_object_attribute.object_table_name="dd_substrate_poses"
+            new_min_object_attribute.object_id=new_min_pose_object.id
+            new_min_object_attribute.value=median_score
+            new_min_object_attribute.save() 
+
+            attribute=attributes.objects.get(attribute_short_name="DSF Average Score")
+            new_min_object_attribute=object_attributes()
+            new_min_object_attribute.owner=u
+            new_min_object_attribute.attribute_id=attribute.id
+            new_min_object_attribute.object_table_name="dd_substrate_poses"
+            new_min_object_attribute.object_id=new_min_pose_object.id
+            new_min_object_attribute.value=average_score
+            new_min_object_attribute.save()           
+           
+            #create unified scoring attribute end
+           
+            ######end charmm minimized pose
+
+
         #transaction.commit()
         resultslog.write("files processed: %s\n" % (len(glob.glob( os.path.join(path, '*_clus0.mol2')))))
         if len(glob.glob( os.path.join(path, '*_clus0.mol2')))!=0:
-            transaction.commit()
+            #transaction.commit()
             resultslog.write("committing\n")
             #result_poses = 
             try:
@@ -1366,14 +2298,23 @@ def viewJobResults(request,job_id):
 
 
             cursor = dba.cursor(MySQLdb.cursors.DictCursor)
-            poses_sql="SELECT @count := @count + 1 as rank, p.id, f.id as 'file_id',f.file_name, f.file_location, " \
-                      " (select 0+value from dd_analysis_object_attributes where object_table_name='dd_substrate_poses' and object_id=p.id) as score, " \
+            poses_sql="SELECT @count := @count + 1 as rank, selection.* FROM (SELECT p.id, f.id as 'file_id',f.file_name, f.file_location, " \
+                      " (select 0+value from dd_analysis_object_attributes where object_table_name='dd_substrate_poses' and object_id=p.id and attribute_id = " \
+                      "    (select id from dd_analysis_attributes where attribute_short_name='SEED Total Score')) as seed_score, " \
+                      " (select 0+value from dd_analysis_object_attributes where object_table_name='dd_substrate_poses' and object_id=p.id and attribute_id = " \
+                      "    (select id from dd_analysis_attributes where attribute_short_name='FFLD Total Score')) as ffld_score, " \
+                      " (select 0+value from dd_analysis_object_attributes where object_table_name='dd_substrate_poses' and object_id=p.id and attribute_id = " \
+                      "    (select id from dd_analysis_attributes where attribute_short_name='CHARMM Total energy')) as charmm_energy, " \
+                      " (select 0+value from dd_analysis_object_attributes where object_table_name='dd_substrate_poses' and object_id=p.id and attribute_id = " \
+                      "    (select id from dd_analysis_attributes where attribute_short_name='DSF Median Score')) as median_score, " \
+                      " (select 0+value from dd_analysis_object_attributes where object_table_name='dd_substrate_poses' and object_id=p.id and attribute_id = " \
+                      "    (select id from dd_analysis_attributes where attribute_short_name='DSF Average Score')) as average_score, " \
                       " (select ligand_name from dd_substrate_ligands where id=p.pose_object_id) as ligand_name " \
                       " from dd_substrate_poses p, dd_infrastructure_files f, (select @count := 0) c " \
                       " where p.source_id = " \
                       " (select id from dd_infrastructure_sources where source_object_table_name='dd_infrastructure_jobs' and source_object_id= %s) " \
                       " and f.id = (select file_id from dd_infrastructure_files_objects where object_table_name ='dd_substrate_poses' and object_id=p.id) " \
-                      " order by 0+score asc" % (str(job.id))
+                      " order by 0+average_score asc) as selection where selection.file_name like '%%_min.mol2'" % (str(job.id))
         
             resultslog.write("poses_sql2: %s\n" % (poses_sql))
             cursor.execute(poses_sql)
@@ -1385,9 +2326,9 @@ def viewJobResults(request,job_id):
             #    .extra(where=["id IN (select file_id from dd_infrastructure_files_objects where owner_id=" + \
             #    str(request.user.id) + " and object_table_name='dd_infrastructure_jobs' and object_id=" + \
             #    str(job.id) + ")"]).order_by('file_name')
-            transaction.commit()
+            #transaction.commit()
         else:
-            transaction.rollback()
+            #transaction.rollback()
             resultslog.write("no results\n")
 
         #result_files=files.objects.filter(description='Docking By Decomposition Ligand Pose File') \
@@ -1395,7 +2336,7 @@ def viewJobResults(request,job_id):
         #        str(request.user.id) + " and object_table_name='dd_infrastructure_jobs' and object_id=" + \
         #        str(job.id) + ")"]).order_by('file_name')
     
-    transaction.rollback()
+    #transaction.rollback()
     #########
     
 

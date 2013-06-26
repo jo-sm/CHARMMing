@@ -16,6 +16,37 @@ import charmming_config
 import MySQLdb
 import MySQLdb.cursors
 
+
+def GetEnergyFromSeedEval(path,posename):
+    energies_file = open(path+"/seed_energies.out", 'r')
+    ligand_energies = []
+    for line in energies_file:
+       ligand_energies=line.split()
+       if ligand_energies[0]==posename + "_min.mol2":     
+           return ligand_energies[1],ligand_energies[2],ligand_energies[3]
+
+    return 0
+
+def GetEnergyFromFFLDEval(path,posename):
+    energies_file = open(path+"/ffld_energies.out", 'r')
+    ligand_energies = []
+    for line in energies_file:
+       ligand_energies=line.split()
+       if ligand_energies[0]==posename + "_min.mol2":
+           return ligand_energies[1],ligand_energies[2],ligand_energies[3]
+
+    return 0
+
+def GetEnergyFromCHARMMMini(path,posename):
+    energies_file = open(path+"/charmm_mini_energies.out", 'r')
+    ligand_energies = []
+    for line in energies_file:
+       ligand_energies=line.split()
+       if ligand_energies[0]==posename:
+           return ligand_energies[1],ligand_energies[2],ligand_energies[3]
+
+    return 0
+
 def GetEnergyFromFLEAMol(filename):
     mol2file = open(filename, 'r')
     energy = "9999"
@@ -81,5 +112,7 @@ def mergeLists(list1,list2):
     return list1
 
 class objFile():
+    id=""
     fullpath=""
     name=""
+    tag=""
