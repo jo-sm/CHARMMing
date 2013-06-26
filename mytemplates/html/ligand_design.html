@@ -30,6 +30,7 @@
       <input type="text" name="molinfo" id="molinfo" value="{{moldata}}" style="display:none"> <!-- This holds the MOL output from Jmol to spit back out into django -->
       <input type="hidden" name="force_charge" id="force_charge" value="false">
       <input type="hidden" name="force_custom" id="force_custom" value="false"> <!-- Bypasses SDF check in PDB.org -->
+      <input type="hidden" name="not_custom" id="not_custom" value="false">
     </form>
   </div>
   <div id="ligbuild_options">
@@ -42,7 +43,7 @@
       {% endif %}
       {% if sdf_link %} 
       <div id="dialog_confirm_PDB" title="Found residue on PDB.org">
-        <p><span class="ui icon ui-icon-alert"></span>Your residue has been found on PDB.org at <a href="{{sdf_link}}">this link.</a> Do you still wish to build this ligand under this name?</p>
+        <p><span class="ui icon ui-icon-alert"></span>Your residue has been found on PDB.org at <a href="{{sdf_link}}">this link.</a></p>
         <br />
         <center>
           <img src="http://www.rcsb.org/pdb/images/{{mol_short}}_270.gif"></img>
@@ -130,7 +131,13 @@
             width:600,
             modal:true,
             buttons:{
-            "Yes, build anyway": function() {
+            "Build ligand from PDB.org": function() { 
+              document.getElementById("not_custom").value = "true";
+              document.getElementById("force_custom").value = "true";
+              $( this ).dialog( "close" );
+              normalFormSubmit(true);
+            },
+            "Build my custom ligand under this name anyway": function() {
               document.getElementById("force_custom").value = "true";
               {% if not charge_alert %}
 //                document.getElementById("molinfo").value = "{{ moldata }}".replace("\n","\\n","gi"); //Python passes it escaped, no issues here
@@ -138,8 +145,8 @@
               {% endif %}
               $( this ).dialog( "close" );  
             },
-            "No, change name": function() { 
-              $( this ).dialog( "close" );
+            "Go back to editing": function() {
+              $(this).dialog("close");
               $("#dialog_name_alert").dialog("open");
               }
             }  
