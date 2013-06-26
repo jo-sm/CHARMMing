@@ -1,0 +1,39 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{% block title %}Run Segment Through CHARMM {% endblock %}
+
+{% block body %} blankme
+
+read sequence pdb name {{ pdb_in }}
+generate {{ segname }} setu first {{ patch_first }} last {{ patch_last }} {{ noangdihe }}
+
+read coor pdb name {{ pdb_in }}
+{% if doic %}
+  ic para
+  ic fill preserve
+  ic build
+{% endif %}
+
+{% if patch_lines %}
+  ! set up protonation patching on this segment
+  {{ patch_lines }}
+{% endif %}
+
+hbuild
+
+! write out the protein structure file (psf) and
+! the coordinate file in pdb and crd format.
+
+write psf card name {{ outname }}.psf
+* PSF
+*
+
+write coor card name {{ outname }}.crd
+* Coords
+*
+
+write coor pdb name {{ outname }}.pdb
+* PDB for Jmol visualization
+*
+
+{% endblock %} blankme
