@@ -152,6 +152,7 @@ def build_ligand(request):
                     tdict['sdf_link'] = "www.pdb.org" + reqstring
                     return render_to_response('html/ligand_design.html',tdict)
             #If either force_custom is True or it wasn't needed, the code just continues.
+            not_custom = postdata['not_custom'] == 'true'
 #            outstring = obConversion.WriteString(mol) #Consider changing these to ligand names
             #Now we need to add a chainid so that PDBFile doesnt' freak out.
             #Get ligand name, first 4 characters, add spaces.
@@ -187,7 +188,10 @@ def build_ligand(request):
 #                logfp.close()
                 thisMol.extend(ligmol) #Snap them together and we have the real deal.
                 #Now we need to save segments and dump the pickle.
-                structure.views.getSegs(thisMol,struct,auto_append=False) #This saves all the Segments and stuff
+                if (not_custom):
+                    structure.views.getSegs(thisMol,struct,auto_append=True) #This saves all the Segments and stuff
+                else:
+                    structure.views.getSegs(thisMol,struct,auto_append=False) #This saves all the Segments and stuff
                 woof = open(struct.pickle,"w")
                 cPickle.dump(fullpdb,woof) #we took the object, extended it, now we save
                 woof.close()
@@ -218,7 +222,10 @@ def build_ligand(request):
                 os.chmod(struct.location, 0775)
 
                 fullpath = struct.location + "/" + dname + ".pdb"
-                structure.views.getSegs(ligmol,struct,auto_append=False)
+                if(not_custom):
+                    structure.views.getSegs(ligmol,struct,auto_append=True)
+                else:
+                    structure.views.getSegs(ligmol,struct,auto_append=False)
                 pfname = location + dname + "/" + "pdbpickle.dat"
                 picklefile = open(pfname, "w")
                 cPickle.dump(ligpdb,picklefile)
