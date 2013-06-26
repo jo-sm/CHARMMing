@@ -47,6 +47,7 @@ amber_home = "/usr/local/charmming/amber12"
 # atoms. These methods will be tried in order until one succeeds 
 # (or they all fail).
 toppar_generators = 'cgenff,match,antechamber,genrtf'
+dd_toppar_generators = 'match,cgenff'#,antechamber,genrtf'
 
 # CGenFF host & port
 cgenff_host = 'dogmans.umaryland.edu'
@@ -58,8 +59,10 @@ lib_path = ''
 # path to the single threaded CHARMM executable
 #charmm_exe = "/usr/local/charmm/charmm"
 #charmm_exe = "/usr/local/charmming/c35b6_cgenff.exe"
-charmm_exe = "/usr/local/charmming/c37b2-prelease.exe"
-charmm_apbs_exe = "/usr/local/charmming/c37b2-prelease.exe"
+#charmm_exe = "/usr/local/charmming/c37b2-prelease.exe"
+#charmm_apbs_exe = "/usr/local/charmming/c37b2-prelease.exe"
+charmm_exe = "/usr/local/charmming/c36b2-cgenff.exe"
+charmm_apbs_exe = "/usr/local/charmming/c35b4-apbs-qc.one"
 
 # path to the MPI-enabled CHARMM executable
 charmm_mpi_exe = "/usr/local/charmming/gfortran-xxlg-qc.ompi"
@@ -84,6 +87,7 @@ user_dd_jobs_home = user_home + "/dd/jobs"
 daim_exe = "/usr/local/charmming/drug_design/DAIM/bin/daim"
 daim_param = user_home + "/dd/app_files/daim/daim.param"
 daim_prop = user_home + "/dd/app_files/daim/daim.prop"
+daim_weight = user_home + "/dd/app_files/daim/daim.prop"
 
 # path to the SEED executable and parameter files
 seed_exe = "/usr/local/charmming/drug_design/seed_send_3.3.5/seed_3.3.5"
@@ -93,13 +97,23 @@ seed_param = user_home + "/dd/app_files/seed/seed.par"
 ffld_exe = "/usr/local/charmming/drug_design/ffld_send_3.3/ffld_3.3_gcc4.0_static"
 ffld_param = user_home + "/dd/app_files/ffld/FFLD_param_cgenff"
 
-# path to the FLEA parameter
-flea_param = user_home + "/dd/app_files/flea/PARM.flea"
+#path to VMD executable
+vmd_exe = "/usr/local/charmming/drug_design/bin/vmd"
 
-charmm_param = user_home + "/dd/app_files/charmm/top_all27_prot_na.rtf"
+# path to the FLEA exeutable and parameter files
+flea_param = user_home + "/dd/app_files/flea/PARM.flea"
+flea_exe = "/usr/local/charmming/drug_design/FLEA/flea_1.0_32b_static"
+
+# path to the CHARMM files
+charmm_files = user_home + "/dd/app_files/charmm/"
+charmm_param = user_home + "/dd/app_files/charmm/top_all36_prot.rtf"
 
 # dd scripts
 dd_scripts_home = user_home + "/dd/scripts"
+
+# dd shell launch command
+dd_submit_parallel="qsub -cwd -l h_rt=00:20:00" #to enable parallel execution of docking commands
+dd_submit_serial = "" #for serial execution of docking commands
 
 ## Limits on various calculations
 
@@ -109,3 +123,9 @@ max_nma_atoms = 1500
 # step limits for minimization and dynamics
 minimize_steplimit = 1000
 dyna_steplimit = 1000
+
+# docking parameters
+docking_iterations = 1
+ffld_energy_evaluations=2000
+ffld_generations = 100
+clustering_energy_cutoff = 10
