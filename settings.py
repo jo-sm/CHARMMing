@@ -110,6 +110,7 @@ INSTALLED_APPS = (
     'minimization',
     'mutation',
     'normalmodes',
+    'selection',
     'solvation',
     'structure',
     'solvation',
