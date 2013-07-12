@@ -21,8 +21,8 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 
 urlpatterns = patterns('normalmodes.views',
-     (r'^calcatomnumber/$', 'calcAtomNumber'),
-     (r'^$', 'normalmodesformdisplay'),
+    #(r'^calcatomnumber/$', 'calcAtomNumber'),
+    (r'^$', 'normalmodesformdisplay'),
 
     # Uncomment this for admin:
     (r'^admin/(.*)', include(admin.site.urls)),
