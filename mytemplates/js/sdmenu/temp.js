@@ -278,11 +278,17 @@ function ajax_update(params, onsucc, options, url) {
         options.method = 'post';
         options.parameters = h.toQueryString();
 
-        var ajax = new Ajax.Updater(
-                { success: onsucc },
-                url,
-                options
-        );
+        var ajax = $.ajax({
+                url:url,
+                type:"post",
+                data:h.toQueryString(),
+                success: onsucc
+                });
+        //new Ajax.Updater(
+        //        { success: onsucc },
+        //        url,
+        //        options
+        //);
 }
 
 function ajax_periodic_update(secs, params, onsucc, options, url) {
@@ -298,7 +304,8 @@ function ajax_periodic_update(secs, params, onsucc, options, url) {
         options.method = 'post';
         options.parameters = h.toQueryString();
 
-        var ajax = new Ajax.PeriodicalUpdater({ success: onsucc }, url, options);
+        var ajax = $.PeriodicalUpdater(url, {method: 'post', data=h.toQueryString(), multiplier:5, minTimeout:100, maxTimeout:(secs * 1000)}, onsucc);
+//        var ajax = new Ajax.PeriodicalUpdater({ success: onsucc }, url, options);
 }
 
 

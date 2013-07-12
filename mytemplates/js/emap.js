@@ -1,6 +1,12 @@
 function send_emap_form(form,step)
 {
-   new Ajax.Request("/emap/" + step + "/", {method:'post', asynchronous:false,  parameters:Form.serialize(form)});
+   $.ajax({
+      url:"/emap/" + step + "/",
+      type:"post",
+      async:false,
+      data:$(form).serialize()
+    });
+//   new Ajax.Request("/emap/" + step + "/", {method:'post', asynchronous:false,  parameters:Form.serialize(form)});
    if(step==3)
    {
     document.getElementById('emap').innerHTML = "Done";    

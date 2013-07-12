@@ -1,4 +1,120 @@
-//Jmol helpful functions  
+var molname = document.getElementById("LigName").value;
+molname = molname.substr(0,4).toUpperCase();
+var sdf_link = (document.getElementById("dialog_confirm_PDB") != null);
+var same_residue = (document.getElementById("dialog_sameres_alert") != null);
+var charge_alert = (document.getElementById("dialog_charge_alert") != null);
+var struct_error = (document.getElementById("dialog_struct_error") != null);
+
+if(struct_error){
+  document.getElementById("dialog_struct_error").innerHTML =  '<p><span class="ui-icon ui-icon alert" style="float:left;margin 0 auto auto 0;"></span>There already exists a ligand named ' + molname + ' in your current working structure.<br />&nbsp;&nbsp;&nbsp;&nbsp;Please choose a different name for your ligand.';
+  
+  $(function($){
+      $( "#dialog_struct_error").dialog({
+        resizable:false,
+        height:200,
+        width:600,
+        modal:true,
+        buttons:{
+        "OK":function(){
+        $(this).dialog("close");
+        }
+      }
+    });
+    });
+}
+if(same_residue){
+$(function($) {
+    $( "#dialog_sameres_alert").dialog({
+      resizable:false,
+      height:200,
+      width:600,
+      modal:true,
+      buttons:{
+      "OK":function(){
+        $(this).dialog("close");
+        }
+    }
+  });
+});
+}
+
+
+if(charge_alert){
+$(function($) { 
+    $( "#dialog_charge_alert" ).dialog({
+      resizable:false,
+      height:200,
+      width:600,
+      modal:true,
+      buttons:{
+      "Yes, I'm sure": function() {
+        document.getElementById("force_charge").value = "true";
+        normalFormSubmit(true);
+      },
+      "No, I'm not": function() {
+        $(this).dialog("close");
+        }
+      }
+    });
+    });
+}
+
+
+$(function($){
+    $("#dialog_no_name").dialog({
+      resizable:false,
+      height:200,
+      width:600,
+      modal:true,
+      autoOpen:false,
+      buttons:{
+      "OK":function(){
+      $(this).dialog("close");
+      }
+    }
+  });
+});
+
+$(function($){
+    $("#dialog_spec_char_alert").dialog({
+      resizable:false,
+      height:200,
+      width:600,
+      modal:true,
+      autoOpen:false,
+      buttons:{
+      "OK":function(){
+      $(this).dialog("close");
+      }
+    }
+  });
+});
+
+$(function($){
+    $("#dialog_no_ligand").dialog({
+      resizable:false,
+      height:200,
+      width:600,
+      modal:true,
+      autoOpen:false,
+      buttons:{
+      "OK":function(){
+      $(this).dialog("close");
+      }
+    }
+  });
+});
+
+
+$(document).ready(function() {
+    $("#LigName").keyup(function(event) {
+      if (event.keyCode == 13) { 
+        normalFormSubmit(false);
+      }
+    })
+  });
+    
+//JSmol helpful functions  
 function off(applet){
   Jmol.script(applet, "set atompicking off");
 }
@@ -40,21 +156,22 @@ function setbonds(applet, bondbutton){
 
 function normalFormSubmit(input){
   if(!(input)){
-    ligname = document.getElementById("LigName");
-    if (ligname.value.length == 0){
-      alert("Please input a name for your ligand.");
+    var ligname = document.getElementById("LigName");
+    if (ligname.value.length == 0){ 
+      $("#dialog_no_name").dialog("open");
       return;
     }
     var spec_chars = "!@#$%^&*()+=-[]\\\';,./{}|\":<>?";
     for (var i=0; i < ligname.value.length; i++){
       if (spec_chars.indexOf(ligname.value.charAt(i)) != -1){
-        alert("You cannot have any of the following characters in your ligand name:\n" + spec_chars);
+        $("#dialog_spec_char_alert p").html('You cannot have any of the following characters in your ligand name:\n' + spec_chars);
+        $("#dialog_spec_char_alert").dialog("open");
         return;
       }
     }
     var MOLdata = Jmol.scriptWaitOutput(jmolApplet, "write PDB");
-    if (MOLdata.length == 0){
-      alert("Please build a ligand.");
+    if (MOLdata.indexOf("HETATM") == -1){
+      $("#dialog_no_ligand").dialog("open");
       return;
     }else{
       var regex = new RegExp("\n", "gi");

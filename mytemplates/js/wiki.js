@@ -49,7 +49,12 @@ function resetStars(tableobj)
 function changeRating(tdobj)
 {
  var starvals = tdobj.id.split('_');
- new Ajax.Request('/charmming/wiki/ratetopic/',{method:'post', asynchronous:true, parameters: {'topic_title':starvals[0],'user_rating':starvals[1],'board_name': boardname}});
+ $.ajax({
+    url:'/charmming/wiki/ratetopic/',
+    type:"post",
+    data:{'topic_title':starvals[0],'user_rating':starvals[1],'board_name': boardname}
+  });
+// new Ajax.Request('/charmming/wiki/ratetopic/',{method:'post', asynchronous:true, parameters: {'topic_title':starvals[0],'user_rating':starvals[1],'board_name': boardname}});
  stars_table = document.getElementById(starvals[0] + '_stars');
  tds = stars_table.getElementsByTagName('td');
  //This essentially saves the state the user rated the topic as until they refresh it

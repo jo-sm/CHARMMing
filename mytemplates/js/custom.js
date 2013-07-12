@@ -3,49 +3,67 @@ var langevinCounter = -1;
 var mdCounter = -1;
 var selected_div = "";
 // Tab variables...
-var visualizeWin;
-var tutorialWin;
-var timest = 0;
 
 
 //For atom selection (QM/MM)
 function goto_atomselect(){
   var inputs = document.getElementsByName("ptask");
-    if (inputs.length > 0){
-      for(i=0;i<inputs.length;i++){
-        if(inputs[i].checked){
-          document.getElementById("task_id").value = inputs[i].value;
-          break;
-        }
+  var form = null;
+  if (inputs.length > 0){
+    for(i=0;i<inputs.length;i++){
+      if(inputs[i].checked){
+        document.getElementById("task_id").value = inputs[i].value;
+        break;
       }
-      var action = document.URL.split("/");
-      var source = action[action.length -2];
-      var form = null;
-      document.getElementById("source").value = source;
-      if(source == "energy"){
-        form = document.getElementById("ener_form");
-      }
-      if(source == "minimize"){
-        form = document.getElementById("min_form");
-      }
+    }
+    var action = document.URL.split("/");
+    var source = action[action.length -2];
+    document.getElementById("source").value = source;
+    if(source == "energy"){
+      form = document.getElementById("ener_form");
+    }
+    if(source == "minimize"){
+      form = document.getElementById("min_form");
+    }
 //Note: Update here to create more QM/MM boxen in other pages
-      form.action="/charmming/selection/";
-      form.onsubmit= function(event){return true;};
-      document.getElementById(form.id).submit();
+    form.action="/charmming/selection/";
+    form.onsubmit= function(event){return true;};
+    form.submit();
+  }else{
+    $("#dialog_coords_alert").dialog("open");
+//    alert("No coordinates present. Please run at least one calculation on the full atom set before performing any QM/MM operations.")
+  }
+}
+
+//This is for badhet selection on the build structure page
+function showUploads(segdiv){
+    var segname = segdiv.split("_");
+    segname = segname[segname.length - 1]; //Get the last part...
+    if ($("#"+segdiv).val() == "upload"){
+      $("#toppar_upload_"+segname).css("display","inline");
     }else{
-      //TODO: Add fancy box.
-      alert("No coordinates present. Please run at least one calculation on the full atom set before performing any QM/MM operations.")
+      $("#toppar_upload_"+segname).css("display","none");
     }
 }
 
-
 // The following is taken from the select/edit structures page
 function send_select_form(form) {
-   new Ajax.Request("/charmming/select/" + form.id, {method:'post', asynchronous:true});
+   $.ajax({
+      url:"/charmming/select/" + form.id,
+      type:"post",
+    });
+//   new Ajax.Request("/charmming/select/" + form.id, {method:'post', asynchronous:true});
 }
 
 function send_delete_form(filename) {
-   new Ajax.Request("/charmming/deletefile/", {method:'post', asynchronous:false, parameters: {'filename':filename}});
+   $.ajax({
+      url:"/charmming/deletefile/",
+      type:"post",
+      async:false,
+      data:{'filename':filename}
+    });
+      
+//   new Ajax.Request("/charmming/deletefile/", {method:'post', asynchronous:false, parameters: {'filename':filename}});
 }
 
 function send_ligand(){
@@ -141,34 +159,17 @@ function displayFields(div_id)
 
 function setCGDisplay(id)
 {
-  if(id=='aa') {
-    if(isVisible('go_display')) {
-      setVisible('go_display','none');
+  var i=0;
+  var check_array = $("input[name=buildtype]");
+  while (i < check_array.length){
+    if(!(check_array[i].checked) && !(check_array[i].value == "aa")){
+      $("#"+check_array[i].value+"_display").hide();
+    }else{
+      $("#"+check_array[i].value+"_display").show();
     }
-    if(isVisible('bln_display')) {
-      setVisible('bln_display','none');
-    }
-    setVisible('aa_display','block');
-
-  } else if(id=='go') {
-
-    if(isVisible('aa_display')) {
-      setVisible('aa_display','none');
-    }
-    if(isVisible('bln_display')) {
-      setVisible('bln_display','none');
-    }
-    setVisible("go_display","block");
-
-  } else if(id=='bln') {
-    if(isVisible('aa_display')) {
-      setVisible('aa_display','none');
-    }
-    if(isVisible('go_display')) {
-      setVisible('go_display','none');
-    }
-    setVisible("bln_display","block");
+    i = i + 1;
   }
+  //Go through all of them, makes the code nice and generic. Can't use enhanced for loop again...why?
 }
 
 function addResidue(residue)
@@ -203,203 +204,50 @@ function getChoiceDiv(div_id)
 //Sends AJAX request to delete a job
 function killJob(jobid)
 {
- new Ajax.Request('/charmming/killjob/' + jobid + '/',{method:'post',asynchronous:false});
-}
-
-function getTimeFromAtoms(nAtoms)
-{
-  return 5;
-}
-
-function getTimeEstimate(div_id,filename_list, run_type)
-{  
- var time_filenames = "";
- for(i = 0; i < filename_list.length; i++)
- {
-  if(document.getElementById('id_' + filename_list[i])) {
-    if(document.getElementById('id_' + filename_list[i]).checked) {
-      time_filenames += filename_list[i] + ',';
-    }
-  }
- }
- if(run_type == 'md')
- {
-  if(document.getElementById('useheat').checked)
-   nstep = document.getElementById('nstepht').value;
-  else if(document.getElementById('useequi').checked)
-    nstep = document.getElementById('nstepeq').value;
-  else
-    nstep = -1;
- }
- else if(run_type == 'ld')
-  nstep = document.getElementById('nstep').value;
- else if(run_type == 'min')
- {
-  sdsteps = document.getElementById('sdsteps').value;
-  abnrsteps = document.getElementById('abnr').value;
-  nstep = Number(sdsteps) + Number(abnrsteps);
- }
- else if(run_type == 'nma')
-  nstep = document.getElementById('num_normalmodes').value;
- if(nstep > 0)
- {
-  new Ajax.Updater(div_id,'/charmming/calcjobtime/',{method:'post', asynchronous:true, parameters: {'time_filenames':time_filenames,'nstep':nstep}});
- }
-} 
-
-function getAtomNumber(div_id,filename_list, run_type)
-{  
- var time_filenames = "";
- for(i = 0; i < filename_list.length; i++)
- {
-  if(document.getElementById('id_' + filename_list[i]).checked)
-  {
-   time_filenames += filename_list[i] + ',';
-  }
- }
-  new Ajax.Updater(div_id,'/charmming/normalmodes/calcatomnumber/',{method:'post', asynchronous:false, parameters: {'time_filenames':time_filenames}});
-  atomnum = 3*parseInt(document.getElementById(makeUniqueDiv('atomnumbernma')).innerHTML);
-  document.getElementById('num_normalmodes').value = atomnum;
-} 
-
-
-function updateTimeEstimate(addtime)
-{
-  /*
-  if(typeof this.currtime == 'undefined')
-    this.currtime = 0;
-  this.currtime += addtime;
-  */
-  var timetab = document.getElementById("timeTab");
-  timest += addtime;
-  timetab.innerHTML = "<i>Estimated time for this calculation is " + timest + " minutes.</i>";
-}
-
-function resetTimeEstimate()
-{
-  timest = 0;
-  var timetab = document.getElementById("timeTab");
-  timetab.innerHTML = "<i>Estimated time for this calculation is " + timest + " minutes.</i>";
+  $.ajax({
+      url:"/charmming/killjob/" + jobid + "/",
+      type:"post",
+      async:false
+    })
+// new Ajax.Request('/charmming/killjob/' + jobid + '/',{method:'post',asynchronous:false});
 }
 
 //Sends AJAX request to delete student
 function deleteStudent(username)
 {
- Ajax.Request('/charmming/teachers/deletestudent/' + username,{method:'post',asynchronous:false});
-}
-
-//checks to see if any of the forms were altered
-function isPageAltered(form_id)
-{
- var form = document.getElementById(makeUniqueDiv(form_id));
- for(var i=0; i < form.length; i++)
- {
-  if(form[i].type == 'checkbox' && form[i].checked)
-   return true;
-  
-  if(form[i].id == 'solv_struc' && form[i].value != 'rhdo')
-   return true;
-  if(form[i].type == 'radio')
-  {
-   //solvation stuff
-   if(form[i].id == 'set_pref' && form[i].checked)
-    return true;
-   if(form[i].id == 'no_pref' && form[i].checked)
-    return false;
-   if(form[i].checked)
-    return true;
-  }
-  if(form[i].name == 'usepatch')
-   return false;
-  if(form[i].name == 'sdsteps' && form[i].value != 100)
-   return true;
-  if(form[i].name == 'abnr' && form[i].value != 1000)
-   return true;
-  if(form[i].name == 'tolg' && form[i].value != .05)
-   return true;
- }
-}
-
-//changes display options for solvation based on chosen structure
-function changeDisplayOptions()
-{
- set_x = document.getElementById('set_x');
- set_y = document.getElementById('set_y');
- set_z = document.getElementById('set_z');
- set_x.style.display = "none";
- set_y.style.display = "none";
- set_z.style.display = "none";
- solv_struc = document.getElementById('solv_struc');
- if(solv_struc.value == 'cubic')
- {
-  set_x.style.display = "block";
-  set_y.style.display = "block";
-  set_z.style.display = "block";
- }
- else if(solv_struc.value == 'sphere' || solv_struc.value == 'rhdo')
- {
-  set_x.style.display = "block";
- }
- else if(solv_struc.value == 'hexa') {
-  set_x.style.display = "block";
-  set_z.style.display = "block";
- }
+  $.ajax({
+      url:"/charmming/normalmodes/deletestudent" + username,
+      type:"post",
+      async:false
+    });
+// Ajax.Request('/charmming/teachers/deletestudent/' + username,{method:'post',asynchronous:false});
 }
 
 //This is used to display more options when a user wants to select
 //solvation structure size
 function setSolvSize()
 {
- no_pref = document.getElementById('no_pref');
- solv_struc = document.getElementById('solv_struc');
- set_pref = document.getElementById('set_pref');
- no_pref_input = document.getElementById('no_pref_input');
- set_x = document.getElementById('set_x');
- set_y = document.getElementById('set_y');
- set_z = document.getElementById('set_z');
- if(no_pref.checked)
- {
-  no_pref_input.style.display = "block";
-  set_x.style.display = 'none';
-  set_y.style.display = 'none';
-  set_z.style.display = 'none';
- }
- if(set_pref.checked)
- {
-  changeDisplayOptions();
-  no_pref_input.style.display = "none";
- }
-}
-
-
-//allows user to choose jmol or chemaxon
-function chooseViewProgram(filename,program,segid,resid)
-{
-  //alert("Program is " + program);
-  if(arguments.length == 4) {
-    openWin('spread', filename, 200, 300, 800, 600, '/charmming/jmolviewhl/' + filename + '/' + segid + '/' + resid + '/', 'jmolVisual');
-  } else if(arguments.length == 2) {
-    if(program == 'jmol') {
-      openWin('spread', filename, 200, 300, 800, 600, '/charmming/jmolview/' + filename,'jmolVisual');
-    } else if(program == 'chemdoodle') {
-      openWin('spread', filename, 200, 300, 800, 600, '/charmming/chemdoodleview/' + filename,'jmolVisual');
-    }
-  } else {
-    alert("Wrong number of arguments");
+ if($("#set_pref").is(":checked")){
+  if($("#solv_struc").val() == 'cubic'){
+    $("#set_x").show();
+    $("#set_y").show();
+    $("#set_z").show();
+    return "cubic";
   }
-}
-
-function checkSgld(div_id,change)
-{
- if(document.getElementById('usesgld').checked)
- {
-  changeTabLabel(AjaxTabs.GetFocusedTabId(),'Langevin Dynamics: SGLD');
-  setVisible(div_id,"block");
- }
- else
- {
-  changeTabLabel(AjaxTabs.GetFocusedTabId(),'Langevin Dynamics: LD');
-  setVisible(div_id,"none");
+  else if($("#solv_struc").val() == 'sphere' || $("#solv_struc").val() == 'rhdo'){
+    $("#set_x").show();
+    $("#set_y").show();
+    $("#set_z").show();
+    return "rhdo";
+  }
+  else if($("#solv_struc").val() == 'hexa' || $("#solv_struc").val() == 'tetra'){
+    $("#set_x").show();
+    $("#set_y").show();
+    $("#set_z").hide();
+    return "hexa";
+  }
+  $("#no_pref_input").hide();
+  return "set_pref";
  }
 }
 
@@ -436,28 +284,6 @@ function hideFileList(header)
     }
 }
       
-
-//These are from the Build structure page.
-function showHideDisul()
-{
- if(document.getElementById('disul_box').checked) {
-    setVisible("disulfide","block");
- } else {
-    setVisible("disulfide","none");
- }
-}
-
-function showHideProto()
-{
- if(document.getElementById('proto_box').checked) {
-    setVisible("protonation","block");
- } else {
-    setVisible("protonation","none");
- }
-}
-
-
-
 //for use with Normal modes
 //TODO: Replace this qwith showing QM/MM template!
 function showHideQMMM()
@@ -499,12 +325,24 @@ function checkUncheck(div_id,other1_div,other2_div,other3_div,change)
 function send_form_gener(form_name,url,div_to_change) 
 {
   form = document.getElementByID(form_name);
-  new Ajax.Updater(div_to_change,url,{method:'post', asynchronous:true, parameters:Form.serialize(form)});
+  $.ajax({
+      url:url,
+      type:"post",
+      data:$(form).serialize(),
+      success: function(responseData){
+      div_to_change.innerHTML = responseData;}
+    });
+//  new Ajax.Updater(div_to_change,url,{method:'post', asynchronous:true, parameters:Form.serialize(form)});
 }
 
 function send_form_mdanal(form,link,divupdate)
 {
-   new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
+  $.ajax({
+      url:link,
+      type:"post",
+      data:$(form).serialize()
+    });
+//   new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
    changeStatus("mdform","mdform","mdanal");
    return false;
 }
@@ -527,7 +365,13 @@ function send_form_rms(form,divupdate,filenames)
   }
   divid = document.getElementById(divupdate);
   divid.innerHTML = 'Calculating RMSD Matrix...';
-  new Ajax.Updater(divupdate,'/charmming/analysis/rmsd/', {method:'post', asynchronous:true, parameters:Form.serialize(form)});
+  $.ajax({
+      url: "/charmming/analysis/rmsd/",
+      type: "post",
+      data:$(form).serialize(),
+      success: function(returnData){
+      divid.innerHTML = returnData;}
+      });
 
 }
 
@@ -535,7 +379,14 @@ function send_form_energy(form,divupdate,filenames)
 {
     divid = document.getElementById(divupdate);
     divid.innerHTML = 'Calculating Energy...';
-    new Ajax.Updater(divupdate,'/charmming/energy/', {method:'post', asynchronous:true, parameters:Form.serialize(form)});
+    $.ajax({
+        url: "/charmming/energy/",
+        type:"post",
+        data:$(form).serialize(),
+        success: function(returnData){
+        divid.innerHTML = returnData;}
+        });
+//    new Ajax.Updater(divupdate,'/charmming/energy/', {method:'post', asynchronous:true, parameters:Form.serialize(form)});
 }
 
 function send_form_oxired(form,link,divchange,divupdate,filenames)
@@ -556,8 +407,12 @@ function send_form_oxired(form,link,divchange,divupdate,filenames)
      Dialog.alert("<center>Please select an oxidation/reduction site.</center>", {width:300, height:100, okLabel: "close"});
      return false;
     }
-
-    new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
+    $.ajax({
+        url:link,
+        type:"post",
+        data:$(form).serialize()
+      });
+//    new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
     changeStatus(divchange,divupdate,"oxired");
     return false
 }
@@ -568,7 +423,12 @@ function send_form_nma(form,link,divchange,divupdate,filenames)
   var ifsegchecked = 0;
 
     if(document.getElementById('usevibran').checked || document.getElementById('useenm').checked) {
-      new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
+      $.ajax({
+          url:link,
+          type:"post",
+          data:$(form).serialize()
+        });
+//      new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
       changeStatus(divchange,divupdate,"nma");
       return false
     } else {
@@ -699,12 +559,13 @@ function writeLinkAtomLines(seg_ids,num_link_div_id,div_id)
  {
   optionvalues = optionvalues + '<option value="' + seg_list[b] + '">' + seg_list[b] + '</option>';
  }
+  optionvalues = optionvalues + '<option value=""></option>';
  for(var i = 0; i < num_patches; i++)
  {
   tempi = i+1;
   text = text + '<tr><td>QMHost '+tempi+'.</td><td> First SEGID:';
   text = text + '<select size="1" name="linkqmsegid' + i +'">';
-text = text + optionvalues + '</select><td> QM RESID:<input type="text" name="linkqm'+i+'" size=4></td> <td> QM Atom Type: <input type="text" name="qmatomtype' + i + '" size=5> </td></tr><tr><td>MMHost '+tempi+'.</td><td> MM SEGID: <select size="1" name="linkmmsegid' + i +'">' + optionvalues + '</select> </td><td>MM RESID:<input type="text" name="linkmm'+i+'" size=4></td><td> MM Atom Type: <input type="text" name="mmatomtype' + i + '" size=5> </td></tr>';
+text = text + optionvalues + '</select><td> QM RESID:<input type="text" id="linkqm'+i+'" name="linkqm'+i+'" size=4></td> <td> QM Atom Type: <input type="text" id="qmatomtype'+i+'" name="qmatomtype' + i + '" size=5> </td></tr><tr><td>MMHost '+tempi+'.</td><td> MM SEGID: <select size="1" name="linkmmsegid' + i +'">' + optionvalues + '</select> </td><td>MM RESID:<input type="text" id="linkmm'+i+'" name="linkmm'+i+'" size=4></td><td> MM Atom Type: <input type="text" id="mmatomtype'+i+'" name="mmatomtype' + i + '" size=5> </td></tr>';
  }
   text= text + '</td></tr></table>';
   document.getElementById(div_id).innerHTML = text;
@@ -716,6 +577,7 @@ text = text + optionvalues + '</select><td> QM RESID:<input type="text" name="li
 //For example: Two minimization tabs would not work properly without this function
 //because the hideShowPatch() would see two divs with the same id and only change
 //one of them
+//This whole thing is not worth is now given that we don't and never will again use AJAX tabs.
 function makeUniqueDiv(div_id)
 {
  try
@@ -845,21 +707,8 @@ function checkPatch(usepatch_div_id,div_id)
  }
 }
 
-//removes PBC, send it the check id, and another checkbox you want to check with it
-function removePBC(check_id,second_check)
-{
- if(second_check.checked)
- {
-  uncheck(check_id);
-  document.getElementById(check_id).disabled = true;
- }
- else
- {
-  document.getElementById(check_id).disabled = false;
- }
-}
-
 //returns whether the div element is visible or not
+//can be replaced by jQuery's $("#elem_id").is(":visible")
 function isVisible(div_id)
 {
  if(document.getElementById(div_id).style.display == "none")
@@ -869,6 +718,7 @@ function isVisible(div_id)
 
 
 //Can change an element's visibility, for example (block or none)
+//can be replaced by jQuery's $("#elem_id").show() or hide()
 function setVisible(div_id,change)
 {
  var style = document.getElementById(div_id).style; 
@@ -877,20 +727,42 @@ function setVisible(div_id,change)
 
 function report_error(form,divtoupdate)
 {
- new Ajax.Updater(divtoupdate,'/charmming/reporterror/',{method:'post', asynchronous:true, parameters:Form.serialize(form)});
+ var ajax_div = document.getElementById(divtopdate);
+ $.ajax({
+    url:"/charmming/reporterror/",
+    type:"post",
+    data:$(form).serialize(),
+    success: function(returnData){
+    ajax_div.innerHTML = returnData;}
+    });
+//  new Ajax.Updater(divtoupdate,'/charmming/reporterror/',{method:'post', asynchronous:true, parameters:Form.serialize(form)});
  return false;
 }
  
 
 function send_form_changepassword(form,link,divupdate) 
 {
- new Ajax.Updater(divupdate,link, {method:'post', asynchronous:false, parameters:Form.serialize(form)});
+  var ajax_div = document.getELementById(divtoupdate);
+  $.ajax({
+      url:link,
+      type:"post",
+      async:false,
+      data:$(form).serialize(),
+      success: function(returnData){
+      ajax_div.innerHTML = returnData;}
+      });
+// new Ajax.Updater(divupdate,link, {method:'post', asynchronous:false, parameters:Form.serialize(form)});
    return false;
 }
 
 function send_form(form,link,divchange,divupdate,filenames) 
 {
-  new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
+  $.ajax({
+      url:link,
+      type:"post",
+      data:$(form).serialize()
+      });
+//  new Ajax.Request(link, {method:'post', asynchronous:true, parameters:Form.serialize(form)});
   changeStatus(divchange,divupdate,"prep");
   return false;
 }
@@ -933,7 +805,12 @@ function send_delete_ligand_form(id) {
     if (r==true)
     {
 	//alert ('ddeleting ligand'+id);
-        new Ajax.Request("/charmming/dd_substrate/deleteligand/", {method:'post', asynchronous:false, parameters: {'id':id}});
+        $.ajax({
+            url:"/charmming/dd_substrate/deleteligand",
+            type:"post",
+            data:$(form).serialize()
+          });
+//        new Ajax.Request("/charmming/dd_substrate/deleteligand/", {method:'post', asynchronous:false, parameters: {'id':id}});
     }
     else
     {
@@ -947,11 +824,13 @@ function send_delete_ligand_form(id) {
 function doDDJobDetailsOnLoad(id){
     //alert ('jobdetailonload'+id);           
     //var code = "jobid={{job.id}}";
-    currperiodicalupdater = new Ajax.Updater('jobinfo', '/charmming/dd_infrastructure/viewjobinfo/' + id, {method: 'post'});
+    currperiodicalupdater = $("jobinfo").PeriodicalUpdater(("/charmming/dd_infrastructure/viewjobinfo" + id), {method:'post', multiplier:5, minTimeout:100, maxTimeout:5000},
+        function(remoteData){document.getElementById("jobinfo").innerHTML = remoteData;});
+//    currperiodicalupdater = new Ajax.Updater('jobinfo', '/charmming/dd_infrastructure/viewjobinfo/' + id, {method: 'post'});
     //code="jobid={{job.owner_id}}";
 
-        
-    currperiodicalupdater2 = new Ajax.PeriodicalUpdater('resultsdiv', '/charmming/dd_infrastructure/viewjobresults/'+id, {method: 'post', frequency: 5});
+    currperiodicalupdater2 = $("resultsdiv").PeriodicalUpdater("/charmming/dd_infrastructure/viewjobresults" + id, {method:'post', multiplier:5, minTimeout:100, maxTimeout:5000},function(remoteData){document.getElementById("resultsdiv").innerHTML = remoteData;});
+//    currperiodicalupdater2 = new Ajax.PeriodicalUpdater('resultsdiv', '/charmming/dd_infrastructure/viewjobresults/'+id, {method: 'post', frequency: 5});
     setVisible('resultsdiv','none');
 
         //alert ("blah");
@@ -968,8 +847,13 @@ function viewDDJobResults(job_id) {
 	setVisible('ddjobresultsdiv','block')
         //var style = document.getElementById('ddjobresultsdiv').style;
         //style.display = change;
-
-	new Ajax.Updater('ddjobresultsdiv',"/charmming/dd_infrastructure/viewjobresults/"+job_id, {method:'post', asynchronous:true});
+  $.ajax({
+      url:"/charmming/dd_infrastructure/viewjobresults/"+job_id,
+      type:"post",
+      success:function(responseData){
+      document.getElementById('ddjobresultsdiv').innerHTML=responseData;}
+    })
+//	new Ajax.Updater('ddjobresultsdiv',"/charmming/dd_infrastructure/viewjobresults/"+job_id, {method:'post', asynchronous:true});
         //link.innerHTML="Hide Results"
     }
     else if (document.getElementById('ddjobresultsdiv').style.display=='block'){
@@ -983,7 +867,11 @@ function viewDDJobResults(job_id) {
 }
 
 function dd_send_project_select_form(form) {
-    new Ajax.Request("/charmming/dd_infrastructure/select_project/"+form.id, {method:'post', asynchronous:true});
+  $.ajax({
+      url:"/charmming/dd_infrastructure/select_project/"+form.id,
+      type:"post"
+    });
+//    new Ajax.Request("/charmming/dd_infrastructure/select_project/"+form.id, {method:'post', asynchronous:true});
 }
 
 function getCheckedAvailableConformationsIds()
@@ -1057,7 +945,15 @@ function RemoveConformations(project_id)
 function RefreshProjectInfo(project_id)
 {
     var code = '&name=' + document.getElementById("project_name").value + '&description=' + document.getElementById("project_description").value;
-    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/'+project_id+'/update/', {method: 'post', parameters: code})
+    var myAjax = $.ajax({
+        url:"/charmming/dd_infrastructure/updateprojectinfo/"+project_id+"/update/",
+        type:"post",
+        data:code,
+        success: function(responseData){
+        document.getElementById("projectinfodiv").innerHTML=responseData;}
+      });
+//    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/'+project_id+'/update/', {method: 'post', parameters: code})
+//    I don't know why Yuri makes it a var. In jQuery it shouldn't even be relevant...
 }
     
 function DisplayProjectInfo(project_id)
@@ -1065,14 +961,27 @@ function DisplayProjectInfo(project_id)
     //alert (document.getElementById("gridset_name").value);
     //var code = codestring;
     //alert (code);
-    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/'+project_id+'/refresh/', {method: 'post'})
+    var myAjax = $.ajax({
+        url:"/charmming/dd_infrastructure/updateprojectinfo/"+project_id+"/refresh/",
+        type:"post",
+        success: function(responseData){
+        document.getElementById("projectinfodiv").innerHTML=responseData;}
+      });
+//    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/'+project_id+'/refresh/', {method: 'post'})
+    //Shouldn't this be in RefreshProjectInfo?
 }
 
 function RefreshAvailableConformations()
 {
     //alert ($("targets").getValue());
     //var code = "protein_id=" + $("targets").getValue() + "&setid=" + $("targets").getValue();
-    var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/dd_infrastructure/projectavailableconformations/'+document.getElementById("targets").value+'/', {method: 'post'});
+    var myAjax = $.ajax({
+        url:"/charmming/dd_infrastructure/projectavailableconformations/"+document.getElementById("targets").value+"/",
+        type:"post",
+        success: function(requestData){
+        document.getElementById("availableconformationsdiv").innerHTML = requestData;}
+        });
+//    var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/dd_infrastructure/projectavailableconformations/'+document.getElementById("targets").value+'/', {method: 'post'});
     //var myAjax = new Ajax.Updater('availableconformationsdiv', 'www.google.com', {method: 'post'})
 }
 
@@ -1083,7 +992,13 @@ function RefreshProjectConformations(project_id,addedids,removedids)
     //var code = "project_id={{ project_id }}&addedids=" + addedids + "&removedids=" + removedids;
         //var code = 'ptid=' + $("protein_types").getValue();
     //alert('/charmming/dd_infrastructure/projectconformations/{{project_id}}/'+addedids+'/'+removedids);
-    var myAjax = new Ajax.Updater('projectconformationsdiv', '/charmming/dd_infrastructure/projectconformations/'+project_id+'/'+addedids+'/'+removedids+'/', {method: 'post'})
+    var myAjax = $.ajax({
+        url:"/charmming/dd_infrastructure/projectconformations/"+project_id+"/"+addedids+"/"+removedids+"/",
+        type:"post",
+        success: function(requestData){
+        document.getElementById("projectconformationsdiv").innerHTML = requestData;}
+        });
+//    var myAjax = new Ajax.Updater('projectconformationsdiv', '/charmming/dd_infrastructure/projectconformations/'+project_id+'/'+addedids+'/'+removedids+'/', {method: 'post'})
 
     //alert(document.getElementById('conformations').style)
 }
@@ -1115,6 +1030,7 @@ function CheckUncheck()
 	    document.forms['projectdetail'].elements['conformation_id'].checked = true;            
 	}
 	      else
+        // Now jmolApplet can be referenced from all the other stuff on this page.
 	{
 	    document.forms['projectdetail'].elements['conformation_id'].checked = false;
 	}
@@ -1162,7 +1078,14 @@ function RefreshProjectInfo(projectid,action)
     //alert (document.getElementById("gridset_name").value);
     var code = 'name=' + document.getElementById("project_name").value + '&description=' + document.getElementById("project_description").value;
     //alert (code);
-    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/'+projectid+'/'+action+'/', {method: 'post', parameters: code})
+    var myAjax = $.ajax({
+        url:"/charmming/dd_infrastructure/updateprojectinfo/"+projectid+"/"+action+"/",
+        type:"post",
+        data:code,
+        success: function(requestData){
+        document.getElementById("projectinfodiv").innerHTML = requestData;}
+        });
+//    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/'+projectid+'/'+action+'/', {method: 'post', parameters: code})
 }
         
 function DisplayBlankForm()
@@ -1170,7 +1093,13 @@ function DisplayBlankForm()
     //alert (document.getElementById("gridset_name").value);
     //var code = codestring;
     //alert (code);
-    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/0/refresh/', {method: 'post'})
+    var myAjax = $.ajax({
+        url:"/charmming/dd_infrastructure/updateprojectinfo/0/refresh/",
+        type:"post",
+        success: function(requestData){
+        document.getElementById("availableconformationsdiv").innerHTML = requestData;}
+        });
+//    var myAjax = new Ajax.Updater('projectinfodiv', '/charmming/dd_infrastructure/updateprojectinfo/0/refresh/', {method: 'post'})
 }
 
 
@@ -1178,12 +1107,22 @@ function DisplayBlankForm()
 /////////////////////////////dd ligand set details
 function send_delete_ligandset_form(setid) {
     //alert('deleting set'+setid);   
-    if(setid == 'all_sets')
-	new Ajax.Request("/charmming/dd_substrate/deleteligandset/", {method:'post', asynchronous:false });
-    else
+    if(setid == 'all_sets'){
+      $.ajax({
+          url:"/charmming/dd_substrate/deleteligandset/",
+          type:"post", 
+          async:false
+        });
+//	new Ajax.Request("/charmming/dd_substrate/deleteligandset/", {method:'post', asynchronous:false });
+  } else
     {
 	//alert ('deleting set: '+setid);
-	new Ajax.Request("/charmming/dd_substrate/deleteligandset/"+setid, {method:'post', asynchronous:false});
+  $.ajax({
+      url:"/charmming/dd_substrate/deleteligandset/"+setid,
+      type:"post",
+      async:false
+    })
+//	new Ajax.Request("/charmming/dd_substrate/deleteligandset/"+setid, {method:'post', asynchronous:false});
     }
     //var viewgridsetsframe = parent.document.getElementById('viewgridsetscontainer');
     //viewgridsetsframe.src = viewgridsetsframe.src;
@@ -1261,7 +1200,14 @@ function RemoveLigands(set_id)
 function RefreshSetInfo(set_id)
 {
     var code = '&name=' + document.getElementById("set_name").value + '&description=' + document.getElementById("set_description").value;
-    var myAjax = new Ajax.Updater('setinfodiv', '/charmming/dd_substrate/updateligandsetinfo/'+set_id+'/update/', {method: 'post', parameters: code})
+    var myAjax = $.ajax({
+        url:"/charmming/dd_substrate/updateligandsetinfo/"+set_id+"/update/",
+        type:"post",
+        data:code,
+        success: function(requestData){
+        document.getElementById("setinfodiv").innerHTML = requestData;}
+        });
+//    var myAjax = new Ajax.Updater('setinfodiv', '/charmming/dd_substrate/updateligandsetinfo/'+set_id+'/update/', {method: 'post', parameters: code})
 }
     
 function DisplaySetInfo(set_id)
@@ -1269,7 +1215,13 @@ function DisplaySetInfo(set_id)
     //alert (document.getElementById("gridset_name").value);
     //var code = codestring;
     //alert (code);
-    var myAjax = new Ajax.Updater('ligandsetinfodiv', '/charmming/dd_substrate/updateligandsetinfo/'+set_id+'/refresh/', {method: 'post'})
+    var myAjax = $.ajax({
+        url:"/charmming/dd_substrate/updateligandsetinfo/"+set_id+"/refresh/",
+        type:"post",
+        success: function(requestData){
+        document.getElementById("ligandsetinfodiv").innerHTML = requestData;}
+        });
+//    var myAjax = new Ajax.Updater('ligandsetinfodiv', '/charmming/dd_substrate/updateligandsetinfo/'+set_id+'/refresh/', {method: 'post'})
 }
 
 function RefreshAvailableLigands()
@@ -1277,7 +1229,13 @@ function RefreshAvailableLigands()
     //alert ($("targets").getValue());
     //var code = "protein_id=" + $("targets").getValue() + "&setid=" + $("targets").getValue();
     //alert ('/charmming/dd_substrate/setavailableligands/'+document.getElementById("avaiableligandsets").value+'');
-    var myAjax = new Ajax.Updater('availableligandsdiv', '/charmming/dd_substrate/setavailableligands/'+document.getElementById("avaiableligandsets").value+'', {method: 'post'})
+    var myAjax = $.ajax({
+        url:"/charmming/dd_substrate/setavailableligands"+document.getElementById("availableligandsets").value+'',
+        type:"post",
+        success: function(requestData){
+        document.getElementById("availableligandsdiv").innerHTML = requestData;}
+        });
+//    var myAjax = new Ajax.Updater('availableligandsdiv', '/charmming/dd_substrate/setavailableligands/'+document.getElementById("avaiableligandsets").value+'', {method: 'post'})
     //var myAjax = new Ajax.Updater('availableconformationsdiv', 'www.google.com', {method: 'post'})
 }
 
@@ -1288,8 +1246,13 @@ function RefreshSetLigands(set_id,addedids,removedids)
     //var code = "project_id={{ project_id }}&addedids=" + addedids + "&removedids=" + removedids;
         //var code = 'ptid=' + $("protein_types").getValue();
     //alert('/charmming/dd_infrastructure/projectconformations/{{project_id}}/'+addedids+'/'+removedids);
-    //alert('/charmming/dd_substrate/setligands/'+set_id+'/'+addedids+'/'+removedids+'/');
-    var myAjax = new Ajax.Updater('setligandsdiv', '/charmming/dd_substrate/setligands/'+set_id+'/'+addedids+'/'+removedids+'/', {method: 'post'})
+    var myAjax = $.ajax({
+        url:"/charmming/dd_substrate/setligands"+set_id+"/"+addedids+"/"+removedids+"/",
+        type:"post",
+        success: function(requestData){
+        document.getElementById("setligandsdiv").innerHTML = requestData;}
+        });
+    //var myAjax = new Ajax.Updater('setligandsdiv', '/charmming/dd_substrate/setligands/'+set_id+'/'+addedids+'/'+removedids+'/', {method: 'post'})
 
     //alert(document.getElementById('conformations').style)
 }
@@ -1361,16 +1324,30 @@ function RefreshLigandSetInfo(ligandsetid,action)
     //alert (document.getElementById("gridset_name").value);
     //var code = 'name=' + document.getElementById("ligandset_name").value + '&description=' + document.getElementById("ligandset_description").value;
     var code = 'name=' + $("ligandset_name").value + '&description=' + $("ligandset_description").value;
+    //TODO: Will this have to change for jQuery...?
     //alert (code);
-    var myAjax = new Ajax.Updater('ligandsetinfodiv', '/charmming/dd_substrate/updateligandsetinfo/'+ligandsetid+'/'+action+'/', {method: 'post', parameters: code})
+    var myAjax = $.ajax({
+        url:'/charmming/dd_substrate/updateligandsetinfo/'+ligandsetid+'/'+action+'/',
+        type:"post",
+        data:code,
+        success: function(requestData){
+        document.getElementById("ligandsetinfodiv").innerHTML = requestData;}
+        });
+//    var myAjax = new Ajax.Updater('ligandsetinfodiv', '/charmming/dd_substrate/updateligandsetinfo/'+ligandsetid+'/'+action+'/', {method: 'post', parameters: code})
 }
         
 function DisplayBlankLigandForm()
-{
+{ //Can't you just do this by calling RefreshLigandSetInfo with 0, refresh?
     //alert (document.getElementById("gridset_name").value);
     //var code = codestring;
     //alert (code);
-    var myAjax = new Ajax.Updater('ligandsetinfodiv', '/charmming/dd_substrate/updateligandsetinfo/0/refresh/', {method: 'post'})
+    var myAjax = $.ajax({
+        url:'/charmming/dd_substrate/updateligandsetinfo/0/refresh/',
+        type:"post",
+        success: function(requestData){
+        document.getElementById("ligandsetinfodiv").innerHTML = requestData;}
+        });
+//    var myAjax = new Ajax.Updater('ligandsetinfodiv', '/charmming/dd_substrate/updateligandsetinfo/0/refresh/', {method: 'post'})
 }
 
 
@@ -1383,18 +1360,29 @@ function RefreshDSFLigands()
     //var code = "ptid=" + $("protein_types").getValue() + "&setid=" + $("gridsets").getValue();
     //alert (code);
 //good    var myAjax = new Ajax.Updater('ligandsdiv', '/charmming/dd_infrastructure/updatedsfligands/'+$("ligandsets").getValue()+'', {method: 'post'})
-    var myAjax = new Ajax.Updater('ligandsdiv', '/charmming/dd_infrastructure/updatedsfligands/'+$("ligandsets").getValue()+'', {method: 'post'});
+    var myAjax = $.ajax({
+        url:'/charmming/dd_infrastructure/updatedsfligands/'+$("ligandsets").getValue()+'',
+        type:"post",
+        success: function(requestData){
+        document.getElementById("ligandsdiv").innerHTML = requestData;}
+        });
+//    var myAjax = new Ajax.Updater('ligandsdiv', '/charmming/dd_infrastructure/updatedsfligands/'+$("ligandsets").getValue()+'', {method: 'post'});
     //alert(document.getElementById('conformations').style)
 }
 
 function doDDJobDetailsOnLoad(job_id){
                
     //var code = "jobid={{job.id}}";
-    currperiodicalupdater = new Ajax.Updater('jobinfo', '/charmming/dd_infrastructure/viewjobinfo/'+job_id, {method: 'post'});
+    currperiodicalupdater = $.ajax({
+        url:'/charmming/dd_infrastructure/viewjobinfo/'+job_id,
+        type:"post",
+        success: function(requestData){
+        document.getElementById("jobinfo").innerHTML = requestData;}
+        });
+//    currperiodicalupdater = new Ajax.Updater('jobinfo', '/charmming/dd_infrastructure/viewjobinfo/'+job_id, {method: 'post'});
     //code="jobid={{job.owner_id}}";
-
-        
-    currperiodicalupdater2 = new Ajax.PeriodicalUpdater('ddjobresultsdiv', '/charmming/dd_infrastructure/viewjobresults/'+job_id, {method: 'post', frequency: 5});
+    currperiodicalupdater2 = $("ddjobresultsdiv").PeriodicalUpdater('/charmming/dd_infrastructure/viewjobresults/'+job_id, {method: 'post', multiplier:5, minTimeout:100, maxTimeout:5000}, function(remoteData){document.getElementById("ddjobresultsdiv").innerHTML = remoteData;});
+//    currperiodicalupdater2 = new Ajax.PeriodicalUpdater('ddjobresultsdiv', '/charmming/dd_infrastructure/viewjobresults/'+job_id, {method: 'post', frequency: 5});
     setVisible('ddjobresultsdiv','none');
 
         //alert ("blah");
