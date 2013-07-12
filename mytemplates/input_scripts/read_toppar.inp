@@ -37,6 +37,9 @@ read param card append flex
 * QM/MM parameters (for link atom)
 *
 
+ATOMS
+mass    98 qqh    1.00800 ! link atom
+
 BONDS
 qqh  ctl2      0.0       1.0    ! Link atom
 qqh  ctl3      0.0       1.0    ! Link atom
@@ -45,6 +48,7 @@ qqh  ct1     0.0       1.0    ! Link atom
 qqh  ct2     0.0       1.0    ! Link atom
 qqh  ct3     0.0       1.0    ! Link atom
 qqh  nh1     0.0       1.0    ! Link atom
+qqh  x       0.0       1.0    ! Link atom
 
 ANGLES
 qqh  ctl2   ctl2    0.0        0.0    ! Link atom
@@ -60,6 +64,9 @@ qqh  ct1  ct2    0.0        0.0    ! Link atom
 qqh  ct2  ct1    0.0        0.0    ! Link atom
 qqh  ct1  ct3    0.0        0.0    ! Link atom
 qqh  ct3  ct1    0.0        0.0    ! Link atom
+qqh  x    x      0.0        0.0    ! Link atom
+x    qqh  x      0.0        0.0    ! Link atom
+
 
 
 NONBONDED

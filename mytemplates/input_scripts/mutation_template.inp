@@ -108,6 +108,8 @@ set MutSegi {{ MutSegi }}                          ! Segment Name
 ! WRITE CRD, PSF, PDB
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+ioformat extend
+
 write psf  card name {{ MutFile }}.psf
 * psf for mutated protein
 *
