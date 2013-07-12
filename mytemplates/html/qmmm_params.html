@@ -1,10 +1,15 @@
-<hr width="70%">
+<tr class="qmmm_params">
+<td>
+<hr style="width:70%">
   Exchange: <select size="1" name="qmmm_exchange">
               <option value="HF" selected>HF</option>
               <option value="B">B</option>
               <option value="B3">B3</option>
             </select><br>
 <br />
+</td></tr>
+<tr class="qmmm_params">
+<td>
   Charge: <select size="1" name="qmmm_charge">
             <option value="-5"> -5 </option>
             <option value="-4"> -4 </option>
@@ -18,20 +23,32 @@
             <option value="4"> +4 </option>
             <option value="5"> +5 </option>
           </select><br>
-<br />
+          <br />
+          </td>
+          </tr>
+<tr class="qmmm_params">
+  <td>
   Correlation: <select size="1" name="qmmm_correlation">
                   <option value="None" selected>None</option>
                   <option value="LYP">LYP</option>
                </select><br>
-<br />
+               <br />
+              </td>
+              </tr>
+<tr class="qmmm_params">
+  <td>
   Basis Set: <select size="1" name="qmmm_basisset">
                  <option value="STO-3G" selected>STO-3G</option>
                  <option value="3-21G*">3-21G*</option>
                  <option value="6-31G*">6-31G*</option>
              </select><br>
-<br />
+             <br />
+            </td>
+            </tr>
+<tr class="qmmm_params">
+  <td>
   Multiplicity: <select size="1" name="qmmm_multiplicity">
-                  <option value="1" select>1</option>
+                  <option value="1" selected>1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
                   <option value="4">4</option>
@@ -42,35 +59,88 @@
                   <option value="9">9</option>
                   <option value="10">10</option>
                 </select><br />
-
-                <p class="fontmed">Define QM region: define qmregion sele <input type="text" id="qmsele" name="qmsele" {% if atomselection %}value="{{atomselection.selectionstring}}"{% endif %}> end</p><br />
-<a onclick="goto_atomselect();">Select atoms graphically</a>
+              </td>
+              </tr>
+<tr class="qmmm_params">
+  <td>
+    <p class="fontmed">Define QM region: define qmregion sele <input type="text" id="qmsele" name="qmsele" {% if selectionstring %}value="{{selectionstring}}"{% endif %}> end</p><br />
+    </td>
+    </tr>
+<tr class="qmmm_params">
+  <td>
+    <button onclick="goto_atomselect();">Select atoms graphically</button>
+    </td>
+  </tr>
+  <tr class="qmmm_params">
+    <td>
 <p class="fontmed">Enter number of link atoms (entering 0 causes CHARMMing to automatically determine the link atoms): 
 <input type="hidden" value="" id="source" name="source">
 <input type="hidden" value="" id="task_id" name="task_id">
-
-<!-- <div id="dialog_coords_alert" title="No coordinates present.">
+</td></tr>
+<tr><td>
+ <div id="dialog_coords_alert" title="No coordinates present.">
   <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
   Please perform at least one calculation on the full atom set before performing QM/MM level simulations.</p>
 </div>
+</td></tr>
+<tr><td>
 <script type="text/javascript"> 
-        $(function($){
-              $( "#dialog_coords_alert").dialog({
-                resizable:false,
-                height:200,
-                width:600,
-                modal:true,
-                autoOpen:false,
-                buttons:{
-                "OK":function(){
-                $(this).dialog("close");
-                }
-              }
-            });
-          });
-      jQuery.noConflict();
-    </script> -->
-<input type="text" name="num_linkatoms" id="num_linkatoms" value="0" size="4" onKeyUp="writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_linkatoms'),makeUniqueDiv('linkatom_lines'));">
-<div id="linkatom_lines"></div></p>
-<hr width="70%">
+  function showHideQM(){
+    if($("#useqmmm").is(":checked")){
+      $(".qmmm_params").show();
+      $("#usepbc").attr("disabled",true);
+      $("#usepbc").attr("checked",false); //just in case
+    }else{
+      $(".qmmm_params").hide();
+      $("#usepbc").attr("disabled",false);
+    }
+  }
+  $(function($){
+        $( "#dialog_coords_alert").dialog({
+          resizable:false,
+          height:200,
+          width:600,
+          modal:true,
+          autoOpen:false,
+          buttons:{
+          "OK":function(){
+          $(this).dialog("close");
+          }
+        }
+      });
+    });
+</script>
+</td></tr>
+<tr class="qmmm_params"><td>
+    <input type="text" name="num_linkatoms" id="num_linkatoms" value="0" size="4" onKeyUp="writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_linkatoms'),makeUniqueDiv('linkatom_lines'));">
+</td></tr>
+<tr class="qmmm_params"><td>
+    <div id="linkatom_lines"></div>
+</td></tr>
+<tr class="qmmm_params"><td>
+    <hr style="width:70%">
+</td></tr>
+<tr class="qmmm_params"><td>
+<div id="load_after_everything">
+
+{% if lonepairs %}{% comment %} You need one to submit the selection so this works great{%endcomment%}
+<script>
+  $(document).ready(function(){
+    $("#num_linkatoms").val("{{num_linkatoms}}")
+    writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_linkatoms'),makeUniqueDiv('linkatom_lines'));
+    {%for lonepair in lonepairs%}
+    $("#linkqm"+"{{lonepair.divid}}").val("{{lonepair.qmresid}}");
+    $("#linkmm"+"{{lonepair.divid}}").val("{{lonepair.mmresid}}");
+    $("#qmatomtype"+"{{lonepair.divid}}").val("{{lonepair.qmatomname}}");
+    $("#mmatomtype"+"{{lonepair.divid}}").val("{{lonepair.mmatomname}}");
+    $("select[name=linkqmsegid{{lonepair.divid}}]").val("{{lonepair.qmsegid}}");
+    $("select[name=linkmmsegid{{lonepair.divid}}]").val("{{lonepair.mmsegid}}");{%endfor%}
+    $("#useqmmm").attr("checked",true);
+    $(".qmmm_params").show();
+//    {%for host in qmhosts %}$("#{{host.0}}").val("{{host.1}}");{%endfor%}
+//    {%for host in mmhosts %}$("#{{host.0}}").val("{{host.1}}");{%endfor%}
+  });
+</script>
+{%endif%}
 </div>
+</td></tr>

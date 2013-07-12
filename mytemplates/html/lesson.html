@@ -1,6 +1,5 @@
-<center>
-<h1>Lesson {% ifequal lesson.curStep 4 %}: <font color="red">Completed</font> {% endifequal %}
-</h1></center>
+<h1 class="center_header">Lesson {% ifequal lesson.curStep 4 %}: <span style="color:red">Completed</span> {% endifequal %}
+</h1>
 
 Lesson Objectives<br>
 <li> List objectives here </li>
@@ -18,32 +17,32 @@ If the value at each index/step is 2 then the step is currently running
 
 {% if lesson %}
    {% ifequal html_step_list.0 1 %}
-      <font color="red"> Step 1: Upload Done </font><br>
+      <span style="color:red"> Step 1: Upload Done </span><br>
       <p> Insert text here </p>
    {% endifequal %}
 
    {% ifequal html_step_list.1 2 %}
 
-      <font color="red"> Step 2: Solvation Running </font><br>
+      <span style="color:red"> Step 2: Solvation Running </span><br>
       <p> Insert status text here </p>
    {% endifequal %}
    {% ifequal html_step_list.1 1 %}
 
-      <font color="red"> Step 2: Solvation Done </font><br>
+      <span style="color:red"> Step 2: Solvation Done </span><br>
       <p>  Insert status text here </p>
    {% endifequal %}
 
    {% ifequal html_step_list.2 2 %}
-      <font color="red"> Step 3: Minimization Running </font><br>
+      <span style="color:red"> Step 3: Minimization Running </span><br>
       <p> Insert status text here </p>
    {% endifequal %}
    {% ifequal html_step_list.1 1 %}
-      <font color="red"> Step 2: Solvation Done </font><br>
+      <span style="color:red"> Step 2: Solvation Done </span><br>
       <p> Insert text here </p>
    {% endifequal %}
    <!-- This is the lesson problem object -->
    {% if lessonproblem %}
-      <font color="red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</font> <br>
+      <span style="color:red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</span> <br>
       {{lessonproblem.description}}
    {% endif %} 
 {% endif %}

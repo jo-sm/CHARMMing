@@ -1,42 +1,41 @@
 {% extends "html/skeleton.html" %}
 
 {% block content %}
-<div id="mainpage">
- <center>
-   <div>
+<div id="mainpage" style="margin-left:auto;margin-right:auto;width:30em">
+   <div style="text-align:center">
       <h1>Upload Structure</h1>
-      <hr width="50%">
+      <hr>
+   <h3>What would you like to do?</h3>
    </div>
-   <h3>What would you like to do?<h3>
-   <hr width="50%">
+   <hr>
    <form id="choose_options">
-      <table cellspacing="4" cellpadding="7">
+      <table style="border-spacing:1em;">
          <tr>
             <td><p class="fontlarge">Retrieve a PDB using a PDB ID </p></td> <td><input type="radio" name="submit_structure_option" id="download_pdb" onclick="displayFields('pdb_download');setOptionId(this);"></td>
             <td><a href="" title="Each PDB in http://www.pdb.org has a alphanumeric code assoicated with it. Type in the code and this interface will automatically retrieve then parse it.">?</a></td>
          </tr>
-         <tr><td colspan=3><hr width="100%"></td></tr>
+         <tr><td colspan=3><hr></td></tr>
          <tr>
             <td><p class="fontlarge">Upload my own PDB file</p></td><td> <input type="radio" name="submit_structure_option" id="upload_pdb" onclick="displayFields('pdb_upload');setOptionId(this);"></td>
             <td><a href="" title="If you have a custom generated input file,then upload it here and the interface will put it in CHARMM format.">?</a></td>
          </tr>
-         <tr><td colspan=3><hr width="100%"></td></tr>
+         <tr><td colspan=3><hr></td></tr>
          <tr>
             <td><p class="fontlarge">Upload my own CRD/PSF file</p></td><td> <input type="radio" name="submit_structure_option" id="upload_crd" onclick="displayFields('crd_upload');setOptionId(this);"> 
 	    <input type="hidden" name="submit_structure_option" id="upload_psf"></td>
             <td><a href="" title="CRD files are CHARMM-specific files that have a similar function as PDB files. If you upload a CHARMM CRD file, you must also upload a CHARMM PSF file.">?</a></td>
          </tr>
-         <tr><td colspan=3><hr width="100%"></td></tr>
+         <tr><td colspan=3><hr></td></tr>
          <tr>
             <td><p class="fontlarge">Create my own amino acid sequence </p> </td><td><input type="radio" name="submit_structure_option" id="make_pdb" onclick="displayFields('pdb_make');setOptionId(this);"></td>
             <td><a href="" title="You can define your own sequence by typing in the amino acids you want. Use the three letter abbreviation followed by a space (e.g. ALA GLY TYR).">?</a></td>
          </tr>
-         <tr><td colspan=3><hr width="100%"></td></tr>
+         <tr><td colspan=3><hr></td></tr>
         <tr>
-          <td><p class="frontlarge">Build a custom ligand using JSmol</p> </td><td><input type="radio" name="submit_structure_option" id="make_ligand" onclick="setOptionId(this);send_ligand();"></td>
+          <td><p class="fontlarge">Build a custom ligand using JSmol</p> </td><td><input type="radio" name="submit_structure_option" id="make_ligand" onclick="setOptionId(this);send_ligand();"></td>
           <td><a href="" title="You can define your own ligand by clicking atoms and bonds on a 3D canvas.">?</a></td>
         </tr>
-        <tr><td colspan=3><hr width="100%"></td></tr> 
+        <tr><td colspan=3><hr></td></tr> 
       </table>
    </form>
 
@@ -47,9 +46,9 @@
    {% endifequal %}
       <fieldset class="structure">
          <legend class="login">Submit Structure</legend>
-            <div id='pdb_upload' style="display:none"><p><label for="id_pdb"> PDB File Uploader </label> {{ form.pdbupload }} {{ form.pdbupload_file }}</div>
-            <div id='crd_upload' style="display:none"><p><label for="id_pdb"> CRD File Uploader </label> {{ form.pdbupload }} {{ form.pdbupload_file }}</div>
-            <div id='psf_upload' style="display:none"><p><label for="id_psf"> PSF File Uploader </label> {{ form.psfupload }} {{ form.psfupload_file }}</div>
+            <div id='pdb_upload' style="display:none"><p><label for="id_pdbupload"> PDB File Uploader </label> {{ form.pdbupload }} {{ form.pdbupload_file }}</div>
+            <div id='crd_upload' style="display:none"><p><label for="id_crdupload"> CRD File Uploader </label> {{ form.crdupload }} {{ form.crdupload_file }}</div>
+            <div id='psf_upload' style="display:none"><p><label for="id_psfupload"> PSF File Uploader </label> {{ form.psfupload }} {{ form.psfupload_file }}</div>
             <div id='pdb_download' style="display:none"><p><label for="id_pdbid"> PDB.org ID </label> {{ form.pdbid }} {{ form.proto }} </div>
             <div id='ligand_make' style="display:none"></div> <!-- This div is only here to make the scripts on this page work with the custom ligand builder -->
             <div id='pdb_make' style="display:none">
@@ -98,6 +97,7 @@
       </fieldset>
       <br />
       {% if lesson_ok %}
+      <div style="text-align:center;">
        What Lesson is this structure associated with?<br>
         <select name="lesson" id="lesson"> 
          <option value="nolesson" selected> No Lesson </option>
@@ -105,43 +105,10 @@
          <option value="lesson2"> Lesson 2 </option>
          <option value="lesson3"> Lesson 3 </option>
          <option value="lesson4"> Lesson 4 </option>
-        </select><br><br>
+       </select><br><br>
       {% endif %}
-
-      <div id="bln_params" style="display:none; font-size: small;">
-        <table>
-          <tr> 
-             <td widtth="50%" valign="top"><b>Domain Mapping</b><br />
-                 Interaction between various domains are scaled by the domainScale parameter below. You can make each segment
-                 a separate domain, or you can provide your own domain. For example, if you give a mapping 10:20:30, then residues
-                 1-10 will be one domain, 11-20 another, and 21-30 yet another.
-             </td>
-             <td width="50%" valign="top">
-                <input type="radio" name="bln_dm_uploadtype" value="auto" checked> Each segment is its own domain <br />
-                <input type="radio" name="bln_dm_uploadtype" value="box"> Enter manually {{ form.bln_dm_string }}
-             </td>
-          </tr>
-          <tr>
-             <td width="50%">nScale {{ form.bln_nScale }}</td>
-             <td width="50%">domainScale {{ form.bln_domainScale }}</td>
-          </tr>
-          <tr>
-             <td width="33%">kBondHelix {{ form.bln_kBondHelix }}</td>
-             <td width="33%">kAngleHelix {{ form.bln_kAngleHelix }}</td>
-          </tr>
-          <tr>
-             <td width="33%">kBondSheet {{ form.bln_kBondSheet }}</td>
-             <td width="33%">kAngleSheet {{ form.bln_kAngleSheet }}</td>
-          </tr>
-          <tr>
-             <td width="33%">kBondCoil {{ form.bln_kBondCoil }}</td>
-             <td width="33%">kAngleCoil {{ form.bln_kAngleCoil }}</td>
-          </tr>
-        </table>
-      </div>
-
-
       <input type="submit" value="Submit Structure"/>
-   </form>
+    </div>
+    </form>
 </div>
 {% endblock %}

@@ -1,18 +1,11 @@
 {% extends "html/skeleton.html" %}
 
 {% block content %}
-<div id="mainpage">
-  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
-  <br />
-  <h1 align="center">Energy</h1>
+  <h1 class="center_header">Energy</h1>
+  <div id="mainpage">
   <div id="change_ener">
-    <div id="script_dothis" style="display:none;">
-       makeUniqueDiv('ener_form');
-       makeUniqueDiv('solvate_implicitly');
-       refreshToolTips();
-    </div>
     {% if energy_lines %}
-       <hr noshade width="80%" size=3%>
+       <hr class="noshade-hr">
        <div style="font:12px,Courier,fixed;position:relative;left:25%;top:00px;width:90%;text-align:left;">
          <h3> Previously Calculated Energy </h3>
          <pre>
@@ -22,27 +15,24 @@
          </pre>
        </div> 
   {% endif %}
-  <hr noshade width="80%" size="3%">
-
-  <form id="ener_form" method="post"  action="." onsubmit="return send_form_energy(this,makeUniqueDiv('change_ener'),[{%for item in filename_list%}'{{item}}',{% endfor%}]);">
-    <h2 align="center">Working structure: {{ ws_identifier }}</h2>
-    <center>
+  <hr class="noshade_hr">
+  <div style="text-align:center">
+  <form id="ener_form" method="post"  action="." onsubmit="send_form_energy(this,'mainpage',[{%for item in filename_list%}'{{item}}',{% endfor%}]);return false;">
+    <h2>Working structure: {{ ws_identifier }}</h2>
 
       {% include "html/taskfiles.html" %}
       <br />
 
-      <table>
-         <tr><td width="490px"><p class="fonrmed">Use QM/MM calculations</td><td width="20px"><input id="useqmmm" type="checkbox" name="useqmmm" onclick="checkPatch(makeUniqueDiv('useqmmm'),makeUniqueDiv('qmmm_parameters'));removePBC('usepbc',this);"></td></tr>
-         <div id="qmmm_parameters" style="display:none;">
+      <table class="qm_table">
+        <tr><td><p class="fonrmed">Use QM/MM calculations<input id="useqmmm" type="checkbox" name="useqmmm" onclick="showHideQM();"></td></tr>
            {% include "html/qmmm_params.html" %}
-         </div>
-	 <tr><td><p class="fonrmed">Use Periodic Boundary Conditions (PBC)</td><td><input id="usepbc" type="checkbox" name="usepbc"></td></tr>
-         <tr><td><p class="fontmed">Solvate implicitly with SCPISM</td><td><input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></td></tr>
+	 <tr><td><p class="fonrmed">Use Periodic Boundary Conditions (PBC)<input id="usepbc" type="checkbox" name="usepbc"></td></tr>
+         <tr><td><p class="fontmed">Solvate implicitly with SCPISM<input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></td></tr>
       </table>
-
        <input type="hidden" name="form_submit" value="1" />
        <input type="submit" value="Calculate Energy" />
-    </center>
   </form>
+  </div>
+</div>
 </div>
 {% endblock %}

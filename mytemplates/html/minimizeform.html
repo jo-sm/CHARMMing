@@ -2,23 +2,17 @@
 
 {% block content %}
 <div id="mainpage">
-  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
-  <br />
-  <br />
-  <br />
-  <h1 align="center">Minimize</h1>
-  <hr noshade width="80%" size=3%>
+  <h1 class="center_header">Minimize</h1>
+  <hr class="noshade_hr">
   <form id="min_form" method="post"  action=".">
     <div id='change_min' style="text-align:center;">
-      <center>
   
         <h2>Working structure: {{ ws_identifier }}</h2>
 
         {% include "html/taskfiles.html" %}
-      </center>
       <br />
 
-      <div id="script_dothis" style="display:none;">
+<!--      <div id="script_dothis" style="display:none;">
          makeUniqueDiv('min_form');
          makeUniqueDiv('solvate_implicitly');
          makeUniqueDiv('run_time_minestimate');
@@ -28,50 +22,52 @@
          makeUniqueDiv('apply_shake');
          refreshToolTips();
          var GB_ROOT_DIR = "/charmming/greybox/greybox/";
-      </div>
+       </div>
+This is vestigial code I hope. -->
 
-      <center>
-         <hr noshade width="80%" size=3%>
-         <h2 align="center">Minimization Parameters</h2>
-         <table>
-           <tr><td><p><label for="id_sdsteps"> SDSteps</td><td></label> <input type="text" name="sdsteps" id="sdsteps" value=100 size=5> </P></td></tr><br />
-           <tr><td><p><label for="id_abnr"> ABNR</td><td></label> <input type="text" name="abnrsteps" id="abnr" value=1000 size=5>  </P></td></tr><br />
-           <tr><td><p><label for="id_tolg"> Gradient tolerance</td><td></label> <input type="text" name="tolg" id="tolg" value=0.05 size=5> </P></td></tr>
+         <hr class="noshade_hr">
+         <h2 class="center_header">Minimization Parameters</h2>
+         <table class="qm_table" style="text-align:center">
+           <tr><td><p><label for="sdsteps"> SDSteps</label> <input type="text" name="sdsteps" id="sdsteps" value=100 size=5> </P></td></tr>
+           <tr><td><p><label for="abnr"> ABNR</label> <input type="text" name="abnrsteps" id="abnr" value=1000 size=5>  </P></td></tr>
+           <tr><td><p><label for="tolg"> Gradient tolerance</label> <input type="text" name="tolg" id="tolg" value=0.05 size=5> </P></td></tr>
          </table>
-         <hr noshade width="80%" size=3%>
+         <hr class="noshade-hr">
 
-         <h2 align="center">Other options</h2>
-         <table width="600px">
-           <tr><td width="490px"><p class="fonrmed">Use QM/MM calculations</td><td width="20px"><input id="useqmmm" type="checkbox" name="useqmmm" onclick="checkPatch(makeUniqueDiv('useqmmm'),makeUniqueDiv('qmmm_parameters'));removePBC('usepbc',this);"></td></tr>
-             <div id="qmmm_parameters" style="display:none;">
+         <h2  class="center_header">Other options</h2>
+         <table class="qm_table" style="text-align:center">
+           <tr><td><p class="fonrmed">Use QM/MM calculations<input id="useqmmm" type="checkbox" name="useqmmm" onclick="showHideQM();"></td></tr>
                 {% include "html/qmmm_params.html" %}
-             </div>
-           <tr><td><p class="fontmed">Use Periodic Boundary Conditions (PBC) in minimization</td><td><input id="usepbc" type="checkbox" name="usepbc"></td></tr>
-           <tr><td><p class="fontmed">Minimize only hydrogens (fix non-hydrogens)</td><td><input id="fixnonh" type="checkbox" name="fixnonh"></td></tr>
-           <tr><td><p class="fontmed">Apply patch</td><td><input id="usepatch" type="checkbox" name="usepatch" onclick="checkPatch(makeUniqueDiv('usepatch'),makeUniqueDiv('patch_area'));"></td></tr>
+           <tr><td><p class="fontmed">Use Periodic Boundary Conditions (PBC) in minimization<input id="usepbc" type="checkbox" name="usepbc"></td></tr>
+           <tr><td><p class="fontmed">Minimize only hydrogens (fix non-hydrogens)<input id="fixnonh" type="checkbox" name="fixnonh"></td></tr>
+           <tr><td><p class="fontmed">Apply patch<input id="usepatch" type="checkbox" name="usepatch" onclick="checkPatch(makeUniqueDiv('usepatch'),makeUniqueDiv('patch_area'));"></td></tr>
          </table>
 
-         <table width="600px">
-           <tr><td width="490px"><p class="fontmed">Use restraints</td><td width="20px"><input type="checkbox" id="use_restraints" name="apply_restraints" onclick="checkRestraints(makeUniqueDiv('use_restraints'),makeUniqueDiv('apply_restraints'));"></td></tr>
-           <div id="apply_restraints" style="display:none"></p>
+         <table class="qm_table" style="text-align:center">
+           <tr><td><p class="fontmed">Use restraints<input type="checkbox" id="use_restraints" name="apply_restraints" onclick="checkRestraints(makeUniqueDiv('use_restraints'),makeUniqueDiv('apply_restraints'));"></td></tr>
+          <tr><td>
+           <div id="apply_restraints" style="display:none">
               <p class="fontmed">Enter number of separate minimizations that will use restraints:<input type="text" size="4" id="num_restraints" name="num_restraints" onkeyup="writeRestraintLines('restraint_lines');"><br>
-              <div id='restraint_lines'></p>
-           </div>
-           <tr><td><p class="fontmed">Use shake</p></td><td><input type="checkbox" id="use_shake" name="apply_shake" onclick="checkShake(makeUniqueDiv('use_shake'),makeUniqueDiv('apply_shake'));" checked></td></tr>
+              <div id='restraint_lines'></div>
+              </div>
+          </td></tr>
+          <tr><td><p class="fontmed">Use shake<input type="checkbox" id="use_shake" name="apply_shake" onclick="checkShake(makeUniqueDiv('use_shake'),makeUniqueDiv('apply_shake'));" checked></p></td></tr>
+          <tr><td>
            <div id="apply_shake" class="fontmed" style="display:block">
               {% include 'html/shake_params.html' %}
-           </div>
-           <tr><td><p class="fontmed">Solvate implicitly with SCPISM</td><td><input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></td></tr>
+            </div>
+            </td></tr>
+           <tr><td><p class="fontmed">Solvate implicitly with SCPISM<input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></td></tr>
          </table>
-         <hr noshade width="80%" size=3%>
+         <hr class="noshade_hr">
          <br/>
-           <i>   The estimated run time, based on your options, for this job is <div id='run_time_minestimate'></div> minutes.</i>
+         <i>   The estimated run time, based on your options, for this job is </i><div id='run_time_minestimate'></div><i> minutes.</i>
+        <!-- TODO: Find why run time estimate doesn't exist. We probably have a function that vanished. -->
          <br />
          <input type="submit" value="Minimize" />
          <br />
          <br />
 
-      </center>
     </div>
   </form>
 </div>

@@ -2,17 +2,16 @@
 
 {% block content %}
 <div id="mainpage">
-  <h1 align="center">Select/Edit PDB</h1>
+  <h1 style="text-align:center">Select/Edit PDB</h1>
 
   <div class="status">
-    <center>
 
     <form method="post" action=".">
-    <table class="sortable resizable" border=2>
+    <table class="sortable resizable" style="border: solid 2px black;margin-left;auto;margin-right:auto;width:100%">
        <tr><th>Name</th><th>Title</th><th>Date</th><th>Select this PDB</th><th>Delete <br> <a href="" onclick="send_delete_form('all_files');">All Files</a></th></tr>
        {% for PDBFile in user_pdbs %}
-          {% if PDBFile.selected %}
-            <tr bgcolor="yellow">
+          {% ifequal PDBFile.selected "y" %}
+            <tr>
               <td> {{PDBFile.name}} </td><td> {{ PDBFile.title }} </td> 
               <td> {{ PDBFile.pub_date }} </td>
               <td> <input type="radio" name="viewpdbs" id={{ PDBFile.name }} onclick="send_select_form(this);parent.showLesson('{{PDBFile.lesson_type}}');" checked></td>
@@ -21,11 +20,10 @@
             <tr><td> {{PDBFile.name}} </td><td>{{ PDBFile.title }} </td> <td>  {{ PDBFile.pub_date }} </td><td>
               <input type="radio" name="viewpdbs" id={{ PDBFile.name }} onclick="send_select_form(this);parent.showLesson('{{PDBFile.lesson_type}}');"></td>
               <td><a href="" onclick="send_delete_form('{{PDBFile.name}}')">X</a></td></tr>
-          {% endif %}
+          {% endifequal %}
        {% endfor %}
     </table>
     </form>
-    </center>
   </div>
 </div>
 {% endblock %}

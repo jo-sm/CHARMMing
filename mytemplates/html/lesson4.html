@@ -4,18 +4,16 @@
 <div id="mainpage" style="text-align: left;">
 
 {% autoescape off %}
-<center>
-<h1>Lesson 4{% ifequal lesson4.curStep 4 %}: <font color="red">Completed</font> {% endifequal %}</h1>
-</center>
+<h1 class="center_header">Lesson 4{% ifequal lesson4.curStep 4 %}: <span style="color:red">Completed</span> {% endifequal %}</h1>
 
 
 <p class="intro">
-  <font color="red">Lesson Objectives</font><br />
+  <span style="color:red">Lesson Objectives</span><br />
   <ul>
     <li>Demonstrate how to create a custom residue topology file (RTF)</li>
     <li>Teach the user to perform a single point energy evaluation.</li>
     <li>Explain basic QM/MM principles and perform a QM/MM energy evaluation</li>
-  </ul></p>
+  </ul>
 <br />
 
 <p class="intro">Although often used for proteins, CHARMM can also be used to simulate carbohydrates, lipids, and small molecules. In this lesson, we
@@ -35,7 +33,6 @@
     <li>The central carbon of a methylene group.</li>
     <li>The central carbon of a methyl group.</li>
   </ul>
-</p>
 <br />
 
 <p class="intro">The atoms are arranged in four groups; two methyl and two methylene groups.</p>
@@ -48,16 +45,12 @@
   title and the version line should look like:</p>
 <br />
 
-<table border align="center">
-<font face="courier,fixed">
-<pre>
+<pre style="font-family:courier;fixed">
 * Butane residue topology file
 * Made by &lt;your name&gt;
 *
 27   1
 </pre>
-</font>
-</table>
 <br />
 
 <p class="intro">The next step is to make a list of all the atoms you will use in the file. This list must contain a unique identification number as
@@ -74,14 +67,10 @@
   are ignored.</p>
 <br />
 
-<table border align="center">
-<font face="courier,fixed">
-<pre>
+<pre style="font-family:courier;fixed">
 MASS 106   HAL2  1.008000 H ! alphatic proton
 MASS 107   HAL3  1.008000 H ! alphatic proton
 </pre>
-</font>
-</table>
 <br />
 
 <p class="intro">After the four MASS lines, skip another line and paste the following two lines. The first line tells CHARMM that no patching should
@@ -91,14 +80,10 @@ MASS 107   HAL3  1.008000 H ! alphatic proton
   explicitly listed in the RTF.</p>
 <br />
 
-<table border align="center">
-<font face="courier,fixed">
-<pre>
+<pre style="font-family:courier;fixed">
 DEFA FIRS NONE LAST NONE
 AUTO ANGLES DIHE
 </pre>
-</font>
-</table>
 <br />
 
 <p class="intro">The next step is to actually define the Butane residue. A residue definition begins with the keywork RESI followed by the name of
@@ -106,13 +91,9 @@ AUTO ANGLES DIHE
   0. The final line should look like:</p>
 <br />
 
-<table border align="center">
-<font face="courier,fixed">
-<pre>
+<pre style="font-family:courier;fixed">
 Resi BUTA        0.00  ! BUTANE
 </pre>
-</font>
-</table>
 <br />
 
 <p class="intro">After this introductory line, we start defining the atoms, which are collected into their various groups. Each atom is given
@@ -122,9 +103,7 @@ Resi BUTA        0.00  ! BUTANE
   the ASCII art representation of Butane is optional (remember, characters after the exclamation mark are ignored).</p>
 <br />
 
-<table border align="center">
-<font face="courier,fixed">
-<pre>
+<pre style="font-family:courier;fixed">
 Group
 Atom  h11 HAL3    0.09 !    H2
 Atom  h12 HAL3    0.09 !     |
@@ -135,8 +114,6 @@ Atom  h21 HAL2    0.09 ! H4-C2-H5
 Atom  h22 HAL2    0.09 !     |
 Atom  c2  CTL2   -0.18 !     |
 </pre>
-</font>
-</table>
 <br />
 
 <p class="intro">OK, we're almost done! The final step is to define the bond list to tell CHARMM which atoms in the residue are bonded and finally
@@ -147,9 +124,7 @@ Atom  c2  CTL2   -0.18 !     |
   example). In this case, the bond and angle values from the parameter file are used.</p>
 <br />
 
-<table border align="center">
-<font face="courier,fixed">
-<pre>
+<pre style="font-family:courier;fixed">
 Bond h11 c1  h12 c1  h13 c1  c1 c2
 Bond h21 c2  h22 c2  c2  c3
 Bond h31 c3  h32 c3  c3  c4
@@ -166,8 +141,6 @@ ic  c1  c3  *c2 h22 0.00  0.00 -120.0  0.00 0.00
 ic  c2  c4  *c3 h31 0.00  0.00  120.0  0.00 0.00
 ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 </pre>
-</font>
-</table>
 <br />
 
 <p class="intro">The RTF is ended with the word END on a line all by itself.</p>
@@ -178,7 +151,6 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
     <li><a href="/charmming/lessons/download/lesson4/butane.psf">butane.psf</a>: the protein structure file.</li>
     <li><a href="/charmming/lessons/download/lesson4/butane.crd">butane.crd</a>: the coordinate file.</li>
   </ul>
-</p>
 
 <p class="intro">In order to start the lesson, go to the <b>Submit Structure</b> page and choose to upload your own PSF and CRD. Upload the files provided
   above. Also check the appropriate boxes to submit your own topology and parameter files. You should choose to replace the existing CHARMM topology and 
@@ -190,7 +162,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 {% if lesson4 %}
 
 {% ifequal html_step_list.0 1 %}
-  <p class="intro"><font color="red"> Step 1: Upload Done </font></p>
+  <p class="intro"><span style="color:red"> Step 1: Upload Done </span></p>
   <br />
 
   <p class="intro">With the upload complete, it is now time to see if your RTF file is correct. Please go to the <b>Energy</b> page to perform a single point
@@ -202,7 +174,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 {% ifequal html_step_list.1 2 %}
   <!-- NB: this shouldn't ever get called as the users should not navigate away from the energy page. -->
   <br />
-  <p class="intro"><font color="red"> Step 2: Energy Running</font></p>
+  <p class="intro"><span style="color:red"> Step 2: Energy Running</span></p>
   <br />
 
   <p class="intro">The energy calculation should not take very long. Please check the energy page to see when it finishes.</p>
@@ -210,7 +182,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% ifequal html_step_list.1 1 %}
   <br />
-  <p class="intro"><font color="red"> Step 2: Energy Done</font></p>
+  <p class="intro"><span style="color:red"> Step 2: Energy Done</span></p>
   <br />
 
  <p class="intro">You have successfully calculated the energy of Butane. This indicates that the RTF file you made is correct. For the next step of this
@@ -239,7 +211,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% ifequal html_step_list.2 1 %}
   <br />
-  <p class="intro"><font color="red"> Step 3: QM/MM Energy Done</font></p>
+  <p class="intro"><span style="color:red"> Step 3: QM/MM Energy Done</span></p>
   <br />
 
   <p class="intro">Now that you have evaulated the energy both classically and quantum mechanically, the final part of this lesson is to
@@ -251,7 +223,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% ifequal html_step_list.3 2 %}
   <br />
-  <font color="red"> Step 4: QM/MM minimization Running </font><br>
+  <span style="color:red"> Step 4: QM/MM minimization Running </span><br>
   <br />
 
   <p class="intro">Congratulations! You have almost completed the lesson!</p>
@@ -259,7 +231,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% ifequal html_step_list.3 1 %}
   <br />
-  <p class="intro"><font color="red"> Step 4: QM/MM Minimization Done </font></p>
+  <p class="intro"><span style="color:red"> Step 4: QM/MM Minimization Done </span></p>
   <br />
 
   <p class="intro">Congratulations! You have completed the lesson!</p>
@@ -267,7 +239,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% if lessonproblem %}
  <br />
- <p class="intro"><font color="red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</font><br />
+ <p class="intro"><span style="color:red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</span><br />
  {{lessonproblem.description}}</p>
 {% endif %}
 

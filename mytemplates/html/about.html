@@ -2,26 +2,24 @@
 
 {% block content %}
 <div id="mainpage">
-<center>
-  <h1><p class="padding">About CHARMMing</p></h1> 
-</center>
+  <h1 style="text-align:center">About CHARMMing</h1><br /> 
 
-<h2 class="intro"><p class="padding">Citation</p></h2>
-
+<h2 class="intro" style="margin-top:50px">Citation</h2>
+<br>
 <p class="intro">If you use CHARMMing in any work, please cite our paper:
 <br /><br />
 <i>Miller, B. T.; Singh, R. P.; Klauda, J. B.;
 Hodoscek M.; Brooks, B. R.; Woodcock H. L. CHARMMing: A new, flexible Web portal for CHARMM. Journal of Chemical Information
 and Modeling. 48(9), 1920-1929. 2008.</i><br />(<a href="http://pubs.acs.org/cgi-bin/abstract.cgi/jcisd8/asap/abs/ci800133b.html">Link to abstract</a>)</p>
 
-<h2 class="intro"><p class="padding">Source Code</p></h2>
+<h2 class="intro" style="margin-top:50px">Source Code</h2><br/>
 
 <p class="intro">The source code for CHARMMing can be found at <a href="http://source.charmming.org">source.charmming.org</a>
 or at <a href="http://charmming.googlecode.com">CHARMMing's Google Code site</a>.</p>
 
 
-<h2 class="intro"><p class="padding">Using the site</p></h2>
-
+<h2 class="intro" style="margin-top:50px">Using the site</h2>
+<br>
 <p class="intro">
 CHARMMing has been tested with Mozilla Firefox versions 2+ (up to and including 21). The browser must be set to accept
 cookies. It should also work with Internet Explorer 7+ and recent versions of Safari, but these have not
@@ -31,7 +29,7 @@ mobile versions for Android phones; it is the preferred browser for visualizing 
 <p class="intro">To report bugs, please e-mail btmiller@helix.nih.gov or RishiSingh@gmail.com, but please check the known problem
 list below to make sure it's not a duplicate of an issue we already know about.</p>
 
-<h2 class="intro"><p class="padding">Known Problems</p></h2>
+<h2 class="intro" style="margin-top:50px">Known Problems</h2>
 
 <ul>
   <li><p class="introlist">Occasionally, the status box will not update when a job is submitted. If this happens, please
@@ -44,9 +42,9 @@ list below to make sure it's not a duplicate of an issue we already know about.<
       instead copy the image to the clipboard and paste it into an image editing program or similar for local storage.</p></li>
 </ul>
 
-<h2 class="intro"><p class="padding">Report a bug</p></h2>
-
-<div id='error_report' name='error_report'>
+<h2 class="intro" style="margin-top:50px">Report a bug</h2>
+<br />
+<div id='error_report'>
    <p class="intro">
      If you believe you have found a bug, please report it using the form below.<br><br>
    </p>
@@ -64,25 +62,24 @@ list below to make sure it's not a duplicate of an issue we already know about.<
 </div>
 
 
-<h2 class="intro"><p class="padding">Software</p></h2>
+<h2 class="intro" style="margin-top:50px">Software</h2><br>
 
 <p class="intro">
 CHARMMing makes use of a variety of additional software.
 
 <ul>
-  <li><p class="introlist"><a href="http://web-graphics.com/mtarchive/001717.php">Bubble tooltips</a>: provides context-sensitive help.</p></li>
+  <li><p class="introlist"><a href="http://craigsworks.com/projects/qtip2/download/">qTip2</a>: provides context-sensitive help.</p></li>
   <li><p class="introlist"><a href="http://www.djangoproject.org">Django</a>: an open source Web application framework.</p></li>
   <li><p class="introlist"><a href="http://www.orangoo.com/labs/GreyBox/">GreyBox</a>: for various display functionality.</p></li>
-  <li><p class="introlist"><a href="http://www.prototypejs.org/">Protoype</a>: a general javascript framework.</p></li>
   <li><p class="introlist"><a href="http://www.dynamicdrive.com/dynamicindex1/slashdot.htm">SD Menu</a>: used to create the sidebar.</p></li>
-  <li><p class="introlist"><a href="http://www.millstream.com.au/view/code/tablekit">TableKit</a>: for table sorting.</p></li>
+  <li><p class="introlist"><a href="https://github.com/EdlinOrg/jqTableKit/">jqTableKit</a>: for table sorting.</p></li>
   <li><p class="introlist"><a href="http://www.openbabel.org">Open Babel</a>: generates hydrogens for bad heteroatoms and generates SDF files for parameter fitting.</p></li>
   <li><p class="introlist"><a href="http://sourceforge.net/projects/jsmol/">JSmol</a>: for visualization of molecules and custom ligand building.</p></li>
   <li><p class="introlist"><a href="http://webglmol.sourceforge.jp/index-en.html">GLmol</a>: for fast visualization of molecules on machines with limited resources, such as phones.</p></li>
-  <li><p class="introlist"><a href="http://jquery.com">jQuery</a>: included as part of JSmol, and used for various displays.</p></li>
+  <li><p class="introlist"><a href="http://jquery.com">jQuery</a>: for various display functionality as well as JSmol.</p></li>
+  <li><p class="introlist"><a href="http://jqueryui.com/">jQuery-UI</a>: for error/information boxes.</p></li>
 </ul>
-</p>
-
+<br><br>
 <h2 class="intro">People</h2>
 <br />
 <p class="intro">CHARMMing was developed by the Laboratory of Computational Biology. Planning and development were done by:
@@ -96,7 +93,6 @@ CHARMMing makes use of a variety of additional software.
   <li><p class="introlist">Milan Hodoscek (GENRTF)</p></li>
   <li><p class="introlist">Lee Woodcock</p></li>
 </ul>
-</p>
 
 <p class="intro">
 With special thanks to:	
@@ -109,6 +105,5 @@ With special thanks to:
 
 <br />
 <br />
-</p>
 </div>
 {% endblock %}

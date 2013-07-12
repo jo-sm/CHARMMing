@@ -4,25 +4,22 @@
 <div id="mainpage" style="text-align: left;">
 
 {% autoescape off %}
-<center>
-<h1>Lesson 2, Simulating Proteins {% ifequal lesson2.curStep 5 %}: <font color="red">Completed</font> {% endifequal %}</h1>
-</center>
+<h1 class="center_header">Lesson 2, Simulating Proteins {% ifequal lesson2.curStep 5 %}: <span style="color:red">Completed</span> {% endifequal %}</h1>
 
 <p class="intro">
-  <font color="red">Lesson Objectives</font>
+  <span style="color:red">Lesson Objectives</span>
   <ul>
     <li>Demonstrate how CHARMM can be used with proteins </li>
     <li>Teach the user how to use custom Topology and Parameter files to extend CHARMM ability to recognize residues </li>
     <li>Teach user basic usage and syntax of CHARMM</li>
   </ul>
-</p>
 <br />
 
 <p class="intro">1ZHY is the Protein Data Bank (PDB) ID of a Oxysterol binding protein complexed with cholesterol. This protein is known to transport 
   cholesterol within the cell and to the cell memebrane. It is found in high concentrations in cancer patients. The standard CHARMM topology and parameter
   files for proteins and nucleic acids do not have residue and parameter information for cholesterol, so the custom topology files below will be used with this lesson. You 
   will need to download them, along with the PDB file itself, to continue. The links are below: 
-</p></br>
+</p><br>
 
 <p class="intro">
   <ul>
@@ -30,7 +27,7 @@
     <li><a href="/charmming/lessons/download/lesson2/par_all27_cmap_chol.prm">par_all27_cmap_chol.prm</a> (the parameter file)</li>
     <li><a href="/charmming/lessons/download/lesson2/top_all27_prot_lipid.rtf">top_all27_prot_lipid.rtf</a> (the topology file)</li>
   </ul>
-</p><br />
+<br />
 
 
 <p class="intro">Go to the <b>Submit Structure</b> page, select &quot;Upload my own PDB file&quot;, and select the 1ZHY PDB file for uploading. When you reach the
@@ -41,7 +38,7 @@
 {% if lesson2 %}
  {% ifequal html_step_list.0 1 %}
    <br />
-   <p class="intro"><font color="red"> Step 1: Upload Done </font></p>
+   <p class="intro"><span style="color:red"> Step 1: Upload Done </span></p>
    <br />
 
    <p class="intro">Congratulations! You successfully uploaded the PDB file along with the custom topology and parameter!</p>
@@ -56,8 +53,8 @@
  
  {% ifequal html_step_list.1 2 %}
    <br />
-   <p class="intro"><font color="red"> Step 2: Solvation Running </font></p>
-   </br>
+   <p class="intro"><span style="color:red"> Step 2: Solvation Running </span></p>
+   <br>
 
    <p class="intro">The solvation job is still running but you can read ahead.</p>
    <br />
@@ -75,7 +72,7 @@
  
  {% ifequal html_step_list.1 1 %}
    <br />
-   <p class="intro"><font color="red"> Step 2: Solvation Done </font></p>
+   <p class="intro"><span style="color:red"> Step 2: Solvation Done </span></p>
    <br />
 
    <p class="intro">The next step is to minimize the system. Go to the <b>Minimization</b> page and select the neutralized structure. Like the previous
@@ -89,7 +86,7 @@
 
  {% ifequal html_step_list.2 2 %}
    <br />
-   <p class="intro"><font color="red"> Step 3: Minimization Running </font></p>
+   <p class="intro"><span style="color:red"> Step 3: Minimization Running </span></p>
    <br />
 
    <p class="intro">The minimization job is still in progress but you can read ahead to the next step in the lesson.</p>
@@ -106,7 +103,7 @@
 
  {% ifequal html_step_list.2 1 %}
    <br />
-   <p class="intro"><font color="red"> Step 3: Minimization Done </font></p>
+   <p class="intro"><span style="color:red"> Step 3: Minimization Done </span></p>
    <br />
 
    <p class="intro">The next step is to run dynamics on the system. Before a production run, the system should be heated to bring it out of its minimized
@@ -121,7 +118,7 @@
 
  {% ifequal html_step_list.3 2 %}
    <br />
-   <p class="intro"><font color="red">Step 4: Molecular Dynamics Heating Running</font></p>
+   <p class="intro"><span style="color:red">Step 4: Molecular Dynamics Heating Running</span></p>
    <br />
 
    <p class="intro">The MD job is still in progress. Meanwhile, you can read ahead about the next part of the lesson.</p>
@@ -145,7 +142,7 @@
 
  {% ifequal html_step_list.3 1 %}
    <br />
-   <p class="intro"><font color="red">Step 4: Molecular Dynamics Heating Done</font></p>
+   <p class="intro"><span style="color:red">Step 4: Molecular Dynamics Heating Done</span></p>
    <br />
 
    <p class="intro">The next step after heating is to perform equilibration on the system in order to let it &quot;settle in&quot; at the desired temperature.
@@ -167,7 +164,7 @@
 
  {% ifequal html_step_list.4 2 %}
    <br />
-   <p class="intro"><font color="red"> Step 5: Equilibration Molecular Dynamics Running</font></p>
+   <p class="intro"><span style="color:red"> Step 5: Equilibration Molecular Dynamics Running</span></p>
    <br />
 
    <p class="intro">The MD equilibration job is still in progress.</p>
@@ -176,7 +173,7 @@
 
  {% ifequal html_step_list.4 1 %}
    <br />
-   <p class="intro"<<font color="red"> Step 5: Equilibration Molecular Dynamics Performed </font></p>
+   <p class="intro"<<span style="color:red"> Step 5: Equilibration Molecular Dynamics Performed </span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully run Molecular Dynamics (MD) on the system! If you made a movie of the dynamics, you can
@@ -189,7 +186,7 @@
 
  {% if lessonproblem %}
  <br />
- <p class="intro"><font color="red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</font><br>
+ <p class="intro"><span style="color:red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</span><br>
  {{lessonproblem.description}}</p>
  {% endif %}
 

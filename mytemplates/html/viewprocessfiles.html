@@ -1,30 +1,27 @@
 {% extends "html/skeleton.html" %}
 
 {% block content %}
-<div id="mainpage">
-<h1 align="center">View Process Files</h1>
-<hr width="50%">
+<div id="mainpage" style="text-align:center">
+<h1>View Process Files</h1>
+<hr style="width:50%">
 
-<center>
+
   <!-- <form method="post" action=".">  Why is this a form? django doesn't need it... -->
   {% for header in headers %}
   <div id="collapse-{{ header }}">
     <h2><button onclick="hideFileList('{{ header }}');">+</button>{{ header }} files</h2>
     </div>
-   <div id={{ header }} style="display:none">
-     <table class="sortable resizable" border="2" width="98%">
+   <div id="{{ header }}" style="display:none">
+     <table class="sortable resizable" style="text-align:left;width:40%;border:2px solid black;margin-left:auto;margin-right:auto;">
        {% for file in files %}
           {% ifequal file.0 header %}
              <tr>
                <td><a href="/charmming/viewprocessfiles/viewfile/{{file.1}}">{{ file.1 }}</a></td>
                <td>{{ file.2 }}</td>
-             </tr>
-          {% endifequal %}
-       {% endfor %}
+             </tr>{% endifequal %}{% endfor %}
      </table>
     </div>
    {% endfor %}
 <!-- </form> -->
-</center>
 </div>
 {% endblock %}

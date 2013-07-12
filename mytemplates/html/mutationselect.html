@@ -1,19 +1,26 @@
 {% extends "html/skeleton.html" %}
-
 {% block content %}
+{% include "html/error_messages.html %}
 <div id ="mainpage">
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
 
-	<h1 align="center">Point-Mutation for Structure {{ structname }}</h1>
+  
+  <div id="jsmol">
+	<h1 style="text-align:center">Point-Mutation for Structure {{ structname }}</h1>
 	<hr />
-	<div id="mutate_options">	
-    <form id="mutate_form" method="post" action="/charmming/mutestruct/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/mutestruct/',makeUniqueDiv('Mutate Structure'));" >
+    <form id="mutate_form" method="post" action="/charmming/mutestruct/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/mutestruct/',makeUniqueDiv('Mutating Structure...'));" >
       <div id='task'> 
-        <h2 align="center">Working structure: {{ ws_identifier }}</h2>
-        {% include "html/taskfiles.html" %}
+        <h2 style="text-align:center">Working structure: {{ ws_identifier }}</h2>
+          {% include "html/taskfiles.html" %}
         <br />
         </div>
-			<div style="background-color: #919f86;"><b>Please choose a name for the mutated structure:</b><input type="text" name="MutFile" id="MutFile" value="{{ proposedname }}" /> </div><br />
-			<div id=select_segment">
+        <div style="background-color: #919f86;"><b>Please choose a name for the mutated structure:</b><input type="text" name="MutFile" id="MutFile" value="{{ proposedname }}" /> </div><br />
+	  <div id="atomselect">	
+			<div id="select_segment">
 				<h3>Select segment name for mutation</h3>
 				<select name="MutSegi" id="MutSegi">
 				{% for seg in segnames %} 
@@ -44,9 +51,41 @@ segs have iter_res(), so we can easily get a bunch of stuff from there
 				{% endfor %}
 				</select>
       </div><br />
-			<input type="submit" value="Submit" />
+      <input type="submit" value="Submit" />
+    </div>
 		</form>
-	</div>
+  </div>
+  {% if not no_coords %}
+  <div id=jsmol_window>
+  <script type="text/javascript">
+        var filepath = "/charmming/pdbuploads/" + "{{filepath}}"; //base filepath. then we need to fetch which  is currently selected...
+        var load_filepath = filepath;
+        var jmolApplet; 
+        jmol_isReady = function(applet) {
+        Jmol._getElement(applet, "appletdiv".style.border="1px solid blue");
+        }		
+        var debug_on = {% if super_user %} false {% else %} true {% endif %}
+        var Info = {
+          width: "600",
+          height: "600",
+          debug: false,
+          color: "black",
+          use: "HTML5",
+          j2sPath: "/charmming/js/jsmol/j2s",
+          readyFunction: jmol_isReady,
+          script: "set antialiasDisplay;",
+          disableJ2SLoadMonitor: debug_on,
+          disableInitialConsole: debug_on,
+    //  console: "jmolApplet_infodiv"
+      //Apparently the DEFAULT setting is to have debug on. Thus the awkwardness.
+        }
+    jmolApplet = Jmol.getApplet("jmolApplet", Info);
+    Jmol.script(jmolApplet, "load " + load_filepath + ";slab off; spin off; trace off; set ambient 40; set specpower 40;");
+    Jmol.script(jmolApplet, "select none; selectionHalos on;");
+    </script>
+
+  </div>
+  {% endif %}
 </div>
 
 {% comment %}
@@ -55,10 +94,10 @@ Watch for falling JSON.
 {% endcomment %}
 
 <script type="text/javascript">
-  function is_empty(obj) { //Inner function since we can't use jQuery to make things easy...
-    for (var i in obj){return false;}
-    return true;
-  }
+//  function is_empty(obj) { //Inner function since we can't use jQuery to make things easy...
+//    for (var i in obj){return false;}
+//    return true;
+//  }
   var segnames = []
   {% for seg in segnames %}
     segnames.push("{{ seg }}");
@@ -66,20 +105,21 @@ Watch for falling JSON.
   function getSegID(segment){ //Returns the index of the specified segment in segnames. A bit hacky, but it makes sending the form easier
     for (var i=0;i<segnames.length;i++){
       if(segnames[i] == segment)
-        return i
+        return i; 
     }
   }
   var myDictList = {{ dictlist|safe }}; //Now we have the Python dictionary in JS.
+  var chain_terminators = {{ chain_terminators|safe }}; // This separates chains for visualization
   changeSegBox(); //We call these before anything executes so the initial choice gets itself updated
   changeResBox();
   
   //Following two are the event handlers...
   
   function changeSegBox(){ //Changes the residue list based on which segment you choose
-    var currentseg = getSegID($("MutSegi").getValue());
-    $("MutResName").update("");
+    var currentseg = getSegID($("#MutSegi").val());
+    $("#MutResName").html("");
     var resnameString = ""
-    if (!(is_empty(myDictList[currentseg]))){    //Don't get keys on an empty dict...
+    if (!(jQuery.isEmptyObject(myDictList[currentseg]))){    //Don't get keys on an empty dict...
       var sortlist = []
         for(var key in myDictList[currentseg]){
           sortlist[sortlist.length] = key //Lovely little hack this is
@@ -88,30 +128,50 @@ Watch for falling JSON.
       for (i=0;i<sortlist.length;i++){
         resnameString = resnameString + '<option value="' + sortlist[i] + '">' + sortlist[i] + '</option>';
       }
-      $("MutResName").update(resnameString);
+      $("#MutResName").html(resnameString);
     }
     changeResBox(); //Maybe this helps...it seems change listeners don't stack
   };
 
 
   function changeResBox(){
-      var currentseg = getSegID($("MutSegi").getValue());
-      var currentres = $("MutResName").getValue();
-      $("MutResi").update("");
+      var currentseg = getSegID($("#MutSegi").val());
+      var currentres = $("#MutResName").val();
+      $("#MutResi").val("");
       var resiString = ""
       //Sanity check so we don't try to handle things with an empty dict
-      if (!(is_empty(myDictList[currentseg]))){
+      if (!(jQuery.isEmptyObject(myDictList[currentseg]))){
         resids = myDictList[currentseg][currentres]; //Get entries under key
         for (var i=0;i<resids.length;i++){ //resids is a list, can't do for...in
           resiString = resiString + '<option value="' + resids[i] + '">' + resids[i] + '</option>';
         }
-      $("MutResi").update(resiString);
+      $("#MutResi").html(resiString);
       }
+      changeResNumBox();
   };
 
+  function changeResNumBox(){
+    var segletter = $("#MutSegi").val()[0]; //first letter, to get chains...
+    var resname = $("#MutResName").val(); 
+    var resnum = $("#MutResi").val();
+    var currentsegid = getSegID($("#MutSegi").val());
+    if (segletter != null){
+      if (currentsegid < (segnames.length - 1)){
+        var script = "select [" + resname + "] " + resnum + " and atomno < " + chain_terminators[currentsegid + 1] + " and atomno >= " + chain_terminators[currentsegid];
+      }else{
+        var script = "select [" + resname + "] " + resnum + " and atomno >= " + chain_terminators[currentsegid];
+      }
+      Jmol.script(jmolApplet, script);
+    }
+  }
+    
   //And these are the eventlisteners.
   document.getElementById("MutResName").addEventListener('change', changeResBox);
   document.getElementById("MutSegi").addEventListener('change', changeSegBox);
+  document.getElementById("MutResi").addEventListener('change', changeResNumBox);
+  $('input:radio').on('change', function(){
+      Jmol.script(jmolApplet, "load " + filepath + "-" + this.id + ".pdb;selectionHalos on;");
+      });
   
     
   

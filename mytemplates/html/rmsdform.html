@@ -2,65 +2,66 @@
 
 {% block content %}
 <div id="mainpage">
-  <script src="/charmming/js/protoculous-1.0.2-packed.js" type="text/javascript"></script>
-  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
   <br />
   <br />
   <br />
-  <h1 align="center">Calculate RMSD</h1>
+  <h1 class="center_header">Calculate RMSD</h1>
 
   <div id='change_rmsd' style="text-align:center;">
-    <div id="script_dothis" style="display:none;">
+<!--    <div id="script_dothis" style="display:none;">
        refreshToolTips();
        var GB_ROOT_DIR = "/charmming/greybox/greybox/";
-    </div>
+     </div>
+    Legacy code.
+    -->
 
     {% if feedback %}
-      <h3 align="center"><font color="red">{{ feedback }}</font></h3>
+      <h3 class="center_header"><font color="red">{{ feedback }}</font></h3>
     {% endif %}
 
     {% autoescape off %}
     {% if prior_matrix %}
-      <center>{{prior_matrix}}</center><br />
+    <div style="text-align:center">
+      {{prior_matrix}}<br />
+    </div>
     {% endif %}
     {% endautoescape %}
 
-    <hr noshade width="80%" size=3%>
-    <h2 align="center">Select Structures</h3>
+    <hr class="noshade_hr">
+    <h2 class="center_header">Select Structures</h2>
     <br />
 
-    <center>
        <form id="rmsd_form" method="post"  action=".">
        {% if tasks %}
-         <table>
+         <table class="qm_table">
            {% for task in tasks %}
-             <tr><td><input type="checkbox" name="dotask_{{ task.id }}" value="1" /></td><td>Coordinates from {{ task.action }}</td></tr>
+           <tr><td>Coordinates from {{task.action}}&nbsp;<input type="radio" name="dotask_{{ task.id }}" value="1" /></td></tr>
            {% endfor %}
          </table>
-       {% endif %}
+         {% endif %}
+        <br>
 
 
-       <table>
+       <table class="qm_table" style="text-align:left">
          <tr><td><p class="fontmed">Compare all atoms (except bulk waters)</td>
              <td><input type="radio" name="comp_allatom" value="1" onclick="document.getElementById('comp_backbone').style.display = 'none';" checked></td></tr>
          <tr><td><p class="fontmed">Compare only backbone atoms</td>
              <td><input type="radio" name="comp_allatom" value="0" onclick="document.getElementById('comp_backbone').style.display = 'block';"></td></tr>
        </table>
        <div id="comp_backbone" style="display: none;">
-         <table>
-           <tr><td colspan="2"><center><b>Select backbone atoms to be compared</b></center></td></tr>
+         <table class="qm_table" style="text-align:left">
+           <tr><td colspan="2" style="text-align:center"><b>Select backbone atoms to be compared</b></td></tr>
            <tr><td>Nitrogen (N)</td><td><input type="checkbox" name="bb_n" checked></td></tr>
-           <tr><td>Alpha carbon (CA)</td><td><input type="checkbox" name="bb_ca" checked></td></tr>
-           <tr><td>Backbone carbon (C)</td><td><input type="checkbox" name="bb_c" checked></td></tr>
+           <tr><td>&alpha;-Carbon (CA)</td><td><input type="checkbox" name="bb_ca" checked></td></tr>
+           <tr><td>Backbone Carbon (C)</td><td><input type="checkbox" name="bb_c" checked></td></tr>
            <tr><td>Backbone Oxygen (O)</td><td><input type="checkbox" name="bb_o" checked></td></tr>
            <tr><td>Backbone Hydrogen bound to Nitrogen (HN)</td><td><input type="checkbox" name="bb_hn"></td></tr>
-           <tr><td>Hydrogen bound to the alpha catbon (HA)</td><td><input type="checkbox" name="bb_ha"></td></tr>
+           <tr><td>Hydrogen bound to the &alpha;-Carbon (HA)</td><td><input type="checkbox" name="bb_ha"></td></tr>
          </table>
        </div>
 
        <input type="submit" value="Build RMSD matrix">
        </form>
-    </center>
   </div>
 </div>
 {% endblock %}

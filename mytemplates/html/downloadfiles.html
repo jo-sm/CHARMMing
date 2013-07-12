@@ -2,11 +2,10 @@
 
 {% block content %}
 <div id="mainpage">
-  <h1 align="center">Download Files</h1>
-  <h2 align="center">Working structure: {{ wsname }}</h2>
+  <h1 style="text-align:center">Download Files</h1>
+  <h2 style="text-align:center">Working structure: {{ wsname }}</h2>
 
-  <div class='status'>
-  <center>
+  <div class='status' style="margin-left:auto;margin-right:auto;text-align:center">
     <a href="/charmming/downloadfiles/downloadtar/">Download a Tar file of all the files associated with this working structure</a>
     <br />
     <br />
@@ -15,16 +14,17 @@
        {% for key in headers %}
           <h3>{{ key }} files</h3>
 
-          <table cellspacing="3" cellpadding="2">
+          <table style="text-align:left;border-spacing:3;width:40%;margin-left:auto;margin-right:auto">
           {% for file in filelst %}
              {% ifequal file.0 key %}
-               <tr><td><a href="/charmming/viewprocessfiles/download/{{ file.1 }}">{{ file.1 }}</a></td><td>{{ file.2 }}</td></tr>
+               <tr><td style="padding:2"><a href="/charmming/viewprocessfiles/download/{{ file.1 }}">{{ file.1 }}</a></td><td>{{ file.2 }}</td></tr>
              {% endifequal %}
           {% endfor %}
          
         </table>
       {% endfor %}
-   </form>
-  </center>
+    </form>
+    <br>
+</div>
 </div>
 {% endblock %}

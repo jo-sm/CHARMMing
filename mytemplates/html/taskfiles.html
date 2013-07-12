@@ -1,17 +1,19 @@
 {% if tasks %}
-  <table>
+  <table id="test" style="width:20%;margin-left:auto;margin-right:auto;text-align:center">
   {% for task in tasks %}
     {% if selection %}
       {% if task == selection.task %}
-      <tr><td><input type="radio" name="ptask" value="{{ task.id }}" checked /></td><td>Coordinates from {{ task.action }} {{selection.selectionstring}}</td></tr>
+      <tr><td><input type="radio" name="ptask" id="{{task.action}}" value="{{ task.id }}" checked /></td><td>Coordinates from {{ task.action }} {{selection.selectionstring}}</td></tr>
       {% else %}
-        <tr><td><input type="radio" name="ptask" value="{{ task.id }}"  /></td><td>Coordinates from {{ task.action }}</td></tr>
+      <tr><td><input type="radio" name="ptask" id="{{task.action}}" value="{{ task.id }}"  /></td><td>Coordinates from {{ task.action }}</td></tr>
       {% endif %}  
     {% else %}    
       {% if forloop.first %}
-         <tr><td><input type="radio" name="ptask" value="{{ task.id }}" checked /></td><td>Coordinates from {{ task.action }}</td></tr>
+      <tr><td><input type="radio" name="ptask" id="{{task.action}}" value="{{ task.id }}" checked /></td><td>Coordinates from {{ task.action }}</td></tr>
       {% else %}
-         <tr><td><input type="radio" name="ptask" value="{{ task.id }}" /></td><td>Coordinates from {{ task.action }}</td></tr>
+      <tr><td><input type="radio" name="ptask" id="{{task.action}}" value="{{ task.id }}" /></td><td>Coordinates from {{ task.action }}</td></tr>
+      <!-- Note - we can change all our code for radio buttons to use $('input:radio') and then not have to bother checking name="ptask".
+      That way we also don't have to keep task.action in id for fancy JS stuffs. -->
          {% endif %}
     {% endif %}
   {% endfor %}

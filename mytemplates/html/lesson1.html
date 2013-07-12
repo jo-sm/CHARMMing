@@ -5,18 +5,15 @@
 
 {% autoescape off %}
 <br />
-<center>
-<h1>Lesson 1, Introduction to Simulations {% ifequal lesson1.curStep 4 %}: <font color="red">Completed</font> {% endifequal %}</h1>
-</center>
+<h1 class="center_header">Lesson 1, Introduction to Simulations {% ifequal lesson1.curStep 4 %}: <span style="color:red">Completed</span> {% endifequal %}</h1>
 
 <p class="intro">
-  <font color="red">Lesson Objectives</font>
+  <span style="color:red">Lesson Objectives</span>
   <ul>
     <li> Introduce user to CHARMM </li>
     <li> Explain basic concepts behind computational chemistry methods </li>
     <li> Teach user basic usage and syntax of CHARMM</li>
   </ul>	
-</p>
 
 <h2 class="intro">Introduction to CHARMM</h2>
 
@@ -55,7 +52,7 @@
 {% if lesson1 %}
  
  {% ifequal html_step_list.0 1 %}
-   <p class="intro"><font color="red"> Step 1: Upload Done </font></p>
+   <p class="intro"><span style="color:red"> Step 1: Upload Done </span></p>
    <br />
 
    <p class="intro">Congratulations! You successfully uploaded both the CRD and PSF files! These files describe the structure of a single water molecule. We will
@@ -68,7 +65,7 @@
       are not used because there is no crystal structure for them). To solvate, look to the left menu bar under <i>Calculations</i> and select <b>Solvate.</b></p>
    <br />
 
-   <p class="intro">For the <font style="fixed">Solvation Parameters</font> dialog, select the RHDO shape and choose to calculate the crystal dimensions based on the structure
+   <p class="intro">For the <span style="fixed">Solvation Parameters</span> dialog, select the RHDO shape and choose to calculate the crystal dimensions based on the structure
       size plus a buffer. When this is selected, CHARMMing will automatically create a CHARMM input script that calculates the appropriate size of the RHDO structure. It will 
       take the largest x,y,z coordinate and add 5 Angstroms to that value. The 5 Angstroms can be changed by changing the value in the textbox. Change the value to 15 
       and press submit.</p>
@@ -78,7 +75,7 @@
  
  {% ifequal html_step_list.1 2 %}
    <br /> 
-   <p class="intro"><font color="red"> Step 2: Solvation Running </font></p>
+   <p class="intro"><span style="color:red"> Step 2: Solvation Running </span></p>
    <br />
 
    <p class="intro">The solvation job is still in progress but you can read ahead.</p>
@@ -102,7 +99,7 @@
  {% endifequal %}
  {% ifequal html_step_list.1 1 %}
    <br />
-   <p class="intro"><font color="red"> Step 2: Solvation Performed </font></p>
+   <p class="intro"><span style="color:red"> Step 2: Solvation Performed </span></p>
    <br />
 
    <p class="intro">Congratulations! You have sccuessfully solvated a water molecule! The end result is a rhombic dodecahedronal water box.</p>
@@ -124,7 +121,7 @@
 
  {% ifequal html_step_list.2 2 %}
    <br /> 
-   <p class="intro"><font color="red"> Step 3: Minimization Running </font></p>
+   <p class="intro"><font style="color:red"> Step 3: Minimization Running </span></p>
    <br />
 
    <p class="intro">Minimization is currently running. Until it is finished you can read ahead.</p>
@@ -145,7 +142,7 @@
 
  {% ifequal html_step_list.2 1 %}
    <br />
-   <p class="intro"><font color="red"> Step 3: Minimization Performed </font></p>
+   <p class="intro"><span style="color:red"> Step 3: Minimization Performed </span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully minimized the system!</p>
@@ -164,7 +161,7 @@
 
  {% ifequal html_step_list.3 2 %}
    <br />
-   <p class="intro"><font color="red"> Step 4: Molecular Dynamics Running</font></p>
+   <p class="intro"><span style="color:red"> Step 4: Molecular Dynamics Running</span></p>
    <br />
 
    <p class="intro">The MD job is still in progress.</p>
@@ -173,7 +170,7 @@
 
  {% ifequal html_step_list.3 1 %}
    <br />
-   <p class="intro"><font color="red"> Step 4: Molecular Dynamics Performed </font></p>
+   <p class="intro"><span style=":red"> Step 4: Molecular Dynamics Performed </span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully run Molecular Dynamics (MD) on the system!</p>
@@ -184,7 +181,7 @@
 
  {% for problem in lessonproblems %}
   <br />
-  <p class="intro"><font color="red">LESSON ERROR: STEP - {{problem.errorstep}}, SEVERITY - {{problem.severity}}</font></p> <br>
+  <p class="intro"><span style="color:red">LESSON ERROR: STEP - {{problem.errorstep}}, SEVERITY - {{problem.severity}}</span></p> <br>
   {{problem.description}}</p>
  {% endfor %}
 

@@ -1,49 +1,16 @@
-{% extends 'html/skeleton_no_prototype.html' %}
+{% extends 'html/skeleton.html' %}
 {% block content %}
 <!-- REMEMBER! Make new menu. Add atom selection buttons. -->
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmoljQuery.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
-  <script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
-  <link rel="stylesheet" href="/charmming/js/jquery-ui/jquery-ui.css" />
+  <script type="text/javascript" src="/charmming/js/selection.js"></script>
   <link rel="stylesheet" href="/charmming/css/atomselect_visualize.css" />
-  
-  <link rel="icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
-  <link rel="shortcut icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
-  <link rel="stylesheet" type="text/css" href="/charmming/css/charmming.css" media="all" />
-  <script type="text/javascript" src="/charmming/js/custom.js"></script>
   <h1 align="center">Visualization</h1>
-  <hr />
   <br />
 <div id="jsmol">
-  <form id="atomselect_form" method="post" action="/charmming/selection/" enctype="multipart/form-data"> 
-    <input type="hidden" name="atomselection" id="atomselection"  value="">
-    <input type="hidden" name="source" id="source" value="{{source}}">
-    <input type="hidden" name="task_id" id="task_id" value="{{task_id}}">
-  </form>
-  <div id="dialog_noatoms_alert" title="No atoms chosen">
-    <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
-    Please select at least one atom.</p>
-  </div>
-  <script type="text/javascript"> 
-        $(function($){
-              $( "#dialog_noatoms_alert").dialog({
-                resizable:false,
-                height:200,
-                width:600,
-                modal:true,
-                autoOpen:false,
-                buttons:{
-                "OK":function(){
-                $(this).dialog("close");
-                }
-              }
-            });
-          });
-  </script>
   <div id="jsmol_window">
   <script type="text/javascript">
     var jmolApplet;
@@ -54,8 +21,8 @@
     var Info = {
 	width: "600",
 	height: "600",
-	debug: false,
-	color: "black",
+  debug: false,
+  color: "black",
 	use: "HTML5",
 	j2sPath: "/charmming/js/jsmol/j2s",
 	readyFunction: jmol_isReady,
@@ -66,64 +33,93 @@
   //Apparently the DEFAULT setting is to have debug on. Thus the awkwardness.
 }
     </script>
-  <script>
+    <script>
+      var chain_terminators = {{chain_terminators|safe}};
+      var segmentlist = {{segmentlist|safe}};
       jmolApplet = Jmol.getApplet("jmolApplet", Info);
       Jmol.script(jmolApplet,  "load /charmming/pdbuploads/{{filepath}}; slab off; spin off; trace off; set ambient 40; set specpower 40;");
       Jmol.script(jmolApplet, "select none;selectionHalos on");
      </script>
      <br />
   </div>
-  <script>
-      function submit_atomselect(){
-          var atominfo = Jmol.getPropertyAsArray(jmolApplet, "atominfo", "selected");
-          if (atominfo.length == 0){
-            //Display fancy box. For now we don't do it.
-            $("#dialog_noatoms_alert").dialog("open");
-            return false;
-          }
-          var atomsele = "bynum " + atominfo[0].atomno;
-          var i=1;//Hack because forloops crash firefox via allocation overflow somehow
-          var start_range = atominfo[0].atomno;
-          var end_range = start_range; // Add 1 every time
-          while(i <= atominfo.length){ //Atominfo is sorted! This is important.
-            if((i < atominfo.length) && (atominfo[i].atomno == (atominfo[i - 1].atomno + 1))){ //IF there's a run, keep looping.
-              end_range = end_range + 1;
-            }else{
-              if(end_range > start_range){ //i.e. if there's a run at all
-                if(start_range == atominfo[0].atomno){ //If it's the first...
-                  atomsele = atomsele + ":" + end_range;
-                }else{
-                  atomsele = atomsele + " .or. bynum " + start_range + ":" + end_range;
-                }
-              }else{
-                atomsele = atomsele + " .or. bynum " + start_range;
-              }
-              if(i < atominfo.length){
-                start_range = atominfo[i].atomno;
-                end_range = start_range;
-              }
-          }
-          i = i + 1;
-        }
-        //The logic is a little screwy but it should work.
-        document.getElementById("atomselection").value = atomsele;
-        document.getElementById("atomselect_form").submit();
-      }
-  </script>
+  <div id="dialog_bad_linkatoms" title="Number of link atoms not an integer">
+    <p><span class="ui icon ui-icon-alert" style="float:left;margin 0 auto auto 0;"></span>
+    Please input an integer in the "Number of Link Atoms" box.</p>
+  </div>
+  <div id="dialog_noatoms_alert" title="No atoms chosen">
+    <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+    Please select at least one atom.</p>
+  </div>
+  <div id="dialog_too_many_links" title="Too many atoms chosen">
+    <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+    Please select only one QM/MM host at a time.</p>
+  </div>
+  <div id="dialog_bad_bond" title="Cannot cut across this bond">
+    <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+    CHARMMing does not support cutting across bonds that are not C-C. Please select a different 
+    link atom, or reset your selection and try again.</p>
+  </div>
+  <div id="dialog_empty_fields" title="Link atoms missing">
+    <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+    Some of the link atom fields are still empty. Please select all link atoms before submitting.</p>
+  </div>
+  <div id="dialog_bad_linkatom_input" title="Bad link atom selection">
+    <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+    Your link atom input does not match the pattern generated by our automatic selector.
+    Please use the automatic selection provided on this page.<br />
+    If you are encountering this message in error, please report this bug.</p>
+  </div>
+  <div id="dialog_bad_qm" title="Bad QM selection">
+    <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+    Your QM host is not in the QM region you selected previously. Please select an atom in your QM region.</p>
+  </div>
+  <div id="dialog_bad_mm" title="Bad MM selection">
+    <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+    Your MM host is either in the QM region you selected previously, or is already one of your MM hosts. 
+    Please select an atom that is not already an MM host, and is not in your QM region.</p>
+  </div>
+  <div id="dialog_bad_add" title="Bad addition">
+    <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+    The atom(s) you selected are already in your QM region. Please select atoms outside of this region, or reset your selection.</p>
+  </div>
+  <div id="dialog_long_link" title="Bad link atom">
+    <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+    The MM host you selected is over 2 Å from the QM host attached to it. Please cut across a C-C bond on that QM host.</p>
+  </div>
+  
   <!-- Buttons go under "atomselect_buttons" div, buttons themselves go in "selectbuttons" div class
   TODO: "grey out" buttons if certain conditions are not met (i.e. no chains, therefore grey out chain button -->
   <div id="atomselect_buttons">
-    <h2>Atom Selection Options</h3>
+    <h1>Atom Selection Options</h1>
     <hr />
-    <h3>Select by: </h3>
+    <h2>Select by: </h2>
+    <button class="aaddselectbutton" id="atom" onclick="Jmol.script(jmolApplet, 'set picking atom')">Atom</button>
+    <button class="atomselectbutton" id="molecule" onclick="Jmol.script(jmolApplet, 'set picking molecule')">Molecule</button>
+    <button class="atomselectbutton" id="element" onclick="Jmol.script(jmolApplet, 'set picking element')">Element</button>
+    <button class="atomselectbutton" id="chain" onclick="Jmol.script(jmolApplet, 'set picking chain')">Chain</button>
+    <button class="atomselectbutton" id="residue" onclick="Jmol.script(jmolApplet, 'set picking group')">Residue</button>
+    <button class="atomselectbutton" id="site" onclick="Jmol.script(jmolApplet, 'set picking site')">Site</button><br> <br>
+    <hr><br>
+    <button class="atomselectbutton" onclick="submit_atomselect()">Submit Selection</button>
+    <button class="addselectbutton" id="add" onclick="add_atomselect()" style="display:none">Add to Selection</button>
+    <button class="resetbutton" id="reset" onclick="reset_select()">Reset Selection</button>
+    <br /><br />
+  <form id="atomselect_form" method="post" action="/charmming/selection/" enctype="multipart/form-data"> 
+    <input type="hidden" name="source" id="source" value="{{source}}">
+    <input type="hidden" name="task_id" id="task_id" value="{{task_id}}">
+    <h2>QM region atom selection:</h2>
+    <input type="text" name="atomselection" id="atomselection" readonly value="">
+    <br /><hr>
+    <h2>Input number of link atoms:</h2>
+    <input type="text" class="qmmminput" name="linkatom_num" id="linkatom_num" value="0">
+    <button class="selectbutton" onclick="submit_linkatoms();return false;">Submit Number</button>
     <br />
-    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking atom')">Atom</button><br />
-    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking molecule')">Molecule</button><br />
-    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking element')">Element</button><br />
-    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking chain')">Chain</button><br />
-    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking group')">Residue</button><br />
-    <button class="selectbutton" onclick="Jmol.script(jmolApplet, 'set picking site')">Site</button><br />
-    <button class="selectbutton" onclick="submit_atomselect()">Submit</button>
+    <!-- TODO: Make this box smaller! -->
+    <div id="linkatom_inputs" name="linkatom_inputs" style="display:none">
+    <hr>
+    </div>
+    <hr>
   </div>
+  </form>
   </div>
 {% endblock %}

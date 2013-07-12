@@ -2,14 +2,16 @@
 
 {% block content %}
 <div id="mainpage">
-  <div id="script_dothis" style="display:none;">
+<!--  <div id="script_dothis" style="display:none;">
     makeUniqueDiv('nma_form');
     makeUniqueDiv('atomnumbernma');
     refreshToolTips();
   </div>
+  Legacy code.
+-->
 
-  <div id="change_nma" style="text-align: center;">
-    <h1 align="center">Normal Mode Analysis</h1>
+  <div id="change_nma" style="text-align:center;">
+    <h1 class="center_header">Normal Mode Analysis</h1>
     <br />
 
     {%if nmode_lines %}
@@ -20,20 +22,20 @@
          {% endfor %}
        </pre>
     {% endif %}
-    <hr noshade width="80%" size="3%" />
+    <hr class="noshade_hr" />
 
-    <center>
     <form id='nma_form' name="nma" method="post" action=".">
 
-        <h2>Working structure: {{ ws_identifier }}</h2>
+        <h2 class="center_header">Working structure: {{ ws_identifier }}</h2>
 
         {% include "html/taskfiles.html" %}
-      <hr noshade width="80%" size="3%" />
+      <hr class="noshade_hr" />
 
       <p class="fontmed">Choose one of the following types of Normal Mode Analysis to run.</p>
-      <table>
-        <tr><td>All atoms</td><td><input type="radio" id="usevibran" value="usevibran" name="nma" onclick="checkUncheckNMA('vibran','enm','block');showHideQMMM();"></td></tr>
-        <tr><td>ENM (Elastic Network Model)</td><td><input type="radio" id="useenm" value="useenm" name="nma" onclick="checkUncheckNMA('enm','vibran','block');showHideQMMM();"></td></tr>
+      <br>
+      <table style="width:70%;margin-left:auto;margin-right:auto;text-align:left">
+        <tr><td>All atoms</td><td><input type="radio" id="usevibran" value="usevibran" name="nma" onclick="$('#useenm').attr('checked',false);$('#enm').hide();$('#vibran').show()"></td></tr>
+        <tr><td>ENM (Elastic Network Model)</td><td><input type="radio" id="useenm" value="useenm" name="nma" onclick="$('#usevibran').attr('checked',false);$('#vibran').hide();$('#enm').show()"></td></tr>
         <tr><td>Number of normal modes to generate:</td><td> <input type="text" id="num_normalmodes" name="num_normalmodes" value="100" /></td></tr>
         <tr><td>Generate trajectories of normal modes</td><td><input type="checkbox" id="gen_trj" name="gen_trj" value="gen_trj" onclick="checkPatch('gen_trj','num_trjstable');"></td></tr>
         <tr><td>How many of the lowest modes should trajectories be generated for?</td>
@@ -48,25 +50,26 @@
       </table>
 
       <div id="vibran" style="display:none;">
-        <h3 align="center">All atom vibrational analysis parameters</h3>
-        <table style="padding-left:10%;">
-           <tr><td>Use QM/MM calculations:</td><td><input id="useqmmm" type="checkbox" name="useqmmm" onclick="checkPatch(makeUniqueDiv('useqmmm'),makeUniqueDiv('qmmm_parameters'));"></td></tr>
-        </table>
+        <h3 class="center_header">All atom vibrational analysis parameters</h3>
+        <table class="qm_table">
+          <tr><td>Use QM/MM calculations:<input id="useqmmm" type="checkbox" name="useqmmm" onclick="showHideQM()"></td></tr>
+          {% include 'html/qmmm_params.html' %}
+         </table>
+        
       </div>
 
-      <div id="enm" style="display:none;">
-        <h3 align="center">ENM parameters</h3>
-        <table style="padding-left:10%;">
+      <div id="enm" style="display:none;text-align:center">
+        <h3 class="center_header">ENM parameters</h3>
+        <table style="width:20%;margin-left:auto;margin-right:auto">
           <tr><td>RCUT:</td><td><input type="text" name="rcut" id="rcut" value="10"></td><td><a href="#" title="Maximum distance at which there can be a spring force constant.">?</a></td></tr>
-          <tr><td>KSHORT:</td><td><input type="text" name="kshort" id="rcut" value="10.000"></td><td><a href="#" title="Near range force constant.">?</a></td></tr>
-          <tr><td>KLONG:</td><td><input type="text" name="klong" id="rcut" value="1.000"></td><td><a href="#" title="Long range force constant.">?</a></td></tr>
+          <tr><td>KSHORT:</td><td><input type="text" name="kshort" id="kshort" value="10.000"></td><td><a href="#" title="Near range force constant.">?</a></td></tr>
+          <tr><td>KLONG:</td><td><input type="text" name="klong" id="klong" value="1.000"></td><td><a href="#" title="Long range force constant.">?</a></td></tr>
         </table> 
       </div>
-
+      <br><br>
       <input type="submit" value="Start Normal Mode Analysis" />   
 
     </form>
-    </center>
 
   </div>
 </div>

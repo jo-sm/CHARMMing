@@ -1,12 +1,11 @@
 {% extends "html/skeleton.html" %} 
 {% block content %}
-<div id="mainpage">
-  <center>
+<div id="mainpage" style="text-align:center">
   <h1>Visualize Structures</h1>
-  <hr width="50%">
+  <hr style="width:50%">
 
   <form method="post" action=".">
-     <table class="sortable resizable" border=2>
+     <table class="sortable resizable" style="border:2px black solid;margin-left:auto;margin-right:auto;width:40%">
         <tr><th>Filename</th><th>Description</th><th>View in JSmol</th><th>View in GLmol</th></tr>
         {% for file in filelst %}
         <tr><td>{{ file.0 }}</td><td>{{ file.1 }}</td><td><a href="/charmming/jmolview/{{ file.0 }}">View</a></td><td><a target="_blank" href="/charmming/glmolview/{{ file.0 }}">View</a> </td></tr>
