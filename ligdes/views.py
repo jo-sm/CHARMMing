@@ -18,22 +18,24 @@
 # Create your views here.
 from django import forms
 from django.template.loader import get_template
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from httplib import HTTPConnection
 from account.models import *
-from structure.models import Task 
+from structure.models import Task
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.template import *
 from account.views import checkPermissions
 from lessons.models import LessonProblem
-from mutation.models import mutateTask
 import output, lesson1, lesson2, lesson3, lesson4, lessonaux
 import structure.models, structure.views, input
 from lesson_config import *
 import os, copy, json, mimetypes, string, re
-import pychm.io, charmming_config
+import charmming_config
 from pychm.io.pdb import PDBFile
+from toppar.models import Residue
+from getTopparFiles import write_toppar_info
 import cPickle
 import openbabel
 
@@ -50,7 +52,7 @@ def build_ligand(request):
 #        logfp.write("Found attach_check.\n")
         try:
             struct = structure.models.Structure.objects.get(owner=request.user,selected='y')
-            logfp.write("Structure found.\n")
+#            logfp.write("Structure found.\n")
             filepath = struct.location
             sl = []
             sl.extend(structure.models.Segment.objects.filter(structure=struct))
@@ -63,22 +65,28 @@ def build_ligand(request):
                     maxgoodletter = seg.name[0]
     #        logfp.write("name: " + maxletter)
             if maxletter == "z" or maxgoodletter == "z":
-                return HttpResponse("Too many segments for this structure.") #This is only a minor setback! We shall figure out how to handle these later.
+                messages.error(request, "Too many segments for this structure.")
+                return HttpResponseRedirect('/charmming/ligand_design/') #This is only a minor setback! We shall figure out how to handle these later.
             else:
                 if maxletter: #if there's an issue, default to 'a'
                     segletter = chr(ord(maxletter) + 1) #Can't handle anything but standard letters, but that's fine, neither can CHARMM.
                 if maxgoodletter:
                     seggoodletter = chr(ord(maxgoodletter) + 1)
         except Exception as e: #If you get here, the user tried to attach to structure when there are no structures uploaded.
-            logfp.write("No structures found.\n")
+#            logfp.write("No structures found.\n")
             struct, filepath = clear_struct(request)
-        finally:
-            logfp.close()
+#        finally:
+#            logfp.close()
     else:
         struct, filepath = clear_struct(request)
     tdict = {}
 #    logfp.write(str(struct) + "\n")
     tdict['super_user'] =request.user.is_superuser
+#    amino_list = aaAlphabet.keys() #Incoming "magic values"
+    #Take them in from our toppar
+#    tdict['amino_list'] = json.dumps(amino_list)
+#Ignore this, easier to do serverside check for that stuff
+    #TODO: Add any other residues supported by CHARMM internally
     if request.POST: #Do stuff with the JSmol data if the POSTdata has some
         os.chdir(filepath)
         postdata = request.POST
@@ -115,15 +123,31 @@ def build_ligand(request):
             atom_idx = atom.GetIdx()
             molec_charges += atom.GetPartialCharge()
             core_charges += atom.GetAtomicNum()
-#            logfp.write(str(atom_idx) + "\t" + str(atom.GetValence()) + "\n")
-#        logfp.write("Molecular charge:\t" + str(molec_charges) + "\n")
-#        logfp.write("Core charges:\t" + str(core_charges) + "\n")
-#        logfp.write(str(charmming_config.user_home))
         tdict['filepath'] = '/charmming/pdbuploads/' + request.user.username + "/"
         if struct:
             tdict['filepath'] = tdict['filepath'] + struct.name + "/"
         tdict['moldata'] = moldata #pass them back and forth until we have valid data
         tdict['molname'] = molname
+        tdict['mol_short'] = molname[0:4].upper()
+        try:
+            test_query = len(Residue.objects.all())
+            if test_query < 1:
+                write_toppar_info()
+        except: #There are no records for residues in the database, or something else went wrong, so make them
+            write_toppar_info()
+        try:
+            residue = Residue.objects.filter(residue_name=tdict['mol_short'])[0]
+            tdict['messages'] = messages.get_messages(request)
+            if len(residue.residue_desc) > 0:
+                desc = "(" + residue.residue_desc + ")"
+            else:
+                desc = ""
+            resn = residue.residue_name
+            messages.error(request, "The residue name " + resn + " " + desc + " is a reserved word in CHARMM. Please choose another name for your molecule.")
+            return render_to_response('html/ligand_design.html', tdict)
+        except: #Not found
+            pass
+
         if (core_charges - molec_charges) % 2 != 0 and postdata['force_charge'] == "false":
             tdict['charge_alert'] = True
             return render_to_response('html/ligand_design.html', tdict)
@@ -131,12 +155,12 @@ def build_ligand(request):
         else:
             tdict['charge_alert'] = False
             resname = ""
-            if len(molname) >= 3:
-                resname = molname[0:3]
+            if len(molname) >= 4:
+                resname = molname[0:4]
             else:
                 resname = molname
             ligname = resname #This way you don't look for YZQ B_IDEAL
-            resname = resname.upper() + (" " * (4-len(resname))) + segletter.upper()
+            resname = resname.upper() + (" " * (5-len(resname))) + segletter.upper()
             force_custom = postdata['force_custom'] == "true"
             #If set to false, we check whether the molecule exists in PDB.org,
             #and if it does, warn the user.
@@ -147,16 +171,15 @@ def build_ligand(request):
                 conn.request("GET", reqstring)
                 resp = conn.getresponse()
                 if resp.status == 200:
-#                    logfp.write("I found a PDB for " + ligname)
-#                    logfp.close()
                     tdict['sdf_link'] = "www.pdb.org" + reqstring
                     return render_to_response('html/ligand_design.html',tdict)
+            not_custom = postdata['not_custom'] == "true" #Whether it exists on PDB.org
             #If either force_custom is True or it wasn't needed, the code just continues.
             not_custom = postdata['not_custom'] == 'true'
 #            outstring = obConversion.WriteString(mol) #Consider changing these to ligand names
             #Now we need to add a chainid so that PDBFile doesnt' freak out.
             #Get ligand name, first 4 characters, add spaces.
-            end_data = end_data.replace("UNK  ", resname)
+            end_data = end_data.replace(" UNK   ", resname)
             outfile = open("moldata.pdb","w")
             outfile.write(end_data)
             outfile.close()
@@ -165,7 +188,6 @@ def build_ligand(request):
             for seg in ligmol.iter_seg():
                 if seg.segType == "pro": #If the builder caught it as GOOD/BAD, leave it, else change
                     seg.segType = "good" #If it became PRO, then we have params for it, so make it good
-#            logfp.write(str(struct) + "\n")
             #Now we do a check for a structure being present
             if struct:
                 #Pickle time.
@@ -173,7 +195,6 @@ def build_ligand(request):
                 fullpdb = cPickle.load(woof)
                 woof.close()
                 thisMol = fullpdb['model00'] #Model 0 again...
-#                logfp.write(str(thisMol) + "\n")
                 #first a sanity check so that the user doesn't build more than one residue with the same name
                 for seg in thisMol.iter_seg():
                     for res in seg.iter_res():
@@ -204,7 +225,7 @@ def build_ligand(request):
                 struct.title = "Custom Ligand " + molname
 
                 location = filepath
-                dname = molname[0:3].lower()
+                dname = molname[0:4].lower()
                # tmpdname = dname
                 #version = -1
                 #THis stuff breaks. You shouldn't be building different ligands with same name anyway...
@@ -222,10 +243,11 @@ def build_ligand(request):
                 os.chmod(struct.location, 0775)
 
                 fullpath = struct.location + "/" + dname + ".pdb"
-                if(not_custom):
+                if (not_custom):
                     structure.views.getSegs(ligmol,struct,auto_append=True)
                 else:
                     structure.views.getSegs(ligmol,struct,auto_append=False)
+
                 pfname = location + dname + "/" + "pdbpickle.dat"
                 picklefile = open(pfname, "w")
                 cPickle.dump(ligpdb,picklefile)
@@ -240,7 +262,7 @@ def build_ligand(request):
                     pass
 
                 struct.selected = "y"
-#                os.unlink("moldata.pdb")
+                os.unlink("moldata.pdb")
 #                os.unlink("moldata.mol")
                 struct.save()
             return HttpResponseRedirect('/charmming/buildstruct/')
