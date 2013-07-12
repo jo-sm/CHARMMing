@@ -1,22 +1,19 @@
-/* CSS file for ligand_design.html 
+/* CSS file for mutationselect.html 
  * Sets 1000px total area and marginalizes
- * Also adds background to fit the rest of CHARMMing. */
+ * Also adds background to fit the rest of CHARMMing. 
+ * Same as ligand_design but with declarations flipped. */
 
-#jsmol_ligand{
+#jsmol_window{
   width:600px;
   float:right;
   display:inline;
   }
   
-#mol_actions{
+#atomselect{
   width:460px;
-  clear:right;
+  float:left;
   display:inline;
   }
-
-#mol_actions hr{
-  width:460px;
-  margin-left:0px;}
 
 body{
   width:1060px;

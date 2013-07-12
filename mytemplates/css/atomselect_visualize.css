@@ -5,6 +5,7 @@
   }
   
 #atomselect{
+  width:460px;
   clear:right;
   display:inline;
   }
@@ -21,3 +22,20 @@
   font-style:normal;
   font-weight:normal;
 }
+
+.qmmminput{
+  width:60px;
+  margin-left:5px;
+}
+  
+
+.selectbutton{
+  margin-right:5px;
+  margin-left:5px;
+}
+
+.atomselectbutton{
+  margin-right:5px;
+  margin-left:0px;
+}
+

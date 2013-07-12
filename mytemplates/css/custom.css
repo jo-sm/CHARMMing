@@ -7,6 +7,38 @@ a:active {color: #0000ff; text-decoration: underline; }
 a:visited {color: #590576; text-decoration: underline; }
 a:hover {color: #FF0F00; text-decoration: none; }
 
+/* we align so many headers I couldn't resist */
+.center_header{
+  text-align:center;
+}
+
+.noshade_hr{
+  border: 1px solid #000;
+  width:80%;
+}
+
+/* For the buildstruct page*/
+#select_div{
+  text-align:center;
+  margin:0 auto;
+  border-collapse:collapse;
+  width:70%;
+}
+
+/* this was initially only going to be used for QM/MM param table
+ * but it is very useful for any of our tables that aren't really tables */
+.qm_table{
+  margin-left:auto;
+  margin-right:auto;
+  width:600px;
+}
+.qmmm_params{
+  display:none;
+}
+
+.gm_input{
+  width:10%;
+}
 
 div.colwrapper {
  position: relative;
@@ -88,7 +120,6 @@ fieldset.frontpage
 fieldset.custom_sequ
 {
  border: 2px solid #cfc4a3;/*#FFBC47;*/
- width: 35em;
  font-size:small;
  text-align:left
 }
