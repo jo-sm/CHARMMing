@@ -249,6 +249,7 @@ class Segment(models.Model):
     is_working  = models.CharField(max_length=1,default='n')
     fes4        = models.BooleanField(default=False) # a bit of a hack, but it makes the views code easier
     is_custom   = models.BooleanField(default=False) # Bypasses PDB.org SDF file check when building structure
+    resName     = models.CharField(max_length=4,default='N/A') #This lists res names for the build structure page and others, allows for faster code and less iteration
 
     def set_default_patches(self,firstres):
         if self.type == 'pro':
@@ -304,13 +305,13 @@ class Segment(models.Model):
                 rarr.append((self.name,m.resid, \
                             [('hsd','Neutral histadine with proton on the delta carbon'), \
                              ('hse','Neutral histadine with proton on the epsilon carbon'),
-                             ('hsp','Positive histadine with protons on both the delta and epsilon carbons')]))
+                             ('hsp','Positive histadine with protons on both the delta and epsilon carbons')],m.resid0))
             if nm in ['asp','aspp']:
-                rarr.append((self.name,m.resid,[('asp','-1 charged aspartic acid'),('aspp','Neutral aspartic acid')]))
+                rarr.append((self.name,m.resid,[('asp','-1 charged aspartic acid'),('aspp','Neutral aspartic acid')],m.resid0))
             if nm in ['glu','glup']:
-                rarr.append((self.name,m.resid,[('glu','-1 charged glutamic acid'),('glup','Neutral glutamic acid')]))
+                rarr.append((self.name,m.resid,[('glu','-1 charged glutamic acid'),('glup','Neutral glutamic acid')],m.resid0))
             if nm in ['lys','lsn']:
-                rarr.append((self.name,m.resid,[('lys','+1 charged Lysine'),('lsn','Neutral Lysine')]))
+                rarr.append((self.name,m.resid,[('lys','+1 charged Lysine'),('lsn','Neutral Lysine')],m.resid0))
 
         pfp.close()
         return rarr
@@ -662,12 +663,12 @@ class WorkingSegment(Segment):
             obconv.ReadFile(mol, filename_sdf.encode("UTF-8"))
             mol.SetTitle(badRes)
             obconv.WriteFile(mol, filename_mol2.encode("UTF-8"))
-            #Why do we make the mol2 file if the PDBFile object is going to mess with it anyway?
-#            os.system("babel --title %s -isdf %s -omol2 %s" % (badRes,filename_sdf,filename_mol2))
-            #TODO: Replace this with openbabel python bindings
+
             # The following nasty crap attempts to make the names in the MOL2 file the same as those
             # in the PDB.
             pdbmol = pychm.io.pdb.get_molFromPDB(self.structure.location + '/segment-' + self.name + '.pdb')
+            firstres = pdbmol[0].resid
+            pdbmol = [atom for atom in pdbmol if atom.resid == firstres]
             mymol2 = MOL2File(filename_mol2)
             molmol = mymol2.mol
 
@@ -868,6 +869,7 @@ class WorkingSegment(Segment):
         return 0
 
     # Tim Miller, make hetid RTF/PRM using antechamber
+    #Now updated to use openbabel Python bindings
     def makeAntechamber(self,badResList):
 
         logfp = open('/tmp/ac.log', 'w')
@@ -891,12 +893,19 @@ class WorkingSegment(Segment):
             rtffile = basefile + '.rtf'
             prmfile = basefile + '.prm'
 
-            cmd = "babel -isdf %s -opdb %s" % (sdffile,pdbfile)
-            logfp.write(cmd + '\n')
+            obconv = openbabel.OBConversion()
+            mol = openbabel.OBMol()
+            obconv.SetInAndOutFormats("sdf","pdb")
+            obconv.ReadFile(mol, sdffile)
+            obconv.WriteFile(mol, pdbfile)
+
+#            cmd = "babel -isdf %s -opdb %s" % (sdffile,pdbfile)
+#            logfp.write(cmd + '\n')
             status = os.system(cmd)
             if status != 0:
                 return -1
             cmd = "sed -i.bak -e 's/LIG/MOL/' %s" % pdbfile
+            #TODO: Verify that this isn't a syntax error...
             logfp.write(cmd + '\n')
             status = os.system(cmd)
             if status != 0:
@@ -1014,11 +1023,18 @@ class WorkingSegment(Segment):
             pdbfname = 'segment-' + self.name + '.pdb'
 
             # BABEL gets called to put Hydrogen positions in for the bonds
-            os.system('/usr/bin/babel -isdf ' + sdffname + ' -oxyz ' + filebase + '.xyz')
+            obconv = openbabel.OBConversion()
+            mol = openbabel.OBMol()
+            obconv.SetInAndOutFormats("sdf","xyz")
+            obconv.ReadFile(mol, sdffname)
+            obconv.WriteFile(mol, filebase)
+
+#            os.system('/usr/bin/babel -isdf ' + sdffname + ' -oxyz ' + filebase + '.xyz')
             logfp = open('/tmp/genrtfcmd.txt', 'w')
             logfp.write(charmming_config.data_home + '/genrtf-v3.3c -s ' + self.name + ' -r ' + badRes + ' -x ' + filebase + '.xyz\n')
             logfp.close()
             os.system(charmming_config.data_home + '/genrtf-v3.3c -s ' + self.name + ' -r ' + badRes + ' -x ' + filebase + '.xyz')
+            #Can we replace this with subprocess? Probably.
 
             # Run the GENRTF generated inp script through CHARMMing b/c the residue names/ids have changed.
             # so we can't trust the original PDB any more.
@@ -1843,6 +1859,7 @@ class PDBFileForm(forms.Form):
     sequ = forms.CharField(widget=forms.widgets.Textarea())   
     pdbupload = forms.FileField()
     psfupload = forms.FileField()
+    crdupload = forms.FileField()
     rtf_file = forms.FileField()
     prm_file = forms.FileField()
 

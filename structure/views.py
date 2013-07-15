@@ -19,9 +19,12 @@
 from httplib import HTTPConnection
 from django import forms
 from django.db.models import Q
+from django.template import RequestContext
 from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
+from django.contrib import messages
+from django.contrib.messages import get_messages #These are for fancy redirects...
 from minimization.models import minimizeTask
 from dynamics.models import mdTask, ldTask, sgldTask
 from solvation.models import solvationTask
@@ -47,12 +50,14 @@ import subprocess
 # import all created lessons by importing lesson_config
 # also there is a dictionary called 'file_type' in lesson_config.py specififying the file type of files uploaded by the lessons  
 from lesson_config import *
-import os, sys, re, copy, datetime, time, stat
+import os, sys, re, copy, datetime, time, stat, json, openbabel
 import mimetypes, string, random, glob, traceback
 import pychm.io, charmming_config, minimization
 import cPickle
 
+
 # problem during upload
+"""
 def uploadError(request,problem):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
@@ -61,7 +66,16 @@ def uploadError(request,problem):
        prob_string = "The file you're trying to upload has more than 50,000 atoms."
     elif problem == 'parse_error':
        prob_string = "There was a problem trying to parse your structure file."
-    return render_to_response('html/problem.html',{'prob_string': prob_string})
+    foo = open(charmming_config.charmming_root+"/mytemplates/html/problem.html")
+    html_request = foo.read()
+    foo.close()
+    html_request.replace("prob_string",prob_string)
+    messages.error(request, html_request)
+    return HttpResponseRedirect("/charmming/fileupload/")
+#    return render_to_response('html/problem.html',{'prob_string': prob_string})
+The above does not appear to work.
+We will simply redirect - this has no point anymore.
+"""
 
 # Deletes user specified file from database and files relating to it
 def deleteFile(request):
@@ -72,7 +86,8 @@ def deleteFile(request):
     if request.POST.has_key('filename'):
         delete_filename = request.POST['filename']
     else:
-        return HttpResponse('Bad')
+        messages.error(request, "Bad")
+        return HttpResponseRedirect("/charmming/buildstruct/")
 
     deleteAll = 0
     remove_extension = re.compile('\.\S*')
@@ -116,21 +131,20 @@ def viewFiles(request,filename, mimetype = None):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return render_to_response('html/nopdbuploaded.html')
+        messages.error(request, "No structure has been uploaded. Please upload a structure before downloading its files.")
+        return HttpResponseRedirect('/charmming/fileupload/')
     try:
-        logfp = open('/tmp/vf.txt', 'w')
-        logfp.write("%s/%s\n" % (struct.location,filename))
-        logfp.close()
+#        logfp = open('/tmp/vf.txt', 'w')
+#        logfp.write("%s/%s\n" % (struct.location,filename))
+#        logfp.close()
         os.stat("%s/%s" % (struct.location,filename))
     except:
-        return HttpResponse("That file doesn't seem to exist. Maybe you deleted it?")
+        messages.error(request, "The file " + filename + " doesn't seem to exist. Maybe you deleted it?")
+        return HttpResponseRedirect('/charmming/viewprocessfiles/')
 
-    
     fname = "%s/%s" % (struct.location,filename)
-    fcontent = []
     fp = open(fname, 'r')
-    for line in fp:
-        fcontent.append(line)
+    fcontent = fp.read()
     fp.close()
 
     lesson_ok, dd_ok = checkPermissions(request)
@@ -147,7 +161,8 @@ def downloadFilesPage(request,mimetype=None):
     try:
         ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        return HttpResponse("Please perform some operations on your structure")
+        messages.error(request, "Please build a working structure first.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
 
     wsname = ws.identifier
     filelst = []
@@ -233,7 +248,8 @@ def downloadGenericFiles(request,filename, mimetype = None):
     try:
         os.stat(path + "/" + filename)
     except:
-        return HttpResponse("Hmmm ... that file doesn't seem to exist. Please file a bug report.")
+        messages.error(request, "Hmmm ... the file " + filename + " doesn't seem to exist. Please file a bug report.")
+        return HttpResponseRedirect('/charmming/viewprocessfiles/')
 
     if mimetype is None:
         mimetype,encoding = mimetypes.guess_type(path + "/" + filename)
@@ -242,6 +258,7 @@ def downloadGenericFiles(request,filename, mimetype = None):
     response.write(file(path + "/" + filename, "rb").read())
     return response
 
+##TODO: Find out why this method exists. Nothing calls it. Why is it here?
 def viewDynamicOutputContainer(request,jobtype):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
@@ -320,11 +337,16 @@ def downloadProcessFiles(request,filename, mimetype = None):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse('No structure uploaded')
+        messages.error(request, "No structure uploaded. Please upload a structure.")
+        return HttpResponseRedirect('/charmming/fileupload/')
+#        return HttpResponse('No structure uploaded')
+
     try:
         sval = os.stat("%s/%s" % (struct.location,filename))
     except:
-        return HttpResponse('Oops ... that file no longer exists.')
+        messages.error(request, "Oops...the file " + filename + " no longer exists.")
+        return HttpResponseRedirect("/charmming/viewprocessfiles/")
+#        return HttpResponse('Oops ... that file no longer exists.')
     response = HttpResponse(mimetype=mimetype)
     response['Content-Disposition'] = 'attachment; filename=%s' % filename
     response['Content-length'] = sval.st_size
@@ -338,17 +360,22 @@ def viewProcessFiles(request):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please select a structure first.")
+        messages.error(request, "No structure uploaded. Please upload a structure.")
+        return HttpResponseRedirect('/charmming/fileupload/')
+#        return HttpResponse("Please select a structure first.")
     try:
         ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        return HttpResponse('No structure uploaded')
+        messages.error(request, "Please build a working structure first.")
+        return HttpResponseRedirect('/charmming/buildstruct/')
+#        return HttpResponse('No structure uploaded')
 
     header_list = []
     file_list   = []
     tasks = structure.models.Task.objects.filter(workstruct=ws)
     for task in tasks:
-        header_list.append(task.action)
+        if task.action not in header_list: #No more than one task per ws...this works fine with mutation since that creates a new WS
+            header_list.append(task.action)
 
         # get all input and output files associated with the task
         wfiles = structure.models.WorkingFile.objects.filter( Q(task=task), \
@@ -374,11 +401,15 @@ def visualize(request,filename):
     try:
         struct =  structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse('No structure uploaded')
+        messages.error(request, "No structure uploaded. Please upload a structure.")
+        return HttpResponseRedirect('/charmming/fileupload/')
+#        return HttpResponse('No structure uploaded')
     try:
         ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        return HttpResponse('No structure uploaded')
+        messages.error(request, "Please build a working structure first.")
+        return HttpResponseRedirect('/charmming/buildstruct/')
+#        return HttpResponse('No structure uploaded')
 
     filelst = []
 
@@ -408,7 +439,9 @@ def chemdoodle(request,filename):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse('No structure')
+        messages.error(request, "No structure uploaded. Please upload a structure.")
+        return HttpResponseRedirect('/charmming/fileupload/')
+#        return HttpResponse('No structure')
 
     orgfname = struct.location + '/' + filename
     newfname = struct.location + '/tmp-' + filename
@@ -449,7 +482,9 @@ def jmol(request,filename):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse('No structure')
+        messages.error(request, "No structure uploaded. Please upload a structure.")
+        return HttpResponseRedirect('/charmming/fileupload/')
+#        return HttpResponse('No structure')
     filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
     filename_end = filename.rsplit('/',1)[1] #i.e., "a-pro-5.pdb", etc.
     lesson_ok, dd_ok = checkPermissions(request)
@@ -468,7 +503,9 @@ def jmolHL(request,filename,segid,resid):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse('No structure')
+        messages.error(request, "No structure uploaded. Please upload a structure.")
+        return HttpResponseRedirect('/charmming/fileupload/')
+#        return HttpResponse('No structure')
     filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
 
     return render_to_response('html/jmol.html', {'filepath': filename, 'segid': segid, 'resid': resid })
@@ -481,11 +518,15 @@ def glmol(request,filename):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse('No structure')
+        messages.error(request, "No structure uploaded. Please upload a structure.")
+        return HttpResponseRedirect('/charmming/fileupload/')
+#        return HttpResponse('No structure')
     try:
         ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        return HttpResponse('No working structure selected.')
+        messages.error(request, "Please build a working structure first.")
+        return HttpResponseRedirect('/charmming/fileupload/')
+#        return HttpResponse('No working structure selected.')
 
     filepath = struct.location.replace(charmming_config.user_home,'') #ws is always in same dir as struct...
     filename = filepath + "/" + filename
@@ -551,36 +592,63 @@ def viewstatus(request):
 
     return render_to_response('html/statusreport.html', {'structure': file, 'haveWorkingStruct': True, 'statuses': statuses})
 
+def viewtaskoutput(request, taskid):
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+
+    tdict = {}
+#    try:
+    tid = int(taskid)
+    task = Task.objects.get(id=tid) #This is unique. Hopefully.
+    output_location = task.workstruct.structure.location
+    os.chdir(output_location)
+    out_action = task.action
+    if task.action == "energy":
+        out_action = "ener"
+    elif task.action == "minimization":
+        out_action = "minimize"
+    elif task.action == "solvation":
+        out_action = "solvate"
+    fp = open(task.workstruct.identifier + "-" + out_action + ".out") #e.g. 1yjp-ener.out
+    fcontents = fp.read()
+    fp.close()
+    top_string = "Structure: " + task.workstruct.structure.name + ", Working Structure: " + task.workstruct.identifier + ", Action: " + task.action.capitalize()
+    tdict['file_contents'] = fcontents
+    tdict['intro_string'] = top_string
+#    except:
+#        return HttpResponse("No such task.") #This works because it'd basically replace the status page with the error. Doing messages.error just messes things up here.
+    return render_to_response('html/view_task_output.html', tdict)
+
 # kill a task
 def killTask(request,taskid):
-    logfp = open('/tmp/killTask.txt', 'w')
-    logfp.write('In killTask\n')
+#    logfp = open('/tmp/killTask.txt', 'w')
+#    logfp.write('In killTask\n')
 
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     input.checkRequestData(request)
 
-    logfp.write('Got task ID = %s\n' % taskid)
+#    logfp.write('Got task ID = %s\n' % taskid)
     try:
         tid = int(taskid)
         t = Task.objects.get(id=tid)
     except:
-        logfp.write('No such task.\n')
-        logfp.close()
+#        logfp.write('No such task.\n')
+#        logfp.close()
         return HttpResponse('No such task')
 
-    logfp.write('Found task, status = %s!\n' % t.status)
+#    logfp.write('Found task, status = %s!\n' % t.status)
     if t.workstruct.structure.owner != request.user:
-        logfp.write('No permission\n')
-        logfp.close()
+#        logfp.write('No permission\n')
+#        logfp.close()
         return HttpResponse('No permission')
     if t.status != 'R':
-        logfp.write('Task not running!\n')
-        logfp.close()
+#        logfp.write('Task not running!\n')
+#        logfp.close()
         return HttpResponse('Job not running')
 
-    logfp.write('Calling task kill method.\n')
-    logfp.close()
+#    logfp.write('Calling task kill method.\n')
+#    logfp.close()
     t.kill()
     return HttpResponse("OK")
 
@@ -598,10 +666,15 @@ def reportError(request):
             emailmsg += 'Error details given by user are: \n' + request.POST['errordescription']
             mail_admins('Bug Reported',emailmsg,fail_silently=False)
             return HttpResponse("Bug was successfully reported. Thank you for reporting this bug.")
+        ##TODO: Add non-error message.
         else:
-            return HttpResponse("You must type something into the form...\n")
+            messages.error(request, "You must type something into the form...")
+            return HttpResponseRedirect("/charmming/about/")
+#            return HttpResponse("You must type something into the form...\n")
     except:
-        return HttpResponse("Bug failed to be sent properly. Please check all fields or E-mail btamiller@gmail.com.")
+        messages.error(request, "Bug failed to be sent properly. Please check all fields or E-mail btamiller@gmail.com")
+        return HttpResponseRedirect("/charmming/about/")
+#        return HttpResponse("Bug failed to be sent properly. Please check all fields or E-mail btamiller@gmail.com.")
 
 
 
@@ -649,11 +722,15 @@ def energyform(request):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please submit a structure first.")
+        messages.error(request, "Please submit a structure.")
+        return HttpResponseRedirect("/charmming/fileupload/")
+#        return HttpResponse("Please submit a structure first.")
     try:
          ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before attempting an energy calculation")
+        messages.error(request, "Please build a working structure before performing any calculations.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+#        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before attempting an energy calculation")
     tdict = {}
     tdict['ws_identifier'] = ws.identifier
 
@@ -668,6 +745,10 @@ def energyform(request):
         pass
 
     tdict['energy_lines'] = energy_lines
+    sl = []
+    sl.extend(structure.models.Segment.objects.filter(structure=struct,is_working='n'))
+    sl = sorted(map(lambda x: x.name, sl))
+    tdict['seg_list'] = sl
 
     if request.POST.has_key('form_submit'):
         try:
@@ -697,17 +778,26 @@ def energyform(request):
         tdict['tasks'] = tasks
 
         #Also get the atom selection, if any
+        atomselection = None
         try:
             atomselection = selection.models.AtomSelection.objects.filter(workstruct=ws)[0]
-            tdict['atomselection'] = atomselection
         except:
             pass
-
-        tdict['lesson_ok', 'dd_ok'] = checkPermissions(request)
+        lesson_ok, dd_ok = checkPermissions(request)
+        tdict['messages'] = get_messages(request)
+        tdict['lesson_ok'] = lesson_ok
+        tdict['dd_ok'] = dd_ok
+        #Incoming block of generic code
+        if atomselection != None:
+            tdict['selectionstring'] = atomselection.selectionstring
+            lonepairs = selection.models.LonePair.objects.filter(selection=atomselection)
+            tdict['lonepairs'] = lonepairs
+            tdict['num_linkatoms'] = atomselection.linkatom_num
+        #Now you just force these to render as a django template consisting entirely of javascript on the QM/MM dependent pages and you're done
         return render_to_response('html/energyform.html', tdict)
 
 
-def calcEnergy_tpl(request,workstruct,pTaskID,eobj): 
+def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
@@ -771,7 +861,9 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
         template_dict['ewalddim'] = sp.calcEwaldDim()
 
         if template_dict['xtl_ucell'] == 'sphere':
-            return HttpResponse('Cannot do PBC on a sphere')
+            messages.error(request, "Cannot do PBC on a sphere.")
+            return HttpResponseRedirect("/charmming/solvation/")
+#            return HttpResponse('Cannot do PBC on a sphere')
     else:
         dopbc = False
         eobj.usepbc = 'n'
@@ -788,7 +880,9 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
             pass
 
         if dopbc:
-            return HttpResponse('Cannot combine QM/MM and periodic boundary conditions')
+            messages.error(request, "Cannot combine QM/MM and periodic boundary conditions.")
+            return HttpResponseRedirect("/charmming/solvation/")
+#            return HttpResponse('Cannot combine QM/MM and periodic boundary conditions')
     else:
         eobj.useqmmm = 'n'
 
@@ -888,19 +982,23 @@ def parseEnergy(workstruct,output_filename,enerobj=None):
 
 def getSegs(Molecule,Struct,auto_append):
     #auto_append is never used so I will use it for the custom ligand build...
-    #True means normal build, False means custom build
+    #True means normal/PDB.org build, False means custom build
     Struct.save()
 
     logfp = open('/tmp/getsegs.txt', 'w')
     logfp.write('In getSegs\n')
     sl = []
     sl.extend(structure.models.Segment.objects.filter(structure=Struct))
-    append = True
     for seg in Molecule.iter_seg():
         logfp.write('Found segment %s\n' % seg.segid)
 
         reslist = seg.iter_res()
         firstres = reslist.next().resName
+        try:
+            secondres = reslist.next()
+            resName = "N/A"
+        except StopIteration: #End of iterator, returns exception instead of null
+            resName = firstres
 
         newSeg = structure.models.Segment()
         newSeg.structure = Struct
@@ -908,14 +1006,14 @@ def getSegs(Molecule,Struct,auto_append):
         newSeg.name = seg.segid
         newSeg.type = seg.segType
         newSeg.is_custom = not(auto_append) #False if auto_append is True, and vice-versa.
+        newSeg.resName = resName #This is for buildstruct page and other misc uses
         logfp.write("auto_append = " + str(newSeg.is_custom) + "\n")
 
         foo = map(lambda x: x.name,sl)
         bar = map(lambda x: x.structure,sl)
-        logfp.write("\nAppend:  " + str(append) + "\n")
         logfp.write(str(foo) + "\n" + str(bar)) 
 
-        if (append) and newSeg.name in map(lambda x: x.name,sl) and newSeg.structure in map(lambda x: x.structure,sl):
+        if newSeg.name in map(lambda x: x.name,sl) and newSeg.structure in map(lambda x: x.structure,sl):
             logfp.write("Segment " + newSeg.name + " skipped\n")#If a segment with that name already exists in that structure, skip it and keep going.
             continue
         logfp.write('new seg object in charmming created\n')
@@ -968,6 +1066,11 @@ def newupload(request, template="html/fileupload.html"):
     u = User.objects.get(username=username)
     location = charmming_config.user_home + '/' + request.user.username + '/'
 
+    all_messages = get_messages(request) #Gets any error messages from redirects.
+    logfp=open("/tmp/messagetest.txt","w")
+    for message in all_messages:
+        logfp.write(str(type(message)) + "\n")
+    logfp.close()
     if request.POST.has_key('modeltype') and request.POST['modeltype'] == 'gomodel':
         makeGoModel = True
     if request.POST.has_key('modeltype') and request.POST['modeltype'] == 'blnmodel':
@@ -1019,12 +1122,14 @@ def newupload(request, template="html/fileupload.html"):
         os.chmod(struct.location, 0775)
         fullpath = struct.location + '/sequ.pdb'
         struct.putSeqOnDisk(request.POST['sequ'], fullpath)
- 
-        pdb = pychm.io.pdb.PDBFile(fullpath)
-        mol = pdb[0]
-        mol.parse()
-        getSegs(mol,struct,auto_append=True)
-
+        try:
+            pdb = pychm.io.pdb.PDBFile(fullpath)
+            mol = pdb[0]
+            mol.parse()
+            getSegs(mol,struct,auto_append=True)
+        except ValueError:
+            messages.error(request, "Error parsing PDB file.")
+            return HttpResponseRedirect("/charmming/fileupload/")
         # store the pickle file containing the structure
         #TODO: Add dname-pdpickle.dat as filename. Do once the rest of the infrastructure is complete...
         pfname = location + dname + '/' + 'pdbpickle.dat'
@@ -1051,7 +1156,7 @@ def newupload(request, template="html/fileupload.html"):
             lessonaux.doLessonAct(struct,"onFileUpload",postdata,"")
         #end YP lessons
         struct.save()
-        return HttpResponseRedirect('/charmming/buildstruct')
+        return HttpResponseRedirect('/charmming/buildstruct/')
 
     elif file_uploaded or request.POST.has_key('pdbid'):
         if file_uploaded:
@@ -1089,18 +1194,24 @@ def newupload(request, template="html/fileupload.html"):
                 outfp = open(fullpath, 'w+')
                 if resp.status != 200:
                         prob_string = "The PDB server returned error code %d." % resp.status
-                        return render_to_response('html/problem.html',{'prob_string': prob_string})
+                        messages.error(request, prob_string)
+                        return HttpResponseRedirect("/charmming/fileupload/")
+#                        return render_to_response('html/problem.html',{'prob_string': prob_string})
                 pdb_file = resp.read()
                 if "does not exist" in pdb_file:
                     outfp.close()
-                    return render_to_response('html/problem.html',{'prob_string': 'The PDB server reports that the structure does not exist.'})
+                    messages.error(request, "The PDB servers report that this structure does not exist.")
+                    return HttpResponseRedirect("/charmming/fileupload/")
+#                    return render_to_response('html/problem.html',{'prob_string': 'The PDB server reports that the structure does not exist.'})
 
                 outfp.write(pdb_file)
                 outfp.close()
                 conn.close()
             except:
                 # print an error page...
-                return render_to_response('html/problem.html',{'prob_string': 'There was an exception processing the file -- contact the server administrator for more details.'})
+                messages.error(request, "There was an error processing your file. Please contact the server administrator for more details.")
+                return HttpResponseRedirect("/charmming/fileupload/")
+#                return render_to_response('html/problem.html',{'prob_string': 'There was an exception processing the file -- contact the server administrator for more details.'})
 
 
         if file_uploaded and ( filename.endswith('crd') or filename.endswith('cor') ):
@@ -1111,28 +1222,33 @@ def newupload(request, template="html/fileupload.html"):
             struct.owner = request.user
             #YP
             struct.location = location + dname
-            
             #YP
             #pdb = pychm.io.crd.CRDFile(fullpath)
-            pdb = pychm.io.pdb.PDBFile()
-            thisMol = pychm.io.pdb.get_molFromCRD(fullpath)
-            pdb._mols["model00"] = thisMol
-            #YP
-            getSegs(thisMol,struct,auto_append=True)
-        
+            try:
+                pdb = pychm.io.pdb.PDBFile()
+                thisMol = pychm.io.pdb.get_molFromCRD(fullpath)
+                pdb._mols["model00"] = thisMol
+                getSegs(mol,struct,auto_append=True)
+            except ValueError:
+                messages.error(request, "Error parsing PDB file.")
+                return HttpResponseRedirect("/charmming/fileupload/")
         else:
-            pdb = pychm.io.pdb.PDBFile(fullpath)
-            mnum = 1
-            struct = structure.models.Structure()
-            struct.location = location + dname
-            struct.name = dname
-            struct.owner = request.user
-            struct.getHeader(pdb.header)
+            try:
+                pdb = pychm.io.pdb.PDBFile(fullpath)
+                mnum = 1
+                struct = structure.models.Structure()
+                struct.location = location + dname
+                struct.name = dname
+                struct.owner = request.user
+                struct.getHeader(pdb.header)
 
-            for thisMol in pdb.iter_models():
-                thisMol.parse()
-                if mnum == 1: getSegs(thisMol,struct,auto_append=True) #Leave these as True.
-                mnum += 1
+                for thisMol in pdb.iter_models():
+                    thisMol.parse()
+                    if mnum == 1: getSegs(thisMol,struct,auto_append=True) #Leave these as True.
+                    mnum += 1
+            except ValueError:
+                messages.error(request, "Error parsing PDB file.")
+                return HttpResponseRedirect("/charmming/fileupload/")
 
         # store the pickle file containing the structure
         #TODO: Add dname-pdbpickle.dat as filename. DO once infrastructure is complete.
@@ -1171,7 +1287,7 @@ def newupload(request, template="html/fileupload.html"):
     form = structure.models.PDBFileForm()
 
     lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/fileuploadform.html', {'form': form, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok} )
+    return render_to_response('html/fileuploadform.html', {'form': form, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'messages':all_messages} )
 
 
 # This function populates the form for building a structure
@@ -1184,7 +1300,9 @@ def buildstruct(request):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please submit a structure first.")
+        messages.error(request, "Please submit a structure first.")
+        return HttpResponseRedirect("/charmming/fileupload/")
+#        return HttpResponse("Please submit a structure first.")
 
     # pick out a proposed name for this working structure
     proposedname = struct.name
@@ -1203,7 +1321,8 @@ def buildstruct(request):
 
     tdict = {}
     tdict['proposedname'] = proposedname
-    
+    all_messages = get_messages(request) #Get all error messages for display 
+    tdict['messages'] = all_messages
     ws = []
     if len(existingWorkStructs) > 0:
         tdict['haveworkingstruct'] = True
@@ -1222,12 +1341,36 @@ def buildstruct(request):
     sl = []
     sl.extend(structure.models.Segment.objects.filter(structure=struct,is_working='n'))
     sl = sorted(sl,key=lambda x: x.name)
+    #By having the database field resName in each Segment object we can save a lot of grief
     tdict['seg_list'] = sl
     tdict['disulfide_list'] = struct.getDisulfideList()
     tdict['proto_list'] = []
     tdict['super_user'] = request.user.is_superuser
+    tdict['filepath'] = "/charmming/pdbuploads/" + struct.location.replace(charmming_config.user_home,'') + "/" + struct.name + "_with_hydrogens.pdb" #This assumes we have a PDB file! Please be careful with this.
     for seg in sl:
         tdict['proto_list'].extend(seg.getProtonizableResidues())
+    #The following procedure is very similar to the one in selection.views. 
+    #See selection.views.selectrstructure lines 180-196 for more data.
+    #Since we hav emore than protein chains, we need to figure out the chain terminators in a more elaborate way
+    if tdict['proto_list']: #We should only do these graphics if we have a proto list
+        segmentlist = [] #Holds the segnames
+        chain_terminators = []
+        for segment in pdb['model00'].iter_seg(): #More slow code!
+        #Connectivity difference in models is not a concern because this is BEFORE we build anything.
+            atom = segment.iter_res().next().iter_atom().next().atomNum0
+            segmentlist.append(segment)
+            chain_terminators.append(atom)
+        segmentlist = sorted(segmentlist,key=lambda x:x.iter_res().next().iter_atom().next().atomNum0)
+        segmentlist = map(lambda x:x.segid,segmentlist)
+        chain_terminators = sorted(chain_terminators)
+        tdict['chain_terminators'] = json.dumps(chain_terminators)
+        tdict['segmentlist'] = json.dumps(segmentlist)
+        obconv = openbabel.OBConversion()
+        mol = openbabel.OBMol()
+        obconv.SetInAndOutFormats("pdb","pdb") #This is silly but it allows us to add hydrogens
+        obconv.ReadFile(mol, (struct.location + "/" + struct.name + ".pdb").encode("utf-8"))
+        mol.AddHydrogens(False,True,7.4)
+        obconv.WriteFile(mol, (struct.location + "/" + struct.name + "_with_hydrogens.pdb").encode("utf-8"))
     tdict['structname'] = struct.name
     tdict['lesson_ok'], tdict['dd_ok'] = checkPermissions(request)
     return render_to_response('html/buildstruct.html', tdict)
@@ -1242,16 +1385,20 @@ def modstruct(request):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please submit a structure")
+        messages.error(request, "Please submit a structure.")
+        return HttpResponseRedirect('/charmming/fileupload/')
 
 
     if not request.POST.has_key('wsidentifier'):
-        return HttpResponse("You must give this working structure an identifier")
-    if not request.POST['wsidentifier']:
-        return HttpResponse("You must give this working structure an identifier")
+        messages.error(request, "You must give this working structure an identifier.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+    if not request.POST['wsidentifier']: #Aren't these two equivalent?
+        messages.error(request, "You must give this working structure an identifier.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
 
     if not request.POST.has_key('buildtype'):
-        return HttpRespone("No build type specified")
+        messages.error(request, "No build type specified.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
 
     if request.POST['buildtype'] == 'aa':
         segs = structure.models.Segment.objects.filter(structure=struct,is_working='n')
@@ -1261,8 +1408,9 @@ def modstruct(request):
             if request.POST.has_key(ulkey) and request.POST[ulkey] == 'y':
                seglist.append(s.name)
         if len(seglist) < 1:
-            return HttpResponse("You must choose at least one segment!")
-    
+            messages.error(request, "You must choose at least one segment!")
+            return HttpResponseRedirect("/charmming/buildstruct/")
+
         tpdict = {}
         for seg in seglist:
             if request.POST.has_key('toppar_' + seg):
@@ -1271,7 +1419,7 @@ def modstruct(request):
                 allowedList = ['standard','upload','autogen','redox']
                 if request.user.is_superuser:
                     allowedList.extend(['dogmans','match','genrtf','antechamber'])
-               
+
                 if tpdict[seg] not in allowedList:
                     tpdict[seg] = 'standard'
 
@@ -1280,7 +1428,8 @@ def modstruct(request):
                         uptop = request.FILES['topology_' + seg]
                         uppar = request.FILES['parameter_' + seg]
                     except:
-                        return HttpResponse("Topology/parameter files not uploaded")
+                        messages.error(request, "Topology/parameter files not uploaded.")
+                        return HttpResponseRedirect("/charmming/buildstruct/")
 
                     topfp = open(struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.rtf', 'w+')
                     prmfp = open(struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.prm', 'w+')
@@ -1370,7 +1519,8 @@ def modstruct(request):
                          kBondCoil=request.POST['bln_kbondcoil'],kAngleCoil=request.POST['bln_kanglecoil'])
         new_ws.save()
     else:
-        return HttpResponse("Bad builttype specified!")
+        messages.error(request, "Bad buildtype specified!")
+        return HttpResponseRedirect("/charmming/buildstruct/")
 
     # ToDo: Figure out restraints
 
@@ -1397,9 +1547,11 @@ def swap(request):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please select a structure")
+        messages.error(request, "Please select a structure.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
     if not request.POST.has_key('choosestruct'):
-        return HttpResponse("Invalid choice")
+        messages.error(request, "Invalid structure choice.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
 
     try:
         old_ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
@@ -1412,7 +1564,8 @@ def swap(request):
     try:
         new_ws = structure.models.WorkingStructure.objects.filter(structure=struct,identifier=request.POST['choosestruct'])[0]
     except:
-        return HttpResponse("Invalid structure selected")
+        messages.error(request, "Invalid structure selected.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
     else:
         new_ws.selected = 'y'
         new_ws.save()
