@@ -18,6 +18,8 @@
 from django.template.loader import get_template
 from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
+from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.shortcuts import render_to_response
 from django.db.models import Q
 from structure.models import Structure, WorkingStructure, WorkingFile, Task
@@ -41,11 +43,15 @@ def solvationformdisplay(request):
     try:
         struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please submit a structure first.")
+        messages.error(request,"Please submit a structure first.")
+        return HttpResponseRedirect("/charmming/fileupload/")
+#        return HttpResponse("Please submit a structure first.")
     try:
         ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+        messages.error(request, "Please build a working structure before performing any calculations.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+#       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     if request.POST.has_key('solvation_structure'):
         # if there is a previous solvation structure, deactivate it

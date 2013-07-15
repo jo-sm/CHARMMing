@@ -18,6 +18,7 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template.loader import get_template
+from django.contrib import messages
 from structure.models import Structure, WorkingStructure, WorkingFile, Task
 from account.views import checkPermissions
 from structure.aux import checkNterPatch
@@ -42,11 +43,15 @@ def lddisplay(request):
     try:
          struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-         return HttpResponse("Please submit a structure first.")
+        messages.error(request, "Please submit a structure first.")
+        return HttpResponseRedirect("/charmming/fileupload/")
+#         return HttpResponse("Please submit a structure first.")
     try:
          ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+        messages.error(request, "Please build a working structure before performing any calculations.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+#        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     if request.POST.has_key('nstep'):
         # form has been submitted, check and see if there is an old ldTask, and
@@ -107,11 +112,15 @@ def mddisplay(request):
     try:
         struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please submit a structure first.")
+        messages.error(request, "Please submit a structure first.")
+        return HttpResponseRedirect("/charmming/fileupload")
+#        return HttpResponse("Please submit a structure first.")
     try:
         ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+        messages.error(request, "Please build a working structure before performing any calculations.")
+        return HttpResponseRedirect("/charmming/buildstruct")
+#       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
 
     if request.POST.has_key('mdtype'):
@@ -321,8 +330,10 @@ def applymd_tpl(request,mdt,pTaskID):
     dopbc = False
     if request.POST.has_key('usepbc'):
         if request.POST.has_key('solvate_inplicitly'):
-            return HttpResponse('Invalid options')
-        
+            messages.error(request, "Invalid options.")
+            return HttpResponseRedirect("/charmming/dynamics/md/")
+#            return HttpResponse('Invalid options')
+
         # decide if the structure we're dealing with has
         # been solvated.
         solvated = False
