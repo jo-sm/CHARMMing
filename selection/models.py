@@ -28,5 +28,16 @@ class AtomSelection(models.Model):
 
     workstruct = models.ForeignKey(WorkingStructure)
     task = models.ForeignKey(Task)
-    selectionstring = models.CharField(max_length=4000,null=True)
+    selectionstring = models.CharField(max_length=4000,default=None)
+    linkatom_num = models.PositiveIntegerField(default=0)
+
+class LonePair(models.Model):
+    divid = models.PositiveIntegerField(default=0) #This is the same for both - it's linkqm + (divid) or linkmm + (divid), since they're pairs, and same for qmatomtype/mmatomtype
+    qmresid = models.PositiveIntegerField(default=0) #These two can be very different.
+    mmresid = models.PositiveIntegerField(default=0)
+    qmatomname = models.CharField(max_length=10,default=None)
+    mmatomname = models.CharField(max_length=10,default=None)
+    qmsegid = models.CharField(max_length=40,default=None)
+    mmsegid = models.CharField(max_length=40,default=None) #These will usually be the same, but I'm going for the super-generic case
+    selection = models.ForeignKey(AtomSelection)
 
