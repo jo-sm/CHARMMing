@@ -11,6 +11,7 @@
     <script src="/charmming/js/jqTableKit.js" type="text/javascript"></script>
     <script src="/charmming/js/jquery.periodicalupdater.js" type="text/javascript"></script>
     <script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
+    <script type="text/javascript" src="/charmming/js/status.js"></script>
 
     <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
     <link href="/charmming/css/charmming.css" rel="stylesheet" type="text/css" />
@@ -43,7 +44,7 @@
        myMenu = new SDMenu("my_menu");
        myMenu.init();
 
-       $("#statusreport").PeriodicalUpdater('/charmming/status/', {async:false,method: 'post', multiplier:5, minTimeout:100, maxTimeout:5000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
+       $("#statusreport").PeriodicalUpdater('/charmming/status/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:5000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
     }
 
     function showLesson(lesson)
@@ -53,7 +54,7 @@
       currperiodicalupdater.stop();
      }
      if(lesson != "nolesson" && lesson != 'None')
-       currperiodicalupdater = $("lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {method: 'post', multiplier:5, minTimeout:100, maxTimeout:5000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
+       currperiodicalupdater = $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {method: 'post', multiplier:5, minTimeout:100, maxTimeout:5000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
      else
      {
       document.getElementById('lessonreport').innerHTML = '';

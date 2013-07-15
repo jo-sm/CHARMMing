@@ -1,13 +1,24 @@
 {% autoescape off %}
+<!-- Note! Due to the jQuery stuff in here, status is no longer standalone in full functionality.
+We don't re-include the library because 
+1. We have no way to tell that this page is being "included" as part of a template
+2. It's a waste of requests (even if only done when included)
+3. If done with the rest of the site, all the vars get shuffled around and jQuery may crash
+4. The basic pieces of this page (status display) is templated just fine without jQuery
+So we leave this warning here. 
+~VS 07/12/13-->
 <div class="status">
-  <table border=0 bordercolor=#e2e9fe class="status" cellspacing=0 cellpadding=0 width=150px>
+  <table style="border-color:#e2e9fe;width:150px" class="status">
    {% if structure.name %}
      <tr class="status"><th class="status"> Status of: <br /> {{ structure.name }} </th></tr>
      {% if haveWorkingStruct %}
        <tr class="status"><td class="status">Operations:</td></tr>
-       {% for s in statuses %}
+       {% for s in statuses %}   
+           <tr class="status"><td class="status"><a href="javascript:dialog_open('{{s.3}}','{{s.1}}');">{{ s.0 }}</a>: <span style="color:{%ifequal s.1 "Inactive"%}grey{%endifequal%}{%ifequal s.1 "Failed" %}red{%endifequal%}{%ifequal s.1 "Done" %}green{%endifequal%}{%ifequal s.1 "Running"%}blue{%endifequal%}">{{ s.1 }}</span>{% ifequal s.2 1 %}&nbsp;<a href="javascript:killJob({{ s.3 }});">X</a>{% endifequal %}
+          <div id="dialog_output_{{s.3}}" title="File output">
+            </div>
+        </td></tr>
          {% ifnotequal s.1 "Inactive" %}
-           <tr class="status"><td class="status"> {{ s.0 }}: {{ s.1 }} {% ifequal s.2 1 %}<a href="javascript:killJob({{ s.3 }});">X</a>{% endifequal %}</td></tr>
          {% endifnotequal %}
        {% endfor %}
      {% else %}
@@ -17,6 +28,7 @@
      <tr class="status"><th class="status"> No Structure </th></tr>
    {% endif %}
 </table>
+
 
   <div id="statusfooter">
     <div class="content">

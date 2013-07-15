@@ -56,7 +56,7 @@ segs have iter_res(), so we can easily get a bunch of stuff from there
 		</form>
   </div>
   {% if not no_coords %}
-  <div id=jsmol_window>
+  <div id=jsmol_window style="height:600px">
   <script type="text/javascript">
         var filepath = "/charmming/pdbuploads/" + "{{filepath}}"; //base filepath. then we need to fetch which  is currently selected...
         var load_filepath = filepath;
@@ -74,8 +74,8 @@ segs have iter_res(), so we can easily get a bunch of stuff from there
           j2sPath: "/charmming/js/jsmol/j2s",
           readyFunction: jmol_isReady,
           script: "set antialiasDisplay;",
-          disableJ2SLoadMonitor: debug_on,
-          disableInitialConsole: debug_on,
+          disableJ2SLoadMonitor: false,
+          disableInitialConsole: false,
     //  console: "jmolApplet_infodiv"
       //Apparently the DEFAULT setting is to have debug on. Thus the awkwardness.
         }
