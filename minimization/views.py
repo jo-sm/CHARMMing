@@ -24,12 +24,13 @@ from structure.models import Structure, WorkingStructure, WorkingFile, Segment, 
 from structure.qmmm import makeQChem_tpl, makeQchem_val
 from structure.aux import checkNterPatch
 from django.contrib.auth.models import User
+from django.contrib import messages
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from minimization.models import minimizeTask
 from solvation.models import solvationTask
-from selection.models import AtomSelection
+import selection.models
 import charmming_config, input, output, lessonaux, lessons, lesson1, lesson2, lesson3, lesson4
 import re, copy
 import os, shutil
@@ -44,11 +45,15 @@ def minimizeformdisplay(request):
     try:
         struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please submit a structure first.")
+        messages.error(request, "Please submit a structure first.")
+        return HttpResponseRedirect("/charmming/fileupload")
+#        return HttpResponse("Please submit a structure first.")
     try:
        ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+        messages.error(request, "Please build a working structure before performing any calculations.")
+        return HttpResponseRedirect("/charmming/buildstruct")
+#       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
     if request.POST.has_key('sdsteps') or request.POST.has_key('abnrsteps'):
         #deals with changing the selected minimize_params
         try:
@@ -88,13 +93,20 @@ def minimizeformdisplay(request):
         for seg in ws.segments.all():
             seg_list.append(seg.name)       
 
-        tdict['seg_list'] = seg_list
+        tdict['seg_list'] = sorted(seg_list)
 
+        atomselection = None
         try:
-            atomselection = AtomSelection.objects.filter(workstruct=ws)[0]
-            tdict['atomselection'] = atomselection
+            atomselection = selection.models.AtomSelection.objects.filter(workstruct=ws)[0]
         except:
             pass
+
+        #Incoming block of generic code
+        if atomselection != None:
+            tdict['selectionstring'] = atomselection.selectionstring
+            lonepairs = selection.models.LonePair.objects.filter(selection=atomselection)
+            tdict['lonepairs'] = lonepairs
+            tdict['num_linkatoms'] = atomselection.linkatom_num
 
         lesson_ok, dd_ok = checkPermissions(request)
         tdict['lesson_ok'] = lesson_ok
