@@ -31,10 +31,10 @@ class mutateTask(Task):
     NewResn = models.CharField(max_length=3,null=True) #ALA, SYN, GLY, &c.
     MutSegi = models.CharField(max_length=50,null=True)
     MutFile = models.CharField(max_length=500,null=True)
-    localpickle = models.CharField(max_length=500,null=True)
+    lpickle = models.CharField(max_length=500,null=True)
 
     def finish(self):
-        logfp = open("/tmp/logmut.txt","a+")
+        logfp = open("/tmp/logmut.txt","w")
         #overrides basic finish, tests if the job succeeded
         loc = self.workstruct.structure.location
         bnm = self.workstruct.identifier
@@ -110,11 +110,11 @@ class mutateTask(Task):
         try:
             os.remove(loc + "/tmp.crd")
         except:
-            pass 
+            pass
         #OR at least attempt to.
         #This is where this diverges from normal task finishes
         #We need to reprocess the PDBFile object, create a new pickle...
-        pdbloc = bnm + "mutation.pdb"
+        pdbloc = bnm + "-mutation.pdb"
         logfp.write(pdbloc + "\n")
         try:
             os.chdir(loc) #We use Popen because we need to use > and we don't want to use shell=True (prevents need for input sanitization)
@@ -136,13 +136,14 @@ class mutateTask(Task):
             os.remove("tmp.ss")
             os.remove("tmp.tmp")
             logfp.write("temp files cleared.\n")
+            self.save()
         except Exception as ex:
             logfp.write(str(ex) + "\n")
             self.status = "F"
             self.save()
             return
         try:
-            oldpickle = open(self.localpickle,'r')
+            oldpickle = open(self.lpickle,'r')
         except:
             oldpickle = open(self.workstruct.structure.pickle,'r')
         pdb = cPickle.load(oldpickle)
@@ -168,9 +169,20 @@ class mutateTask(Task):
         newpickle = open(outputstring,"w") #we're still os.chdir'd to loc
         cPickle.dump(newPDBFile, newpickle)
         logfp.write("New pickle file created.\n")
+        try:
+            os.stat("temp-pdb.pdb")
+        except:
+            logfp.write("Could not find temp-pdb.pdb.\n")
         os.remove("temp-pdb.pdb")
         logfp.write("Oldtmp file removed.\n")
         logfp.write(outputstring + "\n")
+        self.lpickle = outputstring
+        self.workstruct.isBuilt = 't'
+        self.workstruct.localpickle = outputstring
+        logfp.write("Before: " + self.workstruct.localpickle + "\n")
+        self.workstruct.save()
+        logfp.write("After: " + self.workstruct.localpickle + "\n")
+        """
         randomws = WorkingStructure.objects.get(id=self.workstruct.id)
         randomws.localpickle = outputstring #Make sure localpickle points to the right place...
         randomws.finalTopology = 'alfalfa'
@@ -178,7 +190,7 @@ class mutateTask(Task):
         logfp.write("LP1: " + randomws.localpickle + "\n")
         randomws.save() #Make sure localpickle is saved right...
         logfp.write("LP2: " + randomws.localpickle + "\n")
+        """
         logfp.close()
         self.status = 'C'
-        self.localpickle = outputstring
         self.save()

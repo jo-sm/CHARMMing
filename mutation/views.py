@@ -23,7 +23,9 @@ from django.shortcuts import render_to_response
 from account.models import *
 from structure.models import Task
 from django.contrib.auth.models import User
+from django.contrib import messages
 from django.template import *
+from django.template import RequestContext
 from account.views import checkPermissions
 from lessons.models import LessonProblem
 from mutation.models import mutateTask
@@ -45,17 +47,20 @@ def mutestructure(request):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("No structure selected.") #I have no idea why this would happen but you never know.
-
+        messages.error(request, "Please upload a structure first.") #There should only ever be one message but we'll generalize.
+        return HttpResponseRedirect('/charmming/fileupload/') #I have no idea why this would happen but you never know.
 
     try:
         ws = structure.models.WorkingStructure.objects.get(structure=struct,selected='y')
     except:
-        return HttpResponse("You must first build a working structure before applying mutations.")
+        messages.error(request, "Please build a working structure before performing any calculations.")
+        return HttpResponseRedirect('/charmming/buildstruct')
 
     try:
         os.stat(workstruct.structure.location + "/" + postdata['MutFile'] + "-mutation.pdb")
-        return HttpResponse("Structure with that name already exists.")
+        messages.error(request, "There already exists a mutation under that name. Please delete this mutation file or choose a different name.")
+        return HttpResponseRedirect('/charmming/mutation') #This is unlikely to happen. I dont' want to restructure the whole page because of this one error,
+    #an error which would only happen if the user REFUSES to use our automatic generator and picks a name that already exists, on their own.
     except: #Basically if the file DOESN'T exist, keep going
         pass
 
@@ -65,8 +70,18 @@ def mutestructure(request):
     MutSegi = postdata['MutSegi']
     MutFile = postdata['MutFile']
 
-    modstruct = copy.deepcopy(ws)
-    modstruct.id = None
+    modstruct = structure.models.WorkingStructure()
+    modstruct.structure = ws.structure
+    modstruct.doblncharge = copy.deepcopy(ws.doblncharge) #This may be a primitive but I don't care, let's be safe
+    modstruct.isBuilt = copy.deepcopy(ws.isBuilt)
+    modstruct.modelName = copy.deepcopy(ws.modelName)
+    modstruct.qmRegion = copy.deepcopy(ws.qmRegion) #What is this?
+    modstruct.finalTopology = copy.deepcopy(ws.finalTopology)
+    modstruct.finalParameter = copy.deepcopy(ws.finalParameter)
+    modstruct.topparStream = copy.deepcopy(ws.topparStream)
+    modstruct.localpickle = ws.structure.location + "/" + MutFile + "-pickle.dat"
+    modstruct.lesson = None #No association - I don't think we should keep track of this unless there's a lesson for mutation?
+    modstruct.extraStreams = copy.deepcopy(ws.extraStreams)
     modstruct.identifier = MutFile #Can we do this? I need to do it to make sure the filename percolates up correctly
     modstruct.save()
 
@@ -82,6 +97,8 @@ def mutestructure(request):
 
     ws.selected = 'n'
     ws.save()
+    modstruct.selected = 'y'
+    modstruct.save()
 
     if modstruct.localpickle:
         woof = modstruct.localpickle
@@ -90,7 +107,7 @@ def mutestructure(request):
 
     mt = mutateTask()
     mt.setup(modstruct)
-    mt.localpickle = woof
+    mt.lpickle = woof
     mt.MutResi = MutResi
     mt.MutResName = MutResName
     mt.NewResn = NewResn
@@ -107,7 +124,7 @@ def mutate_task_process(request,mt,oldws):
     postdata = request.POST
     logfp = open("/tmp/log_mutate_process.txt","w")
     os.chdir(mt.workstruct.structure.location)
-    logfp.write("localpickle = " + str(mt.localpickle) + "\n")
+    logfp.write("localpickle = " + str(mt.lpickle) + "\n")
     logfp.write("MutResi = " + str(mt.MutResi) + "\n")
     logfp.write("MutSegi = " + str(mt.MutSegi) + "\n")
     logfp.write("MutFile = " + str(mt.MutFile) + "\n")
@@ -127,7 +144,7 @@ def mutate_task_process(request,mt,oldws):
 #    pTask = Task.objects.filter(id=pTaskID)[0]
     action = ""
     ws = mt.workstruct
-    if ws.isBuilt != 't':
+    if ws.isBuilt != 't': #In theory this should work, but it doesn't. Not sure why.
         isBuilt = False #??? It serves no purpose in minimization either...
         pTask = oldws.build(mt)
         pTaskID = pTask.id
@@ -176,7 +193,8 @@ def selectstructure(request):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0] #Gets the currently-selected structure, which you can switch later
     except:
-        return HttpResponse("No structures present to mutate.")
+        messages.error(request, "No structure is present. Please upload a structure before applying calculations.") #There should only ever be one message but we'll generalize.
+        return HttpResponseRedirect('/charmming/fileupload/')
 
     proposedname = struct.name
     existingWorkStructs = structure.models.WorkingStructure.objects.filter(structure=struct)
@@ -192,17 +210,20 @@ def selectstructure(request):
            else:
                proposedname += "-mt1"
     else:
-        return HttpResponse("You must first build a working structure.")
-    try:
+        messages.error(request, "Please build a working structure before performing a mutation.", extra_tags="arf")
+        return HttpResponseRedirect('/charmming/buildstruct/')
+    try: #Just in case...
         ws = structure.models.WorkingStructure.objects.get(structure=struct,selected='y')
     except:
-        return HttpResponse("You must first build a working structure.")
+        messages.error(request, "Please build a working structure before performing a mutation.", extra_tags="arf")
+        return HttpResponseRedirect('/charmming/buildstruct/')
     if ws.isBuilt != "t":
         return HttpResponse("Please perform a calculation on this structure first (e.g. Energy, Minimization)")
     #This way we need less JS black magic
     tdict = {}
     tdict['proposedname'] = proposedname
     tdict['structname'] = struct.name
+    filepath = struct.location.replace(charmming_config.user_home, '') + '/' + ws.identifier #This makes it so we can change the coordinates on-the-fly
 #    ws = []
 #    if len(existingWorkStructs) > 0:
 #        tdict['haveworkingstruct'] = True
@@ -236,10 +257,17 @@ def selectstructure(request):
     taco = pdbfile['model00']
     pdb.close()
     tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
+    for task in tasks:
+        if task.action == 'mutation':
+            filepath = filepath + "-mutation.pdb"
+            break;
+        full_filepath = filepath + "-build.pdb"
+    filepath = full_filepath
+    #This way it gets replaced if there's mutation, or otherwise it'll just stay the same
     try:
         segments = ws.segments.all()
     except Exception as ex:
-        return HttpResponse(str(ex))
+        return HttpResponse(str(ex)) #Something went very very wrong.
     segmentnames = map(lambda x:x.name,segments)
     #Pickle loading! Time to make this code even slower. We will use model00 since I honestly don't think the connectivity/segmentation of the molecule itself changes
     #with minimization and the like, it just changes conformation, and we don't need coords to do mutation (we can fetch those from elsewhere) 
@@ -247,9 +275,12 @@ def selectstructure(request):
     #the amino acids in each segment to their resIDs.
     #However we need to make SURE that only the segments from the current ws are loaded, or things can get quite bad.
     segnames = [] #We leave this in or otherwise the webpage gets the indices wrong
+    chain_terminators = [] #Stores when each chain terminates (atom number); this way we don't have problems
     for seg in taco.iter_seg():
         if seg.segid in segmentnames and "pro" in seg.segid: #Careful...all proteins or non-purely-hetatm segments MUST have PRO in them!
             segdict = dict(zip(amino_list, [ [] for i in range (len(amino_list)) ]))
+            atom = seg.iter_res().next().iter_atom().next().atomNum0 #Gets the (original) atom number to figure out the chain termination
+            chain_terminators.append(atom)
             for res in seg.iter_res():
                 try:
                     segdict[res.resName].append(res.resid)
@@ -261,10 +292,17 @@ def selectstructure(request):
     dictlist = json.dumps(seglist) #Holds JSON strings of each dictionary so that JS can use them for shiny stuff
     tdict['segnames'] = segnames
     tdict['dictlist'] = dictlist
+    tdict['chain_terminators'] = json.dumps(chain_terminators)
     tdict['tasks'] = tasks
+    tdict['ws_identifier'] = ws.identifier
+    tdict['filepath'] = filepath
 #    tdict['disulfide_list'] = struct.getDisulfideList() #NO idea if we even need this, or proto_list, it's just more cPickle open reads and those make everything slow
 #    tdict['proto_list'] = []
     tdict['super_user'] = request.user.is_superuser
+    if (ws.isBuilt != 't'):
+        messages.error(request, "Please perform a calculation on the whole atom set before performing a mutation.")
+        return HttpResponseRedirect("/charmming/energy/")
+#        tdict['no_coords'] = True
 #    for seg in sl:
 #        tdict['proto_list'].extend(seg.getProtonizableResidues()) #Is this necessary?
 
