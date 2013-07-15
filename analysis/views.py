@@ -17,7 +17,6 @@
 #  particular purpose.
 
 from django.template.loader import get_template
-from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from structure.models import Structure, WorkingStructure, WorkingFile, Task
 from scheduler.schedInterface import schedInterface

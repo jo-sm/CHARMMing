@@ -19,7 +19,8 @@ from django import forms
 from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
-from structure.models import Structure 
+from structure.models import Structure
+from django.contrib import messages
 from structure.qmmm import makeQChem_tpl, writeQMheader
 from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeTask
@@ -46,11 +47,15 @@ def normalmodesformdisplay(request):
     try:
         struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-        return HttpResponse("Please submit a structure first.")
+        messages.error(request, "Please submit a structure first.")
+        return HttpResponseRedirect("/charmming/fileupload/")
+#        return HttpResponse("Please submit a structure first.")
     try:
         ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+        messages.error(request, "Please build your structure before performing any calculations.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+#       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     # check to see if we have prior normal modes to display to the user
     nmode_lines = []
@@ -247,7 +252,7 @@ def makeNmaMovie_tpl(workstruct,postdata,num_trjs,typeoption,nmm):
     ## There are no NMA lessons at the moment ... when there are, this needs to be redone correctly
     ##if file.lesson_type:
     ##    lessonaux.doLessonAct(file,"onNMASubmit",postdata,None)
-    #nmm.nma_movie_status = "<font color=33CC00>Done</font>"
+    #nmm.nma_movie_status = "<span style='color:33CC00'>Done</span>"
     nmm.start()
     nmm.save()
     return output.returnSubmission('Normal modes')
@@ -287,7 +292,7 @@ def combineNmaPDBsForMovie(file):
 	    os.remove(file.location +  "new_" + file.stripDotPDB(file.filename) + "-nmapremovie" + `i` + "-" + str(currtrjnum) + ".pdb")
         currtrjnum += 1
 
-    nmm.nma_movie_status = "<font color=33CC00>Done</font>"
+    nmm.nma_movie_status = "<span style='color:33CC00'>Done</span>"
     nmm.make_nma_movie = False
     nmm.save()
     file.save()
