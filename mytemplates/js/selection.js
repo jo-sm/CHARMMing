@@ -123,7 +123,8 @@ function select_qmsele(divtype, divnum){ //divtype holds what type of input it c
           return false;
         }
         selection_string = "select " + selestring[0] + "." + selestring[1] +
-          " and atomno >= " + seg_loc  + ((seg_loc < chain_terminators.length) ? (" and atomno < " + (seg_loc + 1)):"");
+          " and atomno >= " + chain_terminators[seg_loc]  + ((seg_loc < chain_terminators.length) ? (" and atomno < " + (chain_terminators[seg_loc + 1])):"");
+        alert(selection_string);
         //The above mass of a string does a weird thing to get segment identification.
         //Since all we have is the atom number at which a residue starts, we select
         //by residue number, name, and atom number greater than or equal to the starting point of the segment

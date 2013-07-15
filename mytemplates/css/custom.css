@@ -25,6 +25,24 @@ a:hover {color: #FF0F00; text-decoration: none; }
   width:70%;
 }
 
+/* So you can visualize protonation states */
+#proton_divs{
+  display:none;
+}
+
+#protonation{
+  width:600px;
+  float:right;
+}
+
+#protonation_jsmol{
+  width:400px;
+  clear:left;
+}
+
+.hidden_options{
+  display:none;
+}
 /* this was initially only going to be used for QM/MM param table
  * but it is very useful for any of our tables that aren't really tables */
 .qm_table{
