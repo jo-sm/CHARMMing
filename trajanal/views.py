@@ -19,6 +19,8 @@ import structure
 import output
 import django.shortcuts, django.http, django.template, django.template.loader
 import minimization.views
+from django.http import HttpResponseRedirect
+from django.contrib import messages
 from django.contrib.auth.models import User
 from trajanal.models import trajAnalParams, trajanalFileForm
 from structure.aux import checkNterPatch
@@ -59,7 +61,9 @@ def trajanalformdisplay(request):
     try:
         file =  structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-	return django.http.HttpResponse("Please submit a structure first.")
+        messages.error(request, "Please submit a structure first.")
+        return HttpResponseRedirect("/charmming/analysis/trajanal/")
+#	return django.http.HttpResponse("Please submit a structure first.")
 
     # do the usual lame copy-paste job...
     solv_pdb = "new_" + file.stripDotPDB(file.filename) + "-solv.pdb"
@@ -163,7 +167,9 @@ def trajanal_tpl(request,file,scriptlist):
         template_dict['rmsdyn_skip'] = int(post['skip'])
         template_dict['rmsdyn_sele'] = post['atomselection']
     except:
-        return django.http.HttpResponse("Error in values specified")
+        messages.error(request, "Error in values specified.")
+        return HttpResponseRedirect("/charmming/analysis/trajanal/")
+#        return django.http.HttpResponse("Error in values specified")
     logfp.write('set-up template dict...\n')
 
     params.trajFileName = template_dict['trajfilename']

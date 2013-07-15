@@ -16,6 +16,8 @@
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
 from django.contrib import auth
+from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.contrib.auth.forms import UserCreationForm
@@ -42,15 +44,19 @@ def resetUserPassword(request):
         user_id = request.POST['username']
         #User should not be able to reset the password of the demo account
         if(user_id == 'demo'):
-            return HttpResponse("Did you really think we wouldn't test for that?")
+            return HttpResponse("Did you really think we wouldn't test for that?") #I leave this one as is - it's better that way. ~VS
         password = ''
         try:
             #Attempt to get the user_profile based on the user supplied info
             user_profile = User.objects.get(email__iexact = email_given, username=user_id)
         except:
-            return HttpResponse("Sorry, no user could be located with the given information")
+            messages.error(request, "Sorry, no user could be located with the given information.")
+            return HttpResponseRedirect("/charmming/accounts/resetpassword/")
+#            return HttpResponse("Sorry, no user could be located with the given information")
         if(user_profile.is_superuser or user_profile.is_staff):
-            return HttpResponse("Staff and Admins cannot get their password reset. Whoops!")
+            messages.error(request, "Staff and Admins cannot get their password reset. Whoops!")
+            return HttpResponseRedirect("/charmming/accounts/resetpassword/")
+#            return HttpResponse("Staff and Admins cannot get their password reset. Whoops!")
         chars = string.ascii_letters + string.digits
         for x in range(8):
             password += random.choice(chars)
@@ -64,6 +70,7 @@ def resetUserPassword(request):
         user_profile.set_password(password)
         user_profile.save()
         return HttpResponse("Password changed! You should receive an e-mail shortly.")
+    ##TODO: Change this to a dialog box when we have message.tags
     else:
         return render_to_response('html/resetpassword.html')
 
@@ -83,9 +90,13 @@ def changeUserPassword(request):
                 User.save()
                 return HttpResponse("Password changed!")
             else:
-                return HttpResponse("The two new passwords you entered did not match! Please go back and re-enter your password.")
+                messages.error(request, "The two new passwords you entered did not match! Please go back and re-enter your password.")
+                return HttpResponseRedirect("/charmming/accounts/changepassword/")
+#                return HttpResponse("The two new passwords you entered did not match! Please go back and re-enter your password.")
         else:
-            return HttpResponse("Your old password was not correct. Please go back and re-enter your password.")
+            messages.error(request, "Your old password was not correct. Please go back and re-enter your password.")
+            return HttpResponseRedirect("/charmming/accounts/changepassword/")
+#            return HttpResponse("Your old password was not correct. Please go back and re-enter your password.")
     #if not, see if they are alteast logged in. If true, direct them to
     #the password change form
     elif(User.is_authenticated()):
@@ -117,50 +128,55 @@ def refreshClassDiv(request,teacher_name):
 #registers a student
 def registerStudent(request,user):
     #added temporarily to get rid of teacher/student stuff
+    ##This may be completely messed up - the indentation was horrible according to Vim
+    # So I took actuon and added error messages. If something is broken, that's probably why!
+    #So restore the old copy of this file from production. ~VS
     request.user = user
     if user.is_authenticated():
         if(request.POST):
-	    #the explanation for why the teacher will use the interface
-	    #is saved in the directory ~/teachers/teacher_user_name/
-	    new_student = studentProfile(student=request.user)
-	    new_student.institute = request.POST['institute']
-	    if new_student.institute.strip() == '':
-		user.delete()
-	        return HttpResponse('Institute name is required.')
+            #the explanation for why the teacher will use the interface
+            #is saved in the directory ~/teachers/teacher_user_name/
+            new_student = studentProfile(student=request.user)
+            new_student.institute = request.POST['institute']
+            if new_student.institute.strip() == '':
+                user.delete()
+                messages.error(request, 'Institute name is required.')
+                return HttpResponseRedirect("/charmming/accounts/register/student/")
+#                return HttpResponse('Institute name is required.')
 
             if request.POST['charmmlicense'] == "No":
                new_student.charmm_license = 0
             else:
                new_student.charmm_license = 1
-	    #Stores user object of the student's teacher
-	    #students_teacher_user = User.objects.filter(username=request.POST['teacher_name'])[0]
-	    students_teacher_user = User.objects.filter(id=1)[0]
-	    #Gets the teacher Profile of the teacher
-	    #students_teacher = teacherProfile.objects.filter(teacher = students_teacher_user)[0]
-	    #new_student.teacher = students_teacher
-	    #Now to set the students classroom
-	    #teacher.teacher.username is the teacher's username to log into the site
-	    classname = 'General Public'
-	    #commented out because getting rid of teacher/student thing
-	    #classname = request.POST[new_student.teacher.teacher.username]
-	    #new_student.classroom = classroom.objects.filter(name=classname)[0]
-	    new_student.student.username = new_student.student.username.lower()
-	    new_student.save()
-	    #New student needs a folder
+            #Stores user object of the student's teacher
+            #students_teacher_user = User.objects.filter(username=request.POST['teacher_name'])[0]
+            students_teacher_user = User.objects.filter(id=1)[0]
+            #Gets the teacher Profile of the teacher
+            #students_teacher = teacherProfile.objects.filter(teacher = students_teacher_user)[0]
+            #new_student.teacher = students_teacher
+            #Now to set the students classroom
+            #teacher.teacher.username is the teacher's username to log into the site
+            classname = 'General Public'
+            #commented out because getting rid of teacher/student thing
+            #classname = request.POST[new_student.teacher.teacher.username]
+            #new_student.classroom = classroom.objects.filter(name=classname)[0]
+            new_student.student.username = new_student.student.username.lower()
+            new_student.save()
+            #New student needs a folder
             os.mkdir("%s/%s" % (charmming_config.user_home,new_student.student.username))
             os.chmod("%s/%s" % (charmming_config.user_home,new_student.student.username), 0775)
 
             preapprove = Group.objects.get(name='preapprove')
             request.user.groups.add(preapprove)
-	    mail_message = """
+            mail_message = """
 New student awaiting approval.
 Username:""" + new_student.student.username + """
 Name:""" + new_student.student.first_name + " " + new_student.student.last_name + """
 E-mail: """ + new_student.student.email + """
 Institute:""" + new_student.institute + """
 CHARMM License?:""" + request.POST['charmmlicense']
-	    mail_admins('new student',mail_message,fail_silently=False)
-	    return HttpResponse('Your account is now awaiting approval. It may take 1-2 days.')
+            mail_admins('new student',mail_message,fail_silently=False)
+            return HttpResponse('Your account is now awaiting approval. It may take 1-2 days.')
         #return render_to_response('registration/registerstudent.html')
     return HttpResponse('Please go through the registration page first.')
 
@@ -169,32 +185,34 @@ CHARMM License?:""" + request.POST['charmmlicense']
 def registerTeacher(request):
     if request.user.is_authenticated():
         if(request.POST):
-	    #the explanation for why the teacher will use the interface
-	    #is saved in the directory ~/teachers/teacher_user_name/
-	    new_teacher = teacherProfile(teacher=request.user)
-	    new_teacher.institute = request.POST['institute']
-	    new_teacher.phone_number = request.POST['phone_number']
-	    new_teacher.save()
-	    try:
-	        os.mkdir('%s/teachers/%s' % (charmming_config.user_home,new_teacher.teacher.username))
-	    except:
-	        pass
-	    reason_handle = open('%s/teachers/%s/explanation.txt' % (charmming_config.user_home,new_teacher.teacher.username),'w')
-	    reason_handle.write(request.POST['explanation'])
-	    reason_handle.close()
-	    mail_message = """
+            #the explanation for why the teacher will use the interface
+            #is saved in the directory ~/teachers/teacher_user_name/
+            new_teacher = teacherProfile(teacher=request.user)
+            new_teacher.institute = request.POST['institute']
+            new_teacher.phone_number = request.POST['phone_number']
+            new_teacher.save()
+            try:
+                os.mkdir('%s/teachers/%s' % (charmming_config.user_home,new_teacher.teacher.username))
+            except:
+                pass
+            reason_handle = open('%s/teachers/%s/explanation.txt' % (charmming_config.user_home,new_teacher.teacher.username),'w')
+            reason_handle.write(request.POST['explanation'])
+            reason_handle.close()
+            mail_message = """
 New Teacher waiting for approval. 
 Name:""" + new_teacher.teacher.first_name + " " + new_teacher.teacher.last_name + """
 Institute:""" + new_teacher.institute + """
 Phone #:""" + new_teacher.phone_number + """
 Explanation:""" + request.POST['explanation'] 
-	    mail_admins('new teacher',mail_message,fail_silently=False)
-	    return HttpResponse('Your account is now awaiting approval.')
-        preapprove = Group.objects.get(name='preapprove')
-        request.user.groups.add(preapprove)
-        return render_to_response('registration/registerteacher.html')
-    return HttpResponse('Please go through the registration page first.')
-    
+            mail_admins('new teacher',mail_message,fail_silently=False)
+            return HttpResponse('Your account is now awaiting approval.')
+            preapprove = Group.objects.get(name='preapprove')
+            request.user.groups.add(preapprove)
+            return render_to_response('registration/registerteacher.html')
+        return HttpResponse('Please go through the registration page first.')
+    else:
+        return render_to_response("html/loggedout.html")
+    #If not authenticated this should just exit, right? Or what happens?
 
 def register(request):
     if request.user.is_authenticated():
@@ -204,24 +222,24 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
 
-	    username = form.cleaned_data['username'].lower()
-	    password = form.cleaned_data['password1']
-	    first_name = request.POST['first_name']
-	    last_name = request.POST['last_name']
-	    if not first_name.strip() or not last_name.strip():
-	        return HttpResponse('A complete name is required.')
-	    email = request.POST['email']
-	    if email.strip() == '': 
-	        return HttpResponse('An E-mail address is required.')
+            username = form.cleaned_data['username'].lower()
+            password = form.cleaned_data['password1']
+            first_name = request.POST['first_name']
+            last_name = request.POST['last_name']
+            if not first_name.strip() or not last_name.strip():
+                return HttpResponse('A complete name is required.')
+            email = request.POST['email']
+            if email.strip() == '': 
+                return HttpResponse('An E-mail address is required.')
             user = User.objects.create_user(username=username,email=email,password=password)
             user.first_name = first_name
             user.last_name = last_name
-	    user.save()
+            user.save()
 
             user = auth.authenticate(username=username, password=password)
             auth.login(request, user)
 
-	    return registerStudent(request,user)
+            return registerStudent(request,user)
     else:
         # create unbound form
         form = UserCreationForm()
@@ -267,8 +285,8 @@ def skeletonDowntime(request):
     if request.user.is_authenticated():
         return render_to_response("html/downtime.html")
     else:
-        return HttpResponse("Login please")
-	
+        return HttpResponse("You can log in now.")
+
 def isUserTrustworthy(user):
     groupList = user.groups.all()
     if(groupList.filter(name='trusted') or user.is_superuser):
@@ -282,7 +300,7 @@ def checkPermissions(request):
         if request.user.is_superuser:
             return True, True
         groupList = request.user.groups.all()
-      
+
         lesson = False
         drugde = False
         if groupList.filter(name='lesson'):
@@ -301,32 +319,31 @@ def skeleton(request):
         #Checks to see if the user still needs to be preapproved and makes sure
 	#an admin doesn't fall into this category as in admin is in all groups
         if(groupList.filter(name='preapprove') and not request.user.is_superuser):
-	    return render_to_response('registration/waitingapproval.html')
-        
+            return render_to_response('registration/waitingapproval.html')
         #check to see if there is a lesson for the lesson status bar
         try:
             file = Structure.objects.filter(owner=request.user,selected='y')[0]
             lessontype = file.lesson_type
         except:
             lessontype = None
-	
-        #If it is a teacher, send teacher to the skeleton interface
-	if request.user.is_superuser:
-	    superuser = "true"
-	    trusted = "true"
-            return render_to_response("html/skeleton.html", {'superuser':superuser,'trusted':trusted,'lessontype':lessontype, 'lessonuser': 1})
-	if groupList.filter(name='trusted'):
-	    trusted = 1
-        else:
-            trusted = 0
-        if groupList.filter(name='lesson'):
-            lessonuser = 1
-        else:
-            lessonuser = 0
-        #If they are only a student load the below page
-        return render_to_response("html/skeleton.html",{'lessontype':lessontype, 'trusted': trusted, 'lessonuser': lessonuser})
     else:
         return HttpResponse("Login please")
+    #If it is a teacher, send teacher to the skeleton interface
+    if request.user.is_superuser:
+        superuser = "true"
+        trusted = "true"
+        return render_to_response("html/skeleton.html", {'superuser':superuser,'trusted':trusted,'lessontype':lessontype, 'lessonuser': 1})
+    if groupList.filter(name='trusted'):
+        trusted = 1
+    else:
+        trusted = 0
+
+    if groupList.filter(name='lesson'):
+        lessonuser = 1
+    else:
+        lessonuser = 0
+        #If they are only a student load the below page
+    return render_to_response("html/skeleton.html",{'lessontype':lessontype, 'trusted': trusted, 'lessonuser': lessonuser})
 
 def logout(request):
     auth.logout(request)
@@ -343,4 +360,5 @@ def loadFrontPage(request):
 
 def loadAboutPage(request):
     lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/about.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    messages = get_messages(request)
+    return render_to_response('html/about.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'messages': messages})
