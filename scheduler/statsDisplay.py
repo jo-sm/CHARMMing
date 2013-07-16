@@ -22,18 +22,18 @@ def statsDisplay(statline,jobid):
        return "Unknown"
     status = statarr[4] 
     if status == 'submitted':
-        return "<font color=\"FFCC33\">Submitted</font>"
+        return "<span style='color:FFCC33'>Submitted</span>"
     elif status == 'queued':
-        #return "<font color=\"FFCC33\">Queued</font> <a href=\"/charmming/killjob/%d\">X</a>" % jobid
-        return "<font color=\"FFCC33\">Queued</font> <a href=\"javascript:killJob(%d);\">X</a>" % jobid
+        #return "<span style='color:FFCC33'>Queued</span> <a href=\"/charmming/killjob/%d\">X</a>" % jobid
+        return "<span style='color:FFCC33'>Queued</span> <a href=\"javascript:killJob(%d);\">X</a>" % jobid
     elif status == 'running':
-        #return "<font color=\"3333FF\">Running</font> <a href=\"/charmming/killjob/%d\">X</a>" % jobid
-        return "<font color=\"3333FF\">Running</font> <a href=\"javascript:killJob(%d);\">X</a>" % jobid
+        #return "<span style='color:3333FF'>Running</span> <a href=\"/charmming/killjob/%d\">X</a>" % jobid
+        return "<span style='color:3333FF'>Running</span> <a href=\"javascript:killJob(%d);\">X</a>" % jobid
     elif status == 'complete':
-        return "<font color=\"33CC00\">Done</font>"
+        return "<span style='color:33CC00'>Done</span>"
     elif status == 'failed':
-        return "<font color=red>Failed</font>"
+        return "<font color=red>Failed</span>"
 
     print "Achtung! Couldn't figure out this status (%s)!!!!" % status
-    return "<font color=red>Unknown</font>"
+    return "<font color=\"red\">Unknown</span>"
 
