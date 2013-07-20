@@ -44,7 +44,7 @@
        myMenu = new SDMenu("my_menu");
        myMenu.init();
 
-       $("#statusreport").PeriodicalUpdater('/charmming/status/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:5000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
+       $("#statusreport").PeriodicalUpdater('/charmming/status/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
     }
 
     function showLesson(lesson)
@@ -54,7 +54,7 @@
       currperiodicalupdater.stop();
      }
      if(lesson != "nolesson" && lesson != 'None')
-       currperiodicalupdater = $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {method: 'post', multiplier:5, minTimeout:100, maxTimeout:5000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
+       currperiodicalupdater = $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {method: 'post', multiplier:5, minTimeout:1000, maxTimeout:3000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
      else
      {
       document.getElementById('lessonreport').innerHTML = '';
@@ -110,11 +110,7 @@
             <a href="/charmming/analysis/rmsd/">RMSD calculator</a>
             <a href="/charmming/analysis/redox/">Redox</a>
           </div>
-          {% if dd_ok %}
           <div class="collapsed">
-          {% else %}
-          <div class="collapsed" style="display: none;">
-          {% endif %}
             <span>Docking</span>
              <a href="/charmming/dd_substrate/ligandfileupload/">Ligand Upload</a>
              <a href="/charmming/dd_substrate/viewligands/">View Ligands</a>
@@ -123,11 +119,7 @@
              <a href="/charmming/dd_infrastructure/viewjobs/">View Jobs/Results</a>
           </div>
 
-          {% if lesson_ok %}
           <div class="collapsed">
-          {% else %}
-          <div class="collapsed" style="display:none;">
-          {% endif %}
 	    <span> Lessons </span>
               <a href="/charmming/lessons/lesson1/">1. Intro to Simulations</a>
               <a href="/charmming/lessons/lesson2/">2. Simulating proteins</a>
