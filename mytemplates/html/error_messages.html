@@ -1,0 +1,27 @@
+   {% if messages %}
+   {% for message in messages %}
+  <p>{{message.tags}}</p>
+    <div id="dialog__{{forloop.counter}}" title="Error">
+        <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+        {{message}}</p>
+      </div>
+      <script type="text/javascript">
+        $(function($){
+            $("#dialog__{{forloop.counter}}").dialog({
+            resizable:false,
+            height:200,
+            width:600,
+            modal:true,
+            buttons:{
+              "OK":function(){
+                $(this).dialog("close");
+              }
+            }
+          });
+          });
+      </script>
+      {% endfor %}
+  {% endif %}
+  {% comment %}
+  At most there will usually be only one error message. We put in a forloop just in case.
+  {% endcomment %}
