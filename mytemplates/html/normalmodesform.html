@@ -34,7 +34,7 @@
       <p class="fontmed">Choose one of the following types of Normal Mode Analysis to run.</p>
       <br>
       <table style="width:70%;margin-left:auto;margin-right:auto;text-align:left">
-        <tr><td>All atoms</td><td><input type="radio" id="usevibran" value="usevibran" name="nma" onclick="$('#useenm').attr('checked',false);$('#enm').hide();$('#vibran').show()"></td></tr>
+        <tr><td>All atoms</td><td><input type="radio" id="usevibran" value="usevibran" name="nma" checked onclick="$('#useenm').attr('checked',false);$('#enm').hide();$('#vibran').show()"></td></tr>
         <tr><td>ENM (Elastic Network Model)</td><td><input type="radio" id="useenm" value="useenm" name="nma" onclick="$('#usevibran').attr('checked',false);$('#vibran').hide();$('#enm').show()"></td></tr>
         <tr><td>Number of normal modes to generate:</td><td> <input type="text" id="num_normalmodes" name="num_normalmodes" value="100" /></td></tr>
         <tr><td>Generate trajectories of normal modes</td><td><input type="checkbox" id="gen_trj" name="gen_trj" value="gen_trj" onclick="checkPatch('gen_trj','num_trjstable');"></td></tr>
@@ -49,10 +49,10 @@
         </tr>
       </table>
 
-      <div id="vibran" style="display:none;">
+      <div id="vibran">
         <h3 class="center_header">All atom vibrational analysis parameters</h3>
         <table class="qm_table">
-          <tr><td>Use QM/MM calculations:<input id="useqmmm" type="checkbox" name="useqmmm" onclick="showHideQM()"></td></tr>
+          <tr><td><p class="fonrmed">Use QM/MM calculations:<input id="useqmmm" type="checkbox" name="useqmmm" onclick="showHideQM()"></p></td></tr>
           {% include 'html/qmmm_params.html' %}
          </table>
         
@@ -66,10 +66,9 @@
           <tr><td>KLONG:</td><td><input type="text" name="klong" id="klong" value="1.000"></td><td><a href="#" title="Long range force constant.">?</a></td></tr>
         </table> 
       </div>
-      <br><br>
       <input type="submit" value="Start Normal Mode Analysis" />   
-
     </form>
+      <br>
 
   </div>
 </div>

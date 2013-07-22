@@ -10,7 +10,7 @@ So we leave this warning here.
 <div class="status">
   <table style="border-color:#e2e9fe;width:150px" class="status">
    {% if structure.name %}
-     <tr class="status"><th class="status"> Status of: <br /> {{ structure.name }} </th></tr>
+   <tr class="status"><th class="status"> Status of: <br />{% if ws %}{{ws.identifier}}{%else%} {{ structure.name }}{%endif%} </th></tr>
      {% if haveWorkingStruct %}
        <tr class="status"><td class="status">Operations:</td></tr>
        {% for s in statuses %}   

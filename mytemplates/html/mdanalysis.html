@@ -3,7 +3,7 @@
 {% block content %}
 <div id="mainpage">
  <div id="mdform">
-   <h2 class="center_header">Which properties would you like to generate</h2>
+   <h2 class="center_header">Which properties would you like to generate?</h2>
    <form method="post" action="/charmming/analysis/domdprop/">
       <table style="width:60%;margin-left:auto;margin-right:auto;text-align:left">
         <tr><td>Average potential energy</td><td><input type="checkbox" name="getener" value="getener" /></td></tr>
@@ -13,7 +13,9 @@
         <tr><td>Average kinetic energy</td><td><input type="checkbox" name="gettotk" value="gettotk" /></td></tr>
         <tr><td>Average overall energy</td><td><input type="checkbox" name="gettote" value="gettote" /></td></tr>
       </table>
-      <input type="submit" value="Submit" />
+      <div style="text-align:center">
+        <input type="submit" value="Submit" />
+      </div>
    </form>
  </div>
 </div>

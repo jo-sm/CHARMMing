@@ -7,7 +7,7 @@
   <div class="status">
 
     <form method="post" action=".">
-    <table class="sortable resizable" style="border: solid 2px black;margin-left;auto;margin-right:auto;width:100%">
+    <table class="sortable resizable" style="border: solid 2px black;margin-left:auto;margin-right:auto;width:100%">
        <tr><th>Name</th><th>Title</th><th>Date</th><th>Select this PDB</th><th>Delete <br> <a href="" onclick="send_delete_form('all_files');">All Files</a></th></tr>
        {% for PDBFile in user_pdbs %}
           {% ifequal PDBFile.selected "y" %}
@@ -26,4 +26,5 @@
     </form>
   </div>
 </div>
+<br>
 {% endblock %}

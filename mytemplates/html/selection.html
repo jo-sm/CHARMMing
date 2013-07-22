@@ -41,6 +41,16 @@
       Jmol.script(jmolApplet, "select none;selectionHalos on");
      </script>
      <br />
+     <div style="width:600px;margin-left:auto;margin-right:auto;">
+      <h3 class="center_header">Display options</h3>
+      <button onclick="Jmol.script(jmolApplet, 'selectionhalos off;select all;ribbons off;cartoons off;cpk 30%;wireframe 55;color jmol;select none;selectionhalos on;');">Ball and Stick</button>
+      <button onclick="Jmol.script(jmolApplet, 'selectionhalos off;select all;cpk off;wireframe off;cartoons off;ribbons on;color structure;select none;selectionhalos on;');">Ribbons</button>
+      <button onclick="Jmol.script(jmolApplet, 'selectionhalos off;select all;cpk off;wireframe off;ribbons off;cartoons on;set cartoonsfancy false;color structure;select none;selectionhalos on;');">Cartoons (fast)</button>
+      <button onclick="Jmol.script(jmolApplet, 'selectionhalos off;select all;cpk off;wireframe off;ribbons off;set cartoonsfancy true;cartoons on;color structure;select none;selectionhalos on;');">Fancy Cartoons (slow)</button>
+      <button onclick="Jmol.script(jmolApplet, 'selectionhalos off;select all;cpk off;ribbons off;cartoons off;color jmol;wireframe 45;select none;selectionhalos on;');">Wireframe</button>
+      <br>
+    </div>
+      
   </div>
   <div id="dialog_bad_linkatoms" title="Number of link atoms not an integer">
     <p><span class="ui icon ui-icon-alert" style="float:left;margin 0 auto auto 0;"></span>

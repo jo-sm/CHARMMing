@@ -5,7 +5,7 @@
   <hr style="width:50%">
 
   <form method="post" action=".">
-     <table class="sortable resizable" style="border:2px black solid;margin-left:auto;margin-right:auto;width:40%">
+     <table class="sortable resizable" style="border:2px black solid;margin-left:auto;margin-right:auto;width:60%">
         <tr><th>Filename</th><th>Description</th><th>View in JSmol</th><th>View in GLmol</th></tr>
         {% for file in filelst %}
         <tr><td>{{ file.0 }}</td><td>{{ file.1 }}</td><td><a href="/charmming/jmolview/{{ file.0 }}">View</a></td><td><a target="_blank" href="/charmming/glmolview/{{ file.0 }}">View</a> </td></tr>

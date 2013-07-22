@@ -52,5 +52,14 @@
        var count = 0;
      </script>
      <br />
+    <div style="width:600px;margin-left:auto;margin-right:auto">
+      <h3 class="center_header">Display options</h3>
+      <hr>
+      <button onclick="Jmol.script(jmolApplet, 'ribbons off;cartoons off;cpk 30%;wireframe 55;color jmol;');">Ball and Stick</button>
+      <button onclick="Jmol.script(jmolApplet, 'cpk off;wireframe off;cartoons off;ribbons on;color structure;');">Ribbons</button>
+      <button onclick="Jmol.script(jmolApplet, 'cpk off;wireframe off;ribbons off;cartoons on;set cartoonsfancy false;color structure;');">Cartoons (fast)</button>
+      <button onclick="Jmol.script(jmolApplet, 'cpk off;wireframe off;ribbons off;set cartoonsfancy true;cartoons on;color structure;');">Fancy Cartoons (slow)</button>
+      <button onclick="Jmol.script(jmolApplet, 'cpk off;ribbons off;cartoons off;color jmol;wireframe 45;');">Wireframe</button>
+      <br>
 </div>
 {% endblock %}

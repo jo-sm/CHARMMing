@@ -85,14 +85,32 @@
 </td></tr>
 <tr><td>
 <script type="text/javascript"> 
+</script>
+</td></tr>
+<tr class="qmmm_params"><td>
+    <input type="text" name="num_linkatoms" id="num_linkatoms" value="0" size="4" onKeyUp="writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_linkatoms'),makeUniqueDiv('linkatom_lines'));">
+</td></tr>
+<tr class="qmmm_params"><td>
+    <div id="linkatom_lines"></div>
+</td></tr>
+<tr class="qmmm_params"><td>
+    <hr style="width:70%">
+</td></tr>
+<tr class="qmmm_params"><td>
+      <script>
+        
   function showHideQM(){
     if($("#useqmmm").is(":checked")){
       $(".qmmm_params").show();
-      $("#usepbc").attr("disabled",true);
-      $("#usepbc").attr("checked",false); //just in case
+      if ($("#usepbc").length > 0){
+        $("#usepbc").attr("disabled",true);
+        $("#usepbc").attr("checked",false); //just in case
+      }
     }else{
       $(".qmmm_params").hide();
-      $("#usepbc").attr("disabled",false);
+      if($("#usepbc").length > 0){
+        $("#usepbc").attr("disabled",false);
+      }
     }
   }
   $(function($){
@@ -110,17 +128,6 @@
       });
     });
 </script>
-</td></tr>
-<tr class="qmmm_params"><td>
-    <input type="text" name="num_linkatoms" id="num_linkatoms" value="0" size="4" onKeyUp="writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_linkatoms'),makeUniqueDiv('linkatom_lines'));">
-</td></tr>
-<tr class="qmmm_params"><td>
-    <div id="linkatom_lines"></div>
-</td></tr>
-<tr class="qmmm_params"><td>
-    <hr style="width:70%">
-</td></tr>
-<tr class="qmmm_params"><td>
 <div id="load_after_everything">
 
 {% if lonepairs %}{% comment %} You need one to submit the selection so this works great{%endcomment%}
