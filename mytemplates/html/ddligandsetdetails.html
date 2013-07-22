@@ -16,14 +16,14 @@
 <div class='status'>
 
 <center>
-<form id="setdetail" enctype="multipart/form-data" method="post" action="/charmming/dd_substrate/ligandsetdetails/">
 <div name="ligandsetinfodiv" id="ligandsetinfodiv">
 </div>
+<form id="setdetail" enctype="multipart/form-data" method="post" action="/charmming/dd_substrate/ligandsetdetails/">
 <table>
 <tr>
 <td>
 <font size="2">Use Existing Sets:</font>
-<select name="sets" id="avaiableligandsets" onChange="RefreshAvailableLigands();">
+<select name="sets" id="availableligandsets" onChange="RefreshAvailableLigands();">
 {% for set in existingsets %}
 <option value='{{ set.id }}'>{{set.name}} ({{set.ligand_count}} ligands)</option>
 {% endfor %}
