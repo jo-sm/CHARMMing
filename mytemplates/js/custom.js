@@ -24,6 +24,8 @@ function goto_atomselect(){
     }
     if(source == "minimize"){
       form = document.getElementById("min_form");
+    }if(source == "normalmodes"){
+      form = document.getElementById("nma_form");
     }
 //Note: Update here to create more QM/MM boxen in other pages
     form.action="/charmming/selection/";
@@ -162,7 +164,7 @@ function setCGDisplay(id)
   var i=0;
   var check_array = $("input[name=buildtype]");
   while (i < check_array.length){
-    if(!(check_array[i].checked) && !(check_array[i].value == "aa")){
+    if(!(check_array[i].checked)){
       $("#"+check_array[i].value+"_display").hide();
     }else{
       $("#"+check_array[i].value+"_display").show();
@@ -324,7 +326,7 @@ function checkUncheck(div_id,other1_div,other2_div,other3_div,change)
 
 function send_form_gener(form_name,url,div_to_change) 
 {
-  form = document.getElementByID(form_name);
+  form = document.getElementById(form_name);
   $.ajax({
       url:url,
       type:"post",
@@ -831,8 +833,7 @@ function doDDJobDetailsOnLoad(id){
 
     currperiodicalupdater2 = $("resultsdiv").PeriodicalUpdater("/charmming/dd_infrastructure/viewjobresults" + id, {method:'post', multiplier:5, minTimeout:100, maxTimeout:5000},function(remoteData){document.getElementById("resultsdiv").innerHTML = remoteData;});
 //    currperiodicalupdater2 = new Ajax.PeriodicalUpdater('resultsdiv', '/charmming/dd_infrastructure/viewjobresults/'+id, {method: 'post', frequency: 5});
-    setVisible('resultsdiv','none');
-
+    $("#resultsdiv").hide();
         //alert ("blah");
 
 }
@@ -841,23 +842,23 @@ function doDDJobDetailsOnLoad(id){
 function viewDDJobResults(job_id) {
 
     var params = 'jobid='+job_id;
-    var link=$("viewhideddjobresults");
+    var link=$("#viewhideddjobresults"); //this is never used again?
     //alert (document.getElementById('ddjobresultsdiv').style.display);
     if ((document.getElementById('ddjobresultsdiv').style.display=='none')){
-	setVisible('ddjobresultsdiv','block')
-        //var style = document.getElementById('ddjobresultsdiv').style;
-        //style.display = change;
   $.ajax({
       url:"/charmming/dd_infrastructure/viewjobresults/"+job_id,
       type:"post",
       success:function(responseData){
       document.getElementById('ddjobresultsdiv').innerHTML=responseData;}
     })
+      $("#ddjobresultsdiv").show();
+        //var style = document.getElementById('ddjobresultsdiv').style;
+        //style.display = change;
 //	new Ajax.Updater('ddjobresultsdiv',"/charmming/dd_infrastructure/viewjobresults/"+job_id, {method:'post', asynchronous:true});
         //link.innerHTML="Hide Results"
     }
-    else if (document.getElementById('ddjobresultsdiv').style.display=='block'){
-	setVisible('ddjobresultsdiv','none')
+    else{
+      $("#ddjobresultsdiv").hide();
 	//link.innerHTML="View Results"
         //var style = document.getElementById('ddjobresultsdiv').style;
 	//style.display = change;
@@ -1131,54 +1132,20 @@ function send_delete_ligandset_form(setid) {
 
 function getCheckedAvailableLigandIds()
 {
-    var nodes=document.getElementsByName("availableligandsdiv")[0].childNodes;
-    var checkedvalues="";
-    for(i = 0;i < nodes.length;++i)
-	if(nodes[i].id=="availableligandsinsidediv"){
-	    var checkboxes = nodes[i].getElementsByTagName('input');
-	    //alert(checkboxes.length);
-	    for(j = 0;j < checkboxes.length;++j){
-		    //alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
-		    //alert("j " + j);
-		if (checkboxes[j].checked){
-		    if (checkedvalues=='') {
-			checkedvalues=checkboxes[j].value;
-			           
-		    }
-		    else {
-			checkedvalues=checkedvalues + ',' + checkboxes[j].value;
-		    }
-		    //alert(checkedvalues);
-		}
-	    }
-	}
-      //alert(checkedvalues);
+    var checkedvalues= new Array();
+    $("#availableligandsinsidediv input:checked").each(function() {
+        checkedvalues.push($(this).val());
+        });
     return checkedvalues;
 }
 
 function getCheckedSetLigandIds()
 {
-    var nodes=document.getElementsByName("setligandsdiv")[0].childNodes;
-    var checkedvalues="";
-    for(i = 0;i < nodes.length;++i)
-	if(nodes[i].id=="setligandsinsidediv"){
-	    var checkboxes = nodes[i].getElementsByTagName('input');
-	    //alert(checkboxes.length);
-	    for(j = 0;j < checkboxes.length;++j){
-		    //alert(checkboxes[j].value + ' ' + checkboxes[j].checked);
-		    //alert("j " + j);
-		if (checkboxes[j].checked){
-		    if (checkedvalues=='') {
-			checkedvalues=checkboxes[j].value;
-			           
-		    }
-		    else {
-			checkedvalues=checkedvalues + ',' + checkboxes[j].value;
-		    }
-		    //alert(checkedvalues);
-		}
-	    }
-	}
+    var checkedvalues = new Array();
+    $("#setligandsinsidediv input:checked").each(function() {
+        checkedvalues.push($(this).val());
+      }); //This goes through every checked value and puts it into the array.
+      //No more heavy forlooping and confusing structure required.
     return checkedvalues;
 }
 
@@ -1230,7 +1197,7 @@ function RefreshAvailableLigands()
     //var code = "protein_id=" + $("targets").getValue() + "&setid=" + $("targets").getValue();
     //alert ('/charmming/dd_substrate/setavailableligands/'+document.getElementById("avaiableligandsets").value+'');
     var myAjax = $.ajax({
-        url:"/charmming/dd_substrate/setavailableligands"+document.getElementById("availableligandsets").value+'',
+        url:"/charmming/dd_substrate/setavailableligands/"+$("#availableligandsets").val()+'',
         type:"post",
         success: function(requestData){
         document.getElementById("availableligandsdiv").innerHTML = requestData;}
@@ -1247,7 +1214,7 @@ function RefreshSetLigands(set_id,addedids,removedids)
         //var code = 'ptid=' + $("protein_types").getValue();
     //alert('/charmming/dd_infrastructure/projectconformations/{{project_id}}/'+addedids+'/'+removedids);
     var myAjax = $.ajax({
-        url:"/charmming/dd_substrate/setligands"+set_id+"/"+addedids+"/"+removedids+"/",
+        url:"/charmming/dd_substrate/setligands/"+set_id+"/"+addedids+"/"+removedids+"/",
         type:"post",
         success: function(requestData){
         document.getElementById("setligandsdiv").innerHTML = requestData;}
@@ -1319,17 +1286,17 @@ function LigandSet_SetCheckUncheck()
     }
 }
 
-function RefreshLigandSetInfo(ligandsetid,action)
+function RefreshLigandSetInfo(ligandsetid,action,form)
 {
     //alert (document.getElementById("gridset_name").value);
     //var code = 'name=' + document.getElementById("ligandset_name").value + '&description=' + document.getElementById("ligandset_description").value;
-    var code = 'name=' + $("ligandset_name").value + '&description=' + $("ligandset_description").value;
+//    var code = 'name=' + $("#ligandset_name").value + '&description=' + $("i#ligandset_description").value;
     //TODO: Will this have to change for jQuery...?
     //alert (code);
-    var myAjax = $.ajax({
+    $.ajax({
         url:'/charmming/dd_substrate/updateligandsetinfo/'+ligandsetid+'/'+action+'/',
         type:"post",
-        data:code,
+        data:form, //Pre-serialized. Use serializeArray() to force POST
         success: function(requestData){
         document.getElementById("ligandsetinfodiv").innerHTML = requestData;}
         });
@@ -1361,7 +1328,7 @@ function RefreshDSFLigands()
     //alert (code);
 //good    var myAjax = new Ajax.Updater('ligandsdiv', '/charmming/dd_infrastructure/updatedsfligands/'+$("ligandsets").getValue()+'', {method: 'post'})
     var myAjax = $.ajax({
-        url:'/charmming/dd_infrastructure/updatedsfligands/'+$("ligandsets").getValue()+'',
+        url:'/charmming/dd_infrastructure/updatedsfligands/'+$("#ligandsets").val()+'',
         type:"post",
         success: function(requestData){
         document.getElementById("ligandsdiv").innerHTML = requestData;}
@@ -1383,7 +1350,7 @@ function doDDJobDetailsOnLoad(job_id){
     //code="jobid={{job.owner_id}}";
     currperiodicalupdater2 = $("ddjobresultsdiv").PeriodicalUpdater('/charmming/dd_infrastructure/viewjobresults/'+job_id, {method: 'post', multiplier:5, minTimeout:100, maxTimeout:5000}, function(remoteData){document.getElementById("ddjobresultsdiv").innerHTML = remoteData;});
 //    currperiodicalupdater2 = new Ajax.PeriodicalUpdater('ddjobresultsdiv', '/charmming/dd_infrastructure/viewjobresults/'+job_id, {method: 'post', frequency: 5});
-    setVisible('ddjobresultsdiv','none');
+    $("#ddjobresultsdiv").hide();
 
         //alert ("blah");
 
