@@ -1,0 +1,36 @@
+{% extends 'html/skeleton.html' %}
+{% block content %}
+
+	{% if output_exists %}
+	 Download File with results
+   {% else %}
+           <p>Something went wrong. No prediction available</p>
+   {% endif %}
+	</p>
+	<p>
+	{% if recall %}
+	{% if precision %}
+	For {{ activity_property }} = {{ active }}:<br>
+	Recall: {{ recall }}<br>
+	Precision: {{ precision }} <br>
+	{% endif %}
+	{% endif %}
+	<p>	
+	<form action="{% url download %}" method="post">
+	{% csrf_token %}
+	{% for hidden in form.hidden_fields %}
+	{{ hidden }}
+	{% endfor %}
+	<p>{{ form.non_field_errors }}</p>
+
+         <input type=button value="Back" onClick="javascript:history.go(-1);" />
+	 {% if output_exists %}
+	 <input type="hidden" value="{{ output }}" name="output" />
+	 <input type="hidden" value="{{ orig_name }}" name="orig_name" />
+	 <input type="submit" name="download" value="Download" />
+         {% endif %}
+                             
+	
+	</form>
+	</p>
+{% endblock %}

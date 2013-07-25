@@ -1,0 +1,25 @@
+{% extends 'html/skeleton.html' %}
+{% block content %}
+
+	<form action="{% url property %}" method="post">
+	{% csrf_token %}
+	<table>
+        <tr><td>Model Type:</td><td>{{ model_type.model_type_name }}</td></tr>
+        <tr><td>Model Name:</td><td>{{ qsar_model.model_name }}</td></tr>
+        </table>
+        {% for hidden in form.hidden_fields %}
+	{{ hidden }}
+	{% endfor %}
+
+	{% if activity_property_choice_length %}
+	{{form.activity_property.label_tag}}
+	<p>{{form.activity_property}}</p>
+	{% else %}
+	Not an SD file or no SD properties found. Please upload an SD file with Activity Property.
+	{% endif %}
+	<p>
+	<input type="submit" name="back" value="Back" />
+	<input type="submit" name="next" value="Next" />
+	</p>
+	</form>
+{% endblock %}
