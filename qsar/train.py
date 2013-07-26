@@ -46,7 +46,7 @@ def active_inactive(ms,activity_property):
 
 def train_model(pts):
     cmp = Composite()
-    cmp.Grow(pts,attrs=[1],nPossibleVals=[2],nTries=5000,randomDescriptors=3,
+    cmp.Grow(pts,attrs=[1],nPossibleVals=[2],nTries=50,randomDescriptors=3,
              buildDriver=CrossValidate.CrossValidationDriver,
                       treeBuilder=SigTreeBuilder,needsQuantization=False,
                       maxDepth=2,silent=True)
