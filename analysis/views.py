@@ -17,6 +17,8 @@
 #  particular purpose.
 
 from django.template.loader import get_template
+from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.shortcuts import render_to_response
 from structure.models import Structure, WorkingStructure, WorkingFile, Task
 from scheduler.schedInterface import schedInterface
@@ -25,6 +27,7 @@ from django.template import *
 from pychm.lib.mol import Mol
 import output, charmming_config, lessonaux, input, lessons, lesson1, lesson2, lesson3, lesson4
 from account.views import checkPermissions
+from pychm.scripts.getprop import getProp
 #import structure.models
 #import Structure
 import os, re, time, cPickle
@@ -136,14 +139,18 @@ def rmsformdisplay(request):
     try:
          struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-         return output.returnSubmission("RMS calculation", error="Please submit a structure first.")
+        messages.error(request, "Please upload a structure first.")
+        return HttpResponseRedirect("/charmming/fileupload/")
+#         return output.returnSubmission("RMS calculation", error="Please submit a structure first.")
     try:
          ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        return output.returnSubmission("RMS calculation", error="Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+        messages.error(request, "Please build your structure first.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+#        return output.returnSubmission("RMS calculation", error="Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
     feedback = ''
-    tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
+    tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
 
     rmsd_list = []
     for t in tasks:
@@ -151,7 +158,10 @@ def rmsformdisplay(request):
             rmsd_list.append(t)
     if len(rmsd_list) > 0:
         if len(rmsd_list) == 1:
-            return output.returnSubmission('RMS Calculation', error='More than 1 structure must be selected')
+            messages.error(request, "More than 1 structure must be selected.")
+            lesson_ok, dd_ok = checkPermissions(request)
+            return render_to_response('html/rmsdform.html', {'ws_identifier': ws.identifier, 'tasks':tasks, 'messages':get_messages(request), 'lesson_ok':lesson_ok, 'dd_ok':dd_ok})
+#            return output.returnSubmission('RMS Calculation', error='More than 1 structure must be selected.')
         else:
             return doRMSD(request.POST,ws.structure.location,ws.identifier,struct.pickle,rmsd_list)
 
@@ -164,7 +174,7 @@ def rmsformdisplay(request):
         fp = open(struct.location + '/rmsd-' + ws.identifier + '.html')
         for line in fp:
             prior_matrix += line
-        fp.close() 
+        fp.close()
 
     lesson_ok, dd_ok = checkPermissions(request)
     return render_to_response('html/rmsdform.html', {'ws_identifier': ws.identifier, 'tasks': tasks, 'prior_matrix': prior_matrix, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
@@ -192,27 +202,58 @@ def domdprop(request):
 
 
     fname = "%s/%s-md.out" % (ws.structure.location,ws.identifier)
-    cmdline = "%s/prop.py %s %s-mdproperties.dat" % (charmming_config.data_home,fname,ws.identifier)
-    
-    nprop = 0
-    if request.POST.has_key('getener'):
-        cmdline += " averener"
-    if request.POST.has_key('getvolu'):
-        cmdline += " avervolu"
-    if request.POST.has_key('getpressi'):
-        cmdline += " averpressi"
-    if request.POST.has_key('gettemp'):
-        cmdline += " avertemp"
-    if request.POST.has_key('gettote'):
-        cmdline += " avertote"
-    if request.POST.has_key('gettotk'):
-        cmdline += " avertotk"
-
-    logfp = open('/tmp/mdprop.txt', 'w')
-    logfp.write('cmdline = %s\n' % cmdline)
-    logfp.close()
+#    cmdline = "%s/prop.py %s %s-mdproperties.dat" % (charmming_config.data_home,fname,ws.identifier)
     os.chdir(ws.structure.location)
-    os.system(cmdline)
+    nprop = 0
+    props = []
+    if request.POST.has_key('getener'):
+        props.append("averener")
+#        cmdline += " averener"
+    if request.POST.has_key('getvolu'):
+        props.append("avervolu")
+#        cmdline += " avervolu"
+    if request.POST.has_key('getpressi'):
+        props.append("averpressi")
+#        cmdline += " averpressi"
+    if request.POST.has_key('gettemp'):
+        props.append("avertemp")
+#        cmdline += " avertemp"
+    if request.POST.has_key('gettote'):
+        props.append("avertote")
+#        cmdline += " avertote"
+    if request.POST.has_key('gettotk'):
+        props.append("avertotk")
+#        cmdline += " avertotk"
+    props.append("avertime")
+    inpfile = open(fname)
+    taco = getProp(inpfile,*props)
+    inpfile.close()
+
+    outLabels = []
+    outData = []
+    outLabels.append('avertime')
+    outData.append(map(lambda x: '%10.5f' % x,taco['avertime']))
+    for key in taco.keys():
+        if key.endswith("time"):
+            continue
+        outLabels.append(key)
+        outData.append(map(lambda x: '%10.5f' % x,taco[key]))
+    outData = map(None, *outData)
+
+    rawOutput = []
+    rawOutput.append('    '.join(outLabels))
+    for line in outData:
+        rawOutput.append('    '.join(line))
+    rawOutput = '\n'.join(rawOutput)
+
+    outFile = open(ws.identifier + "-mdproperties.dat", "w")
+    outFile.write(rawOutput)
+    outFile.close()
+
+#    logfp = open('/tmp/mdprop.txt', 'w')
+#    logfp.write('cmdline = %s\n' % cmdline)
+#    logfp.close()
+#    os.system(cmdline)
 
     # create a working file, so that this thing appears on the download page
     wf = WorkingFile()
@@ -222,8 +263,15 @@ def domdprop(request):
     wf.type = 'prp'
     wf.description = 'MD property analysis data'
     wf.save()
-
-    return render_to_response("html/didprop.html", {'msg': "Properties generated, please download %s-mdproperties.dat from the download files page." % ws.identifier})
+    tdict = {}
+    lesson_ok, dd_ok = checkPermissions(request)
+    tdict['lesson_ok'] = lesson_ok
+    tdict['dd_ok'] = dd_ok
+#    tdict['messages'] = get_messages(request)
+#    return render_to_response("html/didprop.html", {'msg': "Properties generated, please download %s-mdproperties.dat from the download files page." % ws.identifier})
+    tdict['outLabels'] = outLabels
+    tdict['outData'] = outData
+    return render_to_response("html/didprop.html", tdict)
 
 def getmdprop(request):
     if not request.user.is_authenticated():

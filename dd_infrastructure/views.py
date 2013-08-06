@@ -515,7 +515,7 @@ def DSFFormDisplay_old(request):
         #except:
         #    return HttpResponse("No native ligands found in the structure. Cannot identify binding site")
 
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
         return render_to_response('html/dddsfform.html', {'abadfiles':abadfiles,'ws_identifier':ws.identifier,'tasks':tasks, 'conformations':conformation_info_list,'existingsets':sets,'message':message,'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
     
     
@@ -767,6 +767,7 @@ def DSFFormDisplay_old(request):
     dsftask.setup(ws)
     dsftask.active = 'y'
     dsftask.action = 'dsfdocking'
+    dsftask.modifies_coordinates = False
     dsftask.save()
 
     if ws.isBuilt != 't':
@@ -1138,7 +1139,7 @@ def DSFFormDisplay(request):
         #except:
         #    return HttpResponse("No native ligands found in the structure. Cannot identify binding site")
 
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
         return render_to_response('html/dddsfform.html', {'abadfiles':abadfiles,'ws_identifier':ws.identifier,'tasks':tasks, 'conformations':conformation_info_list,'existingsets':sets,'message':message,'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
     
     
@@ -1304,16 +1305,16 @@ def DSFFormDisplay(request):
     settings_file=open(job_folder + "/settings.cfg",'w')
     settings_file.write("#! /bin/bash\n")
                                   
-    current_project=projects.objects.get(owner=request.user,selected='y')
+    #current_project=projects.objects.get(owner=request.user,selected='y')
     #project_conformations=projects_protein_conformations.objects.filter(owner=request.user, \
     #                                                          project=current_project)
-    conformation_ids=[]
-    for conformation in project_conformations:
-        conformation_ids.append(conformation.protein_conformation_id)
+    #conformation_ids=[]
+    #for conformation in project_conformations:
+    #    conformation_ids.append(conformation.protein_conformation_id)
                                                                   
-    dsflog.write("confids: " + str(conformation_ids) + "\n")
+    #dsflog.write("confids: " + str(conformation_ids) + "\n")
     #DAIM
-    job_conformation_file_ids=[]                                                 
+    #job_conformation_file_ids=[]                                                 
     #try:
     '''
     conformations_file_objects=files_objects.objects.filter(owner=request.user, \
@@ -1385,6 +1386,7 @@ def DSFFormDisplay(request):
     dsftask.setup(ws)
     dsftask.active = 'y'
     dsftask.action = 'dsfdocking'
+    dsftask.modifies_coordinates = False
     dsftask.save()
 
     if ws.isBuilt != 't':
@@ -1629,9 +1631,7 @@ def updateDSFLigands(request,selected_set_id):
             ligand_info.file_objects_list = files_objects.objects.filter\
                                         (owner=request.user,object_table_name="dd_substrate_ligands", \
                                         object_id=ligand.id).select_related()
-                                        
             ligand_info_list.append(ligand_info)
-            
         for ligand in public_ligands:
             ligand_info=substrate_common.LigandInfo()
             ligand_info.id=ligand.id
@@ -1640,7 +1640,6 @@ def updateDSFLigands(request,selected_set_id):
             ligand_info.file_objects_list = files_objects.objects.filter\
                                         (owner=public_user,object_table_name="dd_substrate_ligands", \
                                         object_id=ligand.id).select_related()
-                                        
             ligand_info_list.append(ligand_info)
 
     elif (selected_set_id=='00'): #user ligands
@@ -1652,9 +1651,7 @@ def updateDSFLigands(request,selected_set_id):
             ligand_info.file_objects_list = files_objects.objects.filter\
                                         (owner=request.user,object_table_name="dd_substrate_ligands", \
                                         object_id=ligand.id).select_related()
-                                        
             ligand_info_list.append(ligand_info)
-            
     else:
         selected_set_ligands=ligands.objects.filter().extra \
         (where=["dd_substrate_ligands.id IN (select ligands_id from dd_substrate_ligand_sets_ligands where owner_id in (%s,%s) " \
@@ -1737,7 +1734,7 @@ def viewJobs(request):
         job.scheduler_id=row['job_scheduler_id']
         job.owner_index=row['job_owner_index']
         job.description=row['description']
-        job.status="<font color='%s'>%s</font>" % (row['Status Color'],row['Status'])
+        job.status="<p style='color:%s'>%s</p>" % (row['Status Color'],row['Status'])
         job.queued=row['queued']
         job.waited=row['Waited']
         job.runtime=row['Runtime']
@@ -1800,7 +1797,7 @@ def viewJobDetails(request,job_id):
         job.scheduler_id=row['job_scheduler_id']
         job.owner_index=row['job_owner_index']
         job.description=row['description']
-        job.status="<font color='%s'>%s</font>" % (row['Status Color'],row['Status'])
+        job.status="<p style='color:%s'>%s</p>" % (row['Status Color'],row['Status'])
         job.queued=row['queued']
         job.waited=row['Waited']
         job.runtime=row['Runtime']
@@ -1902,7 +1899,7 @@ def viewJobInfo(request,job_id):
         job.scheduler_id=row['job_scheduler_id']
         job.owner_index=row['job_owner_index']
         job.description=row['description']
-        job.status="<font color='%s'>%s</font>" % (row['Status Color'],row['Status'])
+        job.status="<p style='color:%s'>%s</p>" % (row['Status Color'],row['Status'])
         job.queued=row['queued']
         job.waited=row['Waited']
         job.runtime=row['Runtime']
@@ -1946,6 +1943,9 @@ def viewJobResults(request,job_id):
         new_source.source_object_id = job.id
         new_source.save()
         #transaction.commit()
+    
+    job_path =  charmming_config.user_dd_jobs_home + '/' + username + '/' + 'dd_job_' + \
+           str(job.job_owner_index) + "/"
 
     path = charmming_config.user_dd_jobs_home + '/' + username + '/' + 'dd_job_' + \
            str(job.job_owner_index) + "/clustering/clusters/" 
@@ -2001,7 +2001,8 @@ def viewJobResults(request,job_id):
     ##resultslog.write("len(poses): %s\n" % (str(len(result_poses))))
     ##resultslog.write("pose files: %s\n" % (str(len(glob.glob( os.path.join(path, '*_clus0.mol2') )))))
     #if len(result_poses)<len(glob.glob( os.path.join(path, '*_clus0.mol2') )):
-    if 1==1:
+    #if 1==1:if 'DOCKING JOB NORMAL TERMINATION' in open(job_path + 'run.out').read():
+    if 'DOCKING JOB NORMAL TERMINATION' in open(job_path + 'run.out').read():
         resultslog.write("result files\n")
         resultslog.write("ospathjoin: " + os.path.join(path, '*_clus*.mol2') + "\n")
         for file in glob.glob( os.path.join(path, '*_clus*.mol2') ):
@@ -2319,6 +2320,7 @@ def viewJobResults(request,job_id):
             resultslog.write("poses_sql2: %s\n" % (poses_sql))
             cursor.execute(poses_sql)
             result_poses = cursor.fetchall()
+            resultslog.write(str(result_poses))
             cursor.close()
             
              
@@ -2341,6 +2343,7 @@ def viewJobResults(request,job_id):
     
 
     lesson_ok, dd_ok = checkPermissions(request)
+    resultslog.close()
     return render_to_response('html/ddviewjobresults.html', {'result_poses':result_poses, 'job':job,'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 """

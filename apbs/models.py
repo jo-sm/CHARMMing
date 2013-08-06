@@ -40,10 +40,10 @@ class redoxTask(Task):
         # This is a pain, since we need to get all of the input, output, and
         # PDB files from the REDOX calculation.
         """test if the job suceeded, create entries for output"""
-        
+        self.modifies_coordinates = False
         loc = self.workstruct.structure.location
         bnm = self.workstruct.identifier
-
+        basepath = loc + "/redox-" + bnm
         # There's always an input file, so create a WorkingFile
         # for it.
         filenamesuffix=['-build-redall',
@@ -59,41 +59,57 @@ class redoxTask(Task):
                         '-oxipotref']
 
         for suffix in filenamesuffix:
+            path = basepath + suffix + ".inp"
             wfinp = WorkingFile()
-            wfinp.task = self
-            wfinp.path = loc + '/redox-' + bnm + suffix + '.inp'
-            wfinp.canonPath = wfinp.path
-            wfinp.type = 'inp'
-            wfinp.description = 'a redox input script'
-            wfinp.save()
+            try:
+                wftest = WorkingFile.objects.get(task=self,path=path)
+            except:
+                wfinp.task = self
+                wfinp.path = path
+                wfinp.canonPath = wfinp.path
+                wfinp.type = 'inp'
+                wfinp.description = 'a redox input script'
+                wfinp.save()
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
         logfp = open('/tmp/redoxdone.txt', 'w')
         for suffix in filenamesuffix:
-            logfp.write('looking for %s\n' % (loc + '/redox-' + bnm + suffix + '.out'))
+            path = basepath + suffix + ".out"
+            logfp.write('looking for %s\n' % (path))
             try:
-                os.stat(loc + '/redox-' + bnm + suffix + '.out')
+                os.stat(path)
                 logfp.write('OK!\n')
             except:
                 logfp.write('Bad\n')
-                self.status = 'C'
+#                self.status = 'C' ...what?
+                self.status = 'F' #This is more like it...why would it be successful if the files aren't there?
                 self.finished = 'y'
                 return
+            logfp.write("Making WorkingFile...\n")
             wfout = WorkingFile()
-            wfout.task = self
-            wfout.path = loc + '/redox-' + bnm + suffix + '.out'
-            wfout.canonPath = wfout.path
-            wfout.type = 'out'
-            wfout.description = 'a redox script output'
-            wfout.save()
-        self.status = 'C'
-        logfp.close()
-
+            try:
+                wftest = WorkingFile.objects.get(task=self,path=path)
+            except:
+                wfout.task = self
+                wfout.path = path
+                wfout.canonPath = wfout.path
+                wfout.type = 'out'
+                wfout.description = 'a redox script output'
+                wfout.save()
+        logfp.write("status is..." +self.status+"\n")
         if self.status == 'F':
             return
 
         # create Working files for PDB, CRD, and PSF.
+        # First fetch all the segments associated to the workstruct associated to this task
+        # because we're making files for each of them.
+        logfp.write("Getting segments...\n")
+        segments = self.workstruct.segments
+        for segment in segments:
+            logfp.write(str(segment.name) + "\n")
+        logfp.close()
+#        path = basepath + "
         '''
         OH WOW! I just stopped caring!!!!
         '''

@@ -17,6 +17,7 @@
 #  particular purpose.
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib import admin
 from scheduler.schedInterface import schedInterface
 from structure.models import WorkingFile, Task
 import math, os
@@ -39,91 +40,119 @@ class solvationTask(Task):
 
         loc = self.workstruct.structure.location
         bnm = self.workstruct.identifier
+        basepath = loc + "/" + bnm + "-" + self.action
 
         # There's always an input file, so create a WorkingFile
         # for it.
+        path = basepath + ".inp"
         wfinp = WorkingFile()
-        wfinp.task = self
-        wfinp.path = loc + '/' + bnm + '-solvate.inp'
-        wfinp.canonPath = wfinp.path
-        wfinp.type = 'inp'
-        wfinp.description = 'solvation input script'
-        wfinp.save()
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfinp.task = self
+            wfinp.path = path
+            wfinp.canonPath = wfinp.path
+            wfinp.type = 'inp'
+            wfinp.description = 'solvation input script'
+            wfinp.save()
 
         if self.concentration > 0.0001:
+            path = loc + "/" + bnm + "-neutralize.inp"
             wfninp = WorkingFile()
-            wfninp.task = self
-            wfninp.path = loc + '/' + bnm + '-neutralize.inp'
-            wfninp.canonPath = wfninp.path
-            wfninp.type = 'inp'
-            wfninp.description = 'neutralization input script'
-            wfninp.save()
+            try:
+                wftest = WorkingFile.objects.get(task=self,path=path)
+            except:
+                wfninp.task = self
+                wfninp.path = path
+                wfninp.canonPath = wfninp.path
+                wfninp.type = 'inp'
+                wfninp.description = 'neutralization input script'
+                wfninp.save()
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
-        fn = loc + '/' + bnm + '-solvate.out'
+        path = basepath + ".out"
 
         try:
-            os.stat(fn)
+            os.stat(path)
         except:
             self.status = 'F'
             return
 
         wfout = WorkingFile()
-        wfout.task = self
-        wfout.path = loc + '/' + bnm + '-solvate.out'
-        wfout.canonPath = wfout.path
-        wfout.type = 'out'
-        wfout.description = 'solvation script output'
-        wfout.save()
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfout.task = self
+            wfout.path = path
+            wfout.canonPath = wfout.path
+            wfout.type = 'out'
+            wfout.description = 'solvation script output'
+            wfout.save()
 
         if self.concentration > 0.0001:
+            path = loc + "/" + bnm + "-neutralize.out"
             wfnout = WorkingFile()
-            wfnout.task = self
-            wfnout.path = loc + '/' + bnm + '-neutralize.out'
-            wfnout.canonPath = wfnout.path
-            wfnout.type = 'out'
-            wfnout.description = 'neutralization script output'
-            wfnout.save()
+            try:
+                wftest= WorkingFile.objects.get(task=self,path=path)
+            except:
+                wfnout.task = self
+                wfnout.path = path
+                wfnout.canonPath = wfnout.path
+                wfnout.type = 'out'
+                wfnout.description = 'neutralization script output'
+                wfnout.save()
 
         # now check if all the expected psf/crd/pdb files exist
-        fn = loc + '/' + bnm + '-solvation.crd'
+        path = basepath + '.crd'
         try:
-            os.stat(fn)
+            os.stat(path)
         except:
             self.status = 'F'
             self.save()
             return
 
         wf = WorkingFile()
-        wf.task = self
-        wf.path = loc + '/' + bnm + '-solvation.crd'
-        wf.canonPath = wf.path
-        wf.type = 'crd'
-        wf.description = 'solvated structure'
-        wf.pdbkey = 'solv_' + self.workstruct.identifier
-        wf.save()
-        self.workstruct.addCRDToPickle(wf.path, 'neut_' + self.workstruct.identifier)
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wf.task = self
+            wf.path = path
+            wf.canonPath = wf.path
+            wf.type = 'crd'
+            wf.description = 'solvated structure'
+            wf.pdbkey = 'solv_' + self.workstruct.identifier
+            wf.save()
+            self.workstruct.addCRDToPickle(wf.path, 'neut_' + self.workstruct.identifier)
 
+        path = basepath + ".psf"
         wfpsf = WorkingFile()
-        wfpsf.task = self
-        wfpsf.path = loc + '/' + bnm + '-solvation.psf'
-        wfpsf.canonPath = wfpsf.path
-        wfpsf.type = 'psf'
-        wfpsf.description = 'solvated structure'
-        wfpsf.save()
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfpsf.task = self
+            wfpsf.path = path
+            wfpsf.canonPath = wfpsf.path
+            wfpsf.type = 'psf'
+            wfpsf.description = 'solvated structure'
+            wfpsf.save()
 
+        path = basepath + ".pdb"
         wfpdb = WorkingFile()
-        wfpdb.task = self
-        wfpdb.path = loc + '/' + bnm + '-solvation.pdb'
-        wfpdb.canonPath = wfpdb.path
-        wfpdb.type = 'pdb'
-        wfpdb.description = 'solvated structure'
-        wfpdb.save()
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfpdb.task = self
+            wfpdb.path = path
+            wfpdb.canonPath = wfpdb.path
+            wfpdb.type = 'pdb'
+            wfpdb.description = 'solvated structure'
+            wfpdb.save()
 
+        path = loc + "/" + bnm + "-neutralization.crd"
         if self.concentration > 0.0001:
             try:
-                os.stat(loc + '/' + bnm + '-neutralization.crd')
+                os.stat(path)
             except:
                 self.status = 'F'
                 self.save()
@@ -131,30 +160,41 @@ class solvationTask(Task):
 
 
             wfn = WorkingFile()
-            wfn.task = self
-            wfn.path = loc + '/' + bnm + '-neutralization.crd'
-            wfn.canonPath = wfn.path
-            wfn.type = 'crd'
-            wfn.description = 'neutralized structure'
-            wfn.pdbkey = 'neut_' + self.workstruct.identifier
-            wfn.save()
-            self.workstruct.addCRDToPickle(wf.path,'neut_' + self.workstruct.identifier)
+            try:
+                wftest = WorkingFile.objects.get(task=self,path=path)
+            except:
+                wfn.task = self
+                wfn.path = path
+                wfn.canonPath = wfn.path
+                wfn.type = 'crd'
+                wfn.description = 'neutralized structure'
+                wfn.pdbkey = 'neut_' + self.workstruct.identifier
+                wfn.save()
+                self.workstruct.addCRDToPickle(wf.path,'neut_' + self.workstruct.identifier)
 
+            path = loc + "/" + bnm + "-neutralization.psf"
             wfnpsf = WorkingFile()
-            wfnpsf.task = self
-            wfnpsf.path = loc + '/' + bnm + '-neutralization.psf'
-            wfnpsf.canonPath = wfnpsf.path  
-            wfnpsf.type = 'psf'
-            wfnpsf.description = 'neutralized structure'
-            wfnpsf.save()
+            try:
+                wftest = WorkingFile.objects.get(task=self,path=path)
+            except:
+                wfnpsf.task = self
+                wfnpsf.path = path
+                wfnpsf.canonPath = wfnpsf.path  
+                wfnpsf.type = 'psf'
+                wfnpsf.description = 'neutralized structure'
+                wfnpsf.save()
 
+            path = loc + "/" + bnm + "-neutralization.pdb"
             wfnpdb = WorkingFile()
-            wfnpdb.task = self
-            wfnpdb.path = loc + '/' + bnm + '-neutralization.pdb'
-            wfnpdb.canonPath = wfnpdb.path  
-            wfnpdb.type = 'pdb'
-            wfnpdb.description = 'neutralized structure'
-            wfnpdb.save()
+            try:
+                wftest = WorkingFile.objects.get(task=self,path=path)
+            except:
+                wfnpdb.task = self
+                wfnpdb.path = path
+                wfnpdb.canonPath = wfnpdb.path  
+                wfnpdb.type = 'pdb'
+                wfnpdb.description = 'neutralized structure'
+                wfnpdb.save()
 
 
     def calcEwaldDim(self):
@@ -215,3 +255,4 @@ class solvationTask(Task):
             return (90., 90., 120.)
         else:
             return (-1., -1., -1.)
+

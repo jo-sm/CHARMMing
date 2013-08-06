@@ -1,3 +1,4 @@
+{%comment%} One day, Django 1.4+ will deliver us from the scourge of the endless if test.{%endcomment%} blankme
 {% if bad_exchange %} blankme  
    bomlev 3
    achtung, bad QM exchange!
@@ -38,18 +39,21 @@
                {% else %} blankme
                   {% if linkatoms %} blankme
                      !LINKATOMS   
-                     {% for las in linkatom_list %} blankme
+                     {% for las in linkatoms %} blankme
+                    {%comment%} linkatom_list doesn't give me control over the specific bits of the link atom lone pair I want. So I override it. {%endcomment%} blankme
                         coor copy comp
                         coor shake
-                        addl qqh1 {{las}}
+                        addl qqh{{forloop.counter}} {{las.0}} {{las.1}} {{las.2}} {{las.3}} {{las.4}} {{las.5}} {%comment%}This adds the link atom selection as a whole.{%endcomment%}
+                        lonepair colinear scaled -.7261 sele type qqh{{forloop.counter}} end sele atom {{las.0}} {{las.1}} {{las.2}} end sele atom {{las.3}} {{las.4}} {{las.5}} end
+                        {%comment%}las = [qmseg, qmres, qmtyp, mmseg, mmres, mmtyp]. Thus we sele atom qmseg qmres qmtyp end, according to select.doc{%endcomment%} blankme
                      {% endfor %} blankme
                   {% else %} blankme
                       set j 1 
                       label linkloop
 
-                      stream /usr/local/charmming/definereg.str
+                      stream /usr/local/newcharmming/definereg.str
                       addl qqh@j bynum @qmhost@@j bynum @mmhost@@j
-                      stream /usr/local/charmming/definereg.str
+                      stream /usr/local/newcharmming/definereg.str
                       lonepair colinear scaled -.7261 bynum @qqh@@j bynum @qmhost@@j bynum @mmhost@@j
                       incre j by 1 
 

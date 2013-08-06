@@ -763,7 +763,7 @@ def newLigandUpload(request, template="html/ddligandfileupload.html"):
         uploadligandlog.close()
 
     lesson_ok, dd_ok = checkPermissions(request)        
-    return render_to_response('html/ddligandfileupload.html', {'form':form, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    return render_to_response('html/ddligandfileupload.html', {'form':form, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'super_user':request.user.is_superuser})
 
 #def ligandFileUploadForm(request):
 #    if not request.user.is_authenticated():

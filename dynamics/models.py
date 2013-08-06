@@ -19,7 +19,7 @@ from django.db import models
 from django.contrib.auth.models import User
 import django.forms, os, re
 import structure
-from structure.models import WorkingStructure, WorkingFile, Task
+from structure.models import WorkingStructure, WorkingFile, Task, CGWorkingStructure
 
 #Replica exchange parameters
 class rexParams(models.Model):
@@ -44,7 +44,7 @@ class dynamicsTask(Task):
     #Combines all the smaller PDBs make in the above method into one large PDB that
     #jmol understands
     #type is md,ld,or sgld 
-    def combinePDBsForMovie(self):
+    def combinePDBsForMovie(self, inp_file, cgws):
         ter = re.compile('TER') 
         remark = re.compile('REMARK')
 
@@ -52,7 +52,14 @@ class dynamicsTask(Task):
         #frame movie is the PDBs which each time step sepearated into a new PDB
         movie_handle = open(self.workstruct.structure.location + '/' + self.workstruct.identifier + "-" + self.action + '-movie.pdb','a')
         for i in range(1,11):
-            frame_handle = open(self.workstruct.structure.location +  "/" + self.workstruct.identifier + "-" + self.action + "-movie" + str(i) + ".pdb",'r')
+            frame_fname = self.workstruct.structure.location + '/' + self.workstruct.identifier + "-" + self.action + "-movie" + str(i) + ".pdb"
+            if inp_file != False:
+                frame_status = cgws.addBondsToPDB(inp_file, frame_fname)
+                if frame_status != True:
+                    self.movie_status = 'Failed'
+                    self.save()
+                    return 'Failed'
+            frame_handle = open(frame_fname,'r')
             movie_handle.write('MODEL ' + str(i) + "\n")
             for line in frame_handle:
                 if not remark.search(line) and not ter.search(line): movie_handle.write(line)
@@ -61,7 +68,7 @@ class dynamicsTask(Task):
 
         self.movie_status = 'Done'
         self.save()
-        return "Done."
+        return "Done"
 
 
     def finish(self):
@@ -74,22 +81,29 @@ class dynamicsTask(Task):
 
         # There's always an input file, so create a WorkingFile
         # for it.
+        basepath= loc + "/" + bnm + "-" + self.action
+
         logfp.write('Create input WF\n')
+        path = basepath + ".inp"
         wfinp = WorkingFile()
-        wfinp.task = self
-        wfinp.path = loc + '/' + bnm + '-' + self.action + '.inp'
-        wfinp.canonPath = wfinp.path
-        wfinp.type = 'inp'
-        wfinp.description = self.action.upper() + ' input script'
-        wfinp.save()
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfinp.task = self
+            wfinp.path = path
+            wfinp.canonPath = wfinp.path
+            wfinp.type = 'inp'
+            wfinp.description = self.action.upper() + ' input script'
+            wfinp.save()
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
         logfp.write('Check output...\n')
+        path = basepath + ".out"
         try:
-            os.stat(loc + '/' + bnm + '-' + self.action + '.out')
+            os.stat(path)
         except:
-            logfp.write("Flunked on " + loc + '/' + bnm + '-' + self.action + '.out\n')
+            logfp.write("Flunked on " + path + '\n')
             self.status = 'F'
             self.save()
             return
@@ -97,57 +111,100 @@ class dynamicsTask(Task):
         logfp.close()
 
         wfout = WorkingFile()
-        wfout.task = self
-        wfout.path = loc + '/' + bnm + '-' + self.action + '.out'
-        wfout.canonPath = wfout.path
-        wfout.type = 'out'
-        wfout.description = 'output from ' + self.action.upper()
-        wfout.save()
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfout.task = self
+            wfout.path = path
+            wfout.canonPath = wfout.path
+            wfout.type = 'out'
+            wfout.description = 'output from ' + self.action.upper()
+            wfout.save()
 
         # check if the final coordinates were created, if so then
         # we can also add the PSF, PDB, trajectory, and restart files
+        path = basepath + ".crd"
         try:
-            os.stat(loc + '/' + bnm + '-' + self.action + '.crd')
+            os.stat(path)
         except:
             self.status = 'F'
             self.save()
             return
 
         wfcrd = WorkingFile()
-        wfcrd.task = self
-        wfcrd.path = loc + '/' + bnm + '-' + self.action + '.crd'
-        wfcrd.canonPath = wfcrd.path
-        wfcrd.type = 'crd'
-        wfcrd.description = 'coordinates from ' + self.action.upper()
-        wfcrd.save()
-        self.workstruct.addCRDToPickle(wfcrd.path, self.action + '_' + self.workstruct.identifier)
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfcrd.task = self
+            wfcrd.path = path
+            wfcrd.canonPath = wfcrd.path
+            wfcrd.type = 'crd'
+            wfcrd.description = 'coordinates from ' + self.action.upper()
+            wfcrd.save()
+            self.workstruct.addCRDToPickle(wfcrd.path, self.action + '_' + self.workstruct.identifier)
 
         wfpsf = WorkingFile()
-        wfpsf.task = self
-        wfpsf.path = loc + '/' + bnm + '-' + self.action + '.psf'
-        wfpsf.canonPath = wfpsf.path
-        wfpsf.type = 'psf'
-        wfpsf.description = 'PSF from ' + self.action.upper()
-        wfpsf.save()
+        path = basepath + ".psf"
+        inp_file = path
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfpsf.task = self
+            wfpsf.path = path
+            wfpsf.canonPath = wfpsf.path
+            wfpsf.type = 'psf'
+            wfpsf.description = 'PSF from ' + self.action.upper()
+            wfpsf.save()
 
         wfpdb = WorkingFile()
-        wfpdb.task = self
-        wfpdb.path = loc + '/' + bnm + '-' + self.action + '.pdb'
-        wfpdb.canonPath = wfpdb.path
-        wfpdb.type = 'pdb'
-        wfpdb.description = 'PDB coordinates from ' + self.action.upper()
-        wfpdb.save()
-
+        path = basepath + ".pdb"
+        out_file = path
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfpdb.task = self
+            wfpdb.path = path
+            wfpdb.canonPath = wfpdb.path
+            wfpdb.type = 'pdb'
+            wfpdb.description = 'PDB coordinates from ' + self.action.upper()
+            wfpdb.save()
+        cgws = False
+        #Generic coarse-grain code goes here.
+        logfp = open("/tmp/speed_test.txt","w")
+        try:
+            cgws = CGWorkingStructure.objects.get(workingstructure_ptr=self.workstruct.id)
+            logfp.write("Found a CGWorkingStructure.")
+        except CGWorkingStructure.MultipleObjectsReturned: #Uh oh. This MAY be alright if AA/CG...
+            self.status = "F"
+            logfp.write("Found too many CGWorkingStructures.")
+            return
+        except Exception as ex: #Catch everything else
+            logfp.write(str(ex))
+            logfp.flush()
+#            pass
+        if cgws != False:
+            cgws.addBondsToPDB(inp_file,out_file)
+        logfp.close()
         if self.make_movie:
             # go to hollywood
-            self.combinePDBsForMovie()
+            if cgws:
+                result = self.combinePDBsForMovie(inp_file, cgws)
+            else:
+                result = self.combinePDBsForMovie(False, False)
+            if result != "Done":
+                self.status = "F"
+                return
             wfmoviePDB = WorkingFile()
-            wfmoviePDB.task = self
-            wfmoviePDB.path = loc + '/' + bnm + '-' + self.action + '-movie.pdb'
-            wfmoviePDB.canonPath = wfmoviePDB.path
-            wfmoviePDB.type = 'pdb'
-            wfmoviePDB.description = 'Movie PDB for ' + self.action.upper()
-            wfmoviePDB.save()
+            path = basepath + "-movie.pdb"
+            try:
+                wftest = WorkingFile.objects.get(task=self,path=path)
+            except:
+                wfmoviePDB.task = self
+                wfmoviePDB.path = path
+                wfmoviePDB.canonPath = wfmoviePDB.path
+                wfmoviePDB.type = 'pdb'
+                wfmoviePDB.description = 'Movie PDB for ' + self.action.upper()
+                wfmoviePDB.save()
 
 class mdTask(dynamicsTask):
 

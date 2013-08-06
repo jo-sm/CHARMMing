@@ -20,7 +20,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from scheduler.schedInterface import schedInterface
 from structure.models import WorkingFile, Task
-import os
+import os,re
 
 class nmodeTask(Task):
     # type 1 = all atom, 2 - ENM
@@ -34,50 +34,99 @@ class nmodeTask(Task):
     nma_movie_status = models.CharField(max_length=250,default=None,null=True)
     make_nma_movie = models.BooleanField(default=False)
     nma_movie_req = models.BooleanField(default=False)
+    num_trjs = models.PositiveIntegerField(default=5) #Holds how many trajectories are generated...
+
+    #Combines all the smaller PDBs make in the above method into one large PDB that
+    #jmol understands
+    #type is nmode 
+    def combinePDBsForMovie(self):
+        ter = re.compile('TER')
+        remark = re.compile('REMARK')
+        #movie_handle will be the final movie created
+        #frame movie is the PDBs which each time step sepearated into a new PDB
+        for curr_traj in range(1,self.num_trjs+1):
+            movie_handle = open(self.workstruct.structure.location + '/' + self.workstruct.identifier + "-" + self.action + '-' + str(curr_traj) + '-movie.pdb','a')
+            for curr_frame in range(1,13):
+                frame_handle = open(self.workstruct.structure.location +  "/" + self.workstruct.identifier + "-" + self.action + "-movie" + str(curr_frame) + '-' + str(curr_traj) + ".pdb",'r')
+                movie_handle.write('MODEL ' + str(curr_frame) + "\n")
+                for line in frame_handle:
+                    if not remark.search(line) and not ter.search(line): movie_handle.write(line)
+                movie_handle.write('ENDMDL\n')
+                frame_handle.close()
+            movie_handle.close()
+
+        self.nma_movie_status = 'Done'
+        self.save()
+        return "Done."
 
     def finish(self):
         """test if the job suceeded, create entries for output"""
-
         loc = self.workstruct.structure.location
         bnm = self.workstruct.identifier
 
         # There's always an input file, so create a WorkingFile
         # for it.
+        basepath = loc + '/' + bnm + '-' + self.action
+
+        path = basepath + ".inp"
         wfinp = WorkingFile()
-        wfinp.task = self
-        wfinp.path = loc + '/' + bnm + '-nmodes.inp'
-        wfinp.canonPath = wfinp.path
-        wfinp.type = 'inp'
-        wfinp.description = 'normal mode input script'
-        wfinp.save()
+        try:
+            WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfinp.task = self
+            wfinp.path = path
+            wfinp.canonPath = wfinp.path
+            wfinp.type = 'inp'
+            wfinp.description = 'normal mode input script'
+            wfinp.save()
 
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
-        logfp = open('/tmp/nmdone.txt', 'w')
-        logfp.write('looking for %s\n' % (loc + '/' + bnm + '-nmodes.out'))
         try:
-            os.stat(loc + '/' + bnm + '-nmodes.out')
-            logfp.write('OK!\n')
+            os.stat(loc + '/' + bnm + '-nmode.out')
         except:
-            logfp.write('Bad\n')
             self.status = 'F'
             return
-        logfp.close()
 
+        path = basepath + ".out"
         wfout = WorkingFile()
-        wfout.task = self
-        wfout.path = loc + '/' + bnm + '-nmodes.out'
-        wfout.canonPath = wfout.path
-        wfout.type = 'out'
-        wfout.description = 'normal modes script output'
-        wfout.save()
+        try:
+            WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfout.task = self
+            wfout.path = path
+            wfout.canonPath = wfout.path
+            wfout.type = 'out'
+            wfout.description = 'normal modes script output'
+            wfout.save()
 
         if self.status == 'F':
             return
 
-        # if there is a movie, get the trajectory
+        # if there is a movie, make the files.
         if self.make_nma_movie:
-            pass
+            self.combinePDBsForMovie()
+            try:
+                os.stat(basepath + "-1-movie.pdb")
+            except:
+                self.status = "F"
+                return
+            for curr_traj in range(1,self.num_trjs + 1):
+                wfmovie = WorkingFile()
+                path = basepath + "-" + str(curr_traj) + "-movie.pdb"
+                try:
+                    wftest = WorkingFile.objects.get(task=self,path=path)
+                except:
+                    wfmovie.task = self
+                    wfmovie.path = path
+                    wfmovie.canonPath = wfmovie.path
+                    wfmovie.type = "pdb"
+                    wfmovie.description = 'normal modes movie for trajectory ' + str(curr_traj)
+                    wfmovie.save()
+            for curr_traj in range(1,self.num_trjs+1):
+                for curr_frame in range(1,13):
+                    os.unlink(basepath + "-movie" + str(curr_frame) + "-" + str(curr_traj) + ".pdb")
 
         self.status = 'C'
+        self.save()

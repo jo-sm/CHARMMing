@@ -20,16 +20,19 @@ from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.views import checkPermissions
-from structure.models import Structure, WorkingStructure, WorkingFile, Segment, goModel, Task
+from structure.models import Structure, WorkingStructure, WorkingFile, Segment, goModel, Task, CGWorkingStructure
 from structure.qmmm import makeQChem_tpl, makeQchem_val
 from structure.aux import checkNterPatch
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from minimization.models import minimizeTask
 from solvation.models import solvationTask
+from atomselection_aux import getAtomSelections, saveAtomSelections
+import structure.mscale
 import selection.models
 import charmming_config, input, output, lessonaux, lessons, lesson1, lesson2, lesson3, lesson4
 import re, copy
@@ -54,6 +57,15 @@ def minimizeformdisplay(request):
         messages.error(request, "Please build a working structure before performing any calculations.")
         return HttpResponseRedirect("/charmming/buildstruct")
 #       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+
+    cg_model = False
+
+    try:
+        cgws = CGWorkingStructure.objects.get(workingstructure_ptr=ws.id)
+        cg_model = True
+    except:
+        pass
+
     if request.POST.has_key('sdsteps') or request.POST.has_key('abnrsteps'):
         #deals with changing the selected minimize_params
         try:
@@ -79,13 +91,16 @@ def minimizeformdisplay(request):
         else:
             isBuilt = True
             pTaskID = int(request.POST['ptask'])
-                
+            pTask = Task.objects.get(id=pTaskID)
+        if request.POST.has_key('useqmmm'):
+            saveAtomSelections(request,ws,pTask)
         return minimize_tpl(request,mp,pTaskID)
     else:
         tdict = {}
         tdict['ws_identifier'] = ws.identifier
+        tdict['cg_model'] = cg_model
         # get all workingFiles associated with this struct
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
 
         tdict['tasks'] = tasks
         # segments are also needed for QM/MM
@@ -95,20 +110,9 @@ def minimizeformdisplay(request):
 
         tdict['seg_list'] = sorted(seg_list)
 
-        atomselection = None
-        try:
-            atomselection = selection.models.AtomSelection.objects.filter(workstruct=ws)[0]
-        except:
-            pass
-
-        #Incoming block of generic code
-        if atomselection != None:
-            tdict['selectionstring'] = atomselection.selectionstring
-            lonepairs = selection.models.LonePair.objects.filter(selection=atomselection)
-            tdict['lonepairs'] = lonepairs
-            tdict['num_linkatoms'] = atomselection.linkatom_num
-
+        tdict = getAtomSelections(tdict,ws)
         lesson_ok, dd_ok = checkPermissions(request)
+        tdict['messages'] = get_messages(request)
         tdict['lesson_ok'] = lesson_ok
         tdict['dd_ok'] = dd_ok
         return render_to_response('html/minimizeform.html', tdict)
@@ -135,9 +139,10 @@ def minimize_tpl(request,mp,pTaskID):
 
     if postdata.has_key('useqmmm'):
         mp.useqmmm = 'y'
-        input.checkForMaliciousCode(postdata['qmsele'],postdata)
+        #input.checkForMaliciousCode(postdata['qmsele'],postdata)
+        #We validate on saving. DOn't worry about it.
         try:
-            mp.qmmmsel = postdata['qmsele']
+            mp.qmmmsel = postdata['qmsele'] #This field may be obsolete. Careful with it. TODO: Delete this.
         except:
             pass
     else:
@@ -239,12 +244,25 @@ def minimize_tpl(request,mp,pTaskID):
         mp.usepbc = 't'
     else:
         mp.usepbc = 'f'
-    
-    if mp.useqmmm == 'y':
-        qmparams = makeQchem_val(postdata,mp.qmmmsel)
-        qmparams['jobtype'] = 'Force'
-        template_dict = makeQChem_tpl(template_dict,qmparams,mp.workstruct)
 
+    modelType = ""
+    if request.POST.has_key('model_selected'):
+        if mp.useqmmm == 'y' and request.POST['model_selected'] not in ["oniom","qmmm"]:
+            messages.error(request,"Invalid model for Multi-Scale modeling.")
+            return HttpResponseRedirect("/charmming/about/") #Easier this than going back to templating the minim page, which would mean stepping out of this function
+        else:
+            modelType = request.POST['model_selected']
+
+    if mp.useqmmm == 'y':
+        template_dict['modelType'] = modelType
+        template_dict['useqmmm'] = True
+        if modelType == "qmmm":
+            atomselection = selection.models.AtomSelection.objects.get(workstruct=mp.workstruct)
+            qmparams = makeQchem_val("qmmm",atomselection)
+            qmparams['jobtype'] = 'Force'
+            template_dict = makeQChem_tpl(template_dict,qmparams,mp.workstruct,False)
+        elif modelType == "oniom":
+            template_dict = structure.mscale.make_mscale(template_dict, request, modelType, mp)
     ## There is probably a better way to do this...
     #template_dict['headqmatom'] = 'blankme'
     #if mp.useqmmm == 'y':
@@ -255,12 +273,15 @@ def minimize_tpl(request,mp,pTaskID):
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     
     user_id = mp.workstruct.structure.owner.id
-    minimize_filename = mp.workstruct.structure.location + "/" + mp.workstruct.identifier + "-minimize.inp"
+    minimize_filename = mp.workstruct.structure.location + "/" + mp.workstruct.identifier + "-minimization.inp"
     inp_out = open(minimize_filename ,'w')
     inp_out.write(charmm_inp)
     inp_out.close()	
     mp.scripts += ',%s' % minimize_filename
-    mp.start()
+    if mp.useqmmm == 'y' and modelType == "oniom":
+        mp.start(mscale_job=True)
+    else:
+        mp.start()
     mp.save()
 
     #YP lessons status update

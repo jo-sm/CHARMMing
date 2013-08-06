@@ -57,12 +57,14 @@ cgenff_port = 32108
 lib_path = ''
 
 # path to the single threaded CHARMM executable
-#charmm_exe = "/usr/local/charmm/charmm"
-#charmm_exe = "/usr/local/charmming/c35b6_cgenff.exe"
 #charmm_exe = "/usr/local/charmming/c37b2-prelease.exe"
 #charmm_apbs_exe = "/usr/local/charmming/c37b2-prelease.exe"
-charmm_exe = "/usr/local/charmming/c36b2-cgenff.exe"
-charmm_apbs_exe = "/usr/local/charmming/c35b4-apbs-qc.one"
+#charmm_exe = "/usr/local/charmming/c36b2-cgenff.exe"
+#charmm_apbs_exe = "/usr/local/charmming/c35b4-apbs-qc.one"
+
+charmm_exe = "/usr/local/charmming/c37b2-qc-apbs.one"
+charmm_apbs_exe = "/usr/local/charmming/c37b2-qc-apbs.one"
+charmm_mscale_exe = "/usr/local/charmming/c37b2-qc-mscale.ompi"
 
 # path to the MPI-enabled CHARMM executable
 charmm_mpi_exe = "/usr/local/charmming/gfortran-xxlg-qc.ompi"
@@ -73,6 +75,8 @@ mpirun_exe = "/bin/false"
 # path to stride (needed for CG stuff)
 stride_bin = "/usr/local/bin/stride"
 
+#Default number of processors for MSCALE jobs. Replace once we have proper multi-proc intefaces.
+default_mscale_nprocs = 2
 
 # dd targets
 user_dd_targets_home = user_home + "/dd/targets"

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <head>
     <title>{% block title %} CHARMMing Web interface, developed by the Laboratory of Computational Biology {% endblock %}</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
     <script src="/charmming/js/ajax.js" type="text/javascript"></script>
     <script src="/charmming/js/sdmenu/sdmenu.js" type="text/javascript"></script>
@@ -44,6 +44,7 @@
        myMenu = new SDMenu("my_menu");
        myMenu.init();
 
+      //Find way to get Chrome to stop being annoying about this being async:true and giving up on loading the page.
        $("#statusreport").PeriodicalUpdater('/charmming/status/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
     }
 

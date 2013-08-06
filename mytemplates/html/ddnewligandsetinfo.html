@@ -1,9 +1,9 @@
 
 <form id="insideligandsetform" enctype="multipart/form-data" method="post" action="/charmming/dd_substrate/updateligandsetinfo/0/addnew/">
-<font color="{{ messagecolor }}">{{ message }}</font>
-<table width=78% align="center">
+<p style="color:{{ messagecolor }}">{{ message }}</p>
+<table style="width:78%;margin-left:auto;margin-right:auto">
  <tr>
-<td valign="top">Ligand Set Name:<br>
+<td>Ligand Set Name:<br>
        <input type="text" name="name" id="ligandset_name" value="{{ name }}"size="30"></input></td>
 <td>Ligand Set Description:<br>
        <textarea name="description" id="ligandset_description" cols=50 rows=3>{{ description }}</textarea>
@@ -11,7 +11,7 @@
 </tr>
 </table>
 <!--<button type="button" onclick="CheckRedirect();">Update Set Info</button>-->
-<button type="button" onclick="RefreshLigandSetInfo(0,'addnew',$('#insideligandsetform').serializeArray());">Create Ligand Set</button>
+<button style="text-align:center" type="button" onclick="RefreshLigandSetInfo(0,'addnew',$('#insideligandsetform').serializeArray());">Create Ligand Set</button>
 <!--<input type=submit id="submitAddNewSet" name="submitAddNewSet" value="Save New Set" onClick="CheckRedirect();"></input>-->
 </form>
 

@@ -38,19 +38,26 @@ class mutateTask(Task):
         #overrides basic finish, tests if the job succeeded
         loc = self.workstruct.structure.location
         bnm = self.workstruct.identifier
+        basepath = loc + "/" + bnm + "-" + self.action
 
         #create WorkingFile for the input file...
+        path = basepath + ".inp"
         wfinp = WorkingFile()
-        wfinp.task = self
-        wfinp.path = loc + '/' + bnm + '-mutate.inp'
-        wfinp.canonPath = wfinp.path
-        wfinp.type = 'inp'
-        wfinp.description = 'mutation script input'
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfinp.task = self
+            wfinp.path = path
+            wfinp.canonPath = wfinp.path
+            wfinp.type = 'inp'
+            wfinp.description = 'mutation script input'
+            wfinp.save()
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
+        path = basepath + ".out"
         try:
-            os.stat(loc + '/' + bnm + '-mutate.out')
+            os.stat(path)
         except:
             self.status = 'F'
             logfp.write("Could not create inp/out files.\n")
@@ -58,12 +65,15 @@ class mutateTask(Task):
         logfp.write("Created inp/out files.\n")
 
         wfout = WorkingFile()
-        wfout.task = self
-        wfout.path = loc + '/' + bnm + '-mutate.out'
-        wfout.canonPath = wfout.path
-        wfout.type = 'out'
-        wfout.description = 'mutation script output'
-        wfout.save()
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfout.task = self
+            wfout.path = path
+            wfout.canonPath = wfout.path
+            wfout.type = 'out'
+            wfout.description = 'mutation script output'
+            wfout.save()
 
         if self.status == 'F':
             logfp.write("Did not write output files.\n")
@@ -72,8 +82,9 @@ class mutateTask(Task):
 
         # check and make sure that the output PSF/CRD were 
         # created
+        path = basepath + ".crd"
         try:
-            os.stat(loc + '/' + bnm + '-mutation.crd')
+            os.stat(path)
         except:
             self.status = 'F'
             self.save()
@@ -83,29 +94,40 @@ class mutateTask(Task):
 
         # create Working files for PDB, CRD, and PSF.
         wf = WorkingFile()
-        wf.task = self
-        wf.path = loc + '/' + bnm + '-mutation.crd'
-        wf.canonPath = wf.path
-        wf.type = 'crd'
-        wf.description = 'mutated structure'
-        wf.pdbkey = 'mut_' + self.workstruct.identifier
-        wf.save()
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wf.task = self
+            wf.path = path
+            wf.canonPath = wf.path
+            wf.type = 'crd'
+            wf.description = 'mutated structure'
+            wf.pdbkey = 'mut_' + self.workstruct.identifier
+            wf.save()
 
+        path = basepath + ".psf"
         wfpsf = WorkingFile()
-        wfpsf.task = self
-        wfpsf.path = loc + '/' + bnm + '-mutation.psf'
-        wfpsf.canonPath = wfpsf.path
-        wfpsf.type = 'psf'
-        wfpsf.description = 'mutated structure'
-        wfpsf.save()
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfpsf.task = self
+            wfpsf.path = path
+            wfpsf.canonPath = wfpsf.path
+            wfpsf.type = 'psf'
+            wfpsf.description = 'mutated structure'
+            wfpsf.save()
 
+        path = basepath + ".pdb"
         wfpdb = WorkingFile()
-        wfpdb.task = self
-        wfpdb.path = loc + '/' + bnm + '-mutation.pdb'
-        wfpdb.canonPath = wfpdb.path
-        wfpdb.type = 'pdb'
-        wfpdb.description = 'mutated structure'
-        wfpdb.save()
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfpdb.task = self
+            wfpdb.path = path
+            wfpdb.canonPath = wfpdb.path
+            wfpdb.type = 'pdb'
+            wfpdb.description = 'mutated structure'
+            wfpdb.save()
         #At this point we can assume the script ran successfully so we can wipe tmp.crd
         try:
             os.remove(loc + "/tmp.crd")

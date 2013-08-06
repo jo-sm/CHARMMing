@@ -32,6 +32,7 @@ from account.models import *
 from normalmodes.views import combineNmaPDBsForMovie
 from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeTask
+import dd_infrastructure.models
 from apbs.models import redoxTask
 from structure.models import Task, energyTask
 from django.contrib.auth.models import User
@@ -43,9 +44,11 @@ from account.views import checkPermissions
 from structure.aux import checkNterPatch
 from lessons.models import LessonProblem
 from structure.qmmm import makeQChem_tpl, makeQchem_val
+from atomselection_aux import getAtomSelections, saveAtomSelections
 import output, lesson1, lesson2, lesson3, lesson4, lessonaux
 import structure.models, input
 import selection.models
+import structure.mscale
 import subprocess
 # import all created lessons by importing lesson_config
 # also there is a dictionary called 'file_type' in lesson_config.py specififying the file type of files uploaded by the lessons  
@@ -100,6 +103,10 @@ def deleteFile(request):
         file = structure.models.Structure.objects.filter(owner=request.user,name=delete_filename)[0]
         total_files = [file]
 
+    logfp = open('/tmp/delfile.txt','w')
+    logfp.write('In delete\n')
+    logfp.flush()
+
     for s in total_files[::-1]:
         os.chdir(charmming_config.user_home + '/' + request.user.username)
         subprocess.call(["rm","-rf",s.name])
@@ -117,8 +124,12 @@ def deleteFile(request):
                          candidateSwitch.save()
                          break
 
-        s.delete()
+        try:
+            s.delete()
+        except:
+            traceback.print_exc(file=logfp)
 
+    logfp.close()
     return HttpResponse('Done')
 
 
@@ -163,6 +174,14 @@ def downloadFilesPage(request,mimetype=None):
     except:
         messages.error(request, "Please build a working structure first.")
         return HttpResponseRedirect("/charmming/buildstruct/")
+    try:
+        cgws = structure.models.CGWorkingStructure.objects.filter(workingstructure_ptr=ws.id)
+    except structure.models.CGWorkingStructure.MultipleObjectsReturned:
+        messages.error(request, "More than one CGWorkingStructure is associated to this working structure. Please report this bug, then rebuild your structure.")
+        return HttpResponseRedirect("/charmming/fileupload/")
+    except:
+        pass
+
 
     wsname = ws.identifier
     filelst = []
@@ -170,14 +189,19 @@ def downloadFilesPage(request,mimetype=None):
 
     # files from segment construction
     headers.append('Segment setup')
-    for wseg in ws.segments.all():
-        filelst.append(('Segment setup', wseg.builtPSF, 'PSF of segment %s' % wseg.name))
-        filelst.append(('Segment setup', wseg.builtPSF.replace('.psf','.pdb'), 'PDB of segment %s' % wseg.name))
-        filelst.append(('Segment setup', wseg.builtCRD, 'CRD of segment %s' % wseg.name))
+    if not cgws:
+        for wseg in ws.segments.all():
+            filelst.append(('Segment setup', wseg.builtPSF, 'PSF of segment %s' % wseg.name))
+            filelst.append(('Segment setup', wseg.builtPSF.replace('.psf','.pdb'), 'PDB of segment %s' % wseg.name))
+            filelst.append(('Segment setup', wseg.builtCRD, 'CRD of segment %s' % wseg.name))
 
-        # there would be an input and output too
-        filelst.append(('Segment setup', 'build-%s.inp' % wseg.name, 'Input file to build segment %s' % wseg.name))
-        filelst.append(('Segment setup', 'build-%s.out' % wseg.name, 'Output file from building segment %s' % wseg.name))
+            # there would be an input and output too
+            filelst.append(('Segment setup', 'build-%s.inp' % wseg.name, 'Input file to build segment %s' % wseg.name))
+            filelst.append(('Segment setup', 'build-%s.out' % wseg.name, 'Output file from building segment %s' % wseg.name))
+    else:
+        filelst.append(('Segment setup', ws.structure.name + "-go.prm", "PRM setup for " + ws.identifier))
+        filelst.append(('Segment setup', ws.structure.name + "-go.pdb", "PDB setup for " + ws.identifier))
+        filelst.append(('Segment setup', ws.structure.name + "-go.rtf", "RTF setup for " + ws.identifier))
 
 
     # now get all Tasks associated with the structure and get their workingFiles
@@ -387,7 +411,7 @@ def viewProcessFiles(request):
             file_list.append((task.action,bn,ds))
 
     lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/viewprocessfiles.html', {'headers': header_list, 'files': file_list, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    return render_to_response('html/viewprocessfiles.html', {'headers': header_list, 'files': file_list, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'messages':get_messages(request)})
 
 def visualize(request,filename):
     """
@@ -410,12 +434,21 @@ def visualize(request,filename):
         messages.error(request, "Please build a working structure first.")
         return HttpResponseRedirect('/charmming/buildstruct/')
 #        return HttpResponse('No structure uploaded')
+    cgws = None
+    try:
+        cgws = structure.models.CGWorkingStructure.objects.get(workingstructure_ptr=ws.id)
+    except structure.models.CGWorkingStructure.MultipleObjectsReturned:
+        messages.error(request, "More than one CGWorkingStructure is associated to this working structure. Please report this bug, then rebuild your structure.")
+        return HttpResponseRedirect('/charmming/fileupload')
+    except:
+        pass
 
     filelst = []
 
     # files from segment construction
-    for wseg in ws.segments.all():
-        filelst.append((wseg.builtCRD.replace('.crd','.pdb'), 'Segment %s' % wseg.name))
+    if not cgws: #CG models don't have segments.
+        for wseg in ws.segments.all():
+            filelst.append((wseg.builtCRD.replace('.crd','.pdb'), 'Segment %s' % wseg.name))
 
 
     # now get all tasks associated with the structure
@@ -485,15 +518,34 @@ def jmol(request,filename):
         messages.error(request, "No structure uploaded. Please upload a structure.")
         return HttpResponseRedirect('/charmming/fileupload/')
 #        return HttpResponse('No structure')
+    cg_model = False
+    try:
+        ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        messages.error(request, "Please build a working structure first.")
+        return HttpResponseRedirect('/charmming/fileupload/')
+    try:
+        cgws = structure.models.CGWorkingStructure.objects.get(workingstructure_ptr=ws.id)
+        cg_model = True
+    except Exception as ex:
+        pass
+
+    if len(filename) < 4:
+        messages.error(request, "Bad filename. Please verify that the file you are trying to open exists before accessing this page.")
+        return HttpResponseRedirect("/charmming/visualize/")
     filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
     filename_end = filename.rsplit('/',1)[1] #i.e., "a-pro-5.pdb", etc.
     lesson_ok, dd_ok = checkPermissions(request)
     super_user = request.user.is_superuser
     structname = filename_end.split('.',1)[0] #a-pro-5
-    isProtein = not("-good-" in filename_end or "-bad-" in filename_end or filename_end[3] == "-")
+    try:
+        isProtein = not("-good-" in filename_end or "-bad-" in filename_end or filename_end[3] == "-")
+    except:
+        messages.error(request, "Bad filename. Please verify that the file you are trying to open exists before accessing this page.")
+        return HttpResponseRedirect("/charmming/visualize/")
     #Assume everything that isn't a good/bad hetatm segment to be a protein for the purposes of rendering, that way we deal with mutations
     #Also assume anything that has 3 letters followed by a dash at the start to be a ligand file.
-    return render_to_response('html/jmol.html', {'structname':structname, 'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok, 'isProtein':isProtein, 'super_user':super_user})
+    return render_to_response('html/jmol.html', {'structname':structname, 'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok, 'isProtein':isProtein, 'super_user':super_user, 'cg_model':cg_model})
 
 #I haven't the foggiest idea where this function is called, but I assume it works fine with JSmol. ~VS
 def jmolHL(request,filename,segid,resid):
@@ -527,6 +579,19 @@ def glmol(request,filename):
         messages.error(request, "Please build a working structure first.")
         return HttpResponseRedirect('/charmming/fileupload/')
 #        return HttpResponse('No working structure selected.')
+    cg_model = False
+    try:
+        cgws = structure.models.CGWorkingStructure.objects.get(workingstructure_ptr=ws.id)
+        cg_model = True
+    except structure.models.CGWorkingStructure.MultipleObjectsReturned:
+        messages.error(request, "More than one CGWorkingStructure is associated to this working structure. Please report this bug, then rebuild your structure.")
+        return HttpResponseRedirect('/charmming/fileupload')
+    except: #Everything else (0, query error) is probably fine, so we keep going
+        pass
+
+    if len(filename) < 4:
+        messages.error(request, "Bad filename. Please verify that the file you are trying to open exists before accessing this page.")
+        return HttpResponseRedirect("/charmming/visualize/")
 
     filepath = struct.location.replace(charmming_config.user_home,'') #ws is always in same dir as struct...
     filename = filepath + "/" + filename
@@ -560,8 +625,12 @@ def glmol(request,filename):
     #Now we have the helix information for GLmol stored. 
     # WARNING! We always take model00. Does this ever matter? I have no idea!
     lesson_ok, dd_ok = checkPermissions(request)
-    isProtein = not("-good-" in filename_end or "-bad-" in filename_end or filename_end[3] == "-")
-    return render_to_response('html/glmol.html', {'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok, 'isProtein':isProtein, 'helix_info':helix_info})
+    try:
+        isProtein = not("-good-" in filename_end or "-bad-" in filename_end or filename_end[3] == "-")
+    except:
+        messages.error(request, "Bad filename. Please verify that the file you are trying to open exists before accessing this page.")
+        return HttpResponseRedirect("/charmming/visualize/")
+    return render_to_response('html/glmol.html', {'cg_model': cg_model, 'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok, 'isProtein':isProtein, 'helix_info':helix_info})
 
 
 #Allows the user to see what processes their PDBs are undergoing
@@ -582,34 +651,52 @@ def viewstatus(request):
 
     statuses = []
     if workingStruct:
-        workingStruct.updateActionStatus()
+        if not workingStruct.locked:
+            workingStruct.updateActionStatus()
         t = structure.models.Task.objects.filter(workstruct=workingStruct,active='y')
+        foo_tasks = set() #holds task actions so we don't repeat tasks
         for task in t:
             cankill = 0
             if task.status == 'R':
                cankill = 1
-            statuses.append((task.action,task.get_status_display(),cankill,task.id))
+            if task.action not in foo_tasks:
+                foo_tasks = foo_tasks.union(set([task.action]))
+                statuses.append((task.action,task.get_status_display(),cankill,task.id))
 
-    return render_to_response('html/statusreport.html', {'structure': file, 'haveWorkingStruct': True, 'statuses': statuses})
+    return render_to_response('html/statusreport.html', {'structure': file, 'ws':workingStruct, 'haveWorkingStruct': True, 'statuses': statuses})
 
 def viewtaskoutput(request, taskid):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
     tdict = {}
-#    try:
-    tid = int(taskid)
-    task = Task.objects.get(id=tid) #This is unique. Hopefully.
-    output_location = task.workstruct.structure.location
-    os.chdir(output_location)
-    out_action = task.action
-    if task.action == "energy":
-        out_action = "ener"
-    elif task.action == "minimization":
-        out_action = "minimize"
-    elif task.action == "solvation":
-        out_action = "solvate"
-    fp = open(task.workstruct.identifier + "-" + out_action + ".out") #e.g. 1yjp-ener.out
+    try:
+        tid = int(taskid)
+        task = Task.objects.get(id=tid) #This is unique. Hopefully.
+        if task.action == "dsfdocking":
+            dockjob = dd_infrastructure.models.jobs.objects.get(job_scheduler_id=task.jobID)
+        output_location = task.workstruct.structure.location
+        os.chdir(output_location)
+        out_action = task.action
+    except Exception as ex:
+        tdict['intro_string'] = "Task not found. Please report this issue." + str(ex) #Since we have a jQuery frame already, let's just not worry about making one
+        return render_to_response('html/view_task_output.html',tdict)
+#    if task.action == "energy":
+#        out_action = "ener"
+#    if task.action == "minimization":
+#        out_action = "minimize"
+#    if task.action == "solvation":
+#        out_action = "solvate"
+#    elif task.action == "mutation":
+#        out_action = "mutate"
+#    elif task.action == "nmode": #SO close.
+#        out_action = "nmodes"
+
+    if task.action == "dsfdocking":
+        #This is where things get weird since the file paths are completely different
+        fp = open(charmming_config.user_home + "/dd/jobs/" + request.user.username + "/dd_job_" + str(dockjob.id) + "/run.out")
+    else:
+        fp = open(task.workstruct.identifier + "-" + out_action + ".out") #e.g. 1yjp-ener.out
     fcontents = fp.read()
     fp.close()
     top_string = "Structure: " + task.workstruct.structure.name + ", Working Structure: " + task.workstruct.identifier + ", Action: " + task.action.capitalize()
@@ -731,8 +818,17 @@ def energyform(request):
         messages.error(request, "Please build a working structure before performing any calculations.")
         return HttpResponseRedirect("/charmming/buildstruct/")
 #        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before attempting an energy calculation")
+
+    cg_model = False
+    try:
+        cgws = structure.models.CGWorkingStructure.objects.get(workingstructure_ptr=ws.id)
+        cg_model = True
+    except:
+        pass
+
     tdict = {}
     tdict['ws_identifier'] = ws.identifier
+    tdict['cg_model'] = cg_model
 
     os.chdir(struct.location)
 
@@ -759,6 +855,7 @@ def energyform(request):
             pass
 
         et = energyTask()
+        et.modifies_coordinates = False #Do it early so there's no DB-sync issues.
         et.setup(ws)
         et.active = 'y'
         et.action = 'energy'
@@ -769,34 +866,25 @@ def energyform(request):
             pTaskID = pTask.id
         else:
             pTaskID = int(request.POST['ptask'])
-
+            pTask = Task.objects.get(id=pTaskID)
+        if request.POST.has_key('useqmmm'):
+            saveAtomSelections(request, ws, pTask)
         return calcEnergy_tpl(request,ws,pTaskID,et)
 
     else:
         # get all workingFiles associated with this struct
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
         tdict['tasks'] = tasks
 
-        #Also get the atom selection, if any
-        atomselection = None
-        try:
-            atomselection = selection.models.AtomSelection.objects.filter(workstruct=ws)[0]
-        except:
-            pass
+        tdict = getAtomSelections(tdict,ws) #Gets the atom selections by putting new keys in the dictionary, then returns it and puts it into tdict
         lesson_ok, dd_ok = checkPermissions(request)
         tdict['messages'] = get_messages(request)
         tdict['lesson_ok'] = lesson_ok
         tdict['dd_ok'] = dd_ok
-        #Incoming block of generic code
-        if atomselection != None:
-            tdict['selectionstring'] = atomselection.selectionstring
-            lonepairs = selection.models.LonePair.objects.filter(selection=atomselection)
-            tdict['lonepairs'] = lonepairs
-            tdict['num_linkatoms'] = atomselection.linkatom_num
-        #Now you just force these to render as a django template consisting entirely of javascript on the QM/MM dependent pages and you're done
         return render_to_response('html/energyform.html', tdict)
 
-
+#Why do we need workstruct as an arg if eobj has it attached to itself?
+#TODO: Optimize this method!
 def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
@@ -869,12 +957,20 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
         eobj.usepbc = 'n'
         
     template_dict['dopbc'] = dopbc
+    modelType = False
 
 
+    logfp = open("/tmp/energy-fail.txt","w")
     if postdata.has_key('useqmmm'):
         eobj.useqmmm = 'y'
-        input.checkForMaliciousCode(postdata['qmsele'],postdata)
-        try:
+        #input.checkForMaliciousCode(postdata['qmsele'],postdata)
+        #We pre-validate...
+        if postdata['model_selected'] not in ["oniom","qmmm"]:
+            messages.error(request,"Invalid model for Multi-Scale modeling.")
+            return HttpResponseRedirect("/charmming/about/")
+        else:
+            modelType = postdata['model_selected']
+        try: #This is obsolete for ONIOM...
             eobj.qmmmsel = postdata['qmsele']
         except:
             pass
@@ -889,11 +985,22 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
 
     eobj.save()
 
-    if eobj.useqmmm == 'y':
-        qmparams = makeQchem_val(postdata,eobj.qmmmsel)
-        qmparams['jobtype'] = 'Force'
-        template_dict = makeQChem_tpl(template_dict,qmparams,eobj.workstruct)
+    if eobj.useqmmm == 'y': #We branch to include ONIOM here.
+        template_dict['modelType'] = modelType
         template_dict['useqmmm'] = True
+        if modelType == "qmmm":
+            atomselection = selection.models.AtomSelection.objects.get(workstruct=eobj.workstruct) #TODO: Update for names. ALso don't worry about this yet - only one record should ever be returned anyway.
+            qmparams = makeQchem_val("qmmm",atomselection)
+            qmparams['jobtype'] = 'Force'
+            template_dict = makeQChem_tpl(template_dict,qmparams,eobj.workstruct,False)
+        elif modelType == "oniom":
+            try:
+                template_dict = structure.mscale.make_mscale(template_dict, request, modelType, eobj)
+            except:
+                logfp.write('Failed to generate template\n')
+                logfp.write(traceback.format_exc())
+                logfp.flush()
+                logfp.close()
     else:
         template_dict['useqmmm'] = False
 
@@ -905,8 +1012,8 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     t = get_template('%s/mytemplates/input_scripts/calcEnergy_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
-    energy_input = workstruct.structure.location + "/" + workstruct.identifier + "-ener.inp"
-    energy_output = workstruct.identifier + "-ener.out"
+    energy_input = workstruct.structure.location + "/" + workstruct.identifier + "-energy.inp"
+    energy_output = workstruct.identifier + "-energy.out"
     inp_out = open(energy_input,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
@@ -914,15 +1021,19 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     eobj.save()
 
     # go ahead and submit
-    eobj.start()
+    if eobj.useqmmm == 'y' and modelType == "oniom":
+        eobj.start(mscale_job=True)
+    else:
+        eobj.start()
 
     # loop until the energy calculation is finished
+    #TODO: Eliminate this? It seems a bit silly since we do .query() with updateActionStatus anyway...
     while True:
         sstring = eobj.query()
         if "complete" in sstring:
             break
         if "failed" in sstring:
-            return HttpResponse('Energy calculation failed. Please check output from appending the structure.')
+            return HttpResponse('Energy calculation failed. Please check output from ' +pTask.action + '.')
 
     #YP lessons status update
     try:
@@ -1018,7 +1129,7 @@ def getSegs(Molecule,Struct,auto_append):
             continue
         logfp.write('new seg object in charmming created\n')
 
-        if seg.segType in ['pro','rna','dna']:
+        if seg.segType in ['pro']:
             newSeg.rtf_list = charmming_config.data_home + '/toppar/' + charmming_config.default_pro_top
             newSeg.prm_list = charmming_config.data_home + '/toppar/' + charmming_config.default_pro_prm
         elif seg.segType in ['rna','dna']:
@@ -1342,13 +1453,14 @@ def buildstruct(request):
     sl.extend(structure.models.Segment.objects.filter(structure=struct,is_working='n'))
     sl = sorted(sl,key=lambda x: x.name)
     #By having the database field resName in each Segment object we can save a lot of grief
+    #Somehow this doesn't work that well in normalmodes...
     tdict['seg_list'] = sl
     tdict['disulfide_list'] = struct.getDisulfideList()
     tdict['proto_list'] = []
     tdict['super_user'] = request.user.is_superuser
-    tdict['filepath'] = "/charmming/pdbuploads/" + struct.location.replace(charmming_config.user_home,'') + "/" + struct.name + "_with_hydrogens.pdb" #This assumes we have a PDB file! Please be careful with this.
+    tdict['filepath'] = "/charmming/pdbuploads/" + struct.location.replace(charmming_config.user_home,'') + "/" + struct.name + ".pdb" #This assumes we have a PDB file! Please be careful with this.
     for seg in sl:
-        tdict['proto_list'].extend(seg.getProtonizableResidues())
+        tdict['proto_list'].extend(seg.getProtonizableResidues(pickleFile=pdb))
     #The following procedure is very similar to the one in selection.views. 
     #See selection.views.selectrstructure lines 180-196 for more data.
     #Since we hav emore than protein chains, we need to figure out the chain terminators in a more elaborate way
@@ -1365,12 +1477,12 @@ def buildstruct(request):
         chain_terminators = sorted(chain_terminators)
         tdict['chain_terminators'] = json.dumps(chain_terminators)
         tdict['segmentlist'] = json.dumps(segmentlist)
-        obconv = openbabel.OBConversion()
-        mol = openbabel.OBMol()
-        obconv.SetInAndOutFormats("pdb","pdb") #This is silly but it allows us to add hydrogens
-        obconv.ReadFile(mol, (struct.location + "/" + struct.name + ".pdb").encode("utf-8"))
-        mol.AddHydrogens(False,True,7.4)
-        obconv.WriteFile(mol, (struct.location + "/" + struct.name + "_with_hydrogens.pdb").encode("utf-8"))
+#        obconv = openbabel.OBConversion()
+#        mol = openbabel.OBMol()
+#        obconv.SetInAndOutFormats("pdb","pdb") #This is silly but it allows us to add hydrogens
+#        obconv.ReadFile(mol, (struct.location + "/" + struct.name + ".pdb").encode("utf-8"))
+#        mol.AddHydrogens(False,True,7.4)
+#        obconv.WriteFile(mol, (struct.location + "/" + struct.name + "_with_hydrogens.pdb").encode("utf-8"))
     tdict['structname'] = struct.name
     tdict['lesson_ok'], tdict['dd_ok'] = checkPermissions(request)
     return render_to_response('html/buildstruct.html', tdict)

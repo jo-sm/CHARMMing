@@ -34,6 +34,10 @@
 }
     </script>
     <script>
+      var current_layer = {{starting_layer}};
+      var total_layers = {{layers}};
+      var highest_qm_layer = parseInt($("#highest_qm_layer").val());
+      var modelType = "{{modelType}}";
       var chain_terminators = {{chain_terminators|safe}};
       var segmentlist = {{segmentlist|safe}};
       jmolApplet = Jmol.getApplet("jmolApplet", Info);
@@ -101,35 +105,75 @@
   TODO: "grey out" buttons if certain conditions are not met (i.e. no chains, therefore grey out chain button -->
   <div id="atomselect_buttons">
     <h1>Atom Selection Options</h1>
+    {%comment%} outermost layer goes first, then the other ones down to 1.{%endcomment%}
     <hr />
     <h2>Select by: </h2>
-    <button class="aaddselectbutton" id="atom" onclick="Jmol.script(jmolApplet, 'set picking atom')">Atom</button>
-    <button class="atomselectbutton" id="molecule" onclick="Jmol.script(jmolApplet, 'set picking molecule')">Molecule</button>
-    <button class="atomselectbutton" id="element" onclick="Jmol.script(jmolApplet, 'set picking element')">Element</button>
-    <button class="atomselectbutton" id="chain" onclick="Jmol.script(jmolApplet, 'set picking chain')">Chain</button>
-    <button class="atomselectbutton" id="residue" onclick="Jmol.script(jmolApplet, 'set picking group')">Residue</button>
-    <button class="atomselectbutton" id="site" onclick="Jmol.script(jmolApplet, 'set picking site')">Site</button><br> <br>
+    <button class="aaddselectbutton" id="atom" onclick="Jmol.script(jmolApplet, 'set picking atom');return false;">Atom</button>
+    <button class="atomselectbutton" id="molecule" onclick="Jmol.script(jmolApplet, 'set picking molecule');return false;">Molecule</button>
+    <button class="atomselectbutton" id="element" onclick="Jmol.script(jmolApplet, 'set picking element');return false;">Element</button>
+    <button class="atomselectbutton" id="chain" onclick="Jmol.script(jmolApplet, 'set picking chain');return false;">Chain</button>
+    <button class="atomselectbutton" id="residue" onclick="Jmol.script(jmolApplet, 'set picking group');return false;">Residue</button>
+    <button class="atomselectbutton" id="site" onclick="Jmol.script(jmolApplet, 'set picking site');return false;">Site</button><br> <br>
     <hr><br>
-    <button class="atomselectbutton" onclick="submit_atomselect()">Submit Selection</button>
-    <button class="addselectbutton" id="add" onclick="add_atomselect()" style="display:none">Add to Selection</button>
-    <button class="resetbutton" id="reset" onclick="reset_select()">Reset Selection</button>
+    <button class="atomselectbutton" onclick="submit_atomselect();return false;">Submit Selection</button>
+    <button class="addselectbutton" id="add" onclick="add_atomselect();return false;" style="display:none">Add to Selection</button>
+    <button class="resetbutton" id="reset" onclick="reset_select(true);return false;">Reset Selection</button>
     <br /><br />
-  <form id="atomselect_form" method="post" action="/charmming/selection/" enctype="multipart/form-data"> 
-    <input type="hidden" name="source" id="source" value="{{source}}">
-    <input type="hidden" name="task_id" id="task_id" value="{{task_id}}">
-    <h2>QM region atom selection:</h2>
-    <input type="text" name="atomselection" id="atomselection" readonly value="">
-    <br /><hr>
-    <h2>Input number of link atoms:</h2>
-    <input type="text" class="qmmminput" name="linkatom_num" id="linkatom_num" value="0">
-    <button class="selectbutton" onclick="submit_linkatoms();return false;">Submit Number</button>
-    <br />
-    <!-- TODO: Make this box smaller! -->
-    <div id="linkatom_inputs" name="linkatom_inputs" style="display:none">
-    <hr>
-    </div>
-    <hr>
-  </div>
-  </form>
+    <form id="atomselect_form" method="post" action="/charmming/selection/" onsubmit="return false;" enctype="multipart/form-data"> <!-- change the return false later -->
+      <div id="atom_selection_inputs{%if layers > 1%}_layer_{{starting_layer}}{%endif%}">
+        {% if modelType == "qmmm" %}
+        <input class="removable_copies" type="hidden" name="exchange" id="exchange" value="{{exchange}}">
+        <input class="removable_copies" type="hidden" name="charge" id="charge" value="{{charge}}">
+        <input class="removable_copies" type="hidden" name="correlation" id="correlation" value="{{correlation}}">
+        <input class="removable_copies" type="hidden" name="basis_set" id="basis_set" value="{{basis_set}}">
+        <input class="removable_copies" type="hidden" name="multiplicity" id="multiplicity" value="{{multiplicity}}">
+        {%else%}
+        {%comment%} I'm tired of the layers == 2 case. {%endcomment%}
+        {% for layer in layer_values %}
+        <input class="removable_copies" type="hidden" name="exchange_layer_{{layer.0}}" id="exchange_layer_{{layer.0}}" value="{{layer.1}}">
+        <input class="removable_copies" type="hidden" name="charge_layer_{{layer.0}}" id="charge_layer_{{layer.0}}" value="{{layer.2}}">
+        <input class="removable_copies" type="hidden" name="correlation_layer_{{layer.0}}" id="correlation_layer_{{layer.0}}" value="{{layer.3}}">
+        <input class="removable_copies" type="hidden" name="basis_set_layer_{{layer.0}}" id="basis_set_layer_{{layer.0}}" value="{{layer.4}}">
+        <input class="removable_copies" type="hidden" name="multiplicity_layer_{{layer.0}}" id="multiplicity_layer_{{layer.0}}" value="{{layer.5}}">
+        {%endfor%}
+        {%comment%}Per layer stuff. It doesn't matter where these are stored so long as they are somewhere in the postdata, so putting them here is fine.{%endcomment%}
+        {%endif%}
+        {%comment%}The hidden fields below are not layer-dependent, so we include them after the if{%endcomment%}
+        <input class="removable_copies" type="hidden" name="modelType" id="modelType" value="{{modelType}}">
+        <input class="removable_copies" type="hidden" name="layers" id="layers" value="{{layers}}">
+        <input class="removable_copies" type="hidden" name="source" id="source" value="{{source}}">
+        <input class="removable_copies" type="hidden" name="task_id" id="task_id" value="{{task_id}}">
+        <input class="removable_copies" type="hidden" name="highest_qm_layer" id="highest_qm_layer" value="{{highest_qm_layer}}">
+        <h2 {% if modelType == "oniom"%} class="layer_update">Layer {{starting_layer}}{%else%}>QM region{%endif%} atom selection:</h2>
+        {% if modelType == "oniom" %}
+          <input class="layer_update" type="text" name="atomselection_layer_{{starting_layer}}" id="atomselection_layer_{{starting_layer}}" readonly value="">
+        {% else %}
+          <input type="text" name="atomselection" id="atomselection" readonly value="">
+        {%endif%}
+        <br />
+        {% if highest_qm_layer >= starting_layer %}
+        <hr>
+        <h2 {%if modelType == "oniom"%} id="header_layer_{{starting_layer}}" class="layer_update" {%endif%}>Input number of link atoms{%if modelType == "oniom" %} for Layer {{starting_layer}}{%endif%}:</h2>
+        {%if modelType == "oniom"%}
+        <input type="text" class="layer_update" name="linkatom_num_layer_{{starting_layer}}" id="linkatom_num_layer_{{starting_layer}}" value="0">
+        {%else%}
+          <input type="text" name="linkatom_num" id="linkatom_num" value="0">
+        {%endif%}
+        <button class="selectbutton" onclick="submit_linkatoms();return false;">Submit Number</button>
+        <br />
+        <!-- TODO: Make this box smaller! -->
+        {% if modelType == "oniom" %}
+          <div class="layer_update" id="linkatom_inputs_layer_{{starting_layer}}" name="linkatom_inputs_layer_{{starting_layer}}" style="display:none">
+        {% else %}
+          <div id="linkatom_inputs" name="linkatom_inputs" style="display:none">
+        {% endif %}
+        <hr class="removable_copies">
+        {%endif%}
+      </div>
+      <hr>
+      </div>
+      </div>
+  <!--  <p class="fontmed"><b>WARNING:</b> Maximizing the JSmol window can lead to very slow selection. We recommend keeping the window at 600x600 or lower for best results.</p> -->
+</form>
   </div>
 {% endblock %}

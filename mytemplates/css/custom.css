@@ -54,6 +54,14 @@ a:hover {color: #FF0F00; text-decoration: none; }
   display:none;
 }
 
+.oniom_params{
+  display:none;
+}
+
+.model_selection{
+  display:none;
+}
+
 .gm_input{
   width:10%;
 }

@@ -1,9 +1,9 @@
-  <table id="native_ligand_table">
+  <table id="native_ligand_table" class="qm_table" style="margin-left:auto;margin-right:auto;width:330px">
   {% for abadfile in abadfiles %}
     {% if forloop.first %}
-       <tr><td><input type="radio" name="native_ligand" value="{{ abadfile.name }}" checked /></td><td>{{ abadfile.name }}</td><td class="hover-link"><a href="/charmming/jmolview/{{ abadfile.name }}">View</a></td><td class="ligand_image"><img src ="http://www.rcsb.org/pdb/images/{{ abadfile.tag }}_120.gif"></td></tr>
+       <tr><td><input type="radio" name="native_ligand" value="{{ abadfile.name }}" checked /></td><td>{{ abadfile.name }}</td><td class="hover-link"><a href="/charmming/jmolview/{{ abadfile.name }}">View</a></td><td class="ligand_image"><img src ="http://www.rcsb.org/pdb/images/{{ abadfile.tag }}_120.gif" alt="Ligand Image from RCSB PDB"></td></tr>
     {% else %}
-       <tr><td><input type="radio" name="native_ligand" value="{{ abadfile.name }}" /></td><td>{{ abadfile.name }}</td><td class="hover-link"><a href="/charmming/jmolview/{{ abadfile.name }}">View</a></td><td class="ligand_image"><img src ="http://www.rcsb.org/pdb/images/{{ abadfile.tag }}_120.gif"></td></tr>
+       <tr><td><input type="radio" name="native_ligand" value="{{ abadfile.name }}" /></td><td>{{ abadfile.name }}</td><td class="hover-link"><a href="/charmming/jmolview/{{ abadfile.name }}">View</a></td><td class="ligand_image"><img src ="http://www.rcsb.org/pdb/images/{{ abadfile.tag }}_120.gif" alt="Ligand Image from RCSB PDB"></td></tr>
     {% endif %}
   {% endfor %}
   </table>

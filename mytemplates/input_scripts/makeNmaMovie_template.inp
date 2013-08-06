@@ -5,7 +5,7 @@
 {% block bomlev %}bomlev -1{% endblock %}
 
 {% block body %}
-open read unit 2 card name new_{{filebase}}-nmodes.psf
+open read unit 2 card name {{orig_coords}}.psf
 read psf card unit 2
 close unit 2
 {% ifequal typeoption 'useenm' %}
@@ -29,13 +29,13 @@ close unit 2
 set currtrj 1
 calc maxtrj {{num_trjs}} + 1
 label outerloop
-CHARMM-scripts open read unit 10 file name new_{{filebase}}-mtraj_@currtrj.trj
+CHARMM-scripts open read unit 10 file name {{filebase}}-mtraj_@currtrj.trj
 CHARMM-scripts traj firstu 10 skip 1
 
 CHARMM-scripts set i 1
 CHARMM-scripts  label loop
 CHARMM-scripts  traj read
-CHARMM-scripts  open unit 1 card write name new_{{filebase}}-nmapremovie@i-@currtrj.pdb
+CHARMM-scripts  open unit 1 card write name {{filebase}}-nmode-movie@i-@currtrj.pdb
 CHARMM-scripts  write coor pdb unit 1
 CHARMM-scripts  **Cords
 CHARMM-scripts  *

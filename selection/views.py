@@ -30,8 +30,9 @@ import structure.models
 from lesson_config import *
 import pychm.io, charmming_config
 from pychm.io.pdb import PDBFile
-from selection.models import AtomSelection
+from selection.models import AtomSelection, OniomSelection
 from selection.models import LonePair
+from atomselection_aux import saveAtomSelections, validateInputs
 import cPickle, json
 
 def selectstructure(request):
@@ -40,6 +41,37 @@ def selectstructure(request):
     if request.POST:
         postdata=request.POST
         source = postdata['source']
+        highest_qm_layer = 1 #TODO: This should be changed for MM/MM.
+        if postdata.has_key('model_selected'): #If it doesn't have it going in from the energy/minim/whatever page...
+            if postdata['model_selected'] not in ['qmmm','oniom']:
+                messages.error(request, "Please use our graphical interface to perform atom selections. If you are seeing this message in error, please report it.")
+                return HttpResponseRedirect("/charmming/"+dest)
+            else:
+                modelType = postdata['model_selected']
+            try:
+                layers = int(postdata['oniom_layers'])
+            except:
+                messages.error(request, "Invalid number of layers.")
+                return HttpResponseRedirect("/charmming/"+dest)
+            if modelType == "qmmm":
+                layers = 1
+            else:
+                highest_qm_layer = layers - 1
+                for i in range(2,layers):
+                    if postdata.has_key('mm_box_layer_'+str(i)):
+                        highest_qm_layer = i - 1
+        elif postdata.has_key('modelType'): #Then we're in the selection page going back.
+            if postdata['modelType'] not in ['qmmm','oniom']:
+                messages.error(request, "Invalid model type. Please use our graphical interface to perform atom selections. If you are seeing this message in error, please report it.")
+                return HttpResponseRedirect("/charmming/"+dest)
+            else:
+                modelType = postdata['modelType']
+            try:
+                layers = int(postdata['layers'])
+            except:
+                messages.error(request, "Invalid number of layers.")
+                return HttpResponseRedirect("/charmming/"+dest)
+        #If your modelType isn't oniom, don't worry about the layers.
         dest = source + "/" #Yes this is a bad naming convention. However, it works.
         try:
             struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
@@ -72,103 +104,56 @@ def selectstructure(request):
             return HttpResponseRedirect("/charmming/energy/")
 
         tdict = {}
+        #Remember to validate input BEFORE going in to the rest.
         filepath = struct.location.replace(charmming_config.user_home,'') + "/" + ws.identifier + "-" + task.action + ".pdb"
         #for example 1yjp-ws1-build.pdb
+        tdict['modelType'] = modelType
+        tdict['layers'] = layers
+        tdict['highest_qm_layer'] = highest_qm_layer
         tdict['filepath'] = filepath
         tdict['source'] = source
         tdict['task_id'] = task_id
-        if postdata.has_key('atomselection'):
-            try:
-                foo = postdata['atomselection']
-                specialchars = set("#$/;\n\\_+=[]{}()&^%")
-                if not(foo.startswith("bynum")) or (len(specialchars.intersection(foo)) > 0): #i.e. no special chars
-                    messages.error(request, "Invalid selection string. Please use the automated selection system.")
-                    tdict['messages'] = get_messages(request)
-                    return render_to_response("html/selection.html", tdict)
-            except: #I'm not sure what would break here, but let's do it anyway.
-                messages.error(request, "You have selected too many atoms, or performed an invalid selection. Please try again.")
-                tdict['messages'] = get_messages(request)
-                return render_to_respose("html/selection.html", tdict)
-            try:
-               tdict['num_linkatoms'] = int(postdata['linkatom_num']) #This will fail if the user put in anything other than a number because of how int works.
-            except:
-                messages.error(request, "Number of link atoms is not an integer.")
-                tdict['messages'] = get_messages(request)
-                return render_to_response("html/selection.html", tdict)
-            qmhosts = []
-            mmhosts = []
-            #TODO: Switch to the new DB structure
-            for key in postdata.keys():
-                #Thankfully we don't have to modify anything here to add in the atom number support
-                if key.startswith("qmhost"):
-                    if len(specialchars.intersection(request.POST[key])) == 0:
-                        foo = postdata[key].split("\t")
-                        qmhosts.append((str(key[-1]),foo[0],foo[1],foo[2]))
-                        #The format above goes as follows:
-                        #(divid,resid,atomtype,segid). 
-                        #As describe in selection.models, we only need divid once to make the correct orderings.
-                    else:
-                        messages.error(request, "Invalid QM atom selection. Please use the automated selection system.")
-                        tdict['messages'] = get_messages(request)
-                        return render_to_response('html/selection.html', tdict)
-                elif key.startswith("mmhost"):
-                    if len(specialchars.intersection(request.POST[key])) == 0:
-                        foo = postdata[key].split("\t")
-                        mmhosts.append((str(key[-1]),foo[0],foo[1],foo[2]))
-                    else:
-                        messages.error(request, "Invalid MM atom selection. Please use the automated selection system.")
-                        tdict['messages']= get_messages(request)
-                        return render_to_response('html/selection.html', tdict)
-
-            try: #First see if there's already an atomselection present
-                oldselect = AtomSelection.objects.filter(workstruct=ws)[0]
-                oldselect.task = task
-                oldselect.workstruct = ws #Just in case...
-                oldselect.selectionstring = postdata['atomselection'] #replace it
-                for i in range(0, len(qmhosts)):
-                    lonepair = LonePair()
-                    lonepair.selection = oldselect
-                    lonepair.divid = qmhosts[i][0]
-                    lonepair.qmresid = qmhosts[i][1]
-                    lonepair.qmatomname = qmhosts[i][2]
-                    lonepair.qmsegid = qmhosts[i][3]
-                    lonepair.mmresid = mmhosts[i][1]
-                    lonepair.mmatomname = mmhosts[i][2]
-                    lonepair.mmsegid = mmhosts[i][3]
-                    lonepair.save()
-                oldselect.linkatom_num = postdata['linkatom_num']
-                oldselect.save()
-            except: #There's two exceptions possible, so first we try to make a new atomselect
-                atomselect = AtomSelection()
-                atomselect.task = task
-                atomselect.workstruct = ws
-                try:
-                    atomselect.selectionstring = postdata['atomselection']
-                    atomselect.linkatom_num = postdata['linkatom_num']
-                    atomselect.save()
-                except Exception as ex:
-                    return HttpResponse("Woof" + str(ex) + "\n" + str(lonepair.selection) + "\t" + str(lonepair.divid))
-                try:
-                    for i in range(0, len(qmhosts)):
-                        lonepair = LonePair()
-                        lonepair.selection = atomselect
-                        lonepair.divid = qmhosts[i][0]
-                        lonepair.qmresid = qmhosts[i][1]
-                        lonepair.qmatomname = qmhosts[i][2]
-                        lonepair.qmsegid = qmhosts[i][3]
-                        lonepair.mmresid = mmhosts[i][1]
-                        lonepair.mmatomname = mmhosts[i][2]
-                        lonepair.mmsegid = mmhosts[i][3]
-                        lonepair.save()
-                    atomselect.save()
-                except Exception as ex: #THis is if you have so many atoms you break the postdata request size or the maximum char field size
-                    return HttpResponse("Woof" + str(ex) + "\n" + str(lonepair.selection) + "\t" + str(lonepair.divid))
-#                    messages.error(request, "You have selected too many atoms, or performed an invalid selection. Please try again.")
-#                    tdict['messages'] = get_messages(request)
-#                    return render_to_response("html/selection.html", tdict)
-#                    return HttpResponse("You have selected too many atoms.")
+        tdict['starting_layer'] = layers - 1 #This is not an issue with QM/MM since we override.
+        logfp = open("/tmp/oniom.txt","w")
+        logfp.write(str(tdict))
+        logfp.close()
+        #The following will all be stored in hidden fields and passed back and forth. We need to put checks on the receiving end (i.e. either the Python or the JS for qmmm_params)
+        #such that no script injection can occur
+        #It's safe to assume all these fields exist since they must by default
+        if not (postdata.has_key('atomselection') or postdata.has_key('atomselection_layer_1')): #Make sure we're coming in from the right page.
+            if layers > 1: #layers >1 => ONIOM model. This MAY require changing later if implementing more models.
+                layer_values = [] #Hack because django doesn't take variables within variables, like {{exchange_layer{{layer}}}}
+                for i in range(1,layers): #Since you don't care about the final layer...
+                    current_layer = []
+                    current_layer.append(i)
+                    current_layer.append(postdata['qmmm_exchange_layer_'+str(i)])
+                    current_layer.append(postdata['qmmm_charge_layer_'+str(i)])
+                    current_layer.append(postdata['qmmm_correlation_layer_'+str(i)])
+                    current_layer.append(postdata['qmmm_basisset_layer_'+str(i)])
+                    current_layer.append(postdata['qmmm_multiplicity_layer_'+str(i)])
+                    layer_values.append(current_layer) #Therefore layer 1 is stored in 0, but contains the number, so we can template easily.
+                    #Assume user does not input a text selection, but also make sure these values don't change.
+                    #TODO: Make sure that when the form is submitted for any QM/MM calc that these values are checked and updated on the AtomSelection/OniomSelection.
+                tdict['layer_values'] = layer_values
+            else:
+                    tdict['exchange'] = postdata['qmmm_exchange']
+                    tdict['charge'] = postdata['qmmm_charge']
+                    tdict['correlation'] = postdata['qmmm_correlation']
+                    tdict['basis_set'] = postdata['qmmm_basisset']
+                    tdict['multiplicity'] = postdata['qmmm_multiplicity']
+        else:
+            #TODO: Replace all of this with validate function in atomselection_aux.py
+            validate_inputs_result = validateInputs(tdict,postdata,layers)
+            if validate_inputs_result != "Passed":
+                messages.error(request,validate_inputs_result)
+                return HttpResponseRedirect('/charmming/'+dest)
+            error_message = saveAtomSelections(request,ws,task)
+            if error_message != True: #i.e. there's an error message
+                messages.error(request, error_message)
+                return HttpResponseRedirect('/charmming/'+dest)
             return HttpResponseRedirect('/charmming/'+ dest)
             #Do stuff with the database and return redirect to source
+        #TODO: Consider rewriting the above behemoth into a generic method like saveAtomSelections in etc.atomselection_aux.py
         #This code is applied when there is NOT an atomselection active.
         if ws.localpickle:
             pdb = open(ws.localpickle)

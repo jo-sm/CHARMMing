@@ -21,7 +21,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from structure.models import Structure
 from django.contrib import messages
-from structure.qmmm import makeQChem_tpl, writeQMheader
+from structure.qmmm import makeQChem_tpl, makeQchem_val, writeQMheader
 from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeTask
 from account.views import checkPermissions
@@ -30,7 +30,10 @@ from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
-from structure.models import Structure, WorkingStructure, WorkingFile, Task
+from structure.models import Structure, WorkingStructure, WorkingFile, Task, CGWorkingStructure
+from atomselection_aux import getAtomSelections, saveAtomSelections
+import selection.models, structure.mscale
+from django.contrib.messages import get_messages
 import input, output
 import re, copy, os, shutil
 import lessonaux, charmming_config
@@ -55,11 +58,21 @@ def normalmodesformdisplay(request):
     except:
         messages.error(request, "Please build your structure before performing any calculations.")
         return HttpResponseRedirect("/charmming/buildstruct/")
-#       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
+    cg_model = False
+    try:
+        cgws = CGWorkingStructure.objects.get(workingstructure_ptr=ws.id)
+        cg_model = True
+#        messages.error(request, "Normal mode analysis is not supported for coarse-grain models. If you wish to perform normal mode analysis on this structure, please build a working structure with the CHARMM all-atom model.")
+#        return HttpResponseRedirect("/charmming/buildstruct/")
+    except:
+        pass
+#       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+    tdict = {}
     # check to see if we have prior normal modes to display to the user
+    tdict['cg_model'] = cg_model
     nmode_lines = []
-    nmode_fname = ws.structure.location + '/' + ws.identifier + '-nmodes.out'
+    nmode_fname = ws.structure.location + '/' + ws.identifier + '-nmode.out'
     try:
         os.stat(nmode_fname)
     except:
@@ -97,6 +110,7 @@ def normalmodesformdisplay(request):
         nt.setup(ws)
         nt.active = 'y'
         nt.action = 'nmode'
+        nt.modifies_coordinates = False
         nt.save()
 
         if ws.isBuilt != 't':
@@ -106,13 +120,32 @@ def normalmodesformdisplay(request):
         else:
             isBuilt = True
             pTaskID = int(request.POST['ptask'])
+            pTask = Task.objects.get(id=pTaskID)
+
+        if request.POST.has_key('useqmmm'):
+            saveAtomSelections(request, ws, pTask)
 
         return applynma_tpl(request,ws,pTaskID,nt)
     else:
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
-
+        sl = []
+        sl.extend(structure.models.Segment.objects.filter(structure=struct,is_working='n'))
+        sl = sorted(map(lambda x: x.name,sl))
+        #Somehow this works differently than ener or minimization, and displays "Segment object" instead of the segment name...I Don't know what's going on here.
+        #Actually, I don't understand how seg_list even works in the others, since the loop goes:
+            #for item in seg_list:
+            #    {{item}}
+            #Which would just print Segment object...how it works outside of here is a bit of a mystery./
+        tdict['seg_list'] = sl
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
+        tdict = getAtomSelections(tdict,ws)
         lesson_ok, dd_ok = checkPermissions(request)
-        return render_to_response('html/normalmodesform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'nmode_lines': nmode_lines, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+        tdict['messages'] = get_messages(request)
+        tdict['lesson_ok'] = lesson_ok
+        tdict['dd_ok'] = dd_ok
+        tdict['ws_identifier'] = ws.identifier
+        tdict['tasks'] = tasks
+        tdict['nmode_lines'] = nmode_lines
+        return render_to_response('html/normalmodesform.html', tdict)
 
 
 def applynma_tpl(request,workstruct,pTaskID,nmTask):
@@ -155,7 +188,9 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
     if 'append_' + workstruct.identifier in pdb.keys():
         if template_dict['nma'] == 'usevibran':
             if len(pdb['append_' + workstruct.identifier]) > charmming_config.max_nma_atoms:
-                return output.returnSubmission('Normal modes', error='You may only do NMA on structures with less than %d atoms' % charmming_config.max_nma_atoms)
+                messages.error(request, "You may only do NMA on structures with less than %d atoms" % charmming_config.max_nma_atoms)
+                return HttpResponseRedirect("/charmming/normalmodes/")
+#                return output.returnSubmission('Normal modes', error='You may only do NMA on structures with less than %d atoms' % charmming_config.max_nma_atoms)
     else:
         # this must be the case where the appending has not happened yet
         # for now let's allow this but we need to figure out some way
@@ -169,10 +204,24 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
 
     # take care of any QM/MM that the user might want.
     if template_dict['nma'] == 'usevibran' and request.POST.has_key("useqmmm"):
-        input.checkForMaliciousCode(request.POST['qmsele'],request.POST)
-        qmparams = makeQchem_val(request.POST,request.POST['qmsele'])
-        qmparams['jobtype'] = 'freq'
-        template_dict = makeQChem_tpl(template_dict,qmparams,nmTask.workstruct)
+        #input.checkForMaliciousCode(request.POST['qmsele'],request.POST) #It's being passed escaped...
+        #We pre-validate. This is obsolete.
+#        if "script" in request.POST['qmsele'] or "&lt;" in request.post['qmsele']: #Script injection huh?
+#Obsolete due to ONIOM and other multi-scale improvements.
+#            messages.error(request, "Bad QM selection.")
+#            return HttpResponseRedirect('/charmming/about/')
+        if request.POST['model_selected'] not in ["oniom","qmmm"]:
+            messages.error(request, "Invalid Multi-Scale modeling type.")
+            return HttpResponseRedirect("/charmming/about/")
+        else:
+            modelType = request.POST['model_selected']
+        template_dict['modelType'] = modelType
+        if modelType == "qmmm":
+            qmparams = makeQchem_val(request.POST,request.POST['qmsele'])
+            qmparams['jobtype'] = 'freq'
+            template_dict = makeQChem_tpl(template_dict,qmparams,nmTask.workstruct)
+        elif modelType == "oniom":
+            template_dict = structure.mscale.make_mscale(template_dict, request, modelType, nmTask)
 
     # If need be, print out trajectories for the modes the user requested.
     template_dict['gen_trj'] = request.POST.has_key("gen_trj") 
@@ -192,7 +241,8 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
         #    headstr = writeQMheader("", "SELE " + qmsel + " END")
         #else:
         #    headstr = "* Not using QM/MM\n"
-        template_dict['ntrjs'] = str(ntrjs) 
+        template_dict['ntrjs'] = str(ntrjs)
+        nmTask.num_trjs = ntrjs
         #template_dict['headstr'] = headstr
     else:
         nmTask.nma_movie_req = False
@@ -200,29 +250,35 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
     t = get_template('%s/mytemplates/input_scripts/applynma_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))    
 
-    nma_filename = workstruct.identifier + "-nmodes.inp"
+    nma_filename = workstruct.structure.location + '/' + workstruct.identifier + "-nmode.inp"
     nmTask.scripts += ',%s' % nma_filename
     nmTask.save()
 
-    inp_out = open(workstruct.structure.location + '/' + nma_filename,'w')
+    inp_out = open(nma_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
 
     #change the status of the file regarding minimization 
     if request.POST.has_key("gen_trj") and request.POST.has_key("num_trjs"):
-        return makeNmaMovie_tpl(workstruct,request.POST,int(request.POST['num_trjs']),template_dict['nma'],nmTask)
+        nmTask.make_nma_movie = True
+        nmTask.save()
+        return makeNmaMovie_tpl(workstruct,request.POST,int(request.POST['num_trjs']),template_dict['nma'],nmTask,pTask) #I have no idea if pTask is stored in nmTask, so let's be safe
     else:
-        nmTask.start()
+        if template_dict['useqmmm'] and modelType == "oniom":
+            nmTask.start(mscale_job=True)
+        else:
+            nmTask.start()
         
     workstruct.save()
     return output.returnSubmission('Normal modes')
 
 
 #makes NMA Movie
-def makeNmaMovie_tpl(workstruct,postdata,num_trjs,typeoption,nmm):
+def makeNmaMovie_tpl(workstruct,postdata,num_trjs,typeoption,nmm,ptask):
     # template dictionary passes the needed variables to the template
     template_dict = {}
     template_dict['topology_list'], template_dict['parameter_list'] = workstruct.getTopparList()
+    template_dict['orig_coords'] = workstruct.identifier + "-" + ptask.action #Only inp/out files don't match the task.action scheme. Careful with dsfdocking though.
     template_dict['filebase'] = workstruct.identifier
     template_dict['typeoption'] = typeoption
     template_dict['num_trjs'] = str(num_trjs)
@@ -243,8 +299,8 @@ def makeNmaMovie_tpl(workstruct,postdata,num_trjs,typeoption,nmm):
     t = get_template('%s/mytemplates/input_scripts/makeNmaMovie_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     
-    movie_filename = workstruct.identifier + '-nmamovie.inp'
-    movie_handle = open(workstruct.structure.location + movie_filename,'w')
+    movie_filename = workstruct.structure.location + "/" + workstruct.identifier + '-nmamovie.inp'
+    movie_handle = open(movie_filename,'w')
     movie_handle.write(charmm_inp)
     movie_handle.close()
     nmm.scripts += ',' + movie_filename
@@ -261,6 +317,7 @@ def makeNmaMovie_tpl(workstruct,postdata,num_trjs,typeoption,nmm):
 #Combines all the smaller PDBs make in the above method into one large PDB that
 #jmol understands
 #type is nma
+#Ignore this for now...there's a better one attached to the nmTask
 def combineNmaPDBsForMovie(file):
     nmm = nmodeTask.objects.filter(pdb=file, selected = 'y')[0]
     ter = re.compile('TER')

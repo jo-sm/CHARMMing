@@ -78,7 +78,7 @@ Compound ID(CID): <input id="glmol01_cid" value="" size=4><button onClick="downl
 <!-- CHECK: CSS nowrap is not working?
 -or from the textarea below.<br> white-space: nowrap not only doesn't work in Firefox but also let Chrome reformatting continuous spaces!!! -->
 Below is the text representation of this file.<br />
-<textarea wrap="off"  id="glmol01_src" style="width: 100%; height: 65%; overflow:scroll;"></textarea><br>
+<textarea wrap="off"  readonly id="glmol01_src" style="width: 100%; height: 65%; overflow:scroll;"></textarea><br>
 <button onClick="glmol01.loadMolecule(); $('#loading').hide();">Reload molecule from textarea</button>
 </div>
 </div>
@@ -86,6 +86,7 @@ Below is the text representation of this file.<br />
 <div class="tabBox" id="glmol01_viewbox" style="left: 25%; z-index:1;">
 <span class="bottomTab">View</span>
 <div class="insideTab" style="overflow: auto;">
+{% if not cg_model %}
 Color by <select id="glmol01_color">
  <option value="chainbow">spectrum</option>
  <option value="chain">chain</option>
@@ -137,7 +138,7 @@ Color by <select id="glmol01_color">
  <option value="line">lines</option>
 </select><br>
 <input id="glmol01_showIons" type="checkbox" checked>Non-bonded atoms (ions, etc.) as<select id="glmol01_ions">
-<option selected="selectec" value="sphere">spheres</option>
+<option selected="selected" value="sphere">spheres</option>
 <option value="icosahedron">icosahedrons</option>
 </select><br>
  Multiple bond option is for SDF/MOL file ONLY.<br> 
@@ -145,6 +146,44 @@ Color by <select id="glmol01_color">
 <input id="glmol01_biomt" type="checkbox">Biological assembly (the last one defined)<br>
 <input id="glmol01_packing" type="checkbox">Crystal packing<br>
 <input id="glmol01_symopHetatms" type="checkbox">Show HETATMs in symmetry mates (slower)<br>
+{%else%}
+<input type="checkbox" id="glmol01_showBackbone" checked>Show backbone as<select id="glmol01_backbone">
+  <option selected value="sphere">spheres</option>
+  <option value="icosahedron">icosahedrons</option>
+</select><br>
+<input type="checkbox" id="glmol01_showSidechain" checked>Show sidechain as<select id="glmol01_sidechain">
+  <option value="sphere">spheres</option>
+  <!--  <option value="stick">cylinders</option> GLmol needs heavy modification for this. -->
+  <option selected value="icosahedron">icosahedrons</option>
+</select><br>
+Backbone radius: <select id="glmol01_backboneRadius">
+  <option value="1.0">1.0</option>
+  <option value="1.5">1.5</option>
+  <option value="2.0">2.0</option>
+  <option value="2.5">2.5</option>
+  <option selected value="3.0">3.0</option>
+  <option value="3.5">3.5</option>
+  <option value="4.0">4.0</option>
+  <option value="4.5">4.5</option>
+  <option value="5.0">5.0</option>
+  <option value="5.5">5.5</option>
+  <option value="6.0">6.0</option>
+</select>
+<br>
+<div id="sidechain_size">
+Sidechain radius: <select id="glmol01_sidechainRadius">
+  <option value="0.5">0.5</option>
+  <option value="1.0">1.0</option>
+  <option value="1.5">1.5</option>
+  <option selected value="2.0">2.0</option>
+  <option value="2.5">2.5</option>
+  <option value="3.0">3.0</option>
+  <option value="3.5">3.5</option>
+  <option value="4.0">4.0</option>
+</select>
+<br>
+</div>
+{%endif%}
 Background color: <select id="glmol01_bgcolor">
  <option value="0xffffff">white</option>
  <option selected="selected" value="0x000000">black</option>
@@ -282,10 +321,13 @@ var time = new Date();
    var allHet = this.getHetatms(all);
    var hetatm = this.removeSolvents(allHet);
    var ions = this.getIons(all);
+   var asu = new THREE.Object3D();
 
 console.log("selection " + (+new Date() - time)); time = new Date();
 
-   this.colorByAtom(all, {});  
+  {%if cg_model %}this.ElementColors['B'] = 13369344;{%endif%}
+  this.colorByAtom(all, {});  
+  {% if not cg_model %}
    var colorMode = $(idHeader + 'color').val();
    if (colorMode == 'ss') {
       this.colorByStructure(all, 0xcc00cc, 0x00cccc);
@@ -297,10 +339,9 @@ console.log("selection " + (+new Date() - time)); time = new Date();
       this.colorByBFactor(all);
    } else if (colorMode == 'polarity') {
       this.colorByPolarity(all, 0xcc0000, 0xcccccc);
-   }
+   } 
 console.log("color " + (+new Date() - time)); time = new Date();
 
-   var asu = new THREE.Object3D();
    var mainchainMode = $(idHeader + 'mainchain').val();
    var doNotSmoothen = ($(idHeader + 'doNotSmoothen').attr('checked') == 'checked');
    if ($(idHeader + 'showMainchain').attr('checked')) {
@@ -393,7 +434,47 @@ console.log("mainchain " + (+new Date() - time)); time = new Date();
 }
 
 console.log("hetatms " + (+new Date() - time)); time = new Date();
-
+  {% else %}
+  var allBackbone = this.getBackbone(all);
+  var allSidechain = this.getSidechain(all);
+//  var target = asu;
+  if ($(idHeader + 'showBackbone').attr('checked')){
+      var backboneMode = $(idHeader + 'backbone').val();
+      var backboneRadius = parseInt($(idHeader + 'backboneRadius').val()); //This sounds dangerous.
+      if(backboneMode == 'sphere'){
+        this.drawBondsAsStick(asu, allBackbone, this.cylinderRadius / 2.0, backboneRadius, false, false, 0.3); //MAY BREAK.
+        this.drawAtomsAsSphere(asu, allBackbone, backboneRadius, false, 0.5);
+      }else if (backboneMode == 'icosahedron'){
+        this.drawBondsAsStick(asu, allBackbone, this.cylinderRadius / 2.0, backboneRadius, false, false, 0.3); //MAY BREAK.
+        this.drawAtomsAsIcosahedron(asu, allBackbone, backboneRadius);
+      }else if (backboneMode == 'stick'){
+        this.drawBondsAsStick(asu, allBackbone, this.cylinderRadius / 2.0, backboneRadius, false, false, 0.3); //MAY BREAK.
+        this.drawBondsAsStick(asu, allBackbone, this.cylinderRadius, this.cylinderRadius);} 
+        }
+    
+  if ($(idHeader + 'showSidechain').attr('checked')){
+      var sidechainMode = $(idHeader + 'sidechain').val()
+      var sidechainRadius = parseInt($(idHeader + 'sidechainRadius').val());
+      if ($(idHeader + 'showBackbone').attr('checked')){
+        this.drawBondsAsStick(asu, all, this.cylinderRadius / 2.0, sidechainRadius, false, false, 0.3);
+      }else{
+        this.drawBondsAsStick(asu, allSidechain, this.cylinderRadius / 2.0, sidechainRadius, false, false, 0.3);
+      }
+      if(sidechainMode == 'sphere'){
+        this.drawAtomsAsSphere(asu, allSidechain, sidechainRadius, false, (sidechainRadius / 4.0));
+        $("#sidechain_size").show()
+      }else if (sidechainMode == 'icosahedron'){
+        
+        this.drawBondsAsStick(asu, allSidechain, this.cylinderRadius / 2.0, sidechainRadius, false, false, (sidechainRadius / 4.0));
+        this.drawAtomsAsIcosahedron(asu, allSidechain, sidechainRadius);
+        $("#sidechain_size").hide() //No way to get icosahedron size to change on sidechains. No clue why. Works perfectly on backbone.
+      }
+//      else if (sidechainMode == 'stick'){
+//        this.drawBondsAsStick(asu, all, sidechainRadius / 2.0, sidechainRadius / 2.0);}
+//        this.drawAtomsAsSphere(asu, allSidechain, 0.01, false, 0.01);}
+        }
+      
+  {%endif%}
    var projectionMode = $(idHeader + 'projection').val();
    if (projectionMode == 'perspective') this.camera = this.perspectiveCamera;
    else if (projectionMode == 'orthoscopic') this.camera = this.orthoscopicCamera;

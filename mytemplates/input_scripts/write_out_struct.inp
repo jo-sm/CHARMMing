@@ -1,13 +1,13 @@
 ioform extended
 
-write psf card name {{ output_name }}.psf
+write psf card name {{ output_name }}.psf {% if useqmmm %} sele .not. type qqh* end {%endif%}
 * {{output_name}}.psf
 *
 
-write coor card name {{ output_name }}.crd
+write coor card name {{ output_name }}.crd {% if useqmmm %} sele .not. type qqh* end {%endif%}
 * {{output_name}}.crd
 *
 
-write coor pdb name {{ output_name }}.pdb
+write coor pdb name {{ output_name }}.pdb {% if useqmmm %} sele .not. type qqh* end {%endif%}
 * {{output_name}}.pdb
 *

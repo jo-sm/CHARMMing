@@ -3,7 +3,13 @@
 {% block content %}
 <div id="mainpage">
 <h2 align="center">Properties calculated</h2>
-
-{{ msg }}
+<table style="margin-left:auto;margin-right:auto;border: 2px solid black;text-align:center">
+  <tr>
+    {% for label in outLabels %}<th>{{label}}</th>{%endfor%}
+  </tr>
+  <tr>
+    {% for x in outData %}{%for datum in x %}<td>{{datum}}</td>{%endfor%}{%endfor%}
+    </tr>
+</table>
 </div>
 {% endblock %}

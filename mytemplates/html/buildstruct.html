@@ -139,7 +139,7 @@
                {% for pproto in proto_list %}
                  <tr><td>{{ pproto.0 }}</td><td><a href="javascript:select_residue('{{pproto.3}}','{{pproto.0}}')">{{ pproto.1 }}</a></td>
                    <td>
-                      <select onchange="change_proto_state(this,'{{pproto.3}}','{{pproto.0}}');" name="protostate_{{ pproto.0 }}_{{ pproto.1 }}">
+                     <select> <!-- onchange="change_proto_state(this,'{{pproto.3}}','{{pproto.0}}');" name="protostate_{{ pproto.0 }}_{{ pproto.1 }}">  This code will be re-implemented if JSmol every works correctly.-->
                          {% for alt in pproto.2 %}
                             <option value="{{ alt.0 }}">{{ alt.0 }} ({{ alt.1 }})</option>
                          {% endfor %}
@@ -174,7 +174,7 @@
                 //Apparently the DEFAULT setting is to have debug on. Thus the awkwardness.
               }
                 jmolApplet = Jmol.getApplet("jmolApplet", Info);
-                Jmol.script(jmolApplet, "{_O and connected(1,single)}.formalCharge = -1;set pdbaddhydrogens;load " + filepath + ";slab off; spin off; trace off; set ambient 40; set specpower 40;");
+                Jmol.script(jmolApplet, "set pdbaddhydrogens;load " + filepath + ";slab off; spin off; trace off; set ambient 40; set specpower 40;");
                 Jmol.script(jmolApplet, "select none; selectionHalos on;");
               </script>
               <button class="hidden_options" onclick="show_protein();return false;">Show/Hide rest of protein</button>

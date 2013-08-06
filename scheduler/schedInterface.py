@@ -35,7 +35,7 @@ class schedInterface:
          return -2
       return buf[3:]  
 
-   def submitJob(self,user,dir,scriptlist,exedict={},nprocdict={}):
+   def submitJob(self,user,dir,scriptlist,exedict={},nprocdict={},mscale=False):
 
       # error out if the length of the executable list or the
       # length of the nproc list is different from the length of
@@ -58,11 +58,10 @@ class schedInterface:
 
          if scriptlist[i] in exedict.keys():
             exelist.append(exedict[scriptlist[i]])
-         elif nproclist[-1] > 1:
+         elif nproclist[-1] > 1 and not mscale:
             exelist.append(charmming_config.charmm_mpi_exe)
          else:
             exelist.append(charmming_config.charmm_exe)
-
       self.sock.send("NEW\n")
       buf = self.sock.recv(512)
       if not buf.startswith("OK"):
@@ -71,8 +70,13 @@ class schedInterface:
       self.sock.send("%d %s %s\n" % (user,dir,scriptstr))
       buf = self.sock.recv(512)
       if not buf.startswith("OK"):
+         logfp = open("/tmp/scheda_debug.txt","w")
+         logfp.write('test 1\n')
+         logfp.write(buf + '\n')
+         logfp.close()
          return -2
-
+      logfp = open("/tmp/schedint_debug.txt","w")
+      logfp.write("exelist: " + str(exelist) + "\n")
       nprbuf = ""
       npl2 = []
       for i in range(len(nproclist)):
@@ -87,15 +91,30 @@ class schedInterface:
                exebuf += "%s " % charmming_config.charmm_exe
             elif npl2[i] > 1:
                exebuf += "%s " % charmming_config.charmm_mpi_exe
+      logfp.write("exebuf: " + str(exebuf) + "\n")
+      logfp.flush()
 
       self.sock.send("%s\n" % exebuf)
+      logfp.write("exebuf: " + str(exebuf) + "\n")
+      logfp.flush()
       buf = self.sock.recv(512)
+      logfp.write(str(buf)) 
+      logfp.close()
       if not buf.startswith("OK"):
+         logfp = open("/tmp/scheda_debug.txt","w")
+         logfp.write('test 2\n')
+         logfp.write(buf + '\n')
+         logfp.close()
          return -2
 
       self.sock.send("%s\n" % nprbuf)
       buf = self.sock.recv(512)
       if not buf.startswith("OK"):
+         logfp = open("/tmp/scheda_debug.txt","w")
+         logfp.write('test 3\n')
+         logfp.write('nprbuf = %s\n' % nprbuf)
+         logfp.write(buf + '\n')
+         logfp.close()
          return -2
 
       return int(buf.split()[2])

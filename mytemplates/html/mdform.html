@@ -22,7 +22,7 @@
 
       <div id="menu" style="width: 100%;text-align:left">
         <table class="qm_table">
-          <tr><td> Heating (adds kinetic energy to the system)</td><td><input type="radio" id="useheat" value="useheat" name="mdtype" onclick="$('#heat').show();$('#npt').hide();$('#nve').hide();$('#nvt').hide();"></td></tr>
+          <tr><td> Heating (adds kinetic energy to the system)</td><td><input type="radio" checked id="useheat" value="useheat" name="mdtype" onclick="$('#heat').show();$('#npt').hide();$('#nve').hide();$('#nvt').hide();"></td></tr>
           <tr><td>NVE dynamics (holds energy constant; no temperature control)</td><td><input type="radio" id="usenve" value="usenve" name="mdtype" onclick="$('#heat').hide();$('#npt').hide();$('#nve').show();$('#nvt').hide();"></td></tr>
           <tr><td>NVT dynamics (holds temperature and volume constant)</td><td><input type="radio" id="usenvt" value="usenvt" name="mdtype" onclick="$('#heat').hide();$('#npt').hide();$('#nve').hide();$('#nvt').show();"><td></tr>
           <tr><td>NPT dynamics (holds temperature and pressure constant)</td><td><input type="radio" id="usenpt" value="usenpt" name="mdtype" onclick="$('#heat').hide();$('#npt').show();$('#nve').hide();$('#nvt').hide();"></td></tr>
@@ -74,6 +74,7 @@
         <hr style="width:60%">
         <table class="qm_table">
           <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepnvt" id="nstepnvt" value="1000"></td></tr>
+           <tr><td>Nose-hoover thermostat temperature</td><td><input type="text" name="hoovertemp" value="300"></td></tr>
         </table>
       </div>
 
@@ -81,11 +82,15 @@
         <hr style="width:60%">
         <table class="qm_table">
           <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepnpt" id="nstepnpt" value="1000"></td></tr>
+             <tr><td>Nose-hoover thermostat temperature</td><td><input type="text" name="hoovertemp" value="300"></td></tr>
           <tr><td>Pressure piston collision frequency (collisions per picosecond)</td><td><input type="text" name="pgamma" value="0.0"></td></tr>
         </table>
       </div>
       <input type="submit" value="Apply Molecular Dynamics" />
-      </form>
+    </form>
+    <script>
+      $("#heat").show();
+    </script>
       </div>
     </div>
 {% endblock %}

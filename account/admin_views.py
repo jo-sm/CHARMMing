@@ -22,6 +22,7 @@ from django.shortcuts import render_to_response
 from django.contrib.auth.models import User,Group
 from django.core.mail import send_mail
 from account.models import studentProfile
+from statistics.models import DataPoint
 
 def showUnapproved(request):
     #unapproved_list is the list of unapproved users
@@ -111,3 +112,35 @@ def showUnapproved(request):
     for user_profile in unapproved_list:
         unapproved_studentProfile_list.append(studentProfile.objects.filter(student = user_profile)[0])
     return render_to_response('admin/unapproveduser.html', {'unapproved_list':  unapproved_studentProfile_list, 'approved_list': approved_studentProfile_list,'disapproved_list':disapproved_studentProfile_list})
+
+def showStats(request):
+    tdict = {}
+    datapoints = DataPoint.objects.all() #Get everything since we don't care about any filtering criteria
+    task_actions = {}
+    task_action_list = []
+    total_tasks = len(datapoints)
+    successful_tasks = 0
+    failed_tasks = 0
+    users = set([])
+    for point in datapoints:
+        if point.success:
+            successful_tasks += 1
+        else:
+            failed_tasks += 1
+        if point.user not in users:
+            users = users.union(set([point.user]))
+        if point.task_action not in task_actions.keys():
+            task_actions[point.task_action] = 1
+        else:
+            task_actions[point.task_action] += 1
+    total_users = len(users)
+    #This is silly but it's also the easiest way to get it right. I tried to handle it with a list and the lookups get silly and mess my code up, at least this works
+    for key, val in task_actions.iteritems():
+        task_action_list.append((key, val))
+    task_action_list = sorted(task_action_list,key=lambda x:x[0]) #Make it into a sorted list for easy display later
+    tdict['task_list'] = task_action_list
+    tdict['successful_tasks'] = successful_tasks
+    tdict['failed_tasks'] = failed_tasks
+    tdict['total_users'] = total_users
+    tdict['total_tasks'] = total_tasks
+    return render_to_response('admin/statistics.html', tdict)

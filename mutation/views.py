@@ -172,7 +172,7 @@ def mutate_task_process(request,mt,oldws):
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
     user_id = ws.structure.owner.id
-    mutate_filename = ws.structure.location + "/" + ws.identifier + "-mutate.inp"
+    mutate_filename = ws.structure.location + "/" + ws.identifier + "-mutation.inp"
     inp_out = open(mutate_filename, 'w')
     inp_out.write(charmm_inp)
     inp_out.close()
@@ -193,7 +193,7 @@ def selectstructure(request):
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0] #Gets the currently-selected structure, which you can switch later
     except:
-        messages.error(request, "No structure is present. Please upload a structure before applying calculations.") #There should only ever be one message but we'll generalize.
+        messages.error(request, "Please build a structure first.") #There should only ever be one message but we'll generalize.
         return HttpResponseRedirect('/charmming/fileupload/')
 
     proposedname = struct.name
@@ -218,7 +218,21 @@ def selectstructure(request):
         messages.error(request, "Please build a working structure before performing a mutation.", extra_tags="arf")
         return HttpResponseRedirect('/charmming/buildstruct/')
     if ws.isBuilt != "t":
-        return HttpResponse("Please perform a calculation on this structure first (e.g. Energy, Minimization)")
+        messages.error(request, "Please perform a calculation on this structure before performing a mutation.")
+        return HttpResponseRedirect("/charmming/energy/")
+
+    try:
+        cgws = structure.models.CGWorkingStructure.objects.get(workingstructure_ptr=ws.id)
+        messages.error(request, "Mutation is not supported for coarse-grain models. If you wish to perform a point-mutation on this structure, please build a working structure with the CHARMM all-atom model.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+    except:
+        pass
+
+    segments = ws.segments.all()
+    for segment in segments:
+        if "good" in segment.name:
+            messages.error(request, "GOOD hets are not currently supported by the mutation procedure. Please build a working structure with only PRO-type segments.")
+            return HttpResponseRedirect('/charmming/buildstruct')
     #This way we need less JS black magic
     tdict = {}
     tdict['proposedname'] = proposedname
@@ -256,10 +270,10 @@ def selectstructure(request):
     pdbfile = cPickle.load(pdb)
     taco = pdbfile['model00']
     pdb.close()
-    tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
+    tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
     for task in tasks:
         if task.action == 'mutation':
-            filepath = filepath + "-mutation.pdb"
+            full_filepath = filepath + "-mutation.pdb"
             break;
         full_filepath = filepath + "-build.pdb"
     filepath = full_filepath

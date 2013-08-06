@@ -3,6 +3,110 @@ var cyan = '[x00ffff]';
 var magenta = '[xc800c8]';
 var green = '[x008000]';
 
+function writeLinkAtomLines(seg_ids,modelType,num_linkatoms,current_div_id)
+{
+ var seg_list = new Array();
+ seg_list = seg_ids.split(' ');
+ //the last index of the array will be a blank space, so splice it!
+ seg_list.splice(seg_list.length-1,1);
+ num_patches = num_linkatoms;
+ var model_string = "";
+ var layer_num = "";
+ var real_div_id = "linkatom_lines"
+ if (modelType == "oniom"){
+  layer_num = current_div_id.split("_"); //e.g. layer_2 turns into [layer, 2]
+  model_string = "_layer_" + layer_num[layer_num.length -1];
+  real_div_id = real_div_id + model_string;
+  }
+ var text = '<table class="qmmm_table" style="margin-left:auto;margin-right:auto;">';
+ optionvalues = "";
+ for(var b =0; b < seg_list.length; b++)
+ {
+  optionvalues = optionvalues + '<option value="' + seg_list[b] + '">' + seg_list[b] + '</option>';
+ }
+ for(var i = 0; i < num_patches; i++)
+ {
+  tempi = i+1;
+  text = text + '<tr><td>QMHost '+tempi+'.</td><td> First SEGID:';
+  text = text + '<select size="1" name="linkqmsegid' + model_string +"_"+ i +'">';
+text = text + optionvalues + '</select><td> QM RESID:<input type="text" id="linkqm'+model_string+"_"+i+'" name="linkqm'+model_string+"_"+i+'" size=4></td> <td> QM Atom Type: <input type="text" id="qmatomtype'+model_string+"_"+i+'" name="qmatomtype' +model_string+"_"+i + '" size=5> </td></tr><tr><td>MMHost '+tempi+'.</td><td> MM SEGID: <select size="1" name="linkmmsegid'+model_string+"_"+i +'">' + optionvalues + '</select> </td><td>MM RESID:<input type="text" id="linkmm'+model_string+"_"+i+'" name="linkmm'+model_string+"_"+i+'" size=4></td><td> MM Atom Type: <input type="text" id="mmatomtype'+model_string+"_"+i+'" name="mmatomtype'+model_string+"_"+i + '" size=5> </td></tr>';
+ }
+  text= text + '</table>';
+  document.getElementById(real_div_id).innerHTML = text;
+}
+
+function showHideQM(){
+    if($("#useqmmm").is(":checked")){
+      //      $(".qmmm_params").show();
+      $(".model_selection").show();
+      if ($("#usepbc").length > 0){
+        $("#usepbc").attr("disabled",true);
+        $("#usepbc").attr("checked",false); //just in case
+      }
+    }else{
+    //      $(".qmmm_params").hide();
+      $(".qmmm_params").remove(); //If this is a 0-length, then it doesn't matter, it won't except
+      $(".oniom_params").remove();
+      $(".model_selection").hide();
+      if($("#usepbc").length > 0){
+        $("#usepbc").attr("disabled",false);
+      }
+    }
+  }
+
+//For atom selection (QM/MM)
+function goto_atomselect(){
+  var inputs = document.getElementsByName("ptask");
+  var form = null;
+  if (inputs.length > 0){
+    for(i=0;i<inputs.length;i++){
+      if(inputs[i].checked){
+        document.getElementById("task_id").value = inputs[i].value;
+        break;
+      }
+    }
+    var action = document.URL.split("/");
+    var source = action[action.length -2];
+    document.getElementById("source").value = source;
+    if(source == "energy"){
+      form = document.getElementById("ener_form");
+    }
+    if(source == "minimize"){
+      form = document.getElementById("min_form");
+    }if(source == "normalmodes"){
+      form = document.getElementById("nma_form");
+    }
+//Note: Update here to create more QM/MM boxen in other pages
+    form.action="/charmming/selection/";
+    form.onsubmit= function(event){return true;};
+    form.submit();
+  }else{
+    $("#dialog_coords_alert").dialog("open");
+//    alert("No coordinates present. Please run at least one calculation on the full atom set before performing any QM/MM operations.")
+  }
+}
+
+function hideQMBoxes(qmbox_number){
+  var number_to_check = 0;
+  if (typeof qmbox_number == "number"){
+    number_to_check = qmbox_number;
+  }else{
+    var foo = qmbox_number.split("_");
+    number_to_check = parseInt(foo[foo.length - 1]);
+  }
+  //We can make this recursive, but it's not useful.
+  //We use the "layers" global included in the qmmm_params page.
+  var current_layer = number_to_check;
+  while(current_layer <= layers){
+    $("#qmmm_params_layer_"+current_layer.toString()).hide();
+    $("#mm_box_layer_"+current_layer.toString() + " input").attr("checked",true);
+    current_layer = current_layer + 1;
+  }
+  $("#highest_qm_layer").val(number_to_check - 1);
+  return true;
+}
+    
+  
 
 function create_bynum(add, atominfo){ //Universal bynum creation to make things easier
   var atomsele = "bynum " + atominfo[0].atomno;
@@ -33,19 +137,23 @@ function create_bynum(add, atominfo){ //Universal bynum creation to make things 
   }
   i = i + 1;
   }
+  var model_string = "";
+  if(modelType == "oniom"){ //Add code for more models here
+    model_string = "_layer_"+current_layer;
+  }
   if (!(add)){ //No selection
-    $("#atomselection").val(atomsele);
+    $("#atomselection"+model_string).val(atomsele);
   }else{ //Add selection, you shouldn't select things that are already in there
-    $("#atomselection").val($("#atomselection").val() + " .or. " + atomsele);
+    $("#atomselection"+model_string).val($("#atomselection"+model_string).val() + " .or. " + atomsele);
   }
 }
 
 function submit_atomselect(){
   if ($("#add").is(":visible")){ //Stop playing with our code!
-      reset_select();
+      reset_select(true,false);
       return false;
     }
-  var atominfo = Jmol.getPropertyAsArray(jmolApplet, "atominfo", "selected");
+  var atominfo = Jmol.getPropertyAsArray(jmolApplet, "atominfo", "selected and displayed"); //the "displayed" bit is for layers.
   if (atominfo.length == 0){
     $("#dialog_noatoms_alert").dialog("open");
     return false;
@@ -62,7 +170,7 @@ function submit_atomselect(){
 
 function add_atomselect(){
   if ($(".atomselectbutton").is(":visible")){ //Hey! Stop it.
-      reset_select();
+      reset_select(true,false);
       return false;
   }
   var atominfo = Jmol.getPropertyAsArray(jmolApplet, "atominfo", "selected");
@@ -83,12 +191,13 @@ function isNumeric(num) {
 
 function select_qmsele(divtype, divnum){ //divtype holds what type of input it came from, divnum which one
   var atomarray = Jmol.getPropertyAsArray(jmolApplet, "atominfo", "selected");
+  var carbregex = new RegExp("C[0-9]+","g");
   if (atomarray.length != 1){ //Oh dear. That's no good.
     $("#dialog_too_many_links").dialog("open");
     return false;
   }else{
-    var atom = atomarray[0]; //There's only supposed to be one
-    if (atom.name.toUpperCase() != "CA" && atom.name.toUpperCase() != "C" && atom.name.toUpperCase() != "CT2" && atom.name.toUpperCase() != "CB")
+    var atom = atomarray[0]; //There's only supposed to be one. Watch our for CALCIUM!
+    if (atom.name.toUpperCase() != "CA" && carbregex.exec(atom.name.toUpperCase()) == null && atom.name.toUpperCase() != "C" && atom.name.toUpperCase() != "CT2" && atom.name.toUpperCase() != "CB")
 /*        && atom.name.toUpperCase() != "CG" && atom.name.toUpperCase() != "CD" && atom.name.toUpperCase() != "CD1" && atom.name.toUpperCase() != "CD2"
         && atom.name.toUpperCase() != "CE")*/{
       $("#dialog_bad_bond").dialog("open"); //At this point, you have an atom selected, so either you unselect it, or you reset the whole thing
@@ -112,7 +221,7 @@ function select_qmsele(divtype, divnum){ //divtype holds what type of input it c
       }
       i = i + 1;
     }
-    var divid = "#" + divtype + "_" + divnum;
+    var divid = "#" + divtype + divnum;
     var identifier = $(divid).val().split("\t"); //This string "identifies" the atom, thus identifier
     var selection_string = ""; //Holds the Jmol script
     //Need to add in code that checks chain_terminators for stuff
@@ -145,7 +254,7 @@ function select_qmsele(divtype, divnum){ //divtype holds what type of input it c
         }
       }
       Jmol.script(jmolApplet, "color green;select none;");
-      $("#mmbutton"+divnum).attr("disabled",false);
+      $("#mmbutton"+divnum).prop("disabled",false);
     }else if (divtype == "mmhost"){
       if (atom.color == cyan || atom.color == green){ //cyan, "magenta", or green
         $("#dialog_bad_mm").dialog("open");
@@ -156,7 +265,7 @@ function select_qmsele(divtype, divnum){ //divtype holds what type of input it c
         Jmol.script(jmolApplet, "select atomno == " + atom.atomno);
       }
       var mmcoords = atom.coord; //So we store the coordinates of our MM host
-      var qminfo = $("#qmhost_"+divnum).val().split("\t"); //Get the number which forms the first half of the qmhost input box
+      var qminfo = $("#qmhost"+divnum).val().split("\t"); //Get the number which forms the first half of the qmhost input box
         //If your input is wrong, that's your problem, since it'll generate something bogus somewhere.
       //atom doesn't change - it's still atomarray[0]. 
       Jmol.script(jmolApplet, "select none; select " + qminfo[0] + "." + qminfo[1] );
@@ -174,6 +283,7 @@ function select_qmsele(divtype, divnum){ //divtype holds what type of input it c
     $(divid).val(atom.resno + "\t" + atom.name + "\t" + atom_segid);
     Jmol.script(jmolApplet, "selectionhalos on");
   }
+  return false;
 }
 
 //Calculates n-dimensional distance for two arrays of matching coordinates
@@ -199,13 +309,33 @@ function distance(point1, point2){
 }
   
 
-function reset_select(){
-  Jmol.script(jmolApplet, "selectionhalos off;select all;color jmol;select none;selectionhalos on;");
+function reset_select(default_color, wipe_all_below){
+  //default_color means restore to original state. We DON'T want this for layered selections.
+  if(default_color){
+    Jmol.script(jmolApplet, "selectionhalos off;select all;color jmol;select none;selectionhalos on;");
+  }
   $(".atomselectbutton").show(); //This way the user can't touch it till JSmol renders
-  $("#atomselection").val("");
-  $("#linkatom_num").val("");
-  $("#linkatom_inputs").html("");
+  if(modelType == "oniom"){
+    if (wipe_all_below != false){
+      $("#atomselection_layer_"+wipe_all_below).val("");
+      $("#linkatom_num_layer_"+wipe_all_below).val("");
+      $("#linkatom_inputs_layer_"+wipe_all_below).html("");
+    }else{
+      var curr_modifier = total_layers - 1; //Wipe out all the fields associated to any selections
+      while (curr_modifier >= current_layer){
+        $("#atomselection_layer_"+curr_modifier).val("");
+        $("#linkatom_num_layer_"+curr_modifier).val("");
+        $("#linkatom_inputs_layer_"+curr_modifier).html("");
+        curr_modifier = curr_modifer - 1;
+      }
+    }
+  }else{
+    $("#atomselection").val("");
+    $("#linkatom_num").val("");
+    $("#linkatom_inputs").html("");
+  }
   $("#add").hide();
+  return "successful";
 }
 
 
@@ -223,6 +353,7 @@ function submit_qm_mm_atoms(){
       $("#dialog_empty_fields").dialog("open");
       return false;
     }
+    console.log(qm_mm_selectors[i]);
     selector = selector.value.split("\t");
     if (qm_mm_selectors[i].value.length > 17 || numre.exec(selector[0]) == null || carbre.exec(selector[1]) == null || segre.exec(selector[2]) == null){
       $("#dialog_bad_linkatom_input").dialog("open");
@@ -230,29 +361,86 @@ function submit_qm_mm_atoms(){
     }
     i = i + 1;
   }
+  //So we just tested for whether the user is trying to destroy our site. We carry on, branching in half
+  //We have input fields telling us what our model type is and how many layers we have, so when we do this we need to "respawn" - i.e., we need to make more boxen.
+  //We also need a "layer counter" - i.e., how many layers we have gone through so far.
+  if(modelType == "oniom" && total_layers > 2){
+    //Verify that the current layer is not the maximum one, i.e. 1
+    if(current_layer == 1){
+      $("#atomselect_form").prop("onsubmit","");
+      $("#atomselect_form").submit();
+      return true;
+    }else{
+      var current_layer_input_html = $("#atom_selection_inputs_layer_"+current_layer).html();
+      var modified_div = "atom_selection_inputs_layer_"+(current_layer - 1);
+      var next_layer_div_string = "<div id='"+modified_div+"'></div>";
+      $("#linkatom_inputs_layer_"+current_layer).after(next_layer_div_string);
+      current_layer = current_layer - 1; //Update the currently active layer
+      $("#"+modified_div).hide(); //SO that the removals don't get seen by the user
+      $("#"+modified_div).html(current_layer_input_html);
+      $("#"+modified_div+" .removable_copies").remove(); //Remove all excess fields...
+      //THis field we have issues templating since it already has a class, therefore we update it by hardcoding.
+      $("#" + modified_div+" #linkatom_num_layer_"+(current_layer+1)).prop("id","linkatom_num_layer_"+current_layer);
+      $("#" + modified_div+" #linkatom_num_layer_"+(current_layer+1)).prop("name","linkatom_num_layer_"+current_layer);
+      var divs_to_update = $("#" + modified_div + " .layer_update"); //Make all the layers change...
+      $("#" + modified_div+" #linkatom_inputs_layer_"+(current_layer+1)).html(""); //Blank out the linkatom_inputs display
+      var layer_regex = new RegExp("layer_[0-9]","g");
+      var curr_div = 0;
+      //There's probably a more jQuery way of doing this but I don't trust replacing en masse when each field is different
+      while (curr_div < divs_to_update.length){
+        if (divs_to_update[curr_div].tagName == "INPUT" || divs_to_update[curr_div].tagName == "BUTTON"){
+          divs_to_update[curr_div].name = divs_to_update[curr_div].name.replace(layer_regex,"layer_"+current_layer);
+        }
+        divs_to_update[curr_div].id = divs_to_update[curr_div].id.replace(layer_regex,"layer_"+current_layer);
+        if(divs_to_update[curr_div].tagName == "H2"){
+          divs_to_update[curr_div].innerHTML = divs_to_update[curr_div].innerHTML.replace("Layer "+(current_layer + 1),"Layer "+current_layer);
+        }
+        curr_div = curr_div +1;
+      }
+      if(highest_qm_layer < current_layer){ //This is basically only here for 4-layer since it's otherwise quite impossible to get to this point.
+        $("#header_layer_"+current_layer).remove();
+        $("#linkatom_num_layer_"+current_layer).remove();
+      }
+      $("#"+modified_div).show();
+      Jmol.script(jmolApplet, "select color='"+cyan+"' or color='"+magenta+"' or color='"+green+"';display selected;color jmol;select none;selectionhalos on;center displayed;zoom 0;");
+      //The above selects our QM/MM region, the link atoms, turns off selectionhalos
+      //so that the user doesn't see JSmol changing things, displays only the selected
+      //atoms, centers the display, zooms such that the displayed atoms fill the entire screen
+      //selects nothing, then turns selectionhalos back on. Phew!
+      reset_select(false,current_layer);
+      return false;
+    } 
+  }
+  $("#atomselect_form").prop("onsubmit","");
   $("#atomselect_form").submit();
 }
 
 
+
 function submit_linkatoms(){
-  if ($("#atomselection").val() == ""){ //empty atom selection
+  var model_string = ""
+  if(total_layers > 1){
+   model_string = "_layer_" + current_layer; //This is different from model_string below, note th 
+  } //Add code for more models here. Using model_string allows us to use less if statements.
+  if ($("#atomselection"+model_string).val() == ""){ //empty atom selection
     $("#dialog_noatoms_alert").dialog("open");
     return false;
   }
-  if (isNumeric($("#linkatom_num").val())){
-    var boxenNumber = parseInt($("#linkatom_num").val());
+  if (isNumeric($("#linkatom_num"+model_string).val())){
+    var boxenNumber = parseInt($("#linkatom_num"+model_string).val());
     i=0;
-    $("#linkatom_inputs").html("<hr><br>"); //blank it before something goes wrong
+    $("#linkatom_inputs"+model_string).html("<hr><br>"); //blank it before something goes wrong
+    model_html_string = model_string  + "_" //This adds a _ for clarity later
     //Let's use while loops again...I don't trust for anymore.
     while(i < boxenNumber){
-      $("#linkatom_inputs").append('QM host:<input type="text" readonly class="qmmminput" name="qmhost_' + i + 
-          '" id="qmhost_' + i + '" value="">&nbsp;<button id="qmbutton' + i + '" class="selectbutton" onclick="select_qmsele(\'qmhost\', ' + i + ');return false;">Select</button>&nbsp;');
-      $("#linkatom_inputs").append('MM host:<input type="text" readonly class="qmmminput" name="mmhost_' + i + 
-          '" id="mmhost_' + i + '" value="">&nbsp;<button class="selectbutton" id="mmbutton' + i + '"  disabled onclick="select_qmsele(\'mmhost\', ' + i + ');return false;">Select</button>&nbsp;<br>');
+      $("#linkatom_inputs"+model_string).append('QM host:<input type="text" readonly class="qmmminput" name="qmhost'+model_html_string + i + 
+          '" id="qmhost'+model_html_string + i + '" value="">&nbsp;<button id="qmbutton' +model_html_string+ i + '" class="selectbutton" onclick="select_qmsele(\'qmhost\', \'' +model_html_string+ i + '\');return false;">Select</button>&nbsp;');
+      $("#linkatom_inputs"+model_string).append('MM host:<input type="text" readonly class="qmmminput" name="mmhost' +model_html_string+ i + 
+          '" id="mmhost'+model_html_string + i + '" value="">&nbsp;<button class="selectbutton" id="mmbutton'+model_html_string + i + '"  disabled onclick="select_qmsele(\'mmhost\',\'' +model_html_string+ i + '\');return false;">Select</button>&nbsp;<br>');
       i = i + 1;
     }
-    $("#linkatom_inputs").append('<br><button class="selectbutton" onclick ="submit_qm_mm_atoms();return false;">Submit Selection with Link Atoms</button>');
-    $("#linkatom_inputs").css("display", "inline");
+    $("#linkatom_inputs"+model_string).append('<br><button class="selectbutton" onclick ="submit_qm_mm_atoms();return false;">Submit Selection with Link Atoms</button>');
+    $("#linkatom_inputs"+model_string).css("display", "inline");
   }else{
     $("#dialog_bad_linkatoms").dialog("open");
     return false;
@@ -260,6 +448,37 @@ function submit_linkatoms(){
   }
 
 //Incoming jQueryUI error messages
+
+
+  $(function($){
+    $("#dialog_bad_params").dialog({
+          resizable:false,
+          height:200,
+          width:600,
+          modal:true,
+          autoOpen:false,
+          buttons:{
+          "OK":function(){
+          $(this).dialog("close");
+          }
+        }
+      });
+    });
+      
+  $(function($){
+        $( "#dialog_coords_alert").dialog({
+          resizable:false,
+          height:200,
+          width:600,
+          modal:true,
+          autoOpen:false,
+          buttons:{
+          "OK":function(){
+          $(this).dialog("close");
+          }
+        }
+      });
+    });
 
 $(function($){
     $("#dialog_long_link").dialog({
@@ -290,7 +509,7 @@ $(function($){
       $(this).dialog("close");
       },
       "Reset selection":function(){
-      reset_select();
+      reset_select(true,false);
       $(this).dialog("close");
       }
     }

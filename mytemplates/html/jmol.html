@@ -44,10 +44,13 @@
     </script>
   <script>
       jmolApplet = Jmol.getApplet("jmolApplet", Info);
-    {% if segid == "NA" and isProtein %}
-       Jmol.script(jmolApplet,  "load /charmming/pdbuploads/{{filepath}};anim mode palindrome 2 2; anim on; slab off; spin off; wireframe off; spacefill off; trace off; set ambient 40; set specpower 40; ribbons on; color structure");
+    {% if segid == "NA" and isProtein and not cg_model%}
+       Jmol.script(jmolApplet,  "load /charmming/pdbuploads{{filepath}};anim mode palindrome 2 2; anim on; slab off; spin off; wireframe off; spacefill off; trace off; set ambient 40; set specpower 40; ribbons on; color structure");
     {% else %}
-       Jmol.script(jmolApplet, "load /charmming/pdbuploads/{{filepath}};anim mode palindrome 2 2; anim on; {{resid}}; cpk 30%; wireframe 55; select {{resid}} and ( _O or _N ); label %a, %n");
+       {% if not cg_model %}  
+       Jmol.script(jmolApplet, "load /charmming/pdbuploads{{filepath}};anim mode palindrome 2 2; anim on; {{resid}}; cpk 30%; wireframe 55; select {{resid}} and ( _O or _N ); label %a, %n");
+       {% endif %}
+        Jmol.script(jmolApplet, "load /charmming/pdbuploads{{filepath}};anim mode palindrome 2 2; anim on; cpk 30%; wireframe 55;");
        {% endif %}
        var count = 0;
      </script>

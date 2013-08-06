@@ -19,7 +19,13 @@
   coor copy comp
 
   {% if useqmmm %} blankme
-     {% include "input_scripts/make_qchem.inp" %}    
+    {%if modelType == "qmmm" %} blankme
+     {% include "input_scripts/make_qchem.inp" %} blankme
+    {%else %} blankme
+      {% if modelType == "oniom" %} blankme
+        {% include "input_scripts/mscale_oniom.inp" %}
+      {%endif%} blankme
+    {%endif%} blankme
   {% endif %} blankme
 
   mini SD nstep {{sdsteps}} 

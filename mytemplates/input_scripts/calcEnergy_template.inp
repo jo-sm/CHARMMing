@@ -17,8 +17,14 @@
   {% endif %} blankme
 
   {% if useqmmm %} blankme
+    {%if modelType == "qmmm" %} blankme
      {% include "input_scripts/make_qchem.inp" %}
+    {%endif%} blankme
+    {% if modelType == "oniom" %} blankme
+        {% include "input_scripts/mscale_oniom.inp" %}
+    {%endif%} blankme
   {% endif %} blankme
+
 
   ! calculate energy
   energy

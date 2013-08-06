@@ -5,38 +5,6 @@ var selected_div = "";
 // Tab variables...
 
 
-//For atom selection (QM/MM)
-function goto_atomselect(){
-  var inputs = document.getElementsByName("ptask");
-  var form = null;
-  if (inputs.length > 0){
-    for(i=0;i<inputs.length;i++){
-      if(inputs[i].checked){
-        document.getElementById("task_id").value = inputs[i].value;
-        break;
-      }
-    }
-    var action = document.URL.split("/");
-    var source = action[action.length -2];
-    document.getElementById("source").value = source;
-    if(source == "energy"){
-      form = document.getElementById("ener_form");
-    }
-    if(source == "minimize"){
-      form = document.getElementById("min_form");
-    }if(source == "normalmodes"){
-      form = document.getElementById("nma_form");
-    }
-//Note: Update here to create more QM/MM boxen in other pages
-    form.action="/charmming/selection/";
-    form.onsubmit= function(event){return true;};
-    form.submit();
-  }else{
-    $("#dialog_coords_alert").dialog("open");
-//    alert("No coordinates present. Please run at least one calculation on the full atom set before performing any QM/MM operations.")
-  }
-}
-
 //This is for badhet selection on the build structure page
 function showUploads(segdiv){
     var segname = segdiv.split("_");
@@ -443,11 +411,11 @@ function send_form_nma(form,link,divchange,divupdate,filenames)
 function writeRestraintLines(div_id)
 {
  num_restraints = parseInt(document.getElementById('num_restraints').value);
- text = '<table cellspacing=0 cellpadding=0 border=0><tr><td>';
+ text = '<table class="qmmm_table" style="margin-left:auto;margin-right:auto">';
  for(var i=0;i<num_restraints;i++)
  {
   number = i+1;
-  text = text + '<tr><td>' + number + '.</td><td> cons harm bestfit mass force 100.0 select <input type="text" id="cons_selection' + i + '" name="cons_selection' + i +'"> end</td></tr>';
+  text = text + '<tr><td><p style="text-align:center">' + number + '.  cons harm bestfit mass force 100.0 select <input type="text" id="cons_selection' + i + '" name="cons_selection' + i +'"> end</p></td></tr>';
  }
  document.getElementById(div_id).innerHTML = text;
 }
@@ -544,33 +512,6 @@ function geneDisulfideLines(dsbonds,seg_ids)
   var mydivname = makeUniqueDiv('usepatch');
   document.getElementById(mydivname).checked = true;
   checkPatch(makeUniqueDiv('usepatch'),makeUniqueDiv('patch_area'));
-}
-
-//when a user types in a number of disulfide bond patches on minimizeform.html
-//it will print out the html for the number of patches
-function writeLinkAtomLines(seg_ids,num_link_div_id,div_id)
-{
- var seg_list = new Array();
- seg_list = seg_ids.split(' ');
- //the last index of the array will be a blank space, so splice it!
- seg_list.splice(seg_list.length-1,1);
- num_patches = parseInt(document.getElementById(num_link_div_id).value);
- text = '<table cellspacing=0 cellpadding=0 border=0"><tr><td>';
- optionvalues = "";
- for(var b =0; b < seg_list.length; b++)
- {
-  optionvalues = optionvalues + '<option value="' + seg_list[b] + '">' + seg_list[b] + '</option>';
- }
-  optionvalues = optionvalues + '<option value=""></option>';
- for(var i = 0; i < num_patches; i++)
- {
-  tempi = i+1;
-  text = text + '<tr><td>QMHost '+tempi+'.</td><td> First SEGID:';
-  text = text + '<select size="1" name="linkqmsegid' + i +'">';
-text = text + optionvalues + '</select><td> QM RESID:<input type="text" id="linkqm'+i+'" name="linkqm'+i+'" size=4></td> <td> QM Atom Type: <input type="text" id="qmatomtype'+i+'" name="qmatomtype' + i + '" size=5> </td></tr><tr><td>MMHost '+tempi+'.</td><td> MM SEGID: <select size="1" name="linkmmsegid' + i +'">' + optionvalues + '</select> </td><td>MM RESID:<input type="text" id="linkmm'+i+'" name="linkmm'+i+'" size=4></td><td> MM Atom Type: <input type="text" id="mmatomtype'+i+'" name="mmatomtype' + i + '" size=5> </td></tr>';
- }
-  text= text + '</td></tr></table>';
-  document.getElementById(div_id).innerHTML = text;
 }
 
 //makes a unique div by appending the tabId
@@ -1358,7 +1299,8 @@ function doDDJobDetailsOnLoad(job_id){
         
 function getCheckedDSFLigands()
 {
-    var nodes=document.getElementsByName("ligandsinsidediv")[0].childNodes;
+//    var nodes=document.getElementsByName("ligandsinsidediv")[0].childNodes; 
+    var nodes = $("#ligandsinsidediv")[0].childNodes;
     var checkedvalues="";
     for(i = 0;i < nodes.length;++i)
 	if(nodes[i].id=="availableconformationsinsidediv"){

@@ -1,19 +1,17 @@
 {% extends "html/skeleton.html" %}
-
 {% block content %}
-<div id="mainpage" align="center">
-<h2>Ligand Upload</h2>
-All Fields are Required
-<link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+<div id="mainpage" style="margin-left:auto;margin-right:auto">
+<h2 class="center_header">Ligand Upload</h2>
+<p style="text-align:center">All Fields are Required</p>
      <form id='submit_structure' enctype="multipart/form-data" method="post" action="/charmming/dd_substrate/ligandfileupload/">
-      <fieldset class="structure">
+      <fieldset class="structure" style="margin-left:auto;margin-right:auto">
          <legend class="login">Submit Structure</legend>
             
 		<div id='ligand_upload' style="display:block">
 		<p>
-		<table width="100%">
-		<tr><td><label for="id_ligand"> Ligand File<br> (mol2 format) </label></td><td> {{ form.ligand_file }} {{ form.ligand_file_file }}</td></tr>
-                <tr><td colspan="2" align="center">
+		<table style="width:100%;margin-left:auto;margin-right:auto">
+		<tr><td>Ligand File<br> (mol2 format)</td><td> {{ form.ligand_file }} {{ form.ligand_file_file }}</td></tr>
+                <tr><td colspan="2" style="text-align:center">
                       Choose atomtyping option:<br>
                       <select name="tpmeth">
                         <option value="autogen">Attempt to automatically generate parameters</option>
@@ -33,7 +31,7 @@ All Fields are Required
 		<div id='ligand_draw' style="display:none">
 
             	</div>
-		<table><tr><td><label for="ligandname"> File Description </label></td><td><input type="text" name="filedesc" id="filedesc"></input></td></tr></table>
+		<table><tr><td><label for="filedesc"> File Description </label></td><td><input type="text" name="filedesc" id="filedesc"></td></tr></table>
 <!--		<div id='new_existing' style="display:none">
 		<font size="3">Is this new or existing ligand?<br></font>
 		<font size="2">New<input type="radio" name="new_existing_option" id="new_ligand" value="new_ligand" onclick="LoadNewLigand()">
@@ -41,10 +39,10 @@ All Fields are Required
 	 	</font>
 		</div>
 -->
-		<div id='newliganddiv' name='newliganddiv' style="display:block">
+		<div id='newliganddiv' style="display:block">
 		  <table>
-                     <tr><td><label for="pdbcode"> Ligand PDB Code </label></td><td><input type="text" name="pdbcode" id="id_pdbcode"></input></td></tr>
-		     <tr><td><label for="ligandname"> Ligand Name </label></td><td><input type="text" name="ligandname" id="ligandname"></input></td></tr>
+                     <tr><td><label for="id_pdbcode"> Ligand PDB Code </label></td><td><input type="text" name="pdbcode" id="id_pdbcode"></td></tr>
+		     <tr><td><label for="ligandname"> Ligand Name </label></td><td><input type="text" name="ligandname" id="ligandname"></td></tr>
 		     <tr><td><label for="liganddescription"> Ligand Description </label></td><td><textarea name="liganddescription" id="liganddescription" rows="3" cols="50"></textarea></td></tr>
 		  </table>
 		</div>
@@ -56,10 +54,10 @@ All Fields are Required
       </fieldset>
 
       <hr>
-     <div name="savedrawing" id="savedrawing">
+     <div id="savedrawing">
      </div>
      
-      <div id="file_button" style="display:block"><input type="submit" id="btn_file" value="Submit Structure File"></div>
+      <div id="file_button" style="display:block;text-align:center"><input type="submit" id="btn_file" value="Submit Structure File"></div>
             
    </form>
 </div>

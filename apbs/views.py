@@ -21,8 +21,9 @@ import django.shortcuts, django.http, django.template.loader, django.template
 import minimization.views, input, output, apbs
 import charmming_config, output, scheduler
 from  apbs import redox_mod
-from django.http import HttpResponse
-from structure.models import Structure, WorkingStructure, Task
+from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib import messages
+from structure.models import Structure, WorkingStructure, Task, CGWorkingStructure
 from apbs.models import redoxTask
 from apbs import redox_mod
 from pychm.lib.mol import Mol
@@ -36,13 +37,27 @@ def redoxformdisplay(request):
 
     #chooses the file based on if it is selected or not
     try:
-         struct = Structure.objects.filter(owner=request.user,selected='y')[0]
+        struct = Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
-         return output.returnSubmission("Oxidationb/reduction", error="Please submit a structure first.")
+        messages.error(request, "Please submit a structure first.")
+        return HttpResponseRedirect("/charmming/fileupload/")
+#         return output.returnSubmission("Oxidationb/reduction", error="Please submit a structure first.")
     try:
          ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
-        return output.returnSubmission("Oxidation/reduction", error="Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+        messages.error(request, "Please build your structure first.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+#       return output.returnSubmission("Oxidation/reduction", error="Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
+
+    try:
+        cgws = CGWorkingStructure.objects.get(workingstructure_ptr=ws.id)
+        messages.error(request, "Coarse-grain models are not supported for redox calculations. If you wish to perform redox calculations, please build a structure with the CHARMM all-atom model.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+    except CGWorkingStructure.MultipleObjectsReturned:
+        messages.error(request, "There is more than one CGWorkingStructure attached to your current Working Structure. Please report this bug and rebuild your structure.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+    except:
+        pass
 
     tmpfp = open(struct.pickle, 'r')
     pdb = cPickle.load(tmpfp)
@@ -330,7 +345,7 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout,redoxSite):
 
     # step 2: use dxmath to generate the final grids
     td['dxmath_inp'] = []
-    td['dxmath'] = '%s/apbs-1.1.0/tools/mesh/dxmath' % charmming_config.data_home
+    td['dxmath'] = '%s/apbs-1.1.0/share/tools/mesh/dxmath' % charmming_config.data_home
     for axis in ["x", "y", "z"]:
         dxmath_scr = "combo.%s" % axis
         fp = open(workstruct.structure.location + '/' + dxmath_scr, 'w')

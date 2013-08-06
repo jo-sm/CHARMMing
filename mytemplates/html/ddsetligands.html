@@ -1,40 +1,31 @@
-<html>
-<head>
-  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
-  <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
-  <script type="text/javascript" src="/charmming/js/custom.js"> </script>
-	 <script type="text/javascript">
-
-
-       
-</script>
-</head>
-<body>
-
-<table class="sortable" width="100%" border="0">
-<tr><td colspan="4"><font size="2">Ligands: {{ ligandcount }}</font></td>
-  <tr><th align="left" width="50"><input id="setcheckall" type="checkbox" name="setcheckall" onclick='LigandSet_SetCheckUncheck();'/></th><th align="left" width="300">Ligand Name</th><th align="left" width="300">Ligand Description</th><th align="center">View in JSmol</th><th align="center">View in GLmol</th></tr>
+<table class="sortable" style="width:100%">
+<tr><td colspan="4"><p class="fontsmall">Ligands: {{ ligandcount }}</p></td>
+  <tr><th style="text-align:left;width:50px"><input id="setcheckall" type="checkbox" name="setcheckall" onclick='LigandSet_SetCheckUncheck();'/></th>
+    <th style="text-align:left;width:230px">Ligand Name</th>
+    <th style="text-align:left;width:580px">Ligand Description</th>
+    <th style="text-align:center;width:100px">View in JSmol</th>
+    <th style="text-align:center;width:100px">View in GLmol</th></tr>
 </table>
-<div name="setligandsinsidediv" id="setligandsinsidediv" style="overflow:auto;width:99%;height:155px;border:0px solid #336699;padding-left:5px;text-align:left">
-<table class="sortable" width="100%" border="0">
+<div id="setligandsinsidediv" style="overflow:auto;width:99%;height:155px;border:0px solid #336699;padding-left:5px;text-align:left">
+<table class="sortable">
 {% for setligand in setligands %}
 <tr>
-  <td width="50"><input id="set_ligand_id" type="checkbox" name="set_ligand_id" value="{{ setligand.ligandsetid}}"/></td>
-  <td width="300"><font size="2">{{ setligand.name}}</font></td>
-  <td width="300" align="left"><font size="2">{{ setligand.description }}</font></td>
-  <td align="center">
+  <td style="width:30px"><input id="set_ligand_id_{{setligand.ligandsetid}}" type="checkbox" name="set_ligand_id" value="{{ setligand.ligandsetid}}"/></td>
+  <td style="width:220px"><p class="fontsmall">{{ setligand.name}}</p></td>
+  <td style="width:650px"><p class="fontsmall">{{ setligand.description }}</p></td>
+  <td style="text-align:center;width:50px">
 {% if setligand.file_id == 0 %}
 ---
 {% else %}
  <a href="#" onclick="window.open('/charmming/dd_substrate/viewligandjmol/{{setligand.file_id}}/', 'View Ligand', 'height=700, width=700');">View</a>
 {% endif %}
 </td>
-  <td align="center">
+  <td style="text-align:center;width:50px">
 {% if setligand.file_id == 0 %}
 ---
 {% else %}
 
-  <td align="center"><a href="#" onclick="window.open('/charmming/dd_substrate/viewligandglmol/{{setligand.file_id}}/', 'View Ligand', 'height=700, width=700');">View</a>
+  <td style="text-align:center"><a href="#" onclick="window.open('/charmming/dd_substrate/viewligandglmol/{{setligand.file_id}}/', 'View Ligand', 'height=700, width=700');">View</a>
 {% endif %}
 </td>
 </tr>
@@ -42,5 +33,3 @@
 
 </table>
 </div>
-</body>
-</html>

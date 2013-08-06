@@ -32,7 +32,7 @@ MANAGERS = ADMINS
 DATABASE_ENGINE = 'mysql' # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
 DATABASE_NAME = 'charmming'             # Or path to database file if using sqlite3.
 DATABASE_USER = 'charmming'         # Not used with sqlite3.
-DATABASE_PASSWORD = 'charmming'         # Not used with sqlite3.
+DATABASE_PASSWORD = 'qwerty'         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
@@ -56,11 +56,11 @@ USE_I18N = False
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = '/home/pdb_uploads'
+MEDIA_ROOT = '/home/schedd'
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
-MEDIA_URL = '/charmming/pdbuploads/'
+MEDIA_URL = '/charmming/schedd/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -104,6 +104,10 @@ INSTALLED_APPS = (
     'account',
     'analysis',
     'apbs',
+    'dd_analysis',
+    'dd_infrastructure',
+    'dd_substrate',
+    'dd_target',
     'dynamics',
     'lessons',
     'ligdes',
@@ -112,8 +116,10 @@ INSTALLED_APPS = (
     'normalmodes',
     'selection',
     'solvation',
+    'statistics',
     'structure',
     'solvation',
+    'toppar',
     'trajanal',
 )
 

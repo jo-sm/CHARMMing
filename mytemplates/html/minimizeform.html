@@ -2,6 +2,7 @@
 
 {% block content %}
 <div id="mainpage">
+  <script type="text/javascript" src="/charmming/js/selection.js"></script>
   <h1 class="center_header">Minimize</h1>
   <hr class="noshade_hr">
   <form id="min_form" method="post"  action=".">
@@ -35,30 +36,29 @@ This is vestigial code I hope. -->
          <hr class="noshade-hr">
 
          <h2  class="center_header">Other options</h2>
-         <table class="qm_table" style="text-align:center">
-           <tr><td><p class="fonrmed">Use QM/MM calculations<input id="useqmmm" type="checkbox" name="useqmmm" onclick="showHideQM();"></td></tr>
-                {% include "html/qmmm_params.html" %}
-           <tr><td><p class="fontmed">Use Periodic Boundary Conditions (PBC) in minimization<input id="usepbc" type="checkbox" name="usepbc"></td></tr>
-           <tr><td><p class="fontmed">Minimize only hydrogens (fix non-hydrogens)<input id="fixnonh" type="checkbox" name="fixnonh"></td></tr>
-           <tr><td><p class="fontmed">Apply patch<input id="usepatch" type="checkbox" name="usepatch" onclick="checkPatch(makeUniqueDiv('usepatch'),makeUniqueDiv('patch_area'));"></td></tr>
-         </table>
+        {% if not cg_model %}
+        <p class="fontmed">Use Multi-Scale modeling<input id="useqmmm" type="checkbox" name="useqmmm" onclick="showHideQM();"></p>
+            {%comment%}For future devs confused at our choice of id/name - this used to be "Use QM/MM calculations". Feel free to replace all instances of "useqmmm" in the code.
+            I'm not doing that until I'm done with my current work, and that may likely not happen.
+            ~VS{%endcomment%}
+            <table class="qm_table">
+              {% include "html/qmmm_params.html" %}
+            </table>
+            <p class="fontmed">Use Periodic Boundary Conditions (PBC) in minimization<input id="usepbc" type="checkbox" name="usepbc"></p>
+            <p class="fontmed">Minimize only hydrogens (fix non-hydrogens)<input id="fixnonh" type="checkbox" name="fixnonh"></p>
+            <p class="fontmed">Apply patch<input id="usepatch" type="checkbox" name="usepatch" onclick="checkPatch(makeUniqueDiv('usepatch'),makeUniqueDiv('patch_area'));"></p>
+        {%endif%}
 
-         <table class="qm_table" style="text-align:center">
-           <tr><td><p class="fontmed">Use restraints<input type="checkbox" id="use_restraints" name="apply_restraints" onclick="checkRestraints(makeUniqueDiv('use_restraints'),makeUniqueDiv('apply_restraints'));"></td></tr>
-          <tr><td>
+        <p class="fontmed">Use restraints<input type="checkbox" id="use_restraints" name="apply_restraints" onclick="checkRestraints(makeUniqueDiv('use_restraints'),makeUniqueDiv('apply_restraints'));"></p>
            <div id="apply_restraints" style="display:none">
-              <p class="fontmed">Enter number of separate minimizations that will use restraints:<input type="text" size="4" id="num_restraints" name="num_restraints" onkeyup="writeRestraintLines('restraint_lines');"><br>
+             <p class="fontmed">Enter number of separate minimizations that will use restraints:<input type="text" size="4" id="num_restraints" name="num_restraints" onkeyup="writeRestraintLines('restraint_lines');"></p><br>
               <div id='restraint_lines'></div>
               </div>
-          </td></tr>
-          <tr><td><p class="fontmed">Use shake<input type="checkbox" id="use_shake" name="apply_shake" onclick="checkShake(makeUniqueDiv('use_shake'),makeUniqueDiv('apply_shake'));" checked></p></td></tr>
-          <tr><td>
+          <p class="fontmed">Use shake<input type="checkbox" id="use_shake" name="apply_shake" onclick="checkShake(makeUniqueDiv('use_shake'),makeUniqueDiv('apply_shake'));" checked></p>
            <div id="apply_shake" class="fontmed" style="display:block">
               {% include 'html/shake_params.html' %}
             </div>
-            </td></tr>
-           <tr><td><p class="fontmed">Solvate implicitly with SCPISM<input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></td></tr>
-         </table>
+            <p class="fontmed">Solvate implicitly with SCPISM<input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></p>
          <hr class="noshade_hr">
          <br/>
          <br />

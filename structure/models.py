@@ -22,6 +22,7 @@ from django.db import models
 from django import forms
 from django.contrib.auth.models import User
 from django.core.mail import mail_admins
+from django.db import transaction
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from normalmodes.aux import parseNormalModes, getNormalModeMovieNum
@@ -39,7 +40,8 @@ import pychm.future.lib.toppar as pychm_toppar
 from pychm.future.io.charmm import open_rtf, open_prm
 from pychm.io.mol2 import MOL2File
 from tempfile import NamedTemporaryFile
-import openbabel
+import openbabel, fcntl, datetime
+import statistics.models
 
 class Structure(models.Model):
 
@@ -268,13 +270,15 @@ class Segment(models.Model):
             self.default_patch_last = 'NONE'
         self.save()
 
-    def getProtonizableResidues(self,model=None):
+    def getProtonizableResidues(self,model=None,pickleFile=None):
         """
         Returns tuples of information. ToDo: Document this!!!
         """
-
-        pfp = open(self.structure.pickle, 'r')
-        pdb = cPickle.load(pfp)
+        if not pickleFile:
+            pfp = open(self.structure.pickle, 'r')
+            pdb = cPickle.load(pfp)
+        else:
+            pdb = pickleFile
 
         if not model: 
             mol = pdb.iter_models().next() # grab first model
@@ -286,6 +290,9 @@ class Segment(models.Model):
         # the moment, but it may not matter too much since the
         # residue sequence tends not to change between models, just
         # the atom positions.
+        # The atoms DO change after a build, however. But at most of the places where
+        # this function gets called, this is irrelevant since 
+        # we haven't built yet
 
         found = False
         for s in mol.iter_seg():
@@ -312,8 +319,8 @@ class Segment(models.Model):
                 rarr.append((self.name,m.resid,[('glu','-1 charged glutamic acid'),('glup','Neutral glutamic acid')],m.resid0))
             if nm in ['lys','lsn']:
                 rarr.append((self.name,m.resid,[('lys','+1 charged Lysine'),('lsn','Neutral Lysine')],m.resid0))
-
-        pfp.close()
+        if not pickleFile:
+            pfp.close()
         return rarr
 
     @property
@@ -435,48 +442,6 @@ class WorkingSegment(Segment):
                     outfp = open(filename_sdf, 'w')
                     outfp.write(sdf_file)
                     outfp.close()
-                #If you can't find it in PDB.org do the conversion
-                        ## Covert sdf to pdb so atom names map ...
-                        ##os.system("babel --title %s -isdf %s -opdb %s" % (residue.resName,filename_sdf,filename_pdb))
-                        ##tmpmol = pychm.io.pdb.get_molFromPDB(filename_pdb)
-                        ##for ta in tmpmol:
-                         ##    master_mol.append(ta)
-
-                        ## BTM 20130213 -- With Lee's new workflow, I think that we can just dispense
-                        ## with this whole bunch of logic. Each individual toppar-making mechanism will decide
-                        ## for itself what it wants to do with the SDF file.
-
-                        #pdb_rewrite = self.structure.location + '/segment-' + seg.segid + '.pdb'
-                        #os.system("babel --title %s -isdf %s -omol2 %s" % (residue.resName,filename_sdf,filename_h))
-                        #os.system("sed -i.bak -e 's/LIG1/HET%d/' %s" % (btmcount,filename_h))
-
-                        # try to convert the names in the MOL2 to match those in the PDB.
-
-                        # BTM -- is this even necessary at the moment? Will the rename_dupes stuff I've been working
-                        # on fix this?
-                        #pdbmol = pychm.io.pdb.get_molFromPDB(self.structure.location + '/segment-' + self.name + '.pdb')
-                        #mymol2 = MOL2File(filename_h)
-                        #molmol = mymol2.mol
-
-                        #mylogfp.write('Lengths: pdbmol %d molmol %d\n' % (len(pdbmol),len(molmol))
-                        #mylogfp.flush()
-
-                        #j = 0
-                        #for i, pdbatom in enumerate(pdbmol):
-                        #    if pdbatom.resName != residue.resName.lower():
-                        #        continue
-                        #    if pdbatom.atomType.startswith('H'):
-                        #        break
-                        #    molatom = molmol[j]
-                        #    j = j + 1
-
-                        #    # This is for debug purposes only
-                        #    if pdbatom.atomType.strip()[0] != molatom.atomType.strip()[0]:
-                        #        raise(Exception('Mismatched atom types'))
-                        #    molatom.atomType = pdbatom.atomType.strip()
-                        #molmol.write(filename_h, outformat='mol2', header=mymol2.header, bonds=mymol2.bonds)
-
-                        ##os.system("babel --title %s -isdf %s -opdb %s" % (residue.resName,filename_sdf,pdb_rewrite))
                 else:
                     mylogfp.write('No: use PDB\n')
                     mylogfp.flush()
@@ -501,15 +466,24 @@ class WorkingSegment(Segment):
     def build(self,mdlname,workstruct):
         template_dict = {}
 
+        logfp = open('/tmp/debug1.txt','w')
+        logfp.write('model name = %s\n' % mdlname)
+
         # write out the PDB file in case it doesn't exist
         fp = open(self.structure.pickle, 'r')
         mol = (cPickle.load(fp))[mdlname]
+        logfp.write('string of mol = %s\n' % str(mol))
         for s in mol.iter_seg():
             if s.segid == self.name:
+                logfp.write('string of seg %s = %s\n' % (s.segid,str(s)))
+                
                 fname = self.structure.location + "/" + "segment-" + self.name + ".pdb"
                 s.write(fname, outformat="charmm")
                 template_dict['pdb_in'] = fname
                 break
+
+        logfp.close()
+        os.system('cat %s >> /tmp/debug1.txt' % fname)
 
         # see if we need to build any topology or param files
         if self.type == 'bad':
@@ -667,6 +641,9 @@ class WorkingSegment(Segment):
             # The following nasty crap attempts to make the names in the MOL2 file the same as those
             # in the PDB.
             pdbmol = pychm.io.pdb.get_molFromPDB(self.structure.location + '/segment-' + self.name + '.pdb')
+
+            # BTM: 20130701 -- deal with the fact that there might be duplicate copies
+            # of the ligand
             firstres = pdbmol[0].resid
             pdbmol = [atom for atom in pdbmol if atom.resid == firstres]
             mymol2 = MOL2File(filename_mol2)
@@ -685,8 +662,8 @@ class WorkingSegment(Segment):
                 j = j + 1
 
                 # This is for debug purposes only
-                if pdbatom.atomType.strip()[0] != molatom.atomType.strip()[0]:
-                    raise(Exception('Mismatched atom types'))
+                ##if pdbatom.atomType.strip()[0] != molatom.atomType.strip()[0]:
+                ##    raise(Exception('Mismatched atom types'))
                 molatom.atomType = pdbatom.atomType.strip()
 
             molmol.write(filename_mol2, outformat='mol2', header=mymol2.header, bonds=mymol2.bonds)
@@ -1150,6 +1127,8 @@ class WorkingSegment(Segment):
 # The idea is that the WorkingStructure class will hold structures that
 # are ready to be run through minimization, dynamics, etc.
 class WorkingStructure(models.Model):
+    locked = models.BooleanField(default=False) #This keeps track of whether this WS' task statuses are currently being updated
+
     structure = models.ForeignKey(Structure)
     identifier = models.CharField(max_length=20,default='')
 
@@ -1178,6 +1157,7 @@ class WorkingStructure(models.Model):
     # extra setup stream files that are needed (useful for BLN model
     # and possibly elsewhere)
     extraStreams = models.CharField(max_length=120,null=True)
+
 
     @property
     def dimension(self):
@@ -1216,6 +1196,13 @@ class WorkingStructure(models.Model):
         logfp.close()
 
         return((xmax-xmin,ymax-ymin,zmax-zmin))
+
+    def lock(self):
+        self.locked = True
+        super(WorkingStructure,self).save()
+    def save(self):
+        self.locked = False
+        super(WorkingStructure,self).save() #This way it unlocks on save
 
     def associate(self,structref,segids,tpdict):
         """
@@ -1286,6 +1273,10 @@ class WorkingStructure(models.Model):
         orderseglist.extend(list(self.segments.filter(type__in=['rna','dna'])))
         orderseglist.extend(list(self.segments.filter(type='good')))
         orderseglist.extend(list(self.segments.filter(type='bad')))
+
+        ## These are special cases for CG models
+        orderseglist.extend(list(self.segments.filter(type='go')))
+        orderseglist.extend(list(self.segments.filter(type='bln')))
 
         logfp = open('/tmp/ordersegs.txt','w')
         for segobj in orderseglist:
@@ -1454,8 +1445,10 @@ class WorkingStructure(models.Model):
         # appending is a special case, since it doesn't exist as a task unto
         # itself. So if the structure is not built, we should check and see
         # whether or not that happened.
+
         if self.isBuilt != 't':
             # check if the PSF and CRD files for this structure exist
+            #If build did not complete, we need to report as failed
             try:
                 os.stat(self.structure.location + '/' + self.identifier + '-build.psf')
                 os.stat(self.structure.location + '/' + self.identifier + '-build.crd')
@@ -1472,48 +1465,108 @@ class WorkingStructure(models.Model):
                 buildtask = Task.objects.get(workstruct=self,finished='n',action='build')
 
                 wfinp = WorkingFile()
-                wfinp.task = buildtask
-                wfinp.path = loc + '/' + bnm + '-build.inp'
-                wfinp.canonPath = wfinp.path
-                wfinp.type = 'inp'
-                wfinp.description = 'Build script input'
-                wfinp.save()
+                path = loc + '/' + bnm + '-build.inp'
+                try:
+                    wftest = WorkingFile.objects.get(task=buildtask,path=path)
+                    #If there is NOT a WorkingFile at this path associated to THIS task, keep going, otherwise don't create another one in the DB
+                    #Since the ID is unique you'll end up with several copies of the same file
+                except:
+                    wfinp.task = buildtask
+                    wfinp.path = path
+                    wfinp.canonPath = wfinp.path
+                    wfinp.type = 'inp'
+                    wfinp.description = 'Build script input'
+                    wfinp.save()
 
                 wfout = WorkingFile()
-                wfout.task = buildtask
-                wfout.path = loc + '/' + bnm + '-build.out'
-                wfout.canonPath = wfout.path
-                wfout.type = 'out'
-                wfout.description = 'Build script output'
-                wfout.save()
+                path = loc + '/' + bnm + '-build.out'
+                try:
+                    wftest = WorkingFile.objects.get(task=buildtask,path=path)
+                except:
+                    wfout.task = buildtask
+                    wfout.path = path
+                    wfout.canonPath = wfout.path
+                    wfout.type = 'out'
+                    wfout.description = 'Build script output'
+                    wfout.save()
 
                 wfpsf = WorkingFile()
-                wfpsf.task = buildtask
-                wfpsf.path = loc + '/' + bnm + '-build.psf'
-                wfpsf.canonPath = wfpsf.path
-                wfpsf.type = 'psf'
-                wfpsf.description = 'Build script PSF'
-                wfpsf.save()
+                path = loc + '/' + bnm + '-build.psf'
+                try:
+                    wftest = WorkingFile.objects.get(task=buildtask,path=path)
+                except:
+                    wfpsf.task = buildtask
+                    wfpsf.path = loc + '/' + bnm + '-build.psf'
+                    wfpsf.canonPath = wfpsf.path
+                    wfpsf.type = 'psf'
+                    wfpsf.description = 'Build script PSF'
+                    wfpsf.save()
 
                 wfpdb = WorkingFile()
-                wfpdb.task = buildtask
-                wfpdb.path = loc + '/' + bnm + '-build.pdb'
-                wfpdb.canonPath = wfpdb.path
-                wfpdb.type = 'pdb'
-                wfpdb.description = 'Build script PDB'
-                wfpdb.save()
+                path = loc + '/' + bnm + '-build.pdb'
+                try:
+                    wftest = WorkingFile.objects.get(task=buildtask,path=path)
+                except:
+                    wfpdb.task = buildtask
+                    wfpdb.path = loc + '/' + bnm + '-build.pdb'
+                    wfpdb.canonPath = wfpdb.path
+                    wfpdb.type = 'pdb'
+                    wfpdb.description = 'Build script PDB'
+                    wfpdb.save()
 
                 wfcrd = WorkingFile()
-                wfcrd.task = buildtask
-                wfcrd.path = loc + '/' + bnm + '-build.crd'
-                wfcrd.canonPath = wfcrd.path
-                wfcrd.type = 'crd'
-                wfcrd.pdbkey = 'append_' + self.identifier
-                wfcrd.description = 'Build script CRD'
-                wfcrd.save()
+                path = loc + '/' + bnm + '-build.crd'
+                try:
+                    wftest = WorkingFile.objects.get(task=buildtask,path=path)
+                except:
+                    wfcrd.task = buildtask
+                    wfcrd.path = loc + '/' + bnm + '-build.crd'
+                    wfcrd.canonPath = wfcrd.path
+                    wfcrd.type = 'crd'
+                    wfcrd.pdbkey = 'append_' + self.identifier
+                    wfcrd.description = 'Build script CRD'
+                    wfcrd.save()
+                logfp = open("/tmp/fail_build.txt","w")
+                inp_file = loc + "/" + bnm + "-build.psf"
+                out_file = inp_file.replace("psf","pdb")
+                cgws = False
+                try:
+                    cgws = CGWorkingStructure.objects.get(workingstructure_ptr=buildtask.workstruct.id)
+                except:
+                    pass
+                PDB_bond_built = 42 #arbitrary non-Boolean value
+                try:
+                    logfp.write(inp_file + "\t" + out_file + "\n")
+                    logfp.flush()
+                except Exception as ex:
+                    logfp.write(str(ex) + "\n")
+                    logfp.flush()
+                logfp.write(str(cgws != False) + "\n")
+                logfp.flush()
+                if cgws != False:
+                    try:
+                        PDB_bond_built = cgws.addBondsToPDB(inp_file,out_file) #This is highly unlikely to fail, but just in case...
+                    except Exception as ex:
+                        logfp.write(str(ex) + "\n")
+                        logfp.flush()
 
-                buildtask.status = 'C'
+                logfp.write(str(PDB_bond_built))
+                if not (PDB_bond_built == 42 or PDB_bond_built == True): #Bad coordinates were generated for a CG model.
+                    logfp.write(str(PDB_bond_built) + "\n")
+                    logfp.flush()
+                    buildtask.status = 'F'
+                else:
+                    buildtask.status = 'C'
+                logfp.close()
+                buildtask.finished = 'y'
                 buildtask.save()
+                datapoint = statistics.models.DataPoint()
+                datapoint.task_id = int(buildtask.id)
+                datapoint.task_action = str(buildtask.action) #Make these into primitives so it doesn't try to foreign key them, just in case
+                datapoint.user = str(buildtask.workstruct.structure.owner.username)
+                datapoint.structure_name = str(buildtask.workstruct.structure.name)
+                datapoint.success = True if buildtask.status == 'C' else False
+                datapoint.save()
 
               
         tasks = Task.objects.filter(workstruct=self,active='y',finished='n')
@@ -1529,6 +1582,20 @@ class WorkingStructure(models.Model):
             t.query()
 
             if t.status == 'C' or t.status == 'F':
+                self.lock() #updates locked field and prevents this code from executing more than once at a time
+#                lockfile = '/tmp/lockfile-%d-%s' % (t.id,t.workstruct.structure.owner)
+#                try: #If it exists, stop. This prevents multiple file
+#                    if os.stat(lockfile).st_size > 0:
+#                        continue
+#                except:
+#                    lockfp = open(lockfile,'a') #Should work even if it doesn't exist
+#                    lockfp.write(str(os.getpid()) + "\n" + str(datetime.datetime.now()) + "\n")
+#                    lockfp.flush()
+#                try:
+#                    fcntl.lockf(lockfp,fcntl.LOCK_EX | fcntl.LOCK_NB)
+#                except IOError, e:
+#                    continue
+
                 if t.action == 'minimization':
                     t2 = minimization.models.minimizeTask.objects.get(id=t.id)
                     if lesson_obj: lessonaux.doLessonAct(self.structure,"onMinimizeDone",t)
@@ -1556,9 +1623,18 @@ class WorkingStructure(models.Model):
                 else:
                     t2 = t
 
-                t2.finish()
+                t.finished  = 'y'
+                t.save()
                 t2.finished = 'y'
+                t2.finish()
+                try:
+                    old_dp = statistics.models.DataPoint.objects.get(task_id=t2.id) #Avoids mysterious duplicates
+                except:
+                    t2.createStatistics() #In theory this is generic
                 t2.save()
+#                fcntl.lockf(lockfp,fcntl.LOCK_UN)
+#                lockfp.close()
+#                   Commented out regions above are old locking system. Will attempt new one.
 
                 #YP lessons status update                
                 #try:
@@ -1579,6 +1655,9 @@ class CGWorkingStructure(WorkingStructure):
     This is a special WorkingStructure type that is designed for coarse
     grained models. The main difference is how the associate routine
     works (since CG models are simple, we don't worry about patching).
+    We also implement a CONECT line generator such that bonding between
+    beads is accurately rendered by GLmol and JSmol.
+    Bead size will remain inaccurate.
     """
     pdbname = models.CharField(max_length=120) # holds the CG-ified PDB
     cg_type = models.CharField(max_length=10)
@@ -1719,6 +1798,106 @@ class CGWorkingStructure(WorkingStructure):
         """
         return ''
 
+    def addBondsToPDB(self, inp_file,out_file):
+        """
+        This method adds CONECT lines to the PDB file located at out_file
+        by looking at the bond information in the PSF file located at
+        inp_file.
+        This is done in a generic fashion such that it can be called
+        on the result of any task that generates a PDB that is done
+        on a CGWorkingStructure (which should be put into the
+        updateActionStatus() method in this file, as well as the build
+        routine.)
+        This procedure is derived from psf2connect.py, which is available
+        on the CHARMMing webroot.
+        This method returns True if successful, and an error message
+        otherwise.
+        This method should ONLY be called internally. Do not trust
+        user input with this method!
+        """
+        if not (out_file.endswith("pdb")):
+            return "out_file not a PDB file."
+        if not (inp_file.endswith("psf")):
+            return "inp_file not a PSF file."
+        #An alternate method for the subsequent is to read the whole file
+        #Then split at the indexes of "!NBOND" and "!NTHETA" and chop on newlines then.
+        bondlist = []
+        psf_file = open(inp_file,"r")
+        curr_line = psf_file.readline()
+        if not(curr_line.startswith('PSF')):
+            return "Malformed PSF."
+
+        junk = psf_file.readline() #second line is always blank, CHARMM std format
+        curr_line = psf_file.readline()
+        ntitle = int(curr_line.split()[0])
+        #format is 2 !NTITLE; 2 is the number of title lines.
+
+        for x in range(ntitle+1):
+            junk = psf_file.readline()
+        #Now we're at natom.
+        latom = psf_file.readline()
+        natom = int(latom.split()[0])
+
+        for x in range(natom+1):
+            junk = psf_file.readline()
+        lbond = psf_file.readline()
+        nbond = int(lbond.split()[0])
+        if nbond <= 0:
+            return "No bonds."
+
+        nbread = 0
+        while nbread < nbond:
+            line = psf_file.readline()
+            bond_array = line.split()
+            if len(bond_array) % 2 != 0:
+                return "Malformed bond at line " + nbread + " of NBOND."
+
+            for i in range(0,len(bond_array),2):
+                atom1, atom2 = int(bond_array[i]), int(bond_array[i+1])
+                if atom1 > natom or atom1 < 0:
+                    return "Bad atom number in NBOND, line " + nbread + "."
+                if atom2 > natom or atom2 < 0:
+                    return "Bad atom number in NBOND, line " + nbread + "."
+
+                if atom2 < atom1:
+                    atom1, atom2 = atom2, atom1
+                bondlist.append((atom1, atom2))
+
+            nbread += len(bond_array)/2
+        psf_file.close()
+        con_dict = {}
+
+        for bond in bondlist:
+            if bond[0] in con_dict.keys():
+                con_dict[bond[0]].append(bond[1])
+            else:
+                con_dict[bond[0]] = [bond[1],]
+        out_string = ""
+
+        for k in con_dict.keys():
+            out_string = out_string + "CONECT" + ' ' * (5 - len(str(k))) + str(k)
+            for x in con_dict[k]:
+                out_string = out_string + ' ' * (5 - len(str(x))) + str(x) #PDB format supports up to 4 digits.
+            out_string = out_string + "\n"
+        try:
+            pdb_file = open(out_file,"r")
+        except:
+            return "Could not find file."
+        old_pdb = pdb_file.read()
+        pdb_file.close()
+        old_pdb = old_pdb.replace("END\n","") #Remove last line
+        old_pdb = old_pdb + out_string + "END\n"
+        os.unlink(out_file) #This is done because otherwise django goes crazy about permissions
+        try:
+            pdb_file = open(out_file.replace("pdb","tmp"),"w")
+            pdb_file.write(old_pdb) #Write the result...
+        except Exception as ex:
+            return str(ex)
+        pdb_file.close() #Done.
+        os.rename(out_file.replace("pdb","tmp"),out_file)
+        os.chmod(out_file, 0664)
+        return True
+
 class Patch(models.Model):
     structure   = models.ForeignKey(WorkingStructure)
 
@@ -1749,6 +1928,7 @@ class Task(models.Model):
     scripts     = models.CharField(max_length=1024,null=True)
     active      = models.CharField(max_length=1)
     finished    = models.CharField(max_length=1)
+    modifies_coordinates = models.BooleanField(default=True) #this is to prevent energy/nmodes/etc. from showing up as "coordinates"
 
     @property
     def scriptList(self):
@@ -1764,12 +1944,24 @@ class Task(models.Model):
         logfp.write('In job start routine.\n')
 
         si = schedInterface()
-        if kwargs.has_key('altexe'):
+        if kwargs.has_key('mscale_job'):
+            logfp.write('Running MSCALE job.\n')
+            exedict = {}
+            nprocdict = {}
+            for inpscript in self.scriptList:
+                exedict[inpscript] = charmming_config.charmm_mscale_exe
+                nprocdict[inpscript] = charmming_config.default_mscale_nprocs
+            #TODO: Update this to interface with variable processor numbers!
+            logfp.write(str(exedict)+"\n")
+            logfp.write(str(nprocdict)+"\n")
+            self.jobID = si.submitJob(st.owner.id,st.location,self.scriptList,exedict=exedict,nprocdict=nprocdict,mscale=True)
+        elif kwargs.has_key('altexe'):
             logfp.write('Got alt exe.\n')
             exedict = {}
             for inpscript in self.scriptList:
                 exedict[inpscript] = kwargs['altexe']
             logfp.write('exedict = %s\n' % exedict)
+            logfp.flush()
             self.jobID = si.submitJob(st.owner.id,st.location,self.scriptList,exedict=exedict)
         else:
             logfp.write('No alt exe.\n')
@@ -1779,6 +1971,7 @@ class Task(models.Model):
             self.save()
             self.query()
         else:
+            test = self.jobID
             raise AssertionError('Job submission fails')
 
     def kill(self): 
@@ -1789,7 +1982,7 @@ class Task(models.Model):
             self.status = 'K'
 
     def query(self):
- 
+
         si = schedInterface()
         if self.jobID > 0:
             sstring = si.checkStatus(self.jobID).split()[4]
@@ -1809,6 +2002,19 @@ class Task(models.Model):
             return sstring
         else:
             return 'unknown'
+
+    def createStatistics(self):
+        """
+        Creates a statistics.models.DataPoint for the sake of keeping
+        track of statistics for the admin panel
+        """
+        datapoint = statistics.models.DataPoint()
+        datapoint.task_id = int(self.id)
+        datapoint.task_action = str(self.action) #Make these into primitives so it doesn't try to foreign key them, just in case
+        datapoint.user = str(self.workstruct.structure.owner.username)
+        datapoint.structure_name = str(self.workstruct.structure.name)
+        datapoint.success = True if self.status == 'C' else False
+        datapoint.save()
 
     def finish(self):
         """
@@ -1895,12 +2101,12 @@ class energyTask(Task):
 
     def finish(self):
         """test if the job suceeded, create entries for output"""
-
+        self.modifies_coordinates = False
         loc = self.workstruct.structure.location
         bnm = self.workstruct.identifier
-
+        basepath = loc + '/' + bnm + '-' + self.action #Let's make this all make sense...
         try:
-            os.stat(loc + '/' + bnm + '-ener.out')
+            os.stat(basepath + '.out')
         except:
             self.status = 'F'
             return
@@ -1908,27 +2114,34 @@ class energyTask(Task):
         # There's always an input file, so create a WorkingFile
         # for it.
         wfinp = WorkingFile()
-        wfinp.task = self
-        wfinp.path = loc + '/' + bnm + '-ener.inp'
-        wfinp.canonPath = wfinp.path
-        wfinp.type = 'inp'
-        wfinp.description = 'Energy input script'
-        wfinp.save()
-        logfp = open("/tmp/woof.txt","a+")
-        logfp.write(wfinp.description + "\n")
-        logfp.close()
+        path = basepath + ".inp"
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfinp.task = self
+            wfinp.path = path
+            wfinp.canonPath = wfinp.path #Change later
+            wfinp.type = 'inp'
+            wfinp.description = 'Energy input script'
+            logfp = open("/tmp/woof.txt","a+")
+            logfp.write(wfinp.description + "\n")
+            wfinp.save()
 
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
 
         wfout = WorkingFile()
-        wfout.task = self
-        wfout.path = loc + '/' + bnm + '-ener.out'
-        wfout.canonPath = wfout.path
-        wfout.type = 'out'
-        wfout.description = 'Energy output'
-        wfout.save()
+        path = basepath + ".out"
+        try:
+            wftest = WorkingFile.objects.get(task=self,path=path)
+        except:
+            wfout.task = self
+            wfout.path = path
+            wfout.canonPath = wfout.path
+            wfout.type = 'out'
+            wfout.description = 'Energy output'
+            wfout.save()
 
         if self.status == 'F':
             return

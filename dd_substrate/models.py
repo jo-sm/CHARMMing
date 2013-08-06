@@ -44,8 +44,8 @@ class fragments(models.Model):
 class fragment_sets(models.Model):
 
     owner = models.ForeignKey(User)
-    fragment_set_name = models.CharField(max_length=200) 
-    description = models.CharField(max_length=250,null=True, blank=True) 
+    fragment_set_name = models.CharField(max_length=200)
+    description = models.CharField(max_length=250,null=True, blank=True)
 
 
 class fragment_sets_fragments(models.Model):
@@ -59,37 +59,32 @@ class ligands(models.Model):
 
     owner = models.ForeignKey(User)
     ligand_owner_index = models.PositiveIntegerField(default=0)
-    ligand_name = models.CharField(max_length=200) 
-    description = models.CharField(max_length=250,null=True, blank=True) 
+    ligand_name = models.CharField(max_length=200)
+    description = models.CharField(max_length=250,null=True, blank=True)
     source = models.ForeignKey(dd_infrastructure.models.sources)
-
 
 class ligand_sets(models.Model):
 
     owner = models.ForeignKey(User)
     ligand_set_name = models.CharField(max_length=200) 
     description = models.CharField(max_length=250,null=True, blank=True)
-    public = models.CharField(max_length=1)
-     
-
+    public = models.CharField(max_length=1) 
 
 class ligand_sets_ligands(models.Model):
 
     owner = models.ForeignKey(User)
     ligands_set = models.ForeignKey(ligand_sets)
-    ligands = models.ForeignKey(ligands) 
+    ligands = models.ForeignKey(ligands)
 
 
 class poses(models.Model):
-    
     pose_object_table_name = models.CharField(max_length=100)
     pose_object_id = models.PositiveIntegerField(default=0)
     pose_name = models.CharField(max_length=200)
     description = models.CharField(max_length=250,null=True, blank=True)
     source = models.ForeignKey(dd_infrastructure.models.sources)
-   
+
 class poses_binding_sites(models.Model):
-    
     owner = models.ForeignKey(User)
     pose = models.ForeignKey(poses)
     binding_site = models.ForeignKey(get_model('dd_target', 'binding_sites'))

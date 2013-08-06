@@ -6,11 +6,11 @@ import lesson2
 import lesson3
 import lesson4
 import lesson5
-##import lesson6
+import lesson6
 
 # Lesson number list
-#lesson_num_lis = ['1','2','3','4','5','6']
-lesson_num_lis = ['1','2','3','4','5']
+lesson_num_lis = ['1','2','3','4','5','6']
+#lesson_num_lis = ['1','2','3','4','5']
 
 # The file type lessons need to upload
 file_type = {
@@ -18,6 +18,7 @@ file_type = {
     '2':'PDB',
     '3':'CUSTOM/SEQ',
     '4':'CRD',
+    '6':'PDB',
     '99':'CRD',
     '98':'CRD',
 }
@@ -29,7 +30,7 @@ lesson_txt = {
     '3':'Lesson Three',
     '4':'Lesson Four',
     '5':'Lesson Taco',
-    '6':'Lesson Five',
+    '6':'Lesson Six',
     '99':'Lesson 99',
     '98':'Lesson 98'
 }
@@ -40,4 +41,5 @@ lesson_desc = {
     '2':'Lesson Two will use a protein to demonstrate how a user can conduct computational chemistry.',
     '3':'Lesson Three will make the user create their amino acid, replicated 1YJP then running dynamics on it.',
     '4':'Put lesson description here.',
+    '6':'Lesson Six will show the user how to calculate the reduction potential of a [4Fe-4S]-containing protein.',
 }

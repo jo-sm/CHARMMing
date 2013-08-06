@@ -88,8 +88,8 @@ def build_ligand(request):
 #Ignore this, easier to do serverside check for that stuff
     #TODO: Add any other residues supported by CHARMM internally
     if request.POST: #Do stuff with the JSmol data if the POSTdata has some
-        os.chdir(filepath)
         postdata = request.POST
+        os.chdir(filepath)
         molname = postdata['LigName']
         moldata = postdata['molinfo']
         if 'attach_check' in postdata.keys():
@@ -100,19 +100,20 @@ def build_ligand(request):
 #        logfp.write(str(lines) + "\n\t")
         lines = lines.split("\\n")
 #        logfp.write(str(lines) + "\n\t")
-        tmpfile = open("moldata.pdb","w") #We use a single tempfile to avoid encoding issues.
+#        tmpfile = open("moldata.pdb","w") #We use a single tempfile to avoid encoding issues.
         end_data = ""
         for line in lines:
             if line.startswith("COMPND"):
                 line = "COMPND    LIGAND: " + molname + "\n"
             end_data += line + "\n"
-        tmpfile.write(end_data)
-        tmpfile.close()
+#        tmpfile.write(end_data)
+#        tmpfile.close()
+        end_data = end_data.encode("utf-8")
         obConversion = openbabel.OBConversion()
         obConversion.SetInFormat("pdb")
 #        obConversion.SetInAndOutFormats("mol", "pdb") #So we can write to file for PDBFile if this is successful
         mol = openbabel.OBMol()
-        obConversion.ReadFile(mol, "moldata.pdb")
+        obConversion.ReadString(mol, end_data)
         charge_model = openbabel.OBChargeModel.FindType("mmff94")
         charge_model.ComputeCharges(mol)
         partial_charges = charge_model.GetPartialCharges()
@@ -133,8 +134,10 @@ def build_ligand(request):
             test_query = len(Residue.objects.all())
             if test_query < 1:
                 write_toppar_info()
+                os.chdir(full_filepath)
         except: #There are no records for residues in the database, or something else went wrong, so make them
             write_toppar_info()
+            os.chdir(full_filepath)
         try:
             residue = Residue.objects.filter(residue_name=tdict['mol_short'])[0]
             tdict['messages'] = messages.get_messages(request)
@@ -216,7 +219,7 @@ def build_ligand(request):
                 woof = open(struct.pickle,"w")
                 cPickle.dump(fullpdb,woof) #we took the object, extended it, now we save
                 woof.close()
-                os.unlink("moldata.pdb")
+#                os.unlink("moldata.pdb")
 #                os.unlink("moldata.mol")
                 struct.save()
             else: #No structure, so we build one
@@ -262,7 +265,7 @@ def build_ligand(request):
                     pass
 
                 struct.selected = "y"
-                os.unlink("moldata.pdb")
+#                os.unlink("moldata.pdb")
 #                os.unlink("moldata.mol")
                 struct.save()
             return HttpResponseRedirect('/charmming/buildstruct/')

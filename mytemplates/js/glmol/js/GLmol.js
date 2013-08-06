@@ -255,7 +255,8 @@ GLmol.prototype.parsePDB2 = function(str) {
 	else if (line[0] == 'H' || line.substr(74, 2) == "BA" || line.substr(74, 2) == "GO"){
 		 hetflag = true;}  //Accounting for "BA" and "GO" differentiating protein from waters
          else if (line.substr(74, 2) == "PR"){  hetflag = false;}
-	 else{ hetflag = false; ionflag = true; elem = line.substr(72, 4).replace(/ /g, "");} 
+	 else{ hetflag = false; ionflag = true;// elem = line.substr(72, 4).replace(/ /g, "");
+  } 
          atoms[serial] = {'resn': resn, 'x': x, 'y': y, 'z': z, 'elem': elem,
   'hetflag': hetflag, 'chain': chain, 'resi': resi, 'serial': serial, 'atom': atom,
   'bonds': [], 'ss': 'c', 'color': 0xFFFFFF, 'bonds': [], 'bondOrder': [], 'b': b, 'solvflag':solvflag, 'ionflag':ionflag /*', altLoc': altLoc*/};
@@ -269,6 +270,7 @@ GLmol.prototype.parsePDB2 = function(str) {
 // MEMO: We don't have to parse SSBOND, LINK because both are also 
 // described in CONECT. But what about 2JYT???
          var from = parseInt(line.substr(6, 5));
+        console.log(from);
          for (var j = 0; j < 4; j++) {
             var to = parseInt(line.substr([11, 16, 21, 26][j], 5));
             if (isNaN(to)) continue;
@@ -1201,6 +1203,25 @@ GLmol.prototype.getIons = function(atomlist) {
    }
    return ret;
 };
+
+//Next two are for CG Models...careful with actual Boron/Sulfur!
+GLmol.prototype.getBackbone = function(atomlist){
+  var ret = [];
+  for (var i in atomlist) {
+    var atom = this.atoms[atomlist[i]]; if (atom == undefined) continue;
+    if (atom.elem == "B") ret.push(atom.serial);
+    }
+  return ret;
+}
+
+GLmol.prototype.getSidechain = function(atomlist){
+  var ret = [];
+  for (var i in atomlist){
+    var atom = this.atoms[atomlist[i]]; if (atom == undefined) continue;
+    if (atom.elem == "S") ret.push(atom.serial);
+    }
+  return ret;
+}
 
 GLmol.prototype.removeSolvents = function(atomlist) {
    var ret = [];

@@ -1,153 +1,188 @@
-<tr class="qmmm_params">
-<td>
 <hr style="width:70%">
-  Exchange: <select size="1" name="qmmm_exchange">
-              <option value="HF" selected>HF</option>
-              <option value="B">B</option>
-              <option value="B3">B3</option>
-            </select><br>
-<br />
-</td></tr>
-<tr class="qmmm_params">
-<td>
-  Charge: <select size="1" name="qmmm_charge">
-            <option value="-5"> -5 </option>
-            <option value="-4"> -4 </option>
-            <option value="-3"> -3 </option>
-            <option value="-2"> -2 </option>
-            <option value="-1"> -1 </option>
-            <option value="0" selected> 0 </option>
-            <option value="1"> +1 </option>
-            <option value="2"> +2 </option>
-            <option value="3"> +3 </option>
-            <option value="4"> +4 </option>
-            <option value="5"> +5 </option>
-          </select><br>
-          <br />
-          </td>
-          </tr>
-<tr class="qmmm_params">
-  <td>
-  Correlation: <select size="1" name="qmmm_correlation">
-                  <option value="None" selected>None</option>
-                  <option value="LYP">LYP</option>
-               </select><br>
-               <br />
-              </td>
-              </tr>
-<tr class="qmmm_params">
-  <td>
-  Basis Set: <select size="1" name="qmmm_basisset">
-                 <option value="STO-3G" selected>STO-3G</option>
-                 <option value="3-21G*">3-21G*</option>
-                 <option value="6-31G*">6-31G*</option>
-             </select><br>
-             <br />
-            </td>
-            </tr>
-<tr class="qmmm_params">
-  <td>
-  Multiplicity: <select size="1" name="qmmm_multiplicity">
-                  <option value="1" selected>1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                </select><br />
-              </td>
-              </tr>
-<tr class="qmmm_params">
-  <td>
-    <p class="fontmed">Define QM region: define qmregion sele <input type="text" id="qmsele" name="qmsele" {% if selectionstring %}value="{{selectionstring}}"{% endif %}> end</p><br />
-    </td>
-    </tr>
-<tr class="qmmm_params">
-  <td>
-    <button onclick="goto_atomselect();">Select atoms graphically</button>
-    </td>
-  </tr>
-  <tr class="qmmm_params">
-    <td>
-<p class="fontmed">Enter number of link atoms (entering 0 causes CHARMMing to automatically determine the link atoms): 
-<input type="hidden" value="" id="source" name="source">
-<input type="hidden" value="" id="task_id" name="task_id">
-</td></tr>
-<tr><td>
- <div id="dialog_coords_alert" title="No coordinates present.">
+<p class="model_selection">
+Model type:<br>
+<input type="radio" id="model_select_qmmm" name="model_selected" value="qmmm" onclick="$('.oniom_params').hide();generateParams('qmmm',1);"/>Additive model (QM/MM)<br>
+<input type="radio" id="model_select_oniom" name="model_selected" value="oniom" onclick="$('.qmmm_params').hide();$('.oniom_params').show();generateParams('oniom',2);"/>Subtractive model (ONIOM/MSCALE)<br>
+</p>
+<div class="oniom_params">
+<hr style="width:70%">
+<p>
+    Layers: <select size="1" id="oniom_layers" name="oniom_layers">
+      <option value="2" selected>2</option>
+      <option value="3">3</option>
+      {%comment%}Basically you pass in the same stuff as for qmmm_params but you need to repeat it once you have the layers...might be a long function.{%endcomment%}
+    </select>
+    </p>
+</div>
+    <div id="param_generate_script">
+      <script>
+      document.getElementById("oniom_layers").addEventListener('change',changeLayerBox);
+      var layers = 2;  
+
+      function changeLayerBox(){
+        if ($("#oniom_layers").attr('display') == 'none'){
+          layers = 1;
+          return false;
+        }else{
+          layers = parseInt($("#oniom_layers").val());
+          generateParams("oniom",layers);
+        }
+      }
+      
+function generateParams(modelType,layers){
+    //TODO: Fix writeLinkAtomLines so that it centers!
+    //We need to check whether qmmm_params is already there, then remove it if it is.
+    $(".qmmm_params").remove();
+    //Once qmmm_params is gone, we need to "spawn" the parameter HTML so the user can select.
+    //However, ".oniom_params" HTML can appear more than once. Therefore, we template it, then replace the string at points we need it to.
+    //The points where a replace should occur are labeled "numero" in the template. ".oniom_params" is a "magic" value.
+    //DO not change the magic value.
+    //You can now use a div. However, this works fine as is./MSC
+    //"numero" will either disappear, if you only have 2-layer MSCALE or regular additive model
+    //or it will become "_layer2" or "_layer1" for 3-layer MSCALE (since layer 3 is the whole atomset).
+    //".oniom_params" is infinitely scalable to as many layers and as many models as we want.
+    //However, please note that after 10 or so layers the site will look strange.
+    //It's guaranteed to be fast on most computers, though, since jQuery runs very, very quickly.
+    //Since you can include django stuff wherever you want, let's make it into a template, then run .replace() on the strings.
+    var numeroRegex = new RegExp("numero","g");
+    var qmmm_param_string = "{%spaceless%}{% include 'html/qmmm_atomselection.html' %}{%endspaceless%}";
+    var selection_button_string = "<button class='qmmm_params' onclick='goto_atomselect();'>Select atoms graphically</button>";
+    if(modelType == "qmmm"){ //We replace numero with blank
+      layers = 1;
+      var our_param_string = qmmm_param_string.replace(numeroRegex,"");
+      our_param_string = our_param_string.replace("modelo","qmmm");
+//      selection_button_string =  selection_button_string.replace("arfarf","qmmm");
+//      selection_button_string = selection_button_string.replace("woofwoof","1");
+      //Now we insert that HTML after ".oniom_params" div.
+      $(".oniom_params").after(our_param_string);
+      $(".oniom_params").after(selection_button_string);
+      $("#mm_box").remove();
+      $(".qmmm_params").show(); //Since the default style is display:none. ".oniom_params" means it doesn't get shown until loaded in.
+      //We're done.
+    }else if(modelType == "oniom"){ //Make sure to not use else - that leaves us open to lots of stuff.
+      var layer_string = "<h2 id='layer_numero_title' class='qmmm_params'>Layer numero</h2>"
+      if(layers < 2){
+        //Bring up an error message.
+        return false;
+      }
+      var current_layer = layers;
+      var current_layer_string = "";
+      //The following string gets included at the start of each layer
+      while (current_layer >= 1){ //No forloops allowed on ".oniom_params" site
+        current_layer_string = layer_string.replace(numeroRegex,current_layer);
+        var current_param_string = qmmm_param_string.replace(numeroRegex,"_layer_"+current_layer);
+        current_param_string = current_param_string.replace("modelo","oniom");
+//          selection_button_string =  selection_button_string.replace("arfarf","oniom");
+//          selection_button_string = selection_button_string.replace("woofwoof",layers.toString());
+        $(".oniom_params").after(current_param_string);
+        $('.oniom_params').after(current_layer_string);
+        if(current_layer == 1){
+          $("#mm_box_layer_"+current_layer).remove();
+          $("#layer_1_title").html("Layer 1 (innermost layer)");
+        }
+        if(current_layer == layers){
+          $("#layer_"+current_layer+"_title").html("Layer "+current_layer+" (whole system)");
+        }
+        //this will insert them in ascending order, since we start at the highest value then insert lower ones "on top"
+        current_layer = current_layer - 1;
+      }
+      $(".oniom_params").after(selection_button_string);
+      $(".qmmm_params").show();
+          
+      
+  }
+  }
+
+  </script>
+</div>
+<div id="dialog_coords_alert" title="No coordinates present.">
   <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
   Please perform at least one calculation on the full atom set before performing QM/MM level simulations.</p>
 </div>
-</td></tr>
-<tr><td>
-<script type="text/javascript"> 
-</script>
-</td></tr>
-<tr class="qmmm_params"><td>
-    <input type="text" name="num_linkatoms" id="num_linkatoms" value="0" size="4" onKeyUp="writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_linkatoms'),makeUniqueDiv('linkatom_lines'));">
-</td></tr>
-<tr class="qmmm_params"><td>
-    <div id="linkatom_lines"></div>
-</td></tr>
-<tr class="qmmm_params"><td>
-    <hr style="width:70%">
-</td></tr>
-<tr class="qmmm_params"><td>
-      <script>
-        
-  function showHideQM(){
-    if($("#useqmmm").is(":checked")){
-      $(".qmmm_params").show();
-      if ($("#usepbc").length > 0){
-        $("#usepbc").attr("disabled",true);
-        $("#usepbc").attr("checked",false); //just in case
-      }
-    }else{
-      $(".qmmm_params").hide();
-      if($("#usepbc").length > 0){
-        $("#usepbc").attr("disabled",false);
-      }
-    }
-  }
-  $(function($){
-        $( "#dialog_coords_alert").dialog({
-          resizable:false,
-          height:200,
-          width:600,
-          modal:true,
-          autoOpen:false,
-          buttons:{
-          "OK":function(){
-          $(this).dialog("close");
-          }
-        }
-      });
-    });
-</script>
+<div id="dialog_bad_params" title="Bad QM/MM parameteres">
+  <p><span class="ui-icon ui-icon-alert" style="float:left;margin:0 auto auto 0;"></span>
+  The QM/MM parameters from the selection page do not match our regular format. Please use the automated selection provided.
+  If you are seeing this message in error, please report this bug.</p>
+</div>
+<div style="display:none" id="other_inputs_and_functions">
+<input type="hidden" value="" id="source" name="source">
+<input type="hidden" value="" id="task_id" name="task_id">
+<input type="hidden" value="" id="highest_qm_layer" name="highest_qm_layer">
+</div>
 <div id="load_after_everything">
 
-{% if lonepairs %}{% comment %} You need one to submit the selection so this works great{%endcomment%}
+{% if lonepairs or oniom_selections %}{% comment %} You need one to submit the selection so this works great, though we still need to split on OniomSelections{%endcomment%}
 <script>
   $(document).ready(function(){
-    $("#num_linkatoms").val("{{num_linkatoms}}")
-    writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}',makeUniqueDiv('num_linkatoms'),makeUniqueDiv('linkatom_lines'));
-    {%for lonepair in lonepairs%}
-    $("#linkqm"+"{{lonepair.divid}}").val("{{lonepair.qmresid}}");
-    $("#linkmm"+"{{lonepair.divid}}").val("{{lonepair.mmresid}}");
-    $("#qmatomtype"+"{{lonepair.divid}}").val("{{lonepair.qmatomname}}");
-    $("#mmatomtype"+"{{lonepair.divid}}").val("{{lonepair.mmatomname}}");
-    $("select[name=linkqmsegid{{lonepair.divid}}]").val("{{lonepair.qmsegid}}");
-    $("select[name=linkmmsegid{{lonepair.divid}}]").val("{{lonepair.mmsegid}}");{%endfor%}
     $("#useqmmm").attr("checked",true);
-    $(".qmmm_params").show();
-//    {%for host in qmhosts %}$("#{{host.0}}").val("{{host.1}}");{%endfor%}
-//    {%for host in mmhosts %}$("#{{host.0}}").val("{{host.1}}");{%endfor%}
-  });
+    {% if oniom_selections %}{%comment%}We are going to keep a list of OniomSelections, ordered by layer number, since they're derivatives of AtomSelections.{%endcomment%}
+      $("#model_select_qmmm").prop('checked',false);
+      $("#model_select_oniom").prop('checked',true);
+      $(".oniom_params").show();
+      {%comment%}The special case for 2 is stupid. Replace. {%endcomment%}
+        $(".model_selection").show();
+        $("#oniom_layers").val("{{oniom_selections.0.total_layers}}");
+        layers = {{oniom_selections.0.total_layers}};
+        $(".oniom_params").show();
+        generateParams("oniom",parseInt("{{oniom_selections.0.total_layers}}"));
+        {% for atomselection in oniom_selections %}
+          {% if atomselection.isQM %}
+          {%comment%} If it's not QM, all this other stuff is irrelevant{%endcomment%}
+          $("#num_linkatoms_layer_{{atomselection.layer_num}}").val("{{atomselection.linkatom_num}}");
+          $("#qmsele_layer_{{atomselection.layer_num}}").val("{{atomselection.selectionstring}}");
+            writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}','oniom',{{atomselection.linkatom_num}},"linkatom_lines_layer_{{atomselection.layer_num}}");
+            //              writeLinkAtomLines - make this work with multiple layers! Use div ids.
+            $("#qmmm_exchange_layer_{{atomselection.layer_num}}").val("{{atomselection.exchange}}");
+            $("#qmmm_charge_layer_{{atomselection.layer_num}}").val("{{atomselection.charge}}");
+            $("#qmmm_correlation_layer_{{atomselection.layer_num}}").val("{{atomselection.correlation}}");
+            $("#qmmm_basisset_layer_{{atomselection.layer_num}}").val("{{atomselection.basis_set}}");
+            $("#qmmm_multiplicity_layer_{{atomselection.layer_num}}").val("{{atomselection.basis_set}}");
+            {%comment%}divid was changed such that this forloop would be more easy to write. divid now lookslike "_layer_1_0", thus we can actually 
+            take it out of everything and write them at the end. May be good for making the code generic?{%endcomment%}
+          {% else %}
+            hideQMBoxes({{atomselection.layer_num}});
+            {%comment%} It doesn't matter if we call this several times. Add more stuff here if we get MM params.{%endcomment%}
+          {%endif%}
+        {%endfor%}
+          {% for lonepair in lonepairs %}
+              $("#linkqm"+"{{lonepair.divid}}").val("{{lonepair.qmresid}}");
+              $("#linkmm"+"{{lonepair.divid}}").val("{{lonepair.mmresid}}");
+              $("#qmatomtype"+"{{lonepair.divid}}").val("{{lonepair.qmatomname}}");
+              $("#mmatomtype"+"{{lonepair.divid}}").val("{{lonepair.mmatomname}}");
+              $("select[name=linkqmsegid{{lonepair.divid}}]").val("{{lonepair.qmsegid}}");
+              $("select[name=linkmmsegid{{lonepair.divid}}]").val("{{lonepair.mmsegid}}");{%endfor%}
+                //Done here.
+      $(".qmmm_params").show();
+    {%comment%} Do nothing for now. May be better to just put the below stuff as always-present...? Unsure for now. {%endcomment%}
+    {%else%}
+        $("#useqmmm").attr("checked",true);
+        //Remember to generateParams! Make sure everything is displayed right according to the new workflow
+        $(".model_selection").show();
+        $("#model_select_qmmm").prop('checked',true);
+        $("#model_select_oniom").prop('checked',false);
+        $(".oniom_params").hide();
+        generateParams("qmmm",1);
+        $("#num_linkatoms").val("{{atomselection.linkatom_num}}");
+        $("#qmsele").val("{{atomselection.selectionstring}}");
+        writeLinkAtomLines('{% for item in seg_list %}{{item}} {% endfor %}','qmmm',{{atomselection.linkatom_num}},"linkatom_lines");
+        $("#qmmm_exchange").val("{{atomselection.exchange}}");
+        $("#qmmm_charge").val("{{atomselection.charge}}");
+        $("#qmmm_correlation").val("{{atomselection.correlation}}");
+        $("#qmmm_basisset").val("{{atomselection.basis_set}}");
+        $("#qmmm_multiplicity").val("{{atomselection.multiplicity}}");
+        {%for lonepair in lonepairs%}
+        $("#linkqm_"+"{{lonepair.divid}}").val("{{lonepair.qmresid}}");
+        $("#linkmm_"+"{{lonepair.divid}}").val("{{lonepair.mmresid}}");
+        $("#qmatomtype_"+"{{lonepair.divid}}").val("{{lonepair.qmatomname}}");
+        $("#mmatomtype_"+"{{lonepair.divid}}").val("{{lonepair.mmatomname}}");
+        $("select[name=linkqmsegid{{lonepair.divid}}]").val("{{lonepair.qmsegid}}");
+        $("select[name=linkmmsegid{{lonepair.divid}}]").val("{{lonepair.mmsegid}}");{%endfor%}
+        $(".qmmm_params").show();
+    //    $(".qmmm_params").show();
+    //    {%for host in qmhosts %}$("#{{host.0}}").val("{{host.1}}");{%endfor%}
+    //    {%for host in mmhosts %}$("#{{host.0}}").val("{{host.1}}");{%endfor%}
+  {%endif%}
+});
 </script>
 {%endif%}
 </div>
-</td></tr>

@@ -2,6 +2,7 @@
 
 {% block content %}
 <div id="mainpage">
+  <script type="text/javascript" src="/charmming/js/selection.js"></script>
 <!--  <div id="script_dothis" style="display:none;">
     makeUniqueDiv('nma_form');
     makeUniqueDiv('atomnumbernma');
@@ -37,7 +38,7 @@
         <tr><td>All atoms</td><td><input type="radio" id="usevibran" value="usevibran" name="nma" checked onclick="$('#useenm').attr('checked',false);$('#enm').hide();$('#vibran').show()"></td></tr>
         <tr><td>ENM (Elastic Network Model)</td><td><input type="radio" id="useenm" value="useenm" name="nma" onclick="$('#usevibran').attr('checked',false);$('#vibran').hide();$('#enm').show()"></td></tr>
         <tr><td>Number of normal modes to generate:</td><td> <input type="text" id="num_normalmodes" name="num_normalmodes" value="100" /></td></tr>
-        <tr><td>Generate trajectories of normal modes</td><td><input type="checkbox" id="gen_trj" name="gen_trj" value="gen_trj" onclick="checkPatch('gen_trj','num_trjstable');"></td></tr>
+        <tr><td>Generate trajectories of normal modes and make movie:</td><td><input type="checkbox" id="gen_trj" name="gen_trj" value="gen_trj" onclick="checkPatch('gen_trj','num_trjstable');"></td></tr>
         <tr><td>How many of the lowest modes should trajectories be generated for?</td>
             <td><select name="num_trjs">
                <option value="5">5</option>
@@ -50,11 +51,16 @@
       </table>
 
       <div id="vibran">
+        {%if not cg_model %}
         <h3 class="center_header">All atom vibrational analysis parameters</h3>
+        <p class="fontmed">Use Multi-Scale modeling<input id="useqmmm" type="checkbox" name="useqmmm" onclick="showHideQM();"></p>
         <table class="qm_table">
-          <tr><td><p class="fonrmed">Use QM/MM calculations:<input id="useqmmm" type="checkbox" name="useqmmm" onclick="showHideQM()"></p></td></tr>
+          {%comment%}For future devs confused at our choice of id/name - this used to be "Use QM/MM calculations". Feel free to replace all instances of "useqmmm" in the code.
+          I'm not doing that until I'm done with my current work, and that may likely not happen.
+          ~VS{%endcomment%}
           {% include 'html/qmmm_params.html' %}
-         </table>
+        </table>
+        {%endif%}
         
       </div>
 

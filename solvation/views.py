@@ -22,7 +22,7 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.shortcuts import render_to_response
 from django.db.models import Q
-from structure.models import Structure, WorkingStructure, WorkingFile, Task
+from structure.models import Structure, WorkingStructure, WorkingFile, Task, CGWorkingStructure
 from solvation.ionization import neutralize_tpl
 from solvation.models import solvationTask
 from account.views import checkPermissions
@@ -53,6 +53,13 @@ def solvationformdisplay(request):
         return HttpResponseRedirect("/charmming/buildstruct/")
 #       return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before minimizing")
 
+    try:
+        cgws = CGWorkingStructure.objects.get(workingstructure_ptr=ws.id)
+        messages.error(request, "Solvation is not supported for coarse-grain models. If you wish to perform a solvation on this structure, please build a working structure with the CHARMM all-atom model.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+    except:
+        pass
+
     if request.POST.has_key('solvation_structure'):
         # if there is a previous solvation structure, deactivate it
         try:
@@ -79,7 +86,7 @@ def solvationformdisplay(request):
         return solvate_tpl(request,st,pTaskID)
     else:
         # get all completed tasks associated with this struct
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y').exclude(action='energy')
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
 
         lesson_ok, dd_ok = checkPermissions(request)
         return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
@@ -169,7 +176,7 @@ def solvate_tpl(request,solvTask,pTaskID):
     t = get_template('%s/mytemplates/input_scripts/solvation_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
     
-    solvate_input_filename = workingstruct.structure.location + "/" + workingstruct.identifier + "-solvate.inp"
+    solvate_input_filename = workingstruct.structure.location + "/" + workingstruct.identifier + "-solvation.inp"
     inp_out = open(solvate_input_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()

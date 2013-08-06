@@ -37,7 +37,7 @@ class jobScheduler:
          if self.debugMode:
             self.logfd.write("line> %s\n" % line)
             self.logfd.flush()
-         if line.startswith(pbs_id + ".myhost"):
+         if line.startswith(pbs_id + ".ctb2"):
             self.logfd.write("OK found it\n")
             larr = string.splitfields(line)
             if larr[4] == 'R' or larr[4] == 'E' or larr[4] == 'H':
@@ -80,11 +80,11 @@ class jobScheduler:
       if self.debugMode:
          self.logfd.write("newJob: Trying to start job %s %s %s\n" % (user,dir,scripts))
          self.logfd.flush()
-
       # create a temp file and put the PBS junk in it
       ids = []
       for i in range(len(scripts)):
          self.logfd.write("newJob: Trying script %s.\n" % (scripts[i]))
+         self.logfd.write("newJob exelist: " + str(exelist) + "\n")
          self.logfd.flush()
          if not scripts[i].startswith('customscript'):
             self.logfd.write("Is NOT custom script!\n")
@@ -103,10 +103,12 @@ class jobScheduler:
             tf.write("export GFORTRAN_UNBUFFERED_ALL=Y\n")
             tf.write("cd %s\n" % dir)
             tf.write("umask 0022\n")
-            if nprlist[i] == 1:
-               tf.write("%s < %s >& %s\n" % (exelist[i], scripts[i], scripts[i].replace("inp","out")))
-            elif nprlist[i] > 1:
-               tf.write("%s %s < %s >& %s\n" % (charmming_config.mpirun_exe, exelist[i], scripts[i], scripts[i].replace("inp","out")))
+#            if nprlist[i] == 1:
+    #we can't rely on the number of processors being reliable. We make this check BEFOREHAND and use the right exec before passing it into here.
+    #TODO: Update logic further.
+            tf.write("%s < %s >& %s\n" % (exelist[i], scripts[i], scripts[i].replace("inp","out")))
+#            elif nprlist[i] > 1:
+#               tf.write("%s %s < %s >& %s\n" % (charmming_config.mpirun_exe, exelist[i], scripts[i], scripts[i].replace("inp","out")))
             tf.close()
             cmd = "%s %s" % (self.subcmd,tfo[1])
          else:
