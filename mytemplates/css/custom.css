@@ -12,9 +12,18 @@ a:hover {color: #FF0F00; text-decoration: none; }
   text-align:center;
 }
 
+.qm_hr{
+  width:70%;
+}
+
 .noshade_hr{
   border: 1px solid #000;
   width:80%;
+}
+
+/* for most input type="text" */
+.input_box{
+  width:100px;
 }
 
 /* For the buildstruct page*/
@@ -44,11 +53,126 @@ a:hover {color: #FF0F00; text-decoration: none; }
   display:none;
 }
 /* this was initially only going to be used for QM/MM param table
- * but it is very useful for any of our tables that aren't really tables */
+ * but it is very useful for any of our tables that aren't really tables,
+ * or things that are 600px wide with auto margins*/
 .qm_table{
   margin-left:auto;
   margin-right:auto;
   width:600px;
+}
+/* We can have up to 1000 of these at once, so we need to speed up parsing */
+.ligand_checkbox{
+  width:10px;
+  text-align:left;
+}
+
+/* Ditto */
+.ligand_viewbutton{
+  width:20px;
+  text-align:left;
+}
+/* Used in some tables and can be used for small textareas as well */
+.small_field{
+  width:50px;
+}
+
+.ligand_desc_field{
+  width:300px;
+  text-align:left;
+}
+/* On some pages this needs to be bigger... */
+.wider_ligand_desc_field{
+  width:400px;
+  text-align:left;
+}
+
+.file_desc_field{
+  width:350px;
+  text-align:left;
+}
+
+.ligand_name_field{
+  width:200px;
+}
+
+.table_center{
+  margin-left:auto;
+  margin-right:auto;
+}
+/* For a bunch of different things...see it in ligand_design. */
+.gray_green_bg{
+  background-color:#919f86;
+}
+/*For buildstruct (CG model build)*/
+.light_green_bg{
+  background-color:#E0FFF0;
+}
+/* self-explanatory. Seen on buildstruct. */
+.one_third{
+  width:33%;
+}
+/* halfway across the page */
+.half{
+  width:50%;
+}
+/* If these make things parse faster, I'm all for it */
+.align_right{
+  text-align:right;
+}
+
+.align_left{
+  text-align:left;
+}
+/* for md */
+.mid_hr{
+  width:60%;
+}
+
+.name_field{
+  width:165px;
+}
+
+.small_table{
+  width:500px;
+}
+/* This is the equivalent of one <br> */
+.small_break{
+  margin-bottom:5px;
+}
+/* Most tables have this border */
+.normal_border{
+  border: solid 2px black;
+}
+
+/*If you need to hide elements for display purposes, this is it. 
+ * If you need to group show/hide, make it into its own class with display:none. */
+.hidden{
+  display:none;
+}
+/* This is the equivalent of two <br>*/
+.big_break{
+  margin-bottom:10px;
+}
+
+/*For buttons on ligand_design.html*/
+.button_separator{
+  margin-bottom:10px;
+  margin-right:5px;
+}
+/* This is the equivalent of one <br> */
+.header_separator{
+  margin-bottom:5px;
+}
+
+/* We also have a lot of stuff with width: 100% */
+.full_table{
+  width:100%;
+}
+/*
+ * Most of our headers in tables are 300px, so I made this class
+ */
+.desc_header{
+  width:300px;
 }
 .qmmm_params{
   display:none;

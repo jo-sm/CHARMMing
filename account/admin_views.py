@@ -21,6 +21,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.contrib.auth.models import User,Group
 from django.core.mail import send_mail
+from django.db.models import *
 from account.models import studentProfile
 from statistics.models import DataPoint
 
@@ -122,6 +123,9 @@ def showStats(request):
     successful_tasks = 0
     failed_tasks = 0
     users = set([])
+    structure_dict = {}
+    struct_ids = set([])
+    users_by_structure = DataPoint.objects.values('user').annotate(scount=Count('struct_id',distinct=True)).order_by('-scount')
     for point in datapoints:
         if point.success:
             successful_tasks += 1
@@ -133,6 +137,15 @@ def showStats(request):
             task_actions[point.task_action] = 1
         else:
             task_actions[point.task_action] += 1
+        if point.struct_id not in struct_ids: #If the struct id is already in there, you shouldn't double count it.
+            struct_ids.add(point.struct_id)
+            if point.structure_name not in structure_dict.keys():
+                structure_dict[point.structure_name] = 1
+            else:
+                structure_dict[point.structure_name] += 1
+    top_structures = reversed(sorted(structure_dict.items()[0:50],key=lambda x:x[1])) #It's ok to over-reach with range because Python automagically chops only the pieces that exist
+    tdict['users_by_structure'] = users_by_structure
+    tdict['top_structures'] = top_structures
     total_users = len(users)
     #This is silly but it's also the easiest way to get it right. I tried to handle it with a list and the lookups get silly and mess my code up, at least this works
     for key, val in task_actions.iteritems():

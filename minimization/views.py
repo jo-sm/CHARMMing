@@ -256,11 +256,12 @@ def minimize_tpl(request,mp,pTaskID):
     if mp.useqmmm == 'y':
         template_dict['modelType'] = modelType
         template_dict['useqmmm'] = True
+        mp.modelType = modelType
         if modelType == "qmmm":
             atomselection = selection.models.AtomSelection.objects.get(workstruct=mp.workstruct)
             qmparams = makeQchem_val("qmmm",atomselection)
             qmparams['jobtype'] = 'Force'
-            template_dict = makeQChem_tpl(template_dict,qmparams,mp.workstruct,False)
+            template_dict = makeQChem_tpl(template_dict,qmparams,False,mp)
         elif modelType == "oniom":
             template_dict = structure.mscale.make_mscale(template_dict, request, modelType, mp)
     ## There is probably a better way to do this...

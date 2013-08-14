@@ -8,14 +8,9 @@
   <p><b>Your currently uploaded structure does not have any Iron-Sulphur clusters. Currently, this application only supports Iron-Sulphur clusters as oxidation/reduction sites.</b></p>
 {% else %}
   <div id='change_redox'>
-    <div id="script_dothis" style="display:none;">
-       refreshToolTips();
-    </div>
-
   {% if print_result %}
     <h2 class="center_header">Results of previous submission:</h2>
-    <center>
-    <table>
+    <table class="center_header table_center">
        <!--
        <tr><td>&Delta;<i>G</i><sub>sol</sub>(Oxidized)</td><td>{{ oxipot|rjust:"0"|floatformat:0 }}</td><td>kJ/mol</td></tr>
        <tr><td>&Delta;<i>G</i><sub>sol</sub>(Oxidized-ref)</td><td>{{ oxipotref|floatformat:0|rjust:"0" }}</td><td>kJ/mol</td></tr>
@@ -27,7 +22,6 @@
        <tr><td>&Delta;<i>G</i><sub>SHE</sub></td><td>{{ she|floatformat:2|rjust:"0" }}</td><td>V</td></tr>
        <tr><td><i>E</i>&#176</td><td>{{ finres|floatformat:2|rjust:"0" }}</td><td>V</td></tr>
     </table>
-    </center>
   {% endif %}
 
        <!-- We only care about protein segments for now -->
@@ -37,7 +31,7 @@
       <hr class="noshade_hr">
        <h2 class="center_header">Select Oxidation/Reduction Site (Unselected sites will be left unchanged)</h2>
 
-       <table class="qm_table" style="width:30%;margin-left:auto;margin-right:auto">
+       <table class="qm_table table_center one_third">
        {% for item in redox_segs %}
           {% ifequal item "A" %}
             {% for site in redox_nums.A %}
@@ -79,32 +73,32 @@
 
        <hr class="noshade_hr">
        <h2 class="center_header">Select Oxidation/Reduction Couple</h2>
-       <table class="qm_table" style="width:30%;margin-left:auto;margin-right:auto">
+       <table class="qm_table one_third table_center">
           <tr><td>Oxidized (1-/2-)</td><td><input type="radio" name="couple" value="oxi" checked /></td></tr>
           <tr><td>Reduced (2-/3-)</td><td><input type="radio" name="couple" value="red" /></td></tr>
        </table>
 
        <hr class="noshade_hr">
        <h2 class="center_header">APBS Parameters</h2>
-      <table style="width:30%;margin-left:auto;margin-right:auto" class="qm_table">
+      <table class="qm_table one_third table_center">
         <tr><td>Use APBS parameters optimized for redox calculations</td><td><input type="radio" name="apbs_params" value="default" onclick="checkPatch(makeUniqueDiv('custapbs'),makeUniqueDiv('apbs_parameters'));" checked /> </td>
-          <tr><td>Choose my own APBS parameters.</td><td><input style="align:right" type="radio" id="custapbs" name="apbs_params" value="custom" onclick="checkPatch(makeUniqueDiv('custapbs'),makeUniqueDiv('apbs_parameters'));" > </td>
+          <tr><td>Choose my own APBS parameters.</td><td><input class="align_right" type="radio" id="custapbs" name="apbs_params" value="custom" onclick="checkPatch(makeUniqueDiv('custapbs'),makeUniqueDiv('apbs_parameters'));" > </td>
           </table>
-       <div id="apbs_parameters" style="display:none;width:75%">
+       <div id="apbs_parameters" class="hidden" style="width:75%">
          <hr class="noshade_hr">
          <h4 class="center_header">User-customizable APBS parameters</h4>
-         <table style="width:30%;margin-left:auto;margin-right:auto" class="qm_table">
-            <tr><td>Solvent radius</td><td><input type="text" style="width:100px" name="srad" value="1.4" /></td></tr>
-            <tr><td>Protein dielectric (PDIE)</td><td><input type="text" style="width:100px" name="prot_diel" value="4" /></td></tr>
-            <tr><td>Solvent dielectric (SDIE)</td><td><input type="text" style="width:100px" name="solv_diel" value="78" /></td></tr>
-            <tr><td>Redox site dielectric</td><td><input type="text" style="width:100px" name="redx_diel" value="1" /></td></tr>
+         <table class="qm_table one_third table_center">
+            <tr><td>Solvent radius</td><td><input type="text" class="input_box" name="srad" value="1.4" /></td></tr>
+            <tr><td>Protein dielectric (PDIE)</td><td><input type="text" class="input_box" name="prot_diel" value="4" /></td></tr>
+            <tr><td>Solvent dielectric (SDIE)</td><td><input type="text" class="input_box" name="solv_diel" value="78" /></td></tr>
+            <tr><td>Redox site dielectric</td><td><input type="text" class="input_box"  name="redx_diel" value="1" /></td></tr>
          </table>
        </div>
 
        <hr class="noshade_hr">
 
        <h2 class="center_header">Charge knock out</h2>
-       <div style="text-align:center">
+       <div class="center_header">
        <p>Enter a CHARMM selection for atoms whose charge should be knocked out (set to 0) during the simulation:</p>
        <p><input type="text" name="chrgknockout" /></p>
 

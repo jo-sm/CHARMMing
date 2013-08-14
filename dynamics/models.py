@@ -168,23 +168,17 @@ class dynamicsTask(Task):
             wfpdb.type = 'pdb'
             wfpdb.description = 'PDB coordinates from ' + self.action.upper()
             wfpdb.save()
-        cgws = False
         #Generic coarse-grain code goes here.
-        logfp = open("/tmp/speed_test.txt","w")
+        cgws = False
         try:
             cgws = CGWorkingStructure.objects.get(workingstructure_ptr=self.workstruct.id)
-            logfp.write("Found a CGWorkingStructure.")
         except CGWorkingStructure.MultipleObjectsReturned: #Uh oh. This MAY be alright if AA/CG...
             self.status = "F"
-            logfp.write("Found too many CGWorkingStructures.")
             return
         except Exception as ex: #Catch everything else
-            logfp.write(str(ex))
-            logfp.flush()
-#            pass
+            pass
         if cgws != False:
             cgws.addBondsToPDB(inp_file,out_file)
-        logfp.close()
         if self.make_movie:
             # go to hollywood
             if cgws:

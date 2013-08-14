@@ -44,6 +44,7 @@ def checkNterPatch(file,segment):
     else:
         return "nter"
 
+#Why does this show up twice? This is in structure.views as well...
 def parseEnergy(file,output_filename):
     outfp = open(file.location + output_filename,'r')
     ener = re.compile('ENER ENR')

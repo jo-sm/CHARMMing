@@ -1041,13 +1041,15 @@ def DSFFormDisplay(request):
     if not dd_ok:
         return render_to_response('html/unauthorized.html')
 
-
+    tdict = {} #Template dictionary.
     dsflog.write("authenticated\n") 
     message=""
     username=request.user.username
     u = User.objects.get(username=username)   
 
     lesson_ok, dd_ok = checkPermissions(request)
+    tdict['lesson_ok'] = lesson_ok
+    tdict['dd_ok'] = dd_ok
     try:
         conformation_info_list=[]
         project = projects.objects.filter(owner=request.user,selected='y')[0]
@@ -1128,7 +1130,8 @@ def DSFFormDisplay(request):
         for native_lig_file in glob.glob(struct.location + '/*-native-*.pdb'):
             nativefilename=os.path.basename(native_lig_file)
             abadfile=common.objFile()
-            abadfile.fullpath=native_lig_file
+            abadfile.fullpath=native_lig_file #This is not used ever after, so we add a field for our purposes (display, JSmol)
+            abadfile.jsmolpath = abadfile.fullpath.replace("/home/schedd/","/charmming/pdbuploads/")
             abadfile.name=nativefilename
             abadfile.tag=nativefilename[0+len("a-native-"):nativefilename.index(".pdb",0+len("a-native-"))]
             #abadfile.tag=nativefilename[nativefilename.index("a-native-")+len("a-native-"):nativefilename.index(".pdb",nativefilename.index("a-native-")+len("a-native-"))]
@@ -1631,6 +1634,8 @@ def updateDSFLigands(request,selected_set_id):
             ligand_info.file_objects_list = files_objects.objects.filter\
                                         (owner=request.user,object_table_name="dd_substrate_ligands", \
                                         object_id=ligand.id).select_related()
+            for object in ligand_info.file_objects_list:
+                object.file.file_location = object.file.file_location.replace("/home/schedd/","/charmming/pdbuploads/")
             ligand_info_list.append(ligand_info)
         for ligand in public_ligands:
             ligand_info=substrate_common.LigandInfo()
@@ -1640,6 +1645,8 @@ def updateDSFLigands(request,selected_set_id):
             ligand_info.file_objects_list = files_objects.objects.filter\
                                         (owner=public_user,object_table_name="dd_substrate_ligands", \
                                         object_id=ligand.id).select_related()
+            for object in ligand_info.file_objects_list:
+                object.file.file_location = object.file.file_location.replace("/home/schedd/","/charmming/pdbuploads/")
             ligand_info_list.append(ligand_info)
 
     elif (selected_set_id=='00'): #user ligands
@@ -1651,6 +1658,8 @@ def updateDSFLigands(request,selected_set_id):
             ligand_info.file_objects_list = files_objects.objects.filter\
                                         (owner=request.user,object_table_name="dd_substrate_ligands", \
                                         object_id=ligand.id).select_related()
+            for object in ligand_info.file_objects_list:
+                object.file.file_location = object.file.file_location.replace("/home/schedd/","/charmming/pdbuploads/")
             ligand_info_list.append(ligand_info)
     else:
         selected_set_ligands=ligands.objects.filter().extra \
@@ -1668,6 +1677,9 @@ def updateDSFLigands(request,selected_set_id):
             ligand_info.file_objects_list = files_objects.objects.filter\
                                         (object_table_name="dd_substrate_ligands", \
                                         object_id=ligand.id).select_related()
+            for object in ligand_info.file_objects_list:
+                object.file.file_location = object.file.file_location.replace("/home/schedd/","/charmming/pdbuploads/")
+            #This should write it many times but only once remains...
             #ligand_info.file_objects_list = files_objects.objects.filter\
             #                            (object_table_name="dd_substrate_ligands", \
             #                            object_id=ligand.id).select_related()                                

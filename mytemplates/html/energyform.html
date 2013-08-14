@@ -1,13 +1,14 @@
 {% extends "html/skeleton.html" %}
-
-{% block content %}
+{%block extra_scripts %}
   <script type="text/javascript" src="/charmming/js/selection.js"></script>
+{%endblock%}
+{% block content %}
   <h1 class="center_header">Energy</h1>
   <div id="mainpage">
   <div id="change_ener">
     {% if energy_lines %}
        <hr class="noshade-hr">
-       <div style="font:12px,Courier,fixed;position:relative;left:25%;top:00px;width:90%;text-align:left;">
+       <div class="align_left" style="font:12px,Courier,fixed;position:relative;left:25%;top:00px;width:90%;">
          <h3> Previously Calculated Energy </h3>
          <pre>
            {% autoescape off %}
@@ -17,7 +18,7 @@
        </div> 
   {% endif %}
   <hr class="noshade_hr">
-  <div style="text-align:center">
+  <div class="center_header">
   <form id="ener_form" method="post"  action="." onsubmit="send_form_energy(this,'mainpage',[{%for item in filename_list%}'{{item}}',{% endfor%}]);return false;">
     <h2>Working structure: {{ ws_identifier }}</h2>
 

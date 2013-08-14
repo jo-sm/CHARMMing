@@ -40,11 +40,12 @@ class solvationTask(Task):
 
         loc = self.workstruct.structure.location
         bnm = self.workstruct.identifier
-        basepath = loc + "/" + bnm + "-" + self.action
+        baseneutpath = loc + "/" + bnm + "-" + self.action #If this is a neutralize task it overwrites this, otherwise we just don't use it
+        basesolvpath = loc + "/" + bnm + "-solvation" #This is for neutralize tasks.
 
         # There's always an input file, so create a WorkingFile
         # for it.
-        path = basepath + ".inp"
+        path = basesolvpath + ".inp"
         wfinp = WorkingFile()
         try:
             wftest = WorkingFile.objects.get(task=self,path=path)
@@ -57,7 +58,7 @@ class solvationTask(Task):
             wfinp.save()
 
         if self.concentration > 0.0001:
-            path = loc + "/" + bnm + "-neutralize.inp"
+            path = baseneutpath + ".inp"
             wfninp = WorkingFile()
             try:
                 wftest = WorkingFile.objects.get(task=self,path=path)
@@ -71,7 +72,7 @@ class solvationTask(Task):
 
         # Check if an output file was created and if so create
         # a WorkingFile for it.
-        path = basepath + ".out"
+        path = basesolvpath + ".out"
 
         try:
             os.stat(path)
@@ -91,7 +92,7 @@ class solvationTask(Task):
             wfout.save()
 
         if self.concentration > 0.0001:
-            path = loc + "/" + bnm + "-neutralize.out"
+            path = baseneutpath + ".out"
             wfnout = WorkingFile()
             try:
                 wftest= WorkingFile.objects.get(task=self,path=path)
@@ -104,7 +105,7 @@ class solvationTask(Task):
                 wfnout.save()
 
         # now check if all the expected psf/crd/pdb files exist
-        path = basepath + '.crd'
+        path = basesolvpath + '.crd'
         try:
             os.stat(path)
         except:
@@ -125,7 +126,7 @@ class solvationTask(Task):
             wf.save()
             self.workstruct.addCRDToPickle(wf.path, 'neut_' + self.workstruct.identifier)
 
-        path = basepath + ".psf"
+        path = basesolvpath + ".psf"
         wfpsf = WorkingFile()
         try:
             wftest = WorkingFile.objects.get(task=self,path=path)
@@ -137,7 +138,7 @@ class solvationTask(Task):
             wfpsf.description = 'solvated structure'
             wfpsf.save()
 
-        path = basepath + ".pdb"
+        path = basesolvpath + ".pdb"
         wfpdb = WorkingFile()
         try:
             wftest = WorkingFile.objects.get(task=self,path=path)
@@ -149,7 +150,7 @@ class solvationTask(Task):
             wfpdb.description = 'solvated structure'
             wfpdb.save()
 
-        path = loc + "/" + bnm + "-neutralization.crd"
+        path = baseneutpath + ".crd"
         if self.concentration > 0.0001:
             try:
                 os.stat(path)
@@ -172,7 +173,7 @@ class solvationTask(Task):
                 wfn.save()
                 self.workstruct.addCRDToPickle(wf.path,'neut_' + self.workstruct.identifier)
 
-            path = loc + "/" + bnm + "-neutralization.psf"
+            path = baseneutpath + ".psf"
             wfnpsf = WorkingFile()
             try:
                 wftest = WorkingFile.objects.get(task=self,path=path)
@@ -184,7 +185,7 @@ class solvationTask(Task):
                 wfnpsf.description = 'neutralized structure'
                 wfnpsf.save()
 
-            path = loc + "/" + bnm + "-neutralization.pdb"
+            path = baseneutpath + ".pdb"
             wfnpdb = WorkingFile()
             try:
                 wftest = WorkingFile.objects.get(task=self,path=path)

@@ -91,7 +91,14 @@ def lddisplay(request):
             pTaskID = pTask.id
         else:
             isBuilt = True
-            pTaskID = int(request.POST['ptask'])
+            try:
+                pTaskID = int(request.POST['ptask'])
+            except Exception as ex: #This somehow goes wrong every now and then and I haven't a clue why.
+                logfp = open("/tmp/badptask-dynamics.txt","w")
+                logfp.write(str(ex))
+                logfp.close()
+                messages.error(request, "Parent task is invalid. Please verify your working structure has been built, and that you have chosen a set of coordinates to draw from on the dynamics page.")
+                return HttpResponseRedirect("/charmming/buildstruct/")
 
         return applyld_tpl(request,ldt,pTaskID)
   

@@ -2,55 +2,39 @@
 
 {% block content %}
 <div id="mainpage">
-  <br />
-  <br />
-  <br />
   <h1 class="center_header">Calculate RMSD</h1>
 
-  <div id='change_rmsd' style="text-align:center;">
-<!--    <div id="script_dothis" style="display:none;">
-       refreshToolTips();
-       var GB_ROOT_DIR = "/charmming/greybox/greybox/";
-     </div>
-    Legacy code.
-    -->
-
+  <div class="center_header" id='change_rmsd'>
     {% if feedback %}
-      <h3 class="center_header"><font color="red">{{ feedback }}</font></h3>
+    <h3 class="center_header" style="color:red">{{ feedback }}</font></h3>
     {% endif %}
 
     {% autoescape off %}
     {% if prior_matrix %}
-    <div style="text-align:center">
       {{prior_matrix}}<br />
-    </div>
     {% endif %}
     {% endautoescape %}
 
     <hr class="noshade_hr">
-    <h2 class="center_header">Select Structures</h2>
+    <h2>Select Structures</h2>
     <br />
 
        <form id="rmsd_form" method="post"  action=".">
-       {% if tasks %}
-         <table class="qm_table">
-           {% for task in tasks %}
-           <tr><td>Coordinates from {{task.action}}&nbsp;<input type="radio" name="dotask_{{ task.id }}" value="1" /></td></tr>
-           {% endfor %}
-         </table>
+         {% if tasks %}
+          {%include 'html/taskfiles.html'%}
          {% endif %}
         <br>
 
 
-       <table class="qm_table" style="text-align:left">
+       <table class="qm_table align_left">
          <tr><td><p class="fontmed">Compare all atoms (except bulk waters)</td>
-             <td><input type="radio" name="comp_allatom" value="1" onclick="document.getElementById('comp_backbone').style.display = 'none';" checked></td></tr>
+             <td><input type="radio" name="comp_allatom" value="1" onclick="$('#comp_backbone').hide();" checked></td></tr>
          <tr><td><p class="fontmed">Compare only backbone atoms</td>
-             <td><input type="radio" name="comp_allatom" value="0" onclick="document.getElementById('comp_backbone').style.display = 'block';"></td></tr>
+             <td><input type="radio" name="comp_allatom" value="0" onclick="$('#comp_backbone').show();"></td></tr>
        </table>
-       <div id="comp_backbone" style="display: none;">
-         <table class="qm_table" style="text-align:left">
-           <tr><td colspan="2" style="text-align:center"><b>Select backbone atoms to be compared</b></td></tr>
+       <div id="comp_backbone" class="hidden">
+         <table class="qm_table align_left">
+           <tr><td colspan="2" class="center_header"><b>Select backbone atoms to be compared</b></td></tr>
            <tr><td>Nitrogen (N)</td><td><input type="checkbox" name="bb_n" checked></td></tr>
            <tr><td>&alpha;-Carbon (CA)</td><td><input type="checkbox" name="bb_ca" checked></td></tr>
            <tr><td>Backbone Carbon (C)</td><td><input type="checkbox" name="bb_c" checked></td></tr>

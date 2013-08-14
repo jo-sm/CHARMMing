@@ -281,7 +281,7 @@ def downloadGenericFiles(request,filename, mimetype = None):
     response['Content-Disposition'] = 'attachment; filename=%s' %filename
     response.write(file(path + "/" + filename, "rb").read())
     return response
-
+"""
 ##TODO: Find out why this method exists. Nothing calls it. Why is it here?
 def viewDynamicOutputContainer(request,jobtype):
     if not request.user.is_authenticated():
@@ -342,7 +342,7 @@ def viewDynamicOutput(request):
     input.checkRequestData(request)
     inputname = request.POST['inputname']
     return downloadProcessFiles(request,inputname)
-
+"""
 
 #Lets user download the actual file
 def downloadProcessFiles(request,filename, mimetype = None):
@@ -443,6 +443,9 @@ def visualize(request,filename):
     except:
         pass
 
+    if not ws.isBuilt == "t": #Redirect to calculation page
+        messages.error(request, "Please perform a calculation on your structure before visualizing.")
+        return HttpResponseRedirect("/charmming/energy")
     filelst = []
 
     # files from segment construction
@@ -463,7 +466,10 @@ def visualize(request,filename):
     lesson_ok, dd_ok = checkPermissions(request)
     return render_to_response('html/visualize.html', {'filelst': filelst,'lesson_ok':lesson_ok,'dd_ok':dd_ok})
 
-
+"""
+ChemDoodle is very problematic and incomplete. Even years of development won't fix the fact
+that they're released under a paid license for full functionality and
+we can't use that.
 #Lets user view PDB through ChemDoodle
 def chemdoodle(request,filename):
     if not request.user.is_authenticated():
@@ -506,7 +512,7 @@ def chemdoodle(request,filename):
     fp.close()
     os.unlink(newfname)
     return render_to_response('html/chemdoodle.html', {'content': mycontent})
-
+"""
 #Lets user view PDB through jsmol - same functions and scripting
 def jmol(request,filename):
     if not request.user.is_authenticated():
@@ -627,6 +633,7 @@ def glmol(request,filename):
     lesson_ok, dd_ok = checkPermissions(request)
     try:
         isProtein = not("-good-" in filename_end or "-bad-" in filename_end or filename_end[3] == "-")
+        #TODO: Modify this! It's not a good way to tell and we really need a better way. Maybe attach an isProtein to the file objects...?
     except:
         messages.error(request, "Bad filename. Please verify that the file you are trying to open exists before accessing this page.")
         return HttpResponseRedirect("/charmming/visualize/")
@@ -654,6 +661,7 @@ def viewstatus(request):
         if not workingStruct.locked:
             workingStruct.updateActionStatus()
         t = structure.models.Task.objects.filter(workstruct=workingStruct,active='y')
+        #TODO: Modify this for multi-task support. However we don't care until tasks don't just overwrite themselves.
         foo_tasks = set() #holds task actions so we don't repeat tasks
         for task in t:
             cankill = 0
@@ -681,22 +689,25 @@ def viewtaskoutput(request, taskid):
     except Exception as ex:
         tdict['intro_string'] = "Task not found. Please report this issue." + str(ex) #Since we have a jQuery frame already, let's just not worry about making one
         return render_to_response('html/view_task_output.html',tdict)
-#    if task.action == "energy":
-#        out_action = "ener"
-#    if task.action == "minimization":
-#        out_action = "minimize"
-#    if task.action == "solvation":
-#        out_action = "solvate"
-#    elif task.action == "mutation":
-#        out_action = "mutate"
-#    elif task.action == "nmode": #SO close.
-#        out_action = "nmodes"
-
     if task.action == "dsfdocking":
         #This is where things get weird since the file paths are completely different
         fp = open(charmming_config.user_home + "/dd/jobs/" + request.user.username + "/dd_job_" + str(dockjob.id) + "/run.out")
+    elif task.action == "neutralization": #We need some extra checks here because this is a two-part task
+        try:
+            path_to_solv = task.workstruct.structure.location + "/" + task.workstruct.identifier + "-neutralization.out"
+            os.stat(path_to_solv) #TODO: MOdify this for multi-names!
+            #If the file exists, we read that, if not, we read solvation.out.
+            fp = open(path_to_solv)
+        except:
+            fp = open(path_to_solv.replace("neutraliz","solv")) #Minimal form.
+    elif task.action == "redox": #There's a lot of scripts going on and no real "main" one doing execution.
+    #If you can figure out a decent system for this stuff, please tell me. ~VS
+        tdict['intro_string'] = "Redox information cannot be displayed. Please use the progress tracker instead."
+        return render_to_response('html/view_task_output.html',tdict)
     else:
-        fp = open(task.workstruct.identifier + "-" + out_action + ".out") #e.g. 1yjp-ener.out
+        fp = open(task.workstruct.identifier + "-" + out_action + ".out") #e.g. 1yjp-energy.out
+        #actions are standardized now. Whoever reads this in the future, make SURE your task ACTION matches the file name. 
+        #TODO: Adapt this code for mutli-file task recognition.
     fcontents = fp.read()
     fp.close()
     top_string = "Structure: " + task.workstruct.structure.name + ", Working Structure: " + task.workstruct.identifier + ", Action: " + task.action.capitalize()
@@ -753,7 +764,7 @@ def reportError(request):
             emailmsg += 'Error details given by user are: \n' + request.POST['errordescription']
             mail_admins('Bug Reported',emailmsg,fail_silently=False)
             return HttpResponse("Bug was successfully reported. Thank you for reporting this bug.")
-        ##TODO: Add non-error message.
+        ##TODO: Add non-error message. This may be fixed with Django versions higher than 1.2.
         else:
             messages.error(request, "You must type something into the form...")
             return HttpResponseRedirect("/charmming/about/")
@@ -777,11 +788,13 @@ def viewpdbs(request):
 
 #This is for changing the currently selected PDB
 #on the SELECT/EDIT PDBs page
+#VS note: This appears to be a holdover from the oldcharmming times, but it still is used in the change PDBs page,
+#as an AJAX request, wiuth a template purely to hold something in place.
+#There should be a more efficient way of doign this, but this seems pretty much the bleeding edge of what django can do.
 def switchpdbs(request,switch_id):
-    logfp = open('/tmp/switch.txt', 'w')
-    logfp.write('In switchpdbs\n')
-    logfp.close()
-
+#    logfp = open('/tmp/switch.txt', 'w')
+#    logfp.write('In switchpdbs\n')
+#    logfp.close()
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
@@ -855,12 +868,10 @@ def energyform(request):
             pass
 
         et = energyTask()
-        et.modifies_coordinates = False #Do it early so there's no DB-sync issues.
         et.setup(ws)
         et.active = 'y'
         et.action = 'energy'
         et.save()
-
         if ws.isBuilt != 't':
             pTask = ws.build(et)
             pTaskID = pTask.id
@@ -888,6 +899,8 @@ def energyform(request):
 def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
+    logfp = open("/tmp/energy-fail.txt","w")
+    logfp.write(str(eobj.modifies_coordinates))
 
     pTask = Task.objects.get(id=pTaskID)
 
@@ -955,12 +968,10 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     else:
         dopbc = False
         eobj.usepbc = 'n'
-        
     template_dict['dopbc'] = dopbc
     modelType = False
 
 
-    logfp = open("/tmp/energy-fail.txt","w")
     if postdata.has_key('useqmmm'):
         eobj.useqmmm = 'y'
         #input.checkForMaliciousCode(postdata['qmsele'],postdata)
@@ -981,18 +992,15 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
 #            return HttpResponse('Cannot combine QM/MM and periodic boundary conditions')
     else:
         eobj.useqmmm = 'n'
-
-
-    eobj.save()
-
     if eobj.useqmmm == 'y': #We branch to include ONIOM here.
         template_dict['modelType'] = modelType
         template_dict['useqmmm'] = True
+        eobj.modelType = modelType
         if modelType == "qmmm":
             atomselection = selection.models.AtomSelection.objects.get(workstruct=eobj.workstruct) #TODO: Update for names. ALso don't worry about this yet - only one record should ever be returned anyway.
             qmparams = makeQchem_val("qmmm",atomselection)
             qmparams['jobtype'] = 'Force'
-            template_dict = makeQChem_tpl(template_dict,qmparams,eobj.workstruct,False)
+            template_dict = makeQChem_tpl(template_dict,qmparams,False,eobj)
         elif modelType == "oniom":
             try:
                 template_dict = structure.mscale.make_mscale(template_dict, request, modelType, eobj)
@@ -1004,11 +1012,10 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     else:
         template_dict['useqmmm'] = False
 
-
+    eobj.save()
     # lessons are still borked
     #if file.lesson_type:
     #    lessonaux.doLessonAct(file,"onEnergySubmit",request.POST)
-
     t = get_template('%s/mytemplates/input_scripts/calcEnergy_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
@@ -1017,7 +1024,10 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     inp_out = open(energy_input,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
-    eobj.scripts += ',%s' % energy_input    
+    eobj.scripts += ',%s' % energy_input
+    eobj.modifies_coordinates = False #We set it here, because it doesn't stick in the finish method, and it doesn't stick in the method that calls this one
+    #For some very strange and unknown reason, the field is modified when this method (the one we are in) is called.
+    #We force-set it to false just in case.
     eobj.save()
 
     # go ahead and submit
@@ -1050,9 +1060,11 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
 
     # for now, I am not going to create a workstructure for the energy since it's effectively a
     # no-op; talk to Lee about whether this should be done. It probably should be, at one point
-
+    # VS note: We should do this UNTIL we make build an actual part of the build working structure page. At that point
+    # there's no reason to carry it around for any reason other than having it as a pTask, which shouldn't matter.
     return parseEnergy(workstruct,energy_output,eobj)
 
+#This I believe is used for the Energy render AJAX request. It's weird and a holdover from oldcharmming.
 def parseEnergy(workstruct,output_filename,enerobj=None):
     time.sleep(2)
 
@@ -1095,7 +1107,7 @@ def getSegs(Molecule,Struct,auto_append):
     #auto_append is never used so I will use it for the custom ligand build...
     #True means normal/PDB.org build, False means custom build
     Struct.save()
-
+    #Why do we save before doing anything?
     logfp = open('/tmp/getsegs.txt', 'w')
     logfp.write('In getSegs\n')
     sl = []
@@ -1123,7 +1135,9 @@ def getSegs(Molecule,Struct,auto_append):
         foo = map(lambda x: x.name,sl)
         bar = map(lambda x: x.structure,sl)
         logfp.write(str(foo) + "\n" + str(bar)) 
-
+        #the following checks for whether the segment you're "getting" is already in the structure, or whether it's not. THis is used for custom ligands
+        #such that you can add ligands to an already-existing structure without duplicating its segments
+        #If the if test fails, the save is skipped - newSeg gets stuff associated to it but doesn't get committed to the database.
         if newSeg.name in map(lambda x: x.name,sl) and newSeg.structure in map(lambda x: x.structure,sl):
             logfp.write("Segment " + newSeg.name + " skipped\n")#If a segment with that name already exists in that structure, skip it and keep going.
             continue
@@ -1156,7 +1170,7 @@ def getSegs(Molecule,Struct,auto_append):
         # set default patching type
         newSeg.set_default_patches(firstres)        
         newSeg.save()
-
+#Should we save Struct again? We don't change anything here.
     logfp.write('All done\n')
     logfp.close()
 
@@ -1164,7 +1178,6 @@ def newupload(request, template="html/fileupload.html"):
     """
     Handle a new file being uploaded.
     """
-
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
@@ -1192,11 +1205,13 @@ def newupload(request, template="html/fileupload.html"):
     #Will have a lesson type (lesson1, lesson2, etc.) and a primary key id.
     #It's not a fun hack but until Django is changed it will have to be like this
     #YP
+    #Upon Django upgrade we should see if this is possible 
+    #VS
     if request.POST.has_key('lesson') and request.POST['lesson'] !=  'nolesson':
         lnum = request.POST['lesson']
         lessontype = lnum
         lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
-    
+
     else:
         lessonid = None
         lessontype = None
@@ -1207,7 +1222,7 @@ def newupload(request, template="html/fileupload.html"):
         lesson_obj.save()
         lessonid = lesson_obj.id
     #YP end of checking for lesson   
-     
+
     try:
         request.FILES['pdbupload'].name
         file_uploaded = 1
@@ -1287,8 +1302,8 @@ def newupload(request, template="html/fileupload.html"):
         os.mkdir(location + '/' + dname, 0775)
         os.chmod(location + '/' + dname, 0775)
         fullpath = location + '/' + dname + '/' + filename
-    
-        
+
+
         # Put the initial PDB onto the disk
         if file_uploaded:
             temp = open(fullpath, 'w')
@@ -1367,7 +1382,7 @@ def newupload(request, template="html/fileupload.html"):
         pickleFile = open(pfname,'w')
         cPickle.dump(pdb,pickleFile)
         pickleFile.close()
-        struct.pickle = pfname        
+        struct.pickle = pfname
 
 
         # unselect the existing structure
@@ -1685,6 +1700,6 @@ def swap(request):
     lesson_ok, dd_ok = checkPermissions(request)
     return render_to_response('html/swapped.html', {'wsname': new_ws.identifier, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
-
+#Why is this here?
 def protonate(file):
-    return render_to_response('html/protonate.html')    
+    return render_to_response('html/protonate.html')

@@ -70,7 +70,7 @@ def neutralize_tpl(solvTask,postdata):
     t = get_template('%s/mytemplates/input_scripts/neutralize_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
-    neut_filename = workingstruct.structure.location + "/" + workingstruct.identifier + "-neutralize.inp"
+    neut_filename = workingstruct.structure.location + "/" + workingstruct.identifier + "-neutralization.inp"
     inp_out = open(neut_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()

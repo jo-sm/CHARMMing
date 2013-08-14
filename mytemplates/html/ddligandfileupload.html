@@ -1,17 +1,17 @@
 {% extends "html/skeleton.html" %}
 {% block content %}
-<div id="mainpage" style="margin-left:auto;margin-right:auto">
+<div id="mainpage">
 <h2 class="center_header">Ligand Upload</h2>
-<p style="text-align:center">All Fields are Required</p>
+<p class="center_header">All Fields are Required</p>
      <form id='submit_structure' enctype="multipart/form-data" method="post" action="/charmming/dd_substrate/ligandfileupload/">
-      <fieldset class="structure" style="margin-left:auto;margin-right:auto">
+      <fieldset class="structure table_center">
          <legend class="login">Submit Structure</legend>
             
-		<div id='ligand_upload' style="display:block">
+		<div id='ligand_upload'>
 		<p>
-		<table style="width:100%;margin-left:auto;margin-right:auto">
+		<table class="full_table table_center">
 		<tr><td>Ligand File<br> (mol2 format)</td><td> {{ form.ligand_file }} {{ form.ligand_file_file }}</td></tr>
-                <tr><td colspan="2" style="text-align:center">
+                <tr><td colspan="2" class="center_header">
                       Choose atomtyping option:<br>
                       <select name="tpmeth">
                         <option value="autogen">Attempt to automatically generate parameters</option>
@@ -28,7 +28,7 @@
                 </td></tr>    
 		</table>
 		</div>
-		<div id='ligand_draw' style="display:none">
+		<div id='ligand_draw' class="hidden">
 
             	</div>
 		<table><tr><td><label for="filedesc"> File Description </label></td><td><input type="text" name="filedesc" id="filedesc"></td></tr></table>
@@ -39,7 +39,7 @@
 	 	</font>
 		</div>
 -->
-		<div id='newliganddiv' style="display:block">
+		<div id='newliganddiv'>
 		  <table>
                      <tr><td><label for="id_pdbcode"> Ligand PDB Code </label></td><td><input type="text" name="pdbcode" id="id_pdbcode"></td></tr>
 		     <tr><td><label for="ligandname"> Ligand Name </label></td><td><input type="text" name="ligandname" id="ligandname"></td></tr>
@@ -57,7 +57,7 @@
      <div id="savedrawing">
      </div>
      
-      <div id="file_button" style="display:block;text-align:center"><input type="submit" id="btn_file" value="Submit Structure File"></div>
+      <div id="file_button" class="center_header"><input type="submit" id="btn_file" value="Submit Structure File"></div>
             
    </form>
 </div>

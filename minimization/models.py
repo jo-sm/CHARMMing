@@ -16,7 +16,7 @@
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
 from django.db import models
-from structure.models import Task, WorkingFile, CGWorkingStructure
+from structure.models import Task, WorkingFile, CGWorkingStructure, saveQCWorkingFiles
 import os, copy
 
 class minimizeTask(Task):
@@ -24,8 +24,9 @@ class minimizeTask(Task):
     abnrsteps = models.PositiveIntegerField(default=0)
     tolg = models.FloatField(null=True)
     usepbc = models.CharField(max_length=1,null=True)
-    useqmmm = models.CharField(max_length=1,null=True)
-    qmmmsel = models.CharField(max_length=250,null=True)
+    useqmmm = models.CharField(max_length=1,null=True,default="n")
+    modelType = models.CharField(max_length=30,null=True,default=None)
+    qmmmsel = models.CharField(max_length=250,null=True) #This is obsolete.
 
     def finish(self):
         """test if the job suceeded, create entries for output"""
@@ -122,8 +123,10 @@ class minimizeTask(Task):
             wfpdb.type = 'pdb'
             wfpdb.description = 'minimized structure'
             wfpdb.save()
-
+        #Generic QChem inp/out code
+        saveQCWorkingFiles(self,basepath)
         #Generic coarse-grain code goes here.
+        cgws = False
         try:
             cgws = CGWorkingStructure.objects.get(workingstructure_ptr=self.workstruct)
         except CGWorkingStructure.MultipleObjectsReturned: #Uh oh. This MAY be alright if AA/CG...
@@ -135,3 +138,5 @@ class minimizeTask(Task):
         if cgws:
             cgws.addBondsToPDB(inp_file,out_file) #Sometimes the DB is too slow to catch up and returns blank.
         self.status = 'C'
+#        self.createStatistics() #This only fails when the task succeeds, so we shouldn't worry.
+        return

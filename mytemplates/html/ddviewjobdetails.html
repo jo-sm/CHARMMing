@@ -5,16 +5,18 @@
 <script>
     doDDJobDetailsOnLoad({{ job.id }});
 </script>
-<h2 style="center_header">Job Details</h2>
+<h2 class="center_header">Job Details</h2>
 {% if message %}
 <p class="fontmed" style="color:Red">{{ message }}</p>
 {% endif %}
-<form method="post" action="." width="100%">
+<form method="post" action=".">
 
-<div id="jobinfo" name="jobinfo"  style="width:100%">
+<div id="jobinfo" style="width:100%">
 </div>
-<div id="ddjobresultsdiv" name="ddjobresultsdiv" align="center" style="overflow:auto;width:100%;height:150px;border:1px solid #336699;padding-left:5px;text-align:left;display:none">
+<br>
+<div id="ddjobresultsdiv" style="overflow:auto;width:100%;height:150px;border:1px solid #336699;padding-left:5px;text-align:left;display:none">
 </div>
+<br>
 
 <hr>
 <!--<h3>Targets</h3>
@@ -33,31 +35,31 @@
 </table>
 </div>
 -->
-<h3 style="center_header">Ligands</h3>
-<div style="overflow:auto;width:100%;height:300px;border:1px solid #336699;padding-left:5px;text-align:left">
-<table class="sortable resizable" border=2>
+<h3 class="center_header">Ligands</h3>
+<div style="overflow:auto;width:100%;height:300px;border:1px solid #336699;padding-left:5px;text-align:left;margin-left:auto;margin-right:auto">
+<table class="sortable resizable" border=1>
 <tr><th>Ligand Name</th><th>Ligand Description</th><th>View File</th><th>Download File</th></tr>
 {% for ligand in job_ligands %}
            <tr>
-           <td style="text-align:center:width:300px">{{ ligand.ligand_name }}</td>
-           <td style="text-align:center:width:500px">{{ ligand.description }}</td>
-           <td style="text-align:center:width:100px"><a target="_blank" href="/charmming/dd_infrastructure/viewfile/{{ligand.file_id}}">View File</a></td>
-           <td style="text-align:center:width:140px"><a href="/charmming/dd_infrastructure/downloadfile/{{ligand.file_id}}">Download File</a></td>
+           <td style="text-align:center;width:300px">{{ ligand.ligand_name }}</td>
+           <td style="text-align:center;width:500px">{{ ligand.description }}</td>
+           <td style="text-align:center;width:100px"><a target="_blank" href="/charmming/dd_infrastructure/viewfile/{{ligand.file_id}}">View File</a></td>
+           <td style="text-align:center;width:140px"><a href="/charmming/dd_infrastructure/downloadfile/{{ligand.file_id}}">Download File</a></td>
            </tr>
 {% endfor %}
 </table>
 </div>
 
-<h3 style="center_header">Job Files</h3>
-<div style="overflow:auto;width:100%;height:105px;border:1px solid #336699;padding-left:5px;text-align:left">
+<h3 class="center_header">Job Files</h3>
+<div style="width:740px;margin-left:auto;margin-right:auto;height:105px;border:1px solid #336699;text-align:left">
 <p style="text-align:center">
-<table class="sortable resizable" style="text-align:center">
+<table class="sortable" style="text-align:center">
 <tr><th>File Description</th><th>View File</th><th>Download File</th></tr>
 {% for file in job_files %}
            <tr>
-           <td style="text-align:center:width:500px">{{ file.description }}</td>
-           <td style="text-align:center:width:100px"><a target="_blank" href="/charmming/dd_infrastructure/viewfile/{{file.id}}">View File</a></td>
-           <td style="text-align:center:width:140px"><a href="/charmming/dd_infrastructure/downloadfile/{{file.id}}">Download File</a></td>
+           <td style="text-align:center;width:500px">{{ file.description }}</td>
+           <td style="text-align:center;width:100px"><a target="_blank" href="/charmming/dd_infrastructure/viewfile/{{file.id}}">View File</a></td>
+           <td style="text-align:center;width:140px"><a href="/charmming/dd_infrastructure/downloadfile/{{file.id}}">Download File</a></td>
            </tr>
 {% endfor %}
 </table>

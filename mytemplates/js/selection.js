@@ -114,7 +114,7 @@ function create_bynum(add, atominfo){ //Universal bynum creation to make things 
   var start_range = atominfo[0].atomno;
   var end_range = start_range; // Add 1 every time
   while(i <= atominfo.length){ //Atominfo is sorted! This is important.
-    if (add && atominfo[i - 1].color == "[x00ffff]"){
+    if (add && atominfo[i - 1].color == cyan){
       $("#dialog_bad_add").dialog("open");
       return false;
     }
@@ -128,7 +128,9 @@ function create_bynum(add, atominfo){ //Universal bynum creation to make things 
           atomsele = atomsele + " .or. bynum " + start_range + ":" + end_range;
         }
       }else{
-        atomsele = atomsele + " .or. bynum " + start_range;
+        if (start_range != atominfo[0].atomno){ //Fixes double-bynum glitch
+          atomsele = atomsele + " .or. bynum " + start_range;
+        }
       }
       if(i < atominfo.length){
         start_range = atominfo[i].atomno;
@@ -164,7 +166,7 @@ function submit_atomselect(){
   Jmol.script(jmolApplet, "color cyan;select none;");
   Jmol.script(jmolApplet, "set picking atom");
   $(".atomselectbutton").hide(); //Hide all atom selection buttons...
-  $("#add").show();
+  $(".addselectbutton").show();
 //        document.getElementById("atomselect_form").submit();
 }
 
@@ -197,18 +199,24 @@ function select_qmsele(divtype, divnum){ //divtype holds what type of input it c
     return false;
   }else{
     var atom = atomarray[0]; //There's only supposed to be one. Watch our for CALCIUM!
-    if (atom.name.toUpperCase() != "CA" && carbregex.exec(atom.name.toUpperCase()) == null && atom.name.toUpperCase() != "C" && atom.name.toUpperCase() != "CT2" && atom.name.toUpperCase() != "CB")
-/*        && atom.name.toUpperCase() != "CG" && atom.name.toUpperCase() != "CD" && atom.name.toUpperCase() != "CD1" && atom.name.toUpperCase() != "CD2"
-        && atom.name.toUpperCase() != "CE")*/{
-      $("#dialog_bad_bond").dialog("open"); //At this point, you have an atom selected, so either you unselect it, or you reset the whole thing
-      return false;
-    }else{
-     /* if (atom.resname.toUpperCase() == "PRO" && (atom.name.toUpperCase() != "CA" && atom.name.toUpperCase() != "CB") || 
-          atom.resname.toUpperCase() == "TRP" && (atom.name.toUpperCase() != "CA" && atom.name.toUpperCase() != "CB" && atom.name.toUpperCase() != "CG"){
-            $("#dialog_bad_bond").dialog("open");
-            return false;
-        } */
+    var atomname = atomarray[0].info.split(".")[1].split(" ")[0]; //e.g. from [UNK]1.H6 #6 -> ([UNK]1),(H6 #6) -> (H6)
+    var atomresno = atomarray[0].info.split("]")[1].split(".")[0]; //e.g. from [UNK]1.H6 #6 -> ([UNK]),(1.H6 #6) -> (1)
+    if(atomname != null){
+      if (atomname.toUpperCase() != "CA" && carbregex.exec(atomname.toUpperCase()) == null && atomname.toUpperCase() != "C" && atomname.toUpperCase() != "CT2" && atomname.toUpperCase() != "CB")
+  /*        && atomname.toUpperCase() != "CG" && atomname.toUpperCase() != "CD" && atomname.toUpperCase() != "CD1" && atomname.toUpperCase() != "CD2"
+          && atomname.toUpperCase() != "CE")*/{
+        $("#dialog_bad_bond").dialog("open"); //At this point, you have an atom selected, so either you unselect it, or you reset the whole thing
+        return false;
+      }else{
+       /* if (atom.resname.toUpperCase() == "PRO" && (atomname.toUpperCase() != "CA" && atomname.toUpperCase() != "CB") || 
+            atom.resname.toUpperCase() == "TRP" && (atomname.toUpperCase() != "CA" && atomname.toUpperCase() != "CB" && atomname.toUpperCase() != "CG"){
+              $("#dialog_bad_bond").dialog("open");
+              return false;
+          } */
+      }
+
     }
+        
     var atom_segid = "";
     i=0; //Search chain terminators for the atom number you're at
     while ( i < chain_terminators.length){
@@ -226,14 +234,13 @@ function select_qmsele(divtype, divnum){ //divtype holds what type of input it c
     var selection_string = ""; //Holds the Jmol script
     //Need to add in code that checks chain_terminators for stuff
     if (!($(divid).val() == "" || $(divid).val() == null)) {
-        var seg_loc = chain_terminators.indexOf(identifier[2]);
+        var seg_loc = segmentlist.indexOf(identifier[2]);
         if (!(seg_loc >= 0)){
           $("#dialog_bad_linkatom_input").dialog("open");
           return false;
         }
-        selection_string = "select " + selestring[0] + "." + selestring[1] +
-          " and atomno >= " + chain_terminators[seg_loc]  + ((seg_loc < chain_terminators.length) ? (" and atomno < " + (chain_terminators[seg_loc + 1])):"");
-        alert(selection_string);
+        selection_string = "select " + identifier[0] + "." + identifier[1] +
+          " and atomno >= " + chain_terminators[seg_loc]  + ((seg_loc + 1 < chain_terminators.length) ? (" and atomno < " + (chain_terminators[seg_loc + 1])):"");
         //The above mass of a string does a weird thing to get segment identification.
         //Since all we have is the atom number at which a residue starts, we select
         //by residue number, name, and atom number greater than or equal to the starting point of the segment
@@ -280,7 +287,7 @@ function select_qmsele(divtype, divnum){ //divtype holds what type of input it c
     }else{
       Jmol.script(jmolApplet, "select none");
     }
-    $(divid).val(atom.resno + "\t" + atom.name + "\t" + atom_segid);
+    $(divid).val(atomresno + "\t" + atomname + "\t" + atom_segid);
     Jmol.script(jmolApplet, "selectionhalos on");
   }
   return false;
@@ -334,7 +341,7 @@ function reset_select(default_color, wipe_all_below){
     $("#linkatom_num").val("");
     $("#linkatom_inputs").html("");
   }
-  $("#add").hide();
+  $(".addselectbutton").hide();
   return "successful";
 }
 
@@ -401,8 +408,12 @@ function submit_qm_mm_atoms(){
         $("#header_layer_"+current_layer).remove();
         $("#linkatom_num_layer_"+current_layer).remove();
       }
+      var current_layer_selectbuttons_html = $("#atomselect_buttons").html(); //Hack for Lee's button doubling.
+      $("#atomselection_layer_"+current_layer).after(current_layer_selectbuttons_html);
+      $("#"+modified_div+" .addselectbutton").remove(); //Extraneous buttons...
+      $("#selectbutton_layer_"+(current_layer + 1)).remove()
       $("#"+modified_div).show();
-      Jmol.script(jmolApplet, "select color='"+cyan+"' or color='"+magenta+"' or color='"+green+"';display selected;color jmol;select none;selectionhalos on;center displayed;zoom 0;");
+      Jmol.script(jmolApplet, "select color='"+cyan+"' or color='"+green+"';display selected;color jmol;select none;selectionhalos on;center displayed;zoom 0;");
       //The above selects our QM/MM region, the link atoms, turns off selectionhalos
       //so that the user doesn't see JSmol changing things, displays only the selected
       //atoms, centers the display, zooms such that the displayed atoms fill the entire screen
@@ -439,7 +450,7 @@ function submit_linkatoms(){
           '" id="mmhost'+model_html_string + i + '" value="">&nbsp;<button class="selectbutton" id="mmbutton'+model_html_string + i + '"  disabled onclick="select_qmsele(\'mmhost\',\'' +model_html_string+ i + '\');return false;">Select</button>&nbsp;<br>');
       i = i + 1;
     }
-    $("#linkatom_inputs"+model_string).append('<br><button class="selectbutton" onclick ="submit_qm_mm_atoms();return false;">Submit Selection with Link Atoms</button>');
+    $("#linkatom_inputs"+model_string).append('<br><button id="selectbutton_layer_' + current_layer + '" class="selectbutton layer_update" onclick ="submit_qm_mm_atoms();return false;">Submit Selection with Link Atoms</button>');
     $("#linkatom_inputs"+model_string).css("display", "inline");
   }else{
     $("#dialog_bad_linkatoms").dialog("open");

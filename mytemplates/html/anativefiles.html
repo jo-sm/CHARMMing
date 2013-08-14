@@ -1,10 +1,43 @@
   <table id="native_ligand_table" class="qm_table" style="margin-left:auto;margin-right:auto;width:330px">
   {% for abadfile in abadfiles %}
     {% if forloop.first %}
-       <tr><td><input type="radio" name="native_ligand" value="{{ abadfile.name }}" checked /></td><td>{{ abadfile.name }}</td><td class="hover-link"><a href="/charmming/jmolview/{{ abadfile.name }}">View</a></td><td class="ligand_image"><img src ="http://www.rcsb.org/pdb/images/{{ abadfile.tag }}_120.gif" alt="Ligand Image from RCSB PDB"></td></tr>
+    <tr><td><input type="radio" name="native_ligand" value="{{ abadfile.name }}" checked /></td>
+      <td>{{ abadfile.name }}</td><td><a href="javascript:getLigandJSmolView('{{ abadfile.jsmolpath }}');">View</a></td>
+      <td class="ligand_image">
+        <div class="ligand_tooltip_image" style="display:none">
+          <img src="http://www.rcsb.org/pdb/images/{{ abadfile.tag}}_300.gif" alt="Ligand Image from RCSB PDB">
+          </div>
+        <img src ="http://www.rcsb.org/pdb/images/{{ abadfile.tag }}_120.gif" alt="Ligand Image from RCSB PDB">
+    </td></tr>
     {% else %}
-       <tr><td><input type="radio" name="native_ligand" value="{{ abadfile.name }}" /></td><td>{{ abadfile.name }}</td><td class="hover-link"><a href="/charmming/jmolview/{{ abadfile.name }}">View</a></td><td class="ligand_image"><img src ="http://www.rcsb.org/pdb/images/{{ abadfile.tag }}_120.gif" alt="Ligand Image from RCSB PDB"></td></tr>
+    <tr><td><input type="radio" name="native_ligand" value="{{ abadfile.name }}" /></td>
+      <td>{{ abadfile.name }}</td>
+      <td><a href="javascript:getLigandJSmolView('{{ abadfile.jsmolpath }}');">View</a></td>
+      <td class="ligand_image">
+        <div class="ligand_tooltip_image" style="display:none">
+          <img src="http://www.rcsb.org/pdb/images/{{abadfile.tag}}_300.gif" alt="Ligand Image from RCSB PDB">
+          </div>
+        <img src ="http://www.rcsb.org/pdb/images/{{ abadfile.tag }}_120.gif" alt="Ligand Image from RCSB PDB">
+    </td></tr>
     {% endif %}
   {% endfor %}
-  </table>
+</table>
+<script>
+  $(document).ready(function()
+  {
+    $(".ligand_image").each(function() {
+      $(this).qtip({
+        content: {
+          text:$(this).children('.ligand_tooltip_image')
+        },
+        show: 'click',
+        hide: 'click',
+        style: {
+          width: 320, //300x300, size of image, plus a small offset.
+          height: 310
+        }
+        });
+      });
+    });
+</script>
 

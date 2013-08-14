@@ -5,22 +5,20 @@
   <h1 class="center_header">Molecular Dynamics</h1>
   <hr class="noshade_hr">
 
-  <div id="change_md" style="text-align:center;">
+  <div class="center_header" id="change_md">
     <form id="md_form" name="md" method="post" action=".">
 
-      <div style="text-align:center">
-        <h2 class="center_header">Working structure: {{ ws_identifier }}</h2>
+        <h2>Working structure: {{ ws_identifier }}</h2>
 
         {% include "html/taskfiles.html" %}
-      </div>
       <br />
 
       <hr class="noshade_hr">
-      <h2 class="center_header">Select type of run</h2>
+      <h2>Select type of run</h2>
 
-      <hr style="width:60%">
+      <hr class="mid_hr">
 
-      <div id="menu" style="width: 100%;text-align:left">
+      <div id="menu" class="align_left full_table">
         <table class="qm_table">
           <tr><td> Heating (adds kinetic energy to the system)</td><td><input type="radio" checked id="useheat" value="useheat" name="mdtype" onclick="$('#heat').show();$('#npt').hide();$('#nve').hide();$('#nvt').hide();"></td></tr>
           <tr><td>NVE dynamics (holds energy constant; no temperature control)</td><td><input type="radio" id="usenve" value="usenve" name="mdtype" onclick="$('#heat').hide();$('#npt').hide();$('#nve').show();$('#nvt').hide();"></td></tr>
@@ -32,11 +30,11 @@
             <!-- <tr><td>Use Replica Exchange</td><td><input type="checkbox" id="use_replica_exchange" name="use_replica_exchange" value="use_replica_exchange" onClick="checkReplicaExchange(makeUniqueDiv('use_replica_exchange'),makeUniqueDiv('replica_exchange_lines'));"></td></tr>  -->
         </table>
 
-        <div id="replica_exchange_lines" style="display: none; width: 100%">
-         <table class="qm_table"> 
+        <div id="replica_exchange_lines" class="full_table hidden">
+         <table class="qm_table">
             <tr><td>Exchange frequency: </td><td><input type="text" size=4 name="rex_clean" value="1"></td></tr>
             <tr><td>Enter number of replicas:</td><td> <input type="text" name="num_rex" id="num_rex" value="0" size="4" onKeyUp="writeRexTempLines(makeUniqueDiv('num_rex'),makeUniqueDiv('rex_lines'),makeUniqueDiv('rex_lines'));">
-            <div id="rex_lines" style="display:block; width: 100%; padding-left: 0%;"></div>
+            <div id="rex_lines" class="full_table" style="display:block;padding-left: 0%;"></div>
             </td></tr>
           </table>
         </div>
@@ -49,8 +47,8 @@
         </table>
       </div>
 
-      <div id="heat" style="display: none; width: 100%;text-align:left">
-        <hr style="width:60%">
+      <div id="heat" class="hidden align_left full_table">
+        <hr class="mid_hr">
         <table class="qm_table">
           <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepht" id="nstepht" value="1000"></td></tr>
           <tr><td>Starting temperature (FIRSTT)</td><td><input type="text" name="firstt" value="210.15"></td></tr>
@@ -61,8 +59,8 @@
         </table>
       </div>
 
-      <div id="nve" style="display: none; width: 100%;text-align:left">
-        <hr style="width:60%">
+      <div id="nve" class="hidden align_left full_table">
+        <hr class="mid_hr">
         <table class="qm_table">
           <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepnve" id="nstepnve" value="1000" ></td></tr>
           <tr><td>Initital temperature (TSTRUCT)</td><td><input type="text" name="tstruct" value="300"></td></tr>
@@ -70,23 +68,23 @@
         </table>
       </div>
 
-      <div id="nvt" style="display: none; width: 100%;text-align:left">
-        <hr style="width:60%">
+      <div id="nvt" class="hidden full_table align_left">
+        <hr class="mid_hr">
         <table class="qm_table">
           <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepnvt" id="nstepnvt" value="1000"></td></tr>
            <tr><td>Nose-hoover thermostat temperature</td><td><input type="text" name="hoovertemp" value="300"></td></tr>
         </table>
       </div>
 
-      <div id="npt" style="display: none; width: 100%;text-align:left">
-        <hr style="width:60%">
+      <div id="npt" class="hidden align_left full_table">
+        <hr class="mid_hr">
         <table class="qm_table">
           <tr><td>Number of steps (NSTEP)</td><td><input type="text" name="nstepnpt" id="nstepnpt" value="1000"></td></tr>
              <tr><td>Nose-hoover thermostat temperature</td><td><input type="text" name="hoovertemp" value="300"></td></tr>
           <tr><td>Pressure piston collision frequency (collisions per picosecond)</td><td><input type="text" name="pgamma" value="0.0"></td></tr>
         </table>
       </div>
-      <input type="submit" value="Apply Molecular Dynamics" />
+      <input style="margin-top:10px" class="big_break" type="submit" value="Apply Molecular Dynamics" />
     </form>
     <script>
       $("#heat").show();

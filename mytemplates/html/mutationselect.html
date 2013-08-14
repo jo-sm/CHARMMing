@@ -1,24 +1,23 @@
 {% extends "html/skeleton.html" %}
-{% block content %}
-{% include "html/error_messages.html %}
-<div id ="mainpage">
+{%block extra_scripts %}
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
-
-  
+{%endblock%}
+{% block content %}
+{% include "html/error_messages.html %}
   <div id="jsmol">
-	<h1 style="text-align:center">Point-Mutation for Structure {{ structname }}</h1>
+	<h1 class="center_header">Point-Mutation for Structure {{ structname }}</h1>
 	<hr />
     <form id="mutate_form" method="post" action="/charmming/mutestruct/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/mutestruct/',makeUniqueDiv('Mutating Structure...'));" >
       <div id='task'> 
-        <h2 style="text-align:center">Working structure: {{ ws_identifier }}</h2>
+        <h2 class="center_header">Working structure: {{ ws_identifier }}</h2>
           {% include "html/taskfiles.html" %}
         <br />
         </div>
-        <div style="background-color: #919f86;"><b>Please choose a name for the mutated structure:</b><input type="text" name="MutFile" id="MutFile" value="{{ proposedname }}" /> </div><br />
+        <div class="gray_green_bg small_break"><b>Please choose a name for the mutated structure:</b><input type="text" name="MutFile" id="MutFile" value="{{ proposedname }}" /> </div><br />
 	  <div id="atomselect">	
 			<div id="select_segment">
 				<h3>Select segment name for mutation</h3>
@@ -45,13 +44,13 @@ segs have iter_res(), so we can easily get a bunch of stuff from there
 			</div>
 			<div id="select_new_residue">
 				<h3>Select the new residue at the point of mutation</h3>
-				<select name="NewResn" id="NewResn">
+				<select name="NewResn" id="NewResn" class="big_break">
 				{% for acid in amino_list %}
 					<option value="{{ acid }}">{{ acid }}</option>
 				{% endfor %}
 				</select>
-      </div><br />
-      <input type="submit" value="Submit" />
+      </div>
+      <input type="submit" value="Submit" /> 
     </div>
 		</form>
   </div>
@@ -94,86 +93,12 @@ Watch for falling JSON.
 {% endcomment %}
 
 <script type="text/javascript">
-//  function is_empty(obj) { //Inner function since we can't use jQuery to make things easy...
-//    for (var i in obj){return false;}
-//    return true;
-//  }
   var segnames = []
   {% for seg in segnames %}
     segnames.push("{{ seg }}");
   {% endfor %}
-  function getSegID(segment){ //Returns the index of the specified segment in segnames. A bit hacky, but it makes sending the form easier
-    for (var i=0;i<segnames.length;i++){
-      if(segnames[i] == segment)
-        return i; 
-    }
-  }
   var myDictList = {{ dictlist|safe }}; //Now we have the Python dictionary in JS.
   var chain_terminators = {{ chain_terminators|safe }}; // This separates chains for visualization
-  changeSegBox(); //We call these before anything executes so the initial choice gets itself updated
-  changeResBox();
-  
-  //Following two are the event handlers...
-  
-  function changeSegBox(){ //Changes the residue list based on which segment you choose
-    var currentseg = getSegID($("#MutSegi").val());
-    $("#MutResName").html("");
-    var resnameString = ""
-    if (!(jQuery.isEmptyObject(myDictList[currentseg]))){    //Don't get keys on an empty dict...
-      var sortlist = []
-        for(var key in myDictList[currentseg]){
-          sortlist[sortlist.length] = key //Lovely little hack this is
-        }
-      sortlist.sort()
-      for (i=0;i<sortlist.length;i++){
-        resnameString = resnameString + '<option value="' + sortlist[i] + '">' + sortlist[i] + '</option>';
-      }
-      $("#MutResName").html(resnameString);
-    }
-    changeResBox(); //Maybe this helps...it seems change listeners don't stack
-  };
-
-
-  function changeResBox(){
-      var currentseg = getSegID($("#MutSegi").val());
-      var currentres = $("#MutResName").val();
-      $("#MutResi").val("");
-      var resiString = ""
-      //Sanity check so we don't try to handle things with an empty dict
-      if (!(jQuery.isEmptyObject(myDictList[currentseg]))){
-        resids = myDictList[currentseg][currentres]; //Get entries under key
-        for (var i=0;i<resids.length;i++){ //resids is a list, can't do for...in
-          resiString = resiString + '<option value="' + resids[i] + '">' + resids[i] + '</option>';
-        }
-      $("#MutResi").html(resiString);
-      }
-      changeResNumBox();
-  };
-
-  function changeResNumBox(){
-    var segletter = $("#MutSegi").val()[0]; //first letter, to get chains...
-    var resname = $("#MutResName").val(); 
-    var resnum = $("#MutResi").val();
-    var currentsegid = getSegID($("#MutSegi").val());
-    if (segletter != null){
-      if (currentsegid < (segnames.length - 1)){
-        var script = "select [" + resname + "] " + resnum + " and atomno < " + chain_terminators[currentsegid + 1] + " and atomno >= " + chain_terminators[currentsegid];
-      }else{
-        var script = "select [" + resname + "] " + resnum + " and atomno >= " + chain_terminators[currentsegid];
-      }
-      Jmol.script(jmolApplet, script);
-    }
-  }
-    
-  //And these are the eventlisteners.
-  document.getElementById("MutResName").addEventListener('change', changeResBox);
-  document.getElementById("MutSegi").addEventListener('change', changeSegBox);
-  document.getElementById("MutResi").addEventListener('change', changeResNumBox);
-  $('input:radio').on('change', function(){
-      Jmol.script(jmolApplet, "load " + filepath + "-" + this.id + ".pdb;selectionHalos on;");
-      });
-  
-    
-  
 </script>
+  <script type="text/javascript" src="/charmming/js/mutation.js"></script>
 {% endblock %}

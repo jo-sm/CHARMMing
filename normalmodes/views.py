@@ -216,12 +216,15 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
         else:
             modelType = request.POST['model_selected']
         template_dict['modelType'] = modelType
+        nmTask.modelType = modelType
         if modelType == "qmmm":
-            qmparams = makeQchem_val(request.POST,request.POST['qmsele'])
+            atomselection = selection.models.AtomSelection.objects.get(workstruct=workstruct)
+            qmparams = makeQchem_val(modelType,atomselection)
             qmparams['jobtype'] = 'freq'
-            template_dict = makeQChem_tpl(template_dict,qmparams,nmTask.workstruct)
+            template_dict = makeQChem_tpl(template_dict,qmparams,False,nmTask)
         elif modelType == "oniom":
             template_dict = structure.mscale.make_mscale(template_dict, request, modelType, nmTask)
+        nmTask.save()
 
     # If need be, print out trajectories for the modes the user requested.
     template_dict['gen_trj'] = request.POST.has_key("gen_trj") 

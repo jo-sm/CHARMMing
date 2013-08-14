@@ -1,24 +1,21 @@
-<table class="sortable resizable" style="width:100%">
-  <tr><th style="text-align:left;width:50px"><input id="checkall" type="checkbox" name="checkall" onclick='LigandSet_CheckUncheck();'/></th>
-    <th style="text-align:left;width:200px">Ligand Name</th>
-    <th style="text-align:left;width:400px">Ligand Description</th>
-    <th style="text-align:center">View in JSmol</th>
-    <th style="text-align:center">View in GLmol</th></tr>
-</table>
-<div id="availableligandsinsidediv" style="overflow:auto;width:99%;height:158px;border:0px solid #336699;padding-left:5px;text-align:left">
-
-<table class="sortable resizable" style="width:100%">
+<div id="availableligandsinsidediv" class="align_left" style="overflow:auto;">
+<table class="sortable resizable full_table">
+  <tr><th class="small_field"><input id="checkall" type="checkbox" name="checkall" onclick='LigandSet_CheckUncheck();'/></th>
+    <th class="ligand_name_field">Ligand Name</th>
+    <th class="wider_ligand_desc_field">Ligand Description</th>
+    <th >View in JSmol</th>
+    <th >View in GLmol</th></tr>
+  <!-- Width 99% is IMPORTANT! Otherwise the table gets a scrollbar. -->
 {% for ligand in available_ligands%}
 <tr>
-  <td style="width:50px"><input id="ligandid_{{ligand.id}}" type="checkbox" name="ligandid" value="{{ ligand.id }}"/></td>
-  <td style="width:200px"><p class="fontsmall" style="text-align:left">{{ ligand.name }}</p></td>
-  <td style="width:400px"><p class="fontsmall">{{ ligand.description }}</p></td>
+  <td class="small_field"><input id="ligandid_{{ligand.id}}" type="checkbox" name="ligandid" value="{{ ligand.id }}"/></td>
+  <td class="ligand_name_field fontsmall">{{ ligand.name }}</td>
+  <td class="wider_ligand_desc_field fontsmall">{{ ligand.description }}</td>
 <td>
 {% if ligand.file_id == 0 %}
 <p>---</p>
 {% else %}
-<a href="#" onclick="window.open('/charmming/dd_substrate/viewligandjmol/{{ligand.file_id}}/', 'View Ligand', 'height=700, width=700');">View</a>
-<!-- TODO: Change this into script for opening JSmol modal window! -->
+<a href="javascript:getLigandJSmolView('{{ligand.file_location}}');">View</a>
 {% endif %}
 </td>
 <td>

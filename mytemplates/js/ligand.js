@@ -6,7 +6,7 @@ var charge_alert = (document.getElementById("dialog_charge_alert") != null);
 var struct_error = (document.getElementById("dialog_struct_error") != null);
 
 if(struct_error){
-  document.getElementById("dialog_struct_error").innerHTML =  '<p><span class="ui-icon ui-icon alert" style="float:left;margin 0 auto auto 0;"></span>There already exists a ligand named ' + molname + ' in your current working structure.<br />&nbsp;&nbsp;&nbsp;&nbsp;Please choose a different name for your ligand.';
+  document.getElementById("dialog_struct_error").innerHTML =  '<p><span class="ui-icon ui-icon alert" style="float:left;margin 0 auto auto 0;"></span>There already exists a ligand named ' + molname + ' in your list of structures.<br />&nbsp;&nbsp;&nbsp;&nbsp;Please choose a different name for your ligand.';
   
   $(function($){
       $( "#dialog_struct_error").dialog({
@@ -128,8 +128,8 @@ function del(applet){
   Jmol.script(applet, "set atompicking on;set picking assignatom_x");
 }
 
-function load(applet, molecule){
-  Jmol.script(applet, "load /charmming/js/jsmol/" + molecule + ".xyz");
+function load(applet, molecule){ 
+  Jmol.loadFile(applet, "$"+molecule);
 }
 
 function action_save(applet){

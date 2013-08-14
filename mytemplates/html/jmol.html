@@ -1,6 +1,5 @@
 {% extends 'html/skeleton.html' %}
-{% block content %}
-<!-- REMEMBER! Make new menu. Add atom selection buttons. -->
+{%block extra_scripts %}
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
@@ -8,19 +7,13 @@
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
   <link rel="icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
   <link rel="shortcut icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
-  <link rel="stylesheet" type="text/css" href="/charmming/js/qtip/jquery.qtip.min.css"></script>
-  <script type="text/javascript" src="/charmming/js/qtip/jquery.qtip.min.js"></script>
-<!--    <a id="test">Woof!</a>
+{%endblock%}
+{% block content %}
   
-  <script>
-    $("#test").qtip({
-      content: '<img src="http://www.rcsb.org/pdb/images/ALC_270.gif"></img>'
-    });
-  </script> -->
-    <h1 class="center_header">Visualization of structure {{structname}}</h1>
+  <h1 class="center_header">Visualization of structure {{structname}}</h1>
   <hr class="noshade_hr">
   <br />
-  <div id="jsmol" style="margin-left:auto;margin-right:auto;width:600px">
+  <div id="jsmol" class="qm_table">
   <script type="text/javascript">
     var jmolApplet;
     jmol_isReady = function(applet) {
@@ -55,7 +48,7 @@
        var count = 0;
      </script>
      <br />
-    <div style="width:600px;margin-left:auto;margin-right:auto">
+    <div class="qm_table">
       <h3 class="center_header">Display options</h3>
       <hr>
       <button onclick="Jmol.script(jmolApplet, 'ribbons off;cartoons off;cpk 30%;wireframe 55;color jmol;');">Ball and Stick</button>

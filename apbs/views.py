@@ -261,8 +261,8 @@ def genstruct_old_tpl(request,file,scriptlist):
         gen_filename = "redox-" + file.stripDotPDB(file.filename) + "-" + segid + "-setup.inp"
         t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makeseg_template.inp' % charmming_config.charmming_root)
         charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-        rseg_filename = "redox-" + file.stripDotPDB(file.filename) + "-" + segid + "-join.inp"
-        fp = open(file.location + rseg_filename, 'w')
+        rseg_filename = file.location + "redox-" + file.stripDotPDB(file.filename) + "-" + segid + "-join.inp"
+        fp = open(rseg_filename, 'w')
         fp.write(charmm_inp)
         fp.close() 
         scriptlist.append(file.location + rseg_filename)
@@ -278,8 +278,8 @@ def genstruct_old_tpl(request,file,scriptlist):
 
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_append.inp' % charmming_config.charmming_root)        
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    rapp_filename = "redox-" + file.stripDotPDB(file.filename) + "-append.inp"
-    fp = open(file.location + rapp_filename, 'w')
+    rapp_filename = file.location + "redox-" + file.stripDotPDB(file.filename) + "-append.inp"
+    fp = open(rapp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
     scriptlist.append(file.location + rapp_filename)
@@ -315,8 +315,8 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout,redoxSite):
         td['sdie'] = 78
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_mkgrid.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    inp_name = 'redox-%s-mkgrid-full.inp' % workstruct.identifier
-    fp = open('%s/%s' % (workstruct.structure.location,inp_name), 'w')
+    inp_name = '%s/redox-%s-mkgrid-full.inp' % (workstruct.structure.location,workstruct.identifier)
+    fp = open(inp_name, 'w')
     fp.write(charmm_inp)
     fp.close()
     redoxTask.scripts += ',%s' % inp_name
@@ -337,8 +337,8 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout,redoxSite):
         td['sdie'] = 4
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_mkgrid.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    inp_name = 'redox-%s-mkgrid-site.inp' % workstruct.identifier
-    fp = open('%s/%s' % (workstruct.structure.location,inp_name), 'w')
+    inp_name = '%s/redox-%s-mkgrid-site.inp' % (workstruct.structure.location,workstruct.identifier)
+    fp = open(inp_name, 'w')
     fp.write(charmm_inp)
     fp.close()
     redoxTask.scripts += ',%s' % inp_name
@@ -355,8 +355,8 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout,redoxSite):
         td['dxmath_inp'].append(dxmath_scr)
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_combinegrid.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    inp_name = 'redox-%s-combinegrid-site.inp' % workstruct.identifier
-    fp = open('%s/%s' % (workstruct.structure.location,inp_name), 'w')
+    inp_name = '%s/redox-%s-combinegrid-site.inp' % (workstruct.structure.location,workstruct.identifier)
+    fp = open(inp_name, 'w')
     fp.write(charmm_inp)  
     fp.close()
     redoxTask.scripts += ',%s' % inp_name
@@ -375,11 +375,11 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout,redoxSite):
     td['sdie'] = 78
     td['site_only'] = False
     td['enefile'] = 'redox-%s-oxipot.txt' % workstruct.identifier
-    inp_filename = 'redox-%s-oxipot.inp' % workstruct.identifier
+    inp_filename = '%s/redox-%s-oxipot.inp' % (workstruct.structure.location,workstruct.identifier)
 
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_delg.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    fp = open(inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
     redoxTask.scripts += ',%s' % inp_filename
@@ -391,11 +391,11 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout,redoxSite):
     td['sdie'] = 1
     td['site_only'] = True
     td['enefile'] = 'redox-%s-oxipotref.txt' % workstruct.identifier
-    inp_filename = 'redox-%s-oxipotref.inp' % workstruct.identifier
+    inp_filename = '%s/redox-%s-oxipotref.inp' % (workstruct.structure.location,workstruct.identifier)
 
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_delg.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    fp = open(inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
     redoxTask.scripts += ',%s' % inp_filename
@@ -407,11 +407,11 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout,redoxSite):
     td['sdie'] = 78
     td['site_only'] = False
     td['enefile'] = 'redox-%s-modpot.txt' % workstruct.identifier
-    inp_filename = 'redox-%s-modpot.inp' % workstruct.identifier
+    inp_filename = '%s/redox-%s-modpot.inp' % (workstruct.structure.location,workstruct.identifier)
 
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_delg.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    fp = open(inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
     redoxTask.scripts += ',%s' % inp_filename
@@ -423,11 +423,11 @@ def getdelg_tpl(request,workstruct,redoxTask,knockout,redoxSite):
     td['sdie'] = 1
     td['site_only'] = True
     td['enefile'] = 'redox-%s-modpotref.txt' % workstruct.identifier
-    inp_filename = 'redox-%s-modpotref.inp' % workstruct.identifier
+    inp_filename = '%s/redox-%s-modpotref.inp' % (workstruct.structure.location,workstruct.identifier)
 
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_delg.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    fp = open(inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
     redoxTask.scripts += ',%s' % inp_filename
@@ -490,8 +490,8 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,rsite_resid,cysDict):
     td['reds'][rsite_resid-1]['presname'] = oxipatch
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    inp_filename = 'redox-%s-build-oxiall.inp' % workstruct.identifier
-    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    inp_filename = workstruct.structure.location + "/" + 'redox-%s-build-oxiall.inp' % workstruct.identifier
+    fp = open(inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
     redoxTask.scripts += ',%s' % inp_filename
@@ -502,8 +502,8 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,rsite_resid,cysDict):
     td['needpatch'] = False
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    inp_filename = 'redox-%s-build-oxisite.inp' % workstruct.identifier
-    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    inp_filename = workstruct.structure.location + '/' + 'redox-%s-build-oxisite.inp' % workstruct.identifier
+    fp = open(inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
     redoxTask.scripts += ',%s' % inp_filename
@@ -515,9 +515,9 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,rsite_resid,cysDict):
     td['needpatch'] = True
     td['reds'][rsite_resid-1]['presname'] = redpatch
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
-    inp_filename = 'redox-%s-build-redall.inp' % workstruct.identifier
+    inp_filename = workstruct.structure.location + '/' + 'redox-%s-build-redall.inp' % workstruct.identifier
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    fp = open(inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
     redoxTask.scripts += ',%s' % inp_filename
@@ -528,8 +528,8 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,rsite_resid,cysDict):
     td['needpatch'] = False
     t = django.template.loader.get_template('%s/mytemplates/input_scripts/redox_makestruct.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(django.template.Context(td)))
-    inp_filename = 'redox-%s-build-redsite.inp' % workstruct.identifier
-    fp = open(workstruct.structure.location + '/' + inp_filename, 'w')
+    inp_filename = workstruct.structure.location + '/' + 'redox-%s-build-redsite.inp' % workstruct.identifier
+    fp = open(inp_filename, 'w')
     fp.write(charmm_inp)
     fp.close()
     redoxTask.scripts += ',%s' % inp_filename

@@ -1,9 +1,17 @@
 {% extends "html/skeleton.html" %}
-
+{%block extra_scripts %}
+<script type="text/javascript" src="/charmming/js/qtip/jquery.qtip.js"></script>
+<link rel="stylesheet" type="text/css" media="all" href="/charmming/js/qtip/jquery.qtip.css" />
+<script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
+<script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
+<script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
+<script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
+<script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
+{%endblock%}
 {% block content %}
 <div id="mainpage">
-<p style="color:{{message_color}}"><strong>{{message}}</strong></font></p>
-<table  class="sortable resizable" style="background-color:#eeeee0;border: 1px solid black;" >
+  <p {%if message_color %}style="color:{{message_color}}"{%endif%}><strong>{{message}}</strong></p>
+<table  class="sortable resizable normal_border" style="background-color:#eeeee0;" >
 {% for tarfile in tarfiles %}
  <tr>
    <td><a href="/charmming/dd_infrastructure/downloadfile/{{tarfile.id}}">{{ tarfile.name }}</a></td>
@@ -14,14 +22,14 @@
 {% ifequal message '' %}
 <form id="dsfform" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/dsfform/">
 <h2 class="center_header">Submit Docking Job</h2>
-<h3 class="center_header">Working structure: {{ ws_identifier }}</h2>
+<h3 class="center_header">Working structure: {{ ws_identifier }}</h3>
 
     {% include "html/taskfiles.html" %}
 
-<!--<h3>Select Target Conformation(s)</h1><br>Only Targets Belonging to the Current Project are Shown-->
-<p style="color:{{message_color}};" class="fontsmall"><strong>{{message}}</strong></p>
+    {%comment%}<!--<h3>Select Target Conformation(s)</h1><br>Only Targets Belonging to the Current Project are Shown-->{%endcomment%}
+  <p {%if message_color%}style="color:{{message_color}};"{%endif%} class="fontsmall"><strong>{{message}}</strong></p>
 
-<!--<form id="dsfform" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/dsfform/">
+  {%comment%}<!--<form id="dsfform" enctype="multipart/form-data" method="post" action="/charmming/dd_infrastructure/dsfform/">
 <div name="conformationsdiv" id="conformationsdiv" style="overflow:auto;width:95%;height:150px;border:1px solid #336699;padding-left:5px;text-align:left">
 <table class="sortable resizable" width="100%" border=2>
 <tr><th>Conformation Name</th><th>Conformation Description</th><th>Target PDB</th><th>Select</th></tr>
@@ -37,36 +45,28 @@
 {% endfor %}  
 </table>
 </div>
--->
-<h3 class="center_header">Define Binding Site using Native Ligand</h2>
+-->{%endcomment%}
+<h3 class="center_header">Define Binding Site using Native Ligand</h3>
     {% include "html/anativefiles.html" %}
-<!--<table>
+    {%comment%}<!--<table>
 <tr><td><label for="id_native_ligand"> Upload Native Ligand in <u>PDB</u> Format: </label></td><td><input type="file" name="native_ligand_file" id="id_native_ligand_file" /></td></tr>
-</table>-->
-<p style="text-align:center"><h3 class="center_header">Select Ligands to Dock</h4></p>
+</table>-->{%endcomment%}
+<h3 class="center_header">Select Ligands to Dock</h3>
 <div class='status'>
-<table>
-<tr>
-<td>
 <p>Select Grid Set:
-<select name="ligandsets" id="ligandsets" onchange="RefreshDSFLigands();">
+<select name="ligandsets" id="ligandsets">
 {% for set in existingsets %}
 <option value='{{ set.id }}'>{{set.name}} ({{set.ligand_count}} ligands)</option>
 {% endfor %}
 </select></p>
-</td>
-</tr>
-<tr><td>
-<div id="ligandsdiv" style="overflow:auto;width:100%;height:300px;border:1px solid #336699;padding-left:5px;text-align:left">
+<div id="ligandsdiv" class="full_table align_left" style="overflow:auto;height:300px;border:1px solid #336699;padding-left:5px;">
 </div>
-</td></tr>
-</table>
 <hr class="noshade_hr">
        <br/>
 <div id="estimatediv">
 </div>
        
-       <p style="text-align:center">Please enter a short description for this job<br>
+       <p class="center_header">Please enter a short description for this job<br>
        <input type="text" name="job_description" id="job_description"/><br><br>
        <input type="submit" value="Submit Docking Job"/>
        </p>
@@ -74,13 +74,63 @@
        <br>
 
 <script type="text/javascript">
+  $("#ligandsets").on("change", function(event){
+      RefreshDSFLigands();
+    });
    RefreshDSFLigands();
 </script>
-
+</div>
 </form>
 {% endifequal %}
+<!-- Incoming code is generic for implementing JSmol modal windows -->
+<div class="hidden" id="jsmol_test">
+  <script>
+    var jmolApplet;
+    jmol_isReady = function(applet){
+      console.log("test");
+    }
+    
+    
+    var Info = {
+        width: "500",
+        height: "500",
+        debug: false,
+        color: "black",
+        use: "HTML5",
+        j2sPath: "/charmming/js/jsmol/j2s",
+        readyFunction: null,
+        script: "set antialiasDisplay;",
+        disableJ2SLoadMonitor:true,
+        disableInitialConsole:true
+      }
+      jmolApplet = Jmol.getApplet("jmolApplet",Info);
+  </script>
 </div>
 
+<script>
+  $("#jmolApplet_appletinfotablediv").attr("title","JSmol modal test");
+  $(function($){
+    $("#jmolApplet_appletinfotablediv").dialog({
+      resizable:true,
+      height:600,
+      width:600,
+      modal:true,
+      autoOpen:false,
+      buttons:{
+        "OK":function(){
+          $(this).dialog("close");
+        }
+    }
+  });
+});
+
+  $("#ligandsdiv").ready(function()
+  {
+    $("#ligandtable").jqTableKit("init");
+  });
+  
+</script>
+</div>
 {% endblock %}
 
 

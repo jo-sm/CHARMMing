@@ -454,8 +454,11 @@ class WorkingSegment(Segment):
                         mol.AddHydrogens()
                     mol.SetTitle(residue.resName)
                     obconv.WriteFile(mol, filename_sdf.encode("utf-8"))
-                    mylogfp.write('cwd: %s' % os.getcwd())
-                    mylogfp.flush()
+                    try:
+                        mylogfp.write('cwd: %s' % os.getcwd())
+                        mylogfp.flush()
+                    except:
+                        pass
             mylogfp.close()
 
         logfp.close()
@@ -873,14 +876,14 @@ class WorkingSegment(Segment):
             obconv = openbabel.OBConversion()
             mol = openbabel.OBMol()
             obconv.SetInAndOutFormats("sdf","pdb")
-            obconv.ReadFile(mol, sdffile)
-            obconv.WriteFile(mol, pdbfile)
+            obconv.ReadFile(mol, sdffile.encode("utf-8"))
+            obconv.WriteFile(mol, pdbfile.encode("utf-8"))
 
 #            cmd = "babel -isdf %s -opdb %s" % (sdffile,pdbfile)
 #            logfp.write(cmd + '\n')
-            status = os.system(cmd)
-            if status != 0:
-                return -1
+#            status = os.system(cmd)
+#            if status != 0:
+#                return -1
             cmd = "sed -i.bak -e 's/LIG/MOL/' %s" % pdbfile
             #TODO: Verify that this isn't a syntax error...
             logfp.write(cmd + '\n')
@@ -1003,8 +1006,8 @@ class WorkingSegment(Segment):
             obconv = openbabel.OBConversion()
             mol = openbabel.OBMol()
             obconv.SetInAndOutFormats("sdf","xyz")
-            obconv.ReadFile(mol, sdffname)
-            obconv.WriteFile(mol, filebase)
+            obconv.ReadFile(mol, sdffname.encode("utf-8"))
+            obconv.WriteFile(mol, filebase.encode("utf-8"))
 
 #            os.system('/usr/bin/babel -isdf ' + sdffname + ' -oxyz ' + filebase + '.xyz')
             logfp = open('/tmp/genrtfcmd.txt', 'w')
@@ -1566,9 +1569,9 @@ class WorkingStructure(models.Model):
                 datapoint.user = str(buildtask.workstruct.structure.owner.username)
                 datapoint.structure_name = str(buildtask.workstruct.structure.name)
                 datapoint.success = True if buildtask.status == 'C' else False
+                datapoint.struct_id = buildtask.workstruct.structure.id
                 datapoint.save()
 
-              
         tasks = Task.objects.filter(workstruct=self,active='y',finished='n')
         #YP lesson stuff 
         try:
@@ -1582,7 +1585,8 @@ class WorkingStructure(models.Model):
             t.query()
 
             if t.status == 'C' or t.status == 'F':
-                self.lock() #updates locked field and prevents this code from executing more than once at a time
+                if t.action != "redox":
+                    self.lock() #updates locked field and prevents this code from executing more than once at a time
 #                lockfile = '/tmp/lockfile-%d-%s' % (t.id,t.workstruct.structure.owner)
 #                try: #If it exists, stop. This prevents multiple file
 #                    if os.stat(lockfile).st_size > 0:
@@ -1628,9 +1632,9 @@ class WorkingStructure(models.Model):
                 t2.finished = 'y'
                 t2.finish()
                 try:
-                    old_dp = statistics.models.DataPoint.objects.get(task_id=t2.id) #Avoids mysterious duplicates
+                    old_dp = statistics.models.DataPoint.objects.get(task_id=t.id) #Avoids mysterious duplicates
                 except:
-                    t2.createStatistics() #In theory this is generic
+                    t.createStatistics() #In theory this is generic
                 t2.save()
 #                fcntl.lockf(lockfp,fcntl.LOCK_UN)
 #                lockfp.close()
@@ -1984,9 +1988,11 @@ class Task(models.Model):
     def query(self):
 
         si = schedInterface()
+        logfp = open("/tmp/task-query.txt","w")
+        logfp.write(str(self.jobID) + "\n")
         if self.jobID > 0:
             sstring = si.checkStatus(self.jobID).split()[4]
-
+            logfp.write(sstring + "\n")
             if sstring == 'submitted' or sstring == 'queued':
                 self.status = 'Q'
             elif sstring == 'running':
@@ -1997,10 +2003,12 @@ class Task(models.Model):
                 self.status = 'F'
             else:
                 raise AssertionError('Unknown status ' + sstring)
-
+            logfp.close()
             self.save()
             return sstring
         else:
+            logfp.write("unknown\n")
+            logfp.close()
             return 'unknown'
 
     def createStatistics(self):
@@ -2014,6 +2022,7 @@ class Task(models.Model):
         datapoint.user = str(self.workstruct.structure.owner.username)
         datapoint.structure_name = str(self.workstruct.structure.name)
         datapoint.success = True if self.status == 'C' else False
+        datapoint.struct_id = self.workstruct.structure.id
         datapoint.save()
 
     def finish(self):
@@ -2096,12 +2105,12 @@ class ParseException(Exception):
 class energyTask(Task):
     finale = models.FloatField(null=True)
     usepbc = models.CharField(max_length=1)
-    useqmmm = models.CharField(max_length=1)
-    qmmmsel = models.CharField(max_length=250)
+    useqmmm = models.CharField(max_length=1,null=True,default="n")
+    qmmmsel = models.CharField(max_length=250) #This is obsolete with our new atom selection system, but we leave it here for posterity.
+    modelType = models.CharField(max_length=30,null=True,default=None) #Holds the modelType of this calculation if it's QM. Null if not.
 
     def finish(self):
         """test if the job suceeded, create entries for output"""
-        self.modifies_coordinates = False
         loc = self.workstruct.structure.location
         bnm = self.workstruct.identifier
         basepath = loc + '/' + bnm + '-' + self.action #Let's make this all make sense...
@@ -2145,7 +2154,7 @@ class energyTask(Task):
 
         if self.status == 'F':
             return
-
+        saveQCWorkingFiles(self,basepath)
         self.status = 'C'
 
 class goModel(models.Model):
@@ -2164,3 +2173,79 @@ class blnModel(models.Model):
     kAngleHelix = models.DecimalField(max_digits=6,decimal_places=3)
     kAngleCoil  = models.DecimalField(max_digits=6,decimal_places=3)
     kAngleSheet = models.DecimalField(max_digits=6,decimal_places=3)
+
+
+#TODO: Add os.stat checks for failed QC tasks. However, the scheduler should respond with "Failed" before then.
+#I wanted to put this into atomselection_aux but it failed.
+#Layers is there as input because I can't hit the DB from here because it would cause a circular import (since selection.models imports from here)
+def saveQCWorkingFiles(task,basepath): #Takes a task as input and saves its QC input/output files, if it is in fact a QC task. This avoids rewriting the same code in 3 places.
+    if task.useqmmm == 'y':
+        if task.modelType == "qmmm": #This one works. Don't wipe it.
+            wfqcin = WorkingFile()
+            qcbasepath = basepath.replace(task.workstruct.identifier+"-"+task.action,"qchem-"+task.workstruct.identifier+task.action)
+            path = qcbasepath + ".inp"
+            try:
+                wftest = WorkingFile.objects.get(task=task,path=path)
+            except:
+                wfqcin.task = task
+                wfqcin.path = path
+                wfqcin.canonPath = wfqcin.path
+                wfqcin.type = "inp"
+                wfqcin.description = "QChem input"
+                wfqcin.save()
+
+            wfqcout = WorkingFile()
+            path = qcbasepath + ".out"
+            try:
+                wftest = WorkingFile.objects.get(task=task,path=path)
+            except:
+                wfqcout.task = task
+                wfqcout.path = path
+                wfqcout.canonPath = wfqcout.path
+                wfqcout.type = "out"
+                wfqcout.description = "QChem output"
+                wfqcout.save()
+        else:
+            #Make workingfiles for inputs, then make the output files by extrapolating from them.
+#            allcurrentwfs = WorkingFile.objects.filter(task=task) #Since we attach them to this task to begin with, it should work fine
+#            subsysbasepath = basepath.replace(task.workstruct.identifier+"-"+task.action,"") + "subsys/"
+#            for wf in allcurrentwfs: #Now do checks, and create new files
+#                if wf.description.startswith("QChem") or wf.description.startswith("Subsystem"): #Thankfully we hardcode these.
+#                    new_wf = WorkingFile()
+#                    new_path = wf.path.replace("inp","out")
+#                    try:
+#                        wftest = WorkingFile.objects.get(task=task,path=new_path)
+#                    except:
+#                        new_wf.task = task
+#                        new_wf.path = path
+#                        new_wf.canonPath = new_wf.path
+#                        new_wf.type = "out"
+#                        new_wf.description = wf.description.replace("input","output")
+#                        new_wf.save()
+#            #Now get the whole system PSF/CRDs and make files out of them...
+#            path = subsysbasepath + "system_with_linkatoms.crd"
+#            wfsubsyscrd = WorkingFile()
+#            try:
+#                wftest = WorkingFile.objects.get(task=task,path=path)
+#            except:
+#                wfsubsyscrd.task = task
+#                wfsubsyscrd.path = path
+#                wfsubsyscrd.canonPath = wfsubsyscrd.path #Fix later?
+#                wfsubsyscrd.type = "inp"
+#                wfsubsyscrd.description = "CRD for whole system (incl. linkatoms)"
+#                wfsubsyscrd.save()
+#
+#            path = path.replace("crd","psf")
+#            wfsubsyspsf = WorkingFile()
+#            try:
+#                wftest = WorkingFile.objects.get(task=task,path=path)
+#            except:
+#                wfsubsyspsf.task = task
+#                wfsubsyspsf.path = path
+#                wfsubsyspsf.canonPath = wfsubsyspsf.path #Fix later?
+#                wfsubsyspsf.type = "inp"
+#                wfsubsyspsf.description = "PSF for whole system (incl. linkatoms)"
+#                wfsubsyspsf.save()
+#            #We're done. Save task and get out.
+            pass #I am not going to do this. Too much trouble. ~VS
+    task.save()

@@ -1,37 +1,24 @@
 {% extends "html/skeleton.html" %}
-
+{%block extra_scripts %}
+  <script type="text/javascript" src="/charmming/js/selection.js"></script>
+{%endblock%}
 {% block content %}
 <div id="mainpage">
-  <script type="text/javascript" src="/charmming/js/selection.js"></script>
   <h1 class="center_header">Minimize</h1>
   <hr class="noshade_hr">
   <form id="min_form" method="post"  action=".">
-    <div id='change_min' style="text-align:center;">
+    <div id='change_min' class="center_header">
   
         <h2>Working structure: {{ ws_identifier }}</h2>
 
         {% include "html/taskfiles.html" %}
       <br />
-
-<!--      <div id="script_dothis" style="display:none;">
-         makeUniqueDiv('min_form');
-         makeUniqueDiv('solvate_implicitly');
-         makeUniqueDiv('run_time_minestimate');
-         makeUniqueDiv('useqmmm');
-         makeUniqueDiv('qmmm_parameters');
-         makeUniqueDiv('apply_restraints');
-         makeUniqueDiv('apply_shake');
-         refreshToolTips();
-         var GB_ROOT_DIR = "/charmming/greybox/greybox/";
-       </div>
-This is vestigial code I hope. -->
-
          <hr class="noshade_hr">
          <h2 class="center_header">Minimization Parameters</h2>
-         <table class="qm_table" style="text-align:center">
-           <tr><td><p><label for="sdsteps"> SDSteps</label> <input type="text" name="sdsteps" id="sdsteps" value=100 size=5> </P></td></tr>
-           <tr><td><p><label for="abnr"> ABNR</label> <input type="text" name="abnrsteps" id="abnr" value=1000 size=5>  </P></td></tr>
-           <tr><td><p><label for="tolg"> Gradient tolerance</label> <input type="text" name="tolg" id="tolg" value=0.05 size=5> </P></td></tr>
+         <table class="table_center align_left" style='width:400px'>
+           <tr><td><p><label for="sdsteps"> SDSteps</label> </p></td><td class="align_right"><input type="text" name="sdsteps" id="sdsteps" value=100 size=5></td></tr>
+           <tr><td><p><label for="abnr"> ABNR</label></p></td><td class="align_right"> <input type="text" name="abnrsteps" id="abnr" value=1000 size=5></td></tr>
+           <tr><td><p><label for="tolg"> Gradient tolerance</label></p></td><td class="align_right"> <input type="text" name="tolg" id="tolg" value=0.05 size=5></td></tr>
          </table>
          <hr class="noshade-hr">
 
@@ -50,21 +37,17 @@ This is vestigial code I hope. -->
         {%endif%}
 
         <p class="fontmed">Use restraints<input type="checkbox" id="use_restraints" name="apply_restraints" onclick="checkRestraints(makeUniqueDiv('use_restraints'),makeUniqueDiv('apply_restraints'));"></p>
-           <div id="apply_restraints" style="display:none">
+           <div id="apply_restraints" class="hidden">
              <p class="fontmed">Enter number of separate minimizations that will use restraints:<input type="text" size="4" id="num_restraints" name="num_restraints" onkeyup="writeRestraintLines('restraint_lines');"></p><br>
               <div id='restraint_lines'></div>
               </div>
           <p class="fontmed">Use shake<input type="checkbox" id="use_shake" name="apply_shake" onclick="checkShake(makeUniqueDiv('use_shake'),makeUniqueDiv('apply_shake'));" checked></p>
-           <div id="apply_shake" class="fontmed" style="display:block">
+           <div id="apply_shake" class="fontmed" >
               {% include 'html/shake_params.html' %}
             </div>
             <p class="fontmed">Solvate implicitly with SCPISM<input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></p>
-         <hr class="noshade_hr">
-         <br/>
-         <br />
-         <input type="submit" value="Minimize" />
-         <br />
-         <br />
+         <hr class="noshade_hr" class="big_break">
+         <input type="submit" value="Minimize" class="big_break" />
 
     </div>
   </form>

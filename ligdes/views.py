@@ -82,16 +82,36 @@ def build_ligand(request):
     tdict = {}
 #    logfp.write(str(struct) + "\n")
     tdict['super_user'] =request.user.is_superuser
-#    amino_list = aaAlphabet.keys() #Incoming "magic values"
-    #Take them in from our toppar
-#    tdict['amino_list'] = json.dumps(amino_list)
-#Ignore this, easier to do serverside check for that stuff
-    #TODO: Add any other residues supported by CHARMM internally
     if request.POST: #Do stuff with the JSmol data if the POSTdata has some
         postdata = request.POST
         os.chdir(filepath)
         molname = postdata['LigName']
         moldata = postdata['molinfo']
+        tdict['moldata'] = moldata #pass them back and forth until we have valid data
+        tdict['molname'] = molname
+        tdict['mol_short'] = molname[0:4].upper()
+        #First do name checks...
+        try:
+            residue = Residue.objects.filter(residue_name=tdict['mol_short'])[0]
+            tdict['messages'] = messages.get_messages(request)
+            if len(residue.residue_desc) > 0:
+                desc = "(" + residue.residue_desc + ")"
+            else:
+                desc = ""
+            resn = residue.residue_name
+            messages.error(request, "The residue name " + resn + " " + desc + " is a reserved word in CHARMM. Please choose another name for your molecule.")
+            return render_to_response('html/ligand_design.html', tdict)
+        except: #Not found
+           pass
+        try:
+            test_query = len(Residue.objects.all())
+            if test_query < 1:
+                write_toppar_info()
+                os.chdir(full_filepath)
+        except: #There are no records for residues in the database, or something else went wrong, so make them
+            write_toppar_info()
+            os.chdir(full_filepath)
+        #Now write a file...
         if 'attach_check' in postdata.keys():
             tdict['attach_check'] = True
         else:
@@ -100,18 +120,25 @@ def build_ligand(request):
 #        logfp.write(str(lines) + "\n\t")
         lines = lines.split("\\n")
 #        logfp.write(str(lines) + "\n\t")
-#        tmpfile = open("moldata.pdb","w") #We use a single tempfile to avoid encoding issues.
+        tmpfile = open("moldata.pdb","w") #We use a single tempfile to avoid encoding issues.
         end_data = ""
         for line in lines:
             if line.startswith("COMPND"):
                 line = "COMPND    LIGAND: " + molname + "\n"
             end_data += line + "\n"
-#        tmpfile.write(end_data)
-#        tmpfile.close()
+        resname = ""
+        if len(molname) >= 4:
+            resname = molname[0:4]
+        else:
+            resname = molname
+        end_data = end_data.replace(" UNK ", resname.upper())
+        tmpfile.write(end_data)
+        tmpfile.close()
+#We write this first...moldata.pdb is useful as a debug check and we can do all sorts of things with it
         end_data = end_data.encode("utf-8")
         obConversion = openbabel.OBConversion()
         obConversion.SetInFormat("pdb")
-#        obConversion.SetInAndOutFormats("mol", "pdb") #So we can write to file for PDBFile if this is successful
+#        obConversion.SetInAndOutFormats("mol", "pdb")
         mol = openbabel.OBMol()
         obConversion.ReadString(mol, end_data)
         charge_model = openbabel.OBChargeModel.FindType("mmff94")
@@ -127,29 +154,6 @@ def build_ligand(request):
         tdict['filepath'] = '/charmming/pdbuploads/' + request.user.username + "/"
         if struct:
             tdict['filepath'] = tdict['filepath'] + struct.name + "/"
-        tdict['moldata'] = moldata #pass them back and forth until we have valid data
-        tdict['molname'] = molname
-        tdict['mol_short'] = molname[0:4].upper()
-        try:
-            test_query = len(Residue.objects.all())
-            if test_query < 1:
-                write_toppar_info()
-                os.chdir(full_filepath)
-        except: #There are no records for residues in the database, or something else went wrong, so make them
-            write_toppar_info()
-            os.chdir(full_filepath)
-        try:
-            residue = Residue.objects.filter(residue_name=tdict['mol_short'])[0]
-            tdict['messages'] = messages.get_messages(request)
-            if len(residue.residue_desc) > 0:
-                desc = "(" + residue.residue_desc + ")"
-            else:
-                desc = ""
-            resn = residue.residue_name
-            messages.error(request, "The residue name " + resn + " " + desc + " is a reserved word in CHARMM. Please choose another name for your molecule.")
-            return render_to_response('html/ligand_design.html', tdict)
-        except: #Not found
-            pass
 
         if (core_charges - molec_charges) % 2 != 0 and postdata['force_charge'] == "false":
             tdict['charge_alert'] = True
@@ -182,10 +186,10 @@ def build_ligand(request):
 #            outstring = obConversion.WriteString(mol) #Consider changing these to ligand names
             #Now we need to add a chainid so that PDBFile doesnt' freak out.
             #Get ligand name, first 4 characters, add spaces.
-            end_data = end_data.replace(" UNK   ", resname)
-            outfile = open("moldata.pdb","w")
-            outfile.write(end_data)
-            outfile.close()
+            #At this point it's already written...
+#            outfile = open("moldata.pdb","w")
+#            outfile.write(end_data)
+#            outfile.close()
             ligpdb = PDBFile("moldata.pdb")
             ligmol = ligpdb['model00']
             for seg in ligmol.iter_seg():

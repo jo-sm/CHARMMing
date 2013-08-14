@@ -1,8 +1,8 @@
 {% extends "html/skeleton.html" %}
 
 {% block content %}
-<div id="mainpage" style="margin-left:auto;margin-right:auto;width:30em">
-   <div style="text-align:center">
+<div id="mainpage" class="table_center" style="width:30em">
+   <div class="center_header">
       <h1>Upload Structure</h1>
       <hr>
    <h3>What would you like to do?</h3>
@@ -46,12 +46,12 @@
    {% endifequal %}
       <fieldset class="structure">
          <legend class="login">Submit Structure</legend>
-            <div id='pdb_upload' style="display:none"><p><label for="id_pdbupload"> PDB File Uploader </label> {{ form.pdbupload }} {{ form.pdbupload_file }}</div>
-            <div id='crd_upload' style="display:none"><p><label for="id_crdupload"> CRD File Uploader </label> {{ form.crdupload }} {{ form.crdupload_file }}</div>
-            <div id='psf_upload' style="display:none"><p><label for="id_psfupload"> PSF File Uploader </label> {{ form.psfupload }} {{ form.psfupload_file }}</div>
-            <div id='pdb_download' style="display:none"><p><label for="id_pdbid"> PDB.org ID </label> {{ form.pdbid }} {{ form.proto }} </div>
-            <div id='ligand_make' style="display:none"></div> <!-- This div is only here to make the scripts on this page work with the custom ligand builder -->
-            <div id='pdb_make' style="display:none">
+            <div class="hidden" id='pdb_upload'><p><label for="id_pdbupload"> PDB File Uploader </label> {{ form.pdbupload }} {{ form.pdbupload_file }}</div>
+            <div class="hidden" id='crd_upload'><p><label for="id_crdupload"> CRD File Uploader </label> {{ form.crdupload }} {{ form.crdupload_file }}</div>
+            <div class="hidden" id='psf_upload'><p><label for="id_psfupload"> PSF File Uploader </label> {{ form.psfupload }} {{ form.psfupload_file }}</div>
+            <div class="hidden" id='pdb_download'><p><label for="id_pdbid"> PDB.org ID </label> {{ form.pdbid }} {{ form.proto }} </div>
+            <div class="hidden" id='ligand_make'></div> <!-- This div is only here to make the scripts on this page work with the custom ligand builder -->
+            <div class="hidden" id='pdb_make'>
                  <label for="id_sequ">Custom Sequence </label>{{ form.sequ }} 
 	         <br>
 	         <br>
@@ -80,7 +80,7 @@
 	               <a href="javascript:addResidue('HSE');">Epsilon-Histidine*</a><br>
 	               <a href="javascript:addResidue('ILE');">ILE-Isoleucine </a><br>
 	               <a href="javascript:addResidue('LEU');">LEU-Leucine </a><br>
-	               <a href="javascript:addResidue('LSN');">LSN-Lysine* </a><br>
+                 <a href="javascript:addResidue('LSN');">LSN-Lysine* </a><br>
 	               <a href="javascript:addResidue('MET');">MET-Methionine </a><br>
 	               <a href="javascript:addResidue('PHE');">PHE-Phenylalanine </a><br>
 	               <a href="javascript:addResidue('PRO');">PRO-Proline </a><br>
@@ -97,8 +97,8 @@
       </fieldset>
       <br />
       {% if lesson_ok %}
-      <div style="text-align:center;">
-       What Lesson is this structure associated with?<br>
+      <div class="center_header">
+        What Lesson is this structure associated with?<br><br>
         <select name="lesson" id="lesson"> 
          <option value="nolesson" selected> No Lesson </option>
          <option value="lesson1"> Lesson 1 </option>
@@ -107,9 +107,9 @@
          <option value="lesson4"> Lesson 4 </option>
          <option value="lesson6"> Lesson 5 </option>
          <option value="lesson6"> Lesson 6 </option>
-        </select><br><br>
+       </select><br><br>
       {% endif %}
-      <input type="submit" value="Submit Structure"/>
+      <input class="big_break" type="submit" value="Submit Structure"/>
     </div>
     </form>
 </div>

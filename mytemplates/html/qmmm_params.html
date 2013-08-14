@@ -1,11 +1,11 @@
-<hr style="width:70%">
+<hr class="qm_hr">
 <p class="model_selection">
 Model type:<br>
 <input type="radio" id="model_select_qmmm" name="model_selected" value="qmmm" onclick="$('.oniom_params').hide();generateParams('qmmm',1);"/>Additive model (QM/MM)<br>
 <input type="radio" id="model_select_oniom" name="model_selected" value="oniom" onclick="$('.qmmm_params').hide();$('.oniom_params').show();generateParams('oniom',2);"/>Subtractive model (ONIOM/MSCALE)<br>
 </p>
 <div class="oniom_params">
-<hr style="width:70%">
+<hr class="qm_hr">
 <p>
     Layers: <select size="1" id="oniom_layers" name="oniom_layers">
       <option value="2" selected>2</option>
@@ -30,7 +30,6 @@ Model type:<br>
       }
       
 function generateParams(modelType,layers){
-    //TODO: Fix writeLinkAtomLines so that it centers!
     //We need to check whether qmmm_params is already there, then remove it if it is.
     $(".qmmm_params").remove();
     //Once qmmm_params is gone, we need to "spawn" the parameter HTML so the user can select.
@@ -96,22 +95,22 @@ function generateParams(modelType,layers){
   </script>
 </div>
 <div id="dialog_coords_alert" title="No coordinates present.">
-  <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
+  <p><span class="ui-icon ui-icon-alert"></span>
   Please perform at least one calculation on the full atom set before performing QM/MM level simulations.</p>
 </div>
-<div id="dialog_bad_params" title="Bad QM/MM parameteres">
-  <p><span class="ui-icon ui-icon-alert" style="float:left;margin:0 auto auto 0;"></span>
+<div id="dialog_bad_params" title="Bad QM/MM parameters">
+  <p><span class="ui-icon ui-icon-alert"></span>
   The QM/MM parameters from the selection page do not match our regular format. Please use the automated selection provided.
   If you are seeing this message in error, please report this bug.</p>
 </div>
-<div style="display:none" id="other_inputs_and_functions">
+<div class="hidden" id="other_inputs_and_functions">
 <input type="hidden" value="" id="source" name="source">
 <input type="hidden" value="" id="task_id" name="task_id">
 <input type="hidden" value="" id="highest_qm_layer" name="highest_qm_layer">
 </div>
 <div id="load_after_everything">
 
-{% if lonepairs or oniom_selections %}{% comment %} You need one to submit the selection so this works great, though we still need to split on OniomSelections{%endcomment%}
+{% if atomselection or oniom_selections %}{% comment %} You need one to submit the selection so this works great, though we still need to split on OniomSelections{%endcomment%}
 <script>
   $(document).ready(function(){
     $("#useqmmm").attr("checked",true);

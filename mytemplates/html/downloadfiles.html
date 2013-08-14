@@ -2,29 +2,34 @@
 
 {% block content %}
 <div id="mainpage">
-  <h1 style="text-align:center">Download Files</h1>
-  <h2 style="text-align:center">Working structure: {{ wsname }}</h2>
+  <h1 class="center_header">Download Files</h1>
+  <h2 class="center_header">Working structure: {{ wsname }}</h2>
 
-  <div class='status' style="margin-left:auto;margin-right:auto;text-align:center">
+  <div class='status table_center center_header' style="margin-bottom:r0px">
     <a href="/charmming/downloadfiles/downloadtar/">Download a Tar file of all the files associated with this working structure</a>
     <br />
     <br />
 
-    <form method="post" action=".">
-       {% for key in headers %}
-          <h3>{{ key }} files</h3>
-
-          <table style="text-align:left;border-spacing:3;width:40%;margin-left:auto;margin-right:auto">
+      {% for key in headers %}
+      <div id="collapse-{% ifequal key "Segment setup" %}setup{%else%}{{key}}{%endifequal%}">
+        <table class="table_center small_table">
+         <tr>
+         <td class="name_field"><button onclick="hideFileList('{%ifequal key "Segment setup"%}setup{%else%}{{key}}{%endifequal%}');">+</button></h3></td>
+         <td class="desc_header"><h3>{{ key }} files</h3></td>
+         </tr>
+        </table>
+     </div>
+     <div id="{%ifequal key "Segment setup" %}setup{%else%}{{key}}{%endifequal%}" class="hidden">
+          <table class="align_left table_center normal_border" style="width:40%;">
           {% for file in filelst %}
              {% ifequal file.0 key %}
-               <tr><td style="padding:2"><a href="/charmming/viewprocessfiles/download/{{ file.1 }}">{{ file.1 }}</a></td><td>{{ file.2 }}</td></tr>
+               <tr><td style="padding:2px"><a href="/charmming/viewprocessfiles/download/{{ file.1 }}">{{ file.1 }}</a></td><td class="align_right">{{ file.2 }}</td></tr>
              {% endifequal %}
           {% endfor %}
          
         </table>
+      </div>
       {% endfor %}
-    </form>
-    <br>
 </div>
 </div>
 {% endblock %}

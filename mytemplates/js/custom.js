@@ -4,6 +4,11 @@ var mdCounter = -1;
 var selected_div = "";
 // Tab variables...
 
+//This is for various drug design pages
+function getLigandJSmolView(ligandfile){
+  $("#jmolApplet_appletinfotablediv").dialog("open");
+  Jmol.script(jmolApplet, "load " + ligandfile);
+}
 
 //This is for badhet selection on the build structure page
 function showUploads(segdiv){
@@ -140,7 +145,19 @@ function setCGDisplay(id)
     i = i + 1;
   }
   //Go through all of them, makes the code nice and generic. Can't use enhanced for loop again...why?
+
+
+  while (i < check_array.length){
+    if(!(check_array[i].checked)){
+      $("#"+check_array[i].value+"_display").hide();
+    }else{
+      $("#"+check_array[i].value+"_display").show();
+    }
+    i = i + 1;
+  }
+  //Go through all of them, makes the code nice and generic. Can't use enhanced for loop again...why?
 }
+
 
 function addResidue(residue)
 {
@@ -242,16 +259,13 @@ function checkDisplayFile(filename)
 
 function hideFileList(header)
 {
-  var filediv = document.getElementById(header);
-  var fileheader = document.getElementById("collapse-" + header); 
-  if (filediv.style.display == "block")
-    {
-      filediv.style.display = "none";
-      fileheader.innerHTML = "<h2><button onclick=\"hideFileList('" + header + "');\">+</button>" + header + " files</h2>";
+  if($("#"+header).is(":visible")){
+    $("#"+header).hide();
+    $("#collapse-"+header+" table button").html("+");
   }else{
-      filediv.style.display = "block";
-      fileheader.innerHTML = "<h2><button onclick=\"hideFileList('" + header + "');\">-</button>" + header + " files</h2>";
-    }
+    $("#"+header).show();
+    $("#collapse-"+header+" table button").html("-");
+  }
 }
       
 //for use with Normal modes
@@ -1141,7 +1155,8 @@ function RefreshAvailableLigands()
         url:"/charmming/dd_substrate/setavailableligands/"+$("#availableligandsets").val()+'',
         type:"post",
         success: function(requestData){
-        document.getElementById("availableligandsdiv").innerHTML = requestData;}
+        document.getElementById("availableligandsdiv").innerHTML = requestData;
+        $("#availableligandsinsidediv table").jqTableKit("init");} //Need to call init; TableKit doesn't fire on AJAX
         });
 //    var myAjax = new Ajax.Updater('availableligandsdiv', '/charmming/dd_substrate/setavailableligands/'+document.getElementById("avaiableligandsets").value+'', {method: 'post'})
     //var myAjax = new Ajax.Updater('availableconformationsdiv', 'www.google.com', {method: 'post'})
@@ -1158,7 +1173,8 @@ function RefreshSetLigands(set_id,addedids,removedids)
         url:"/charmming/dd_substrate/setligands/"+set_id+"/"+addedids+"/"+removedids+"/",
         type:"post",
         success: function(requestData){
-        document.getElementById("setligandsdiv").innerHTML = requestData;}
+        document.getElementById("setligandsdiv").innerHTML = requestData;
+        $("#setligandsinsidetable").jqTableKit("init");} //Redid the table so that it sorts properly...
         });
     //var myAjax = new Ajax.Updater('setligandsdiv', '/charmming/dd_substrate/setligands/'+set_id+'/'+addedids+'/'+removedids+'/', {method: 'post'})
 
@@ -1232,7 +1248,6 @@ function RefreshLigandSetInfo(ligandsetid,action,form)
     //alert (document.getElementById("gridset_name").value);
     //var code = 'name=' + document.getElementById("ligandset_name").value + '&description=' + document.getElementById("ligandset_description").value;
 //    var code = 'name=' + $("#ligandset_name").value + '&description=' + $("i#ligandset_description").value;
-    //TODO: Will this have to change for jQuery...?
     //alert (code);
     $.ajax({
         url:'/charmming/dd_substrate/updateligandsetinfo/'+ligandsetid+'/'+action+'/',
@@ -1325,34 +1340,11 @@ function getCheckedDSFLigands()
     return checkedvalues;
 }
 
-
 function DSFLigands_CheckUncheck()
 {
-
-    if ( document.forms['dsfform'].elements['id_ligand_file'].length )
-    {
-	for (var x = 0; x < document.forms['dsfform'].elements['id_ligand_file'].length; x++)
-	{
-	    if (document.forms['dsfform'].elements['dsfligandscheckall'].checked)
-	    {
-		document.forms['dsfform'].elements['id_ligand_file'][x].checked = true;   
-	    }
-	         else
-	    {
-		document.forms['dsfform'].elements['id_ligand_file'][x].checked = false;
-	    }
-	         
-	}
-    }
-       else
-    {
-	if (document.forms['dsfform'].elements['dsfligandscheckall'].checked)
-	{
-	    document.forms['dsfform'].elements['id_ligand_file'].checked = true;            
-	}
-	      else
-	{
-	    document.forms['dsfform'].elements['id_ligand_file'].checked = false;
-	}
-    }
+  if ($("#dsfligandscheckall").is(":checked")){
+    $(".id_ligand_file").prop("checked",true);
+  }else{
+    $(".id_ligand_file").prop("checked",false);
+  }
 }

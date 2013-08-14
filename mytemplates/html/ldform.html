@@ -2,8 +2,8 @@
 
 {% block content %}
 <div id="maincontent">
-  <div id="change_ld" style="text-align: center;">
-    <h1 class="center_header">Langevin Dynamics</h1>
+  <div class="center_header" id="change_ld">
+    <h1>Langevin Dynamics</h1>
     <hr class="noshade_hr">
 <!--    <div id="script_dothis" style="display:none;">
       makeUniqueDiv('ld_form');
@@ -15,13 +15,13 @@
     -->
 			   
     <form id='ld_form' name="ld" method="post"  action=".">
-        <h2 class="center_header">Working structure: {{ ws_identifier }}</h2>
+        <h2>Working structure: {{ ws_identifier }}</h2>
 
         {% include "html/taskfiles.html" %}
             
 
-        <h2 class="center_header">Select Langevin dynamics options</h2>
-        <table class="qm_table" style="text-align:left;padding-left:10%">
+        <h2>Select Langevin dynamics options</h2>
+        <table class="qm_table align_left" style="padding-left:10%">
           <tr><td>Number of steps</td><td><input type="text" id="nstep" name="nstep" value="1000"></td></tr>
           <tr><td>Solvate Implicitly with SCPISM</td><td><input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></td></tr>
           <tr><td>Use SGLD</td><td><input type="checkbox" id="usesgld" name="usesgld" value="usesgld" onclick="if(this.checked){$('#sgldparm').show();}else{$('#sgldparm').hide();}"></td></tr>
@@ -29,7 +29,7 @@
           <tr><td>Make a movie</td><td><input type="checkbox" id="make_movie" name="make_movie" value="make_movie"></td></tr>
         </table>
 
-        <div id="sgldparm" style="display:none;">
+        <div id="sgldparm" class="hidden">
           TSGAVG:<input type="text" name="tsgavg" value="0.5">
           TEMPSG:<input type="text" name="tempsg" value="1.0">
         </div>

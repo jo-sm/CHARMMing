@@ -1,21 +1,22 @@
 {% extends 'html/skeleton.html' %}
-{% block content %}
+{%block extra_scripts %}
 <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
 <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
 <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
 <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
 <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
 <script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
-
+{%endblock%}
+{% block content %}
   <div id="top_of_page">
-    <h1 style="text-align:center">Build a {% if structname %} Ligand for Structure {{ structname }} {% else %} Custom Ligand{% endif %}</h1>
+    <h1 class="center_header">Build a {% if structname %} Ligand for Structure {{ structname }} {% else %} Custom Ligand{% endif %}</h1>
   <hr />
   <form id="ligand_form" method="post" action="/charmming/ligand_design/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/ligand_design/',makeUniqueDiv('Build Ligand'));" > 
-    <div style="background-color: #919f86;"><b>Please choose a name for the new ligand:&nbsp;&nbsp;</b>
-      <input type="text" name="LigName" id="LigName" value="{{ molname }}"><br />
+    <div class="gray_green_bg"><b style="margin-right:5px">Please choose a name for the new ligand:</b>
+      <input class="header_separator" type="text" name="LigName" id="LigName" value="{{ molname }}"><br>
         (only the first 4 characters will be used as a residue name)<br />
-        <p>Attach this ligand to the current structure&nbsp;&nbsp;<input type="checkbox" name="attach_check" id="attach_check" {% if attach_check %} checked {% endif %}></p></div>
-      <input type="text" name="molinfo" id="molinfo" value="{{moldata}}" style="display:none"> <!-- This holds the MOL output from Jmol to spit back out into django -->
+        <p style="padding-bottom:20px">Attach this ligand to the current structure<input style="margin-left:10px" type="checkbox" name="attach_check" id="attach_check" {% if attach_check %} checked {% endif %}></p></div>
+      <input type="hidden" name="molinfo" id="molinfo" value="{{moldata}}" > <!-- This holds the MOL output from Jmol to spit back out into django -->
       <input type="hidden" name="force_charge" id="force_charge" value="false">
       <input type="hidden" name="force_custom" id="force_custom" value="false"> <!-- Bypasses SDF check in PDB.org -->
       <input type="hidden" name="not_custom" id="not_custom" value="false">
@@ -31,11 +32,9 @@
       {% endif %}
       {% if sdf_link %} 
       <div id="dialog_confirm_PDB" title="Found residue on PDB.org">
-        <p><span class="ui icon ui-icon-alert"></span>Your residue has been found on PDB.org at <a href="{{sdf_link}}">this link.</a></p>
+        <p><span class="ui icon ui-icon-alert"></span>Your residue has been found on PDB.org at <a href="{{sdf_link}}">this link.</a>
         <br />
-        <center>
-          <img src="http://www.rcsb.org/pdb/images/{{mol_short}}_270.gif" alt="Residue image">
-        </center>
+        <span class="table_center"> <img src="http://www.rcsb.org/pdb/images/{{mol_short}}_270.gif" alt="Residue image"></span>
       </div>
       <div id="dialog_name_alert" title="Name error">
         <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
@@ -44,7 +43,7 @@
       {% endif %}
       {% if charge_alert %}
       <div id="dialog_charge_alert" title="Charge error">
-        <p><span class="ui-icon ui-icon alert" style='float:left;margin 0 auto auto 0;'></span>
+        <p><span class="ui-icon ui-icon alert"></span>
         Your molecule has an odd number of electrons. Are you sure you want to submit this ligand?
         </p>
       </div>
@@ -54,7 +53,7 @@
       </div>
       {% endif %}
       <div id="dialog_reserved_name" title="Reserved name">
-        <p><span class="ui icon ui-icon alert"></span></p>
+        <p></p>
       </div>
       <div id="dialog_no_name" title="No name">
         <p><span class="ui icon ui-icon alert"></span>Please input a name for your ligand.</p>
@@ -117,9 +116,7 @@
       
       //We use a jQuery UI thing because using prototypejs makes things silly.
         var initialscript = 'set antialiasDisplay;set atompicking on;set picking assignatom_C;'
-        {% if not moldata %}
-          initialscript = initialscript + "load /charmming/js/jsmol/methane.xyz";
-        {% else %}
+        {% if moldata %}
           initialscript = initialscript + "load {{filepath}}moldata.pdb;";
         {% endif %}
         var jmolApplet;
@@ -147,6 +144,9 @@
             ["==", "ligands at PDB"],
         ]);
         jmolApplet = Jmol.getApplet("jmolApplet", Info);
+        {%if not moldata%}
+        Jmol.loadFile(jmolApplet, "$methane") //We fetch from NCI so we don't hav ethis stuff on disk
+        {%endif%}
         // Now jmolApplet can be referenced from all the other stuff on this page.
       </script>
     </div>
@@ -154,73 +154,62 @@
         <div id="default_mols">
           <h3>Load Default Starting Molecules</h3>
           <hr />
-            <button id="Benzene" onclick="load(jmolApplet, 'benzene')">Benzene</button>&nbsp;
-            <button id="Methane" onclick="load(jmolApplet, 'methane')">Methane</button>
-            <br />
-            <br />
+            <button class="button_separator" id="Benzene" onclick="load(jmolApplet, 'benzene')">Benzene</button>
+            <button class='button_separator' id="Methane" onclick="load(jmolApplet, 'methane')">Methane</button>
           </div>
         <div id="database_mols">
           <h3>Load Starting Molecule from Database</h3>
-          <hr />
+          <hr class="header_separator" />
             <script>
               
               $("#jmolApplet_query").appendTo("#database_mols");
               $("#jmolApplet_select").appendTo("#database_mols");
               $("#jmolApplet_submit").appendTo("#database_mols");
             </script>
-            <br />
           </div>
         <div id="actions">
           <h3>Structure Actions</h3>
           <hr />
-            <button onclick="action_save(jmolApplet);">Save</button>&nbsp;
-            <button onclick="action_restore(jmolApplet);">Restore</button>&nbsp;
-            <br /><br />
+            <button onclick="action_save(jmolApplet);">Save</button>
+            <button class="button_separator" onclick="action_restore(jmolApplet);">Restore</button>
         </div>
         <div id="mol_edit">
           <h3>Atom Manipulation</h3>
           <hr />
-          <button id="off" onclick="off(jmolApplet);">Off</button>&nbsp;
-          <button id="drag" onclick="drag(jmolApplet);">Drag</button>&nbsp;
-          <button id="del" onclick="del(jmolApplet);">Delete</button>&nbsp;
+          <button class="button_separator" id="off" onclick="off(jmolApplet);">Off</button>
+          <button class="button_separator" id="drag" onclick="drag(jmolApplet);">Drag</button>
+          <button class="button_separator" id="del" onclick="del(jmolApplet);">Delete</button>
           
-          <br /><br />
           <h3>Atom picking</h3>
           <hr />
-          <!-- Replace these with radio buttons maybe? ~VS -->
-          <button id="H" onclick="pickAtom(jmolApplet, this);">H</button>&nbsp;
-          <button id="C" onclick="pickAtom(jmolApplet, this);">C</button>&nbsp;
-          <button id="N" onclick="pickAtom(jmolApplet, this);">N</button>&nbsp;
-
-          <button id="O" onclick="pickAtom(jmolApplet, this);">O</button>&nbsp;
-          <button id="S" onclick="pickAtom(jmolApplet, this);">S</button>&nbsp;
-          <button id="P" onclick="pickAtom(jmolApplet, this);">P</button>&nbsp;
-          <button id="Li" onclick="pickAtom(jmolApplet,this);">Li</button>&nbsp;
-          <button id="Na" onclick="pickAtom(jmolApplet,this);">Na</button>&nbsp;
-          <button id="Mg" onclick="pickAtom(jmolApplet,this);">Mg</button>&nbsp;
-          <br /><br />
-          <button id="K" onclick="pickAtom(jmolApplet,this);">K</button>&nbsp;
-          <button id="Ca" onclick="pickAtom(jmolApplet,this);">Ca</button>&nbsp;
-          <button id="Rb" onclick="pickAtom(jmolApplet,this);">Rb</button>&nbsp;
-          <button id="Cs" onclick="pickAtom(jmolApplet,this);">Cs</button>&nbsp;
-          <button id="Ba" onclick="pickAtom(jmolApplet,this);">Ba</button>&nbsp;
-          <button id="Zn" onclick="pickAtom(jmolApplet,this);">Zn(II)</button>&nbsp;
-          <button id="Cd" onclick="pickAtom(jmolApplet,this);">Cd(II)</button>&nbsp;
-          <button id="Cl" onclick="pickAtom(jmolApplet,this);">Cl</button>&nbsp;
-          <br /><br />
-          <button id="Pl" onclick="pickAtom(jmolApplet,this);">Increase Charge</button>&nbsp;
-          <button id="Mi" onclick="pickAtom(jmolApplet,this);">Decrease Charge</button>&nbsp;
-          <br /><br />
+          <button class="button_separator" id="H" onclick="pickAtom(jmolApplet, this);">H</button>
+          <button class="button_separator" id="C" onclick="pickAtom(jmolApplet, this);">C</button>
+          <button class="button_separator" id="N" onclick="pickAtom(jmolApplet, this);">N</button>
+          <button class="button_separator" id="O" onclick="pickAtom(jmolApplet, this);">O</button>
+          <button class="button_separator" id="S" onclick="pickAtom(jmolApplet, this);">S</button>
+          <button class="button_separator" id="P" onclick="pickAtom(jmolApplet, this);">P</button>
+          <button class="button_separator" id="Li" onclick="pickAtom(jmolApplet,this);">Li</button>
+          <button class="button_separator" id="Na" onclick="pickAtom(jmolApplet,this);">Na</button>
+          <button class="button_separator" id="Mg" onclick="pickAtom(jmolApplet,this);">Mg</button>
+          <button class="button_separator" id="K" onclick="pickAtom(jmolApplet,this);">K</button>
+          <button class="button_separator" id="Ca" onclick="pickAtom(jmolApplet,this);">Ca</button>
+          <button class="button_separator" id="Rb" onclick="pickAtom(jmolApplet,this);">Rb</button>
+          <button class="button_separator" id="Cs" onclick="pickAtom(jmolApplet,this);">Cs</button>
+          <button class="button_separator" id="Ba" onclick="pickAtom(jmolApplet,this);">Ba</button>
+          <button class="button_separator" id="Zn" onclick="pickAtom(jmolApplet,this);">Zn(II)</button>
+          <button class="button_separator" id="Cd" onclick="pickAtom(jmolApplet,this);">Cd(II)</button>
+          <button class="button_separator" id="Cl" onclick="pickAtom(jmolApplet,this);">Cl</button>
+          <button class="button_separator" id="Pl" onclick="pickAtom(jmolApplet,this);">Increase Charge</button>
+          <button class="button_separator" id="Mi" onclick="pickAtom(jmolApplet,this);">Decrease Charge</button>
         </div>
         <div id="mol_bonds">
           <h3>Bond Manipulation</h3>
           <hr />
-          <button id="n" onclick="setbonds(jmolApplet,this);">Off</button>&nbsp;
-          <button id="0" onclick="setbonds(jmolApplet,this);">Break</button>&nbsp;
-          <button id="1" onclick="setbonds(jmolApplet,this);">Single</button>&nbsp;
-          <button id="2" onclick="setbonds(jmolApplet,this);">Double</button>&nbsp;
-          <button id="3" onclick="setbonds(jmolApplet,this);">Triple</button>&nbsp;
-          <br /><br />
+          <button class="button_separator" id="n" onclick="setbonds(jmolApplet,this);">Off</button>
+          <button class="button_separator" id="0" onclick="setbonds(jmolApplet,this);">Break</button>
+          <button class="button_separator" id="1" onclick="setbonds(jmolApplet,this);">Single</button>
+          <button class="button_separator" id="2" onclick="setbonds(jmolApplet,this);">Double</button>
+          <button class="button_separator" id="3" onclick="setbonds(jmolApplet,this);">Triple</button>
         </div>
         <hr />
         <button id="submit" onclick="normalFormSubmit();">Upload New Ligand</button>

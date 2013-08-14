@@ -1,13 +1,15 @@
 {% extends "html/skeleton.html" %}
-{% block content %}
-<div id="mainpage">
+{%block extra_scripts%}
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
   <script type="text/javascript" src="/charmming/js/buildstruct.js"></script>
-  <h1 style="text-align:center">Editing structure {{ structname }}</h1>
+{%endblock%}
+{% block content %}
+<div id="mainpage">
+  <h1 class="center_header">Editing structure {{ structname }}</h1>
   <hr />
 
   {% if haveworkingstruct %}
@@ -27,7 +29,7 @@
      <h2>Build A New Working Structure</h2>
 
      <form id="config_form" method="post" action="/charmming/modstruct/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/modstruct/',$('#content')[0]);" >
-        <div style="background-color: #919f86;"><b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" value="{{ proposedname }}" /></div><br />
+        <div class="gray_green_bg"><b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" value="{{ proposedname }}" /></div><br />
         <b>Please choose which model you want this working structure based from:</b>
 
         <select name="basemodel">
@@ -36,7 +38,7 @@
            {% endfor %}
         </select>
 
-        <div style="background-color: #919f86;">
+        <div class="gray_green_bg">
           <h3>What type of structure should be built?</h3>
           <table style="width:65%">
             <tr><td><input type="radio" name="buildtype" value="aa" onclick="setCGDisplay('aa');" checked /></td><td>A &quot;traditional&quot; all-atom model using the CHARMM force field.</td></tr>
@@ -52,7 +54,7 @@
            <h4>Choose Segments and Patching</h4>
  
            <div id="select_div">
-             <table class="sortable resizable" style="border: solid 2px black">
+             <table class="sortable resizable normal_border">
              <tr><td>Selected</td><td>Segment Name</td><td>Segment type</td><td>First patch</td><td>Last patch</td><td>Topology File and Parameter File</td><td>Residue Name</td><td>Residue Image</td></tr>
              {% for seg in seg_list %}
                 <tr>
@@ -89,7 +91,7 @@
 	                {% endif %}
                       </select>
                       <br />
-                      <div id="toppar_upload_{{seg.name}}" style="display:none"> topology file: <input type="file" name="topology_{{ seg.name }}" /><br />
+                      <div class="hidden" id="toppar_upload_{{seg.name}}"> topology file: <input type="file" name="topology_{{ seg.name }}" /><br />
                       parameter file: <input type="file" name="parameter_{{ seg.name }}" /><br /></div>
                     {% else %}
                       CHARMM36 topology/parameters for proteins/nucleic acids will be used
@@ -117,7 +119,7 @@
            {% if disulfide_list %}
              <p>Change disulfide bond patching options <input type="checkbox" name="disul_box" id="disul_box" onclick="if($(this).is(':checked')){$('#disulfide').show();}else{$('#disulfide').hide();}" /></p>
 
-             <div id="disulfide" style="display:none;">
+             <div id="disulfide" class="hidden">
              <h3>Choose Disulfide Patching</h3>
              <table class="qm_table">
                <tr><td>SEGID 1</td><td>RESID 1</td><td>SEGID 2</td><td>RESID 2</td><td>Selected</td></tr>
@@ -183,9 +185,9 @@
           </div>
           {% endif %}
         </div>
-        <div id="go_display" style="display:none;">
-          <h3 style="text-align:center">Select segments for the Go model</h3>
-           <table class="sortable" style="width:20%;border:2px solid black;margin-left:auto;margin-right:auto">
+        <div id="go_display" class="hidden">
+          <h3 class="center_header">Select segments for the Go model</h3>
+           <table class="sortable normal_border table_center" style="width:20%;">
            {% for seg in seg_list %}
               {% ifequal seg.type "pro" %}
                  <tr><td><input type="checkbox" name="go_select_{{ seg.name }}" value="y" /></td><td>{{ seg.name }}</td></tr>
@@ -193,7 +195,7 @@
            {% endfor %}
            </table>
  
-           <h3 style="text-align:center">Go model parameters</h3>
+           <h3 class="center_header">Go model parameters</h3>
 
            <p>A <b>Go like</b> model incorporates a potential energy function that is based on a known structure. Contacts within
               the structure are defined as <b>native</b> or <b>non-native</b>, and determined via an empirical contact potential.
@@ -206,7 +208,7 @@
 
            <table>
               <tr>
-                 <td colspan="2" style="background-color:#E0FFF0">Basic parameters (should be manipulated as needed for all Go models).</td>
+                 <td colspan="2" class="light_green_bg">Basic parameters (should be manipulated as needed for all Go models).</td>
               </tr>
               <tr>
                  <td><b>Contact types</b><br />
@@ -227,30 +229,30 @@
                  <td><input type="text" class="gm_input" name="gm_nscale" value="1.00" /></td>
               </tr>
               <tr>
-                <td colspan="2" style="background-color:#E0FFF0">Advanced parameters (these should be left unchanged in most cases).</td>
+                <td colspan="2" class="light_green_bg">Advanced parameters (these should be left unchanged in most cases).</td>
               </tr>
               <!--              <div id="gm_advancedparms" style="display: block;"> THis is invalid and doesn't even work. It crashes the HTML. -->
                 <tr>
-                  <td style="width:50%"><b>Contact radius</b>: sets the distance<br />at which a contact is considered native.</td>
-                  <td style="width:50%"><input class="gm_input" type="text" name="gm_contactrad" value="4.5" /></td>
+                  <td class="half"><b>Contact radius</b>: sets the distance<br />at which a contact is considered native.</td>
+                  <td class="half"><input class="gm_input" type="text" name="gm_contactrad" value="4.5" /></td>
                 </tr>
                 <tr>
-                  <td style="width:50%">Bond force constant <input class="gm_input" type="text" name="gm_kbond" value="50.0" /> </td>
-                  <td style="width:50%">Angle force constant <input class="gm_input" type="text" name="gm_kangle" value="30.0" /> </td>
+                  <td class="half">Bond force constant <input class="gm_input" type="text" name="gm_kbond" value="50.0" /> </td>
+                  <td class="half">Angle force constant <input class="gm_input" type="text" name="gm_kangle" value="30.0" /> </td>
                 </tr>
 
                 <!-- Frank needs to give me things for form processing -->
                 <tr>
-                  <td style="width:50%">&alpha;-helix 1 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedralalphahelix_1" value="0.30" /></td>
-                  <td style="width:50%">&alpha;-helix 3 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedralalphahelix_3" value="0.15" /></td>
+                  <td class="half">&alpha;-helix 1 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedralalphahelix_1" value="0.30" /></td>
+                  <td class="half">&alpha;-helix 3 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedralalphahelix_3" value="0.15" /></td>
                 </tr>
                 <tr>
-                  <td style="width:50%">310-helix 1 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedral310helix_1" value="0.30" /></td>
-                  <td style="width:50%">310-helix 3 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedral310helix_3" value="0.15" /></td>
+                  <td class="half">310-helix 1 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedral310helix_1" value="0.30" /></td>
+                  <td class="half">310-helix 3 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedral310helix_3" value="0.15" /></td>
                 </tr>
                 <tr>
-                  <td style="width:50%">helical 1 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedralnohelix_1" value="0.55" /></td>
-                  <td style="width:50%">Unhelical 3 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedralnohelix_3" value="0.275" /></td>
+                  <td class="half">helical 1 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedralnohelix_1" value="0.55" /></td>
+                  <td class="half">Unhelical 3 dihedral force constant <input class="gm_input" type="text" name="gm_kdihedralnohelix_3" value="0.275" /></td>
                 </tr>
                 <tr>
                   <td>Well depth for hydrogen bond LJ potentials:</td>
@@ -261,15 +263,15 @@
                   </td>
                 </tr>
                 <tr>
-                  <td style="width:50%">Epsilon NN <input class="gm_input" type="text" name="gm_epsilonnn" value="1e-12" /></td>
-                  <td style="width:50%">Well depth for backbone-sidechain LJ interactions <input type="text" class="gm_input" name="gm_bbscinteraction" value="-0.37" /></td>
+                  <td class="half">Epsilon NN <input class="gm_input" type="text" name="gm_epsilonnn" value="1e-12" /></td>
+                  <td class="half">Well depth for backbone-sidechain LJ interactions <input type="text" class="gm_input" name="gm_bbscinteraction" value="-0.37" /></td>
                 </tr>
            </table>
         </div>
 
-        <div id="bln_display" style="display:none;">
-           <h3 style="text-align:center">Select segments for the BLN model</h3>
-           <table class="sortable" style="width:20%;border:2px solid black;margin-left:auto;margin-right:auto">
+        <div id="bln_display" class="hidden">
+           <h3 class="center_header">Select segments for the BLN model</h3>
+           <table class="sortable normal_border table_center" style="width:20%;">
            {% for seg in seg_list %}
               {% ifequal seg.type "pro" %}
                  <tr><td><input type="checkbox" name="bln_select_{{ seg.name }}" value="y" /></td><td>{{ seg.name }}</td></tr>
@@ -284,22 +286,22 @@
               <!-- Why are those hrefs if they don't have any link they're pointing to? -->
            </p>
 
-           <h3 style="text-align:center">BLN Model Parameters</h3>
+           <h3 class="center_header">BLN Model Parameters</h3>
            <table>
              <tr>
-                <td colspan="2" style="background-color:#E0FFF0">These parameters generally do not need to be adjusted.</td>
+                <td colspan="2" class="light_green_bg">These parameters generally do not need to be adjusted.</td>
              </tr>
              <tr>
-                <td style="width:33%">Helix bond force constant <input type="text" name="bln_kbondhelix" value="3.50" /></td>
-                <td style="width:33%">Helix angle force constant <input type="text" name="bln_kanglehelix" value="8.37" /></td>
+                <td class="one_third">Helix bond force constant <input type="text" name="bln_kbondhelix" value="3.50" /></td>
+                <td class="one_third">Helix angle force constant <input type="text" name="bln_kanglehelix" value="8.37" /></td>
              </tr>
              <tr>
-                <td style="width:33%">&Beta;-sheet bond force constant <input type="text" name="bln_kbondsheet" value="3.50" /></td>
-                <td style="width:33%">&Beta;-sheet angle force constant <input type="text" name="bln_kanglesheet" value="8.37" /></td>
+                <td class="one_third">&Beta;-sheet bond force constant <input type="text" name="bln_kbondsheet" value="3.50" /></td>
+                <td class="one_third">&Beta;-sheet angle force constant <input type="text" name="bln_kanglesheet" value="8.37" /></td>
              </tr>
              <tr>
-                <td style="width:33%">Coil bond force constant <input type="text" name="bln_kbondcoil" value="2.50" /></td>
-                <td style="width:33%">Coil angle force constant <input type="text" name="bln_kanglecoil" value="5.98" /></td>
+                <td class="one_third">Coil bond force constant <input type="text" name="bln_kbondcoil" value="2.50" /></td>
+                <td class="one_third">Coil angle force constant <input type="text" name="bln_kanglecoil" value="5.98" /></td>
              </tr>
            </table>
         </div>

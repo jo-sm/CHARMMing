@@ -13,6 +13,8 @@
     <script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
     <script type="text/javascript" src="/charmming/js/status.js"></script>
 
+    {%block extra_scripts %} {%endblock%}
+    
     <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
     <link href="/charmming/css/charmming.css" rel="stylesheet" type="text/css" />
     <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
@@ -43,9 +45,16 @@
     function doOnLoad() {
        myMenu = new SDMenu("my_menu");
        myMenu.init();
-
-      //Find way to get Chrome to stop being annoying about this being async:true and giving up on loading the page.
+       //CHrome doesn't like PeriodicalUpdater sometimes and will fire infinitely many XHR and never load anything; however, if you force a single XHR (as I do here),
+      //Chrome will start loading them right. I have no idea why, and no one else seems to have this issue, so I'm assuming it's a Chrome bug more than anything.
        $("#statusreport").PeriodicalUpdater('/charmming/status/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
+       $.ajax({
+          url:'/charmming/status/',
+          method:'post',
+          success:function(responseData){
+          $("#statusreport").html(responseData);
+          }
+          });
     }
 
     function showLesson(lesson)
@@ -54,9 +63,17 @@
      {
       currperiodicalupdater.stop();
      }
-     if(lesson != "nolesson" && lesson != 'None')
+     if(lesson != "nolesson" && lesson != 'None'){
        currperiodicalupdater = $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {method: 'post', multiplier:5, minTimeout:1000, maxTimeout:3000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
-     else
+    //Same Chrome hack as before
+       $.ajax({
+          url:'/charmming/lessons/lessonstatus/',
+          method:'post',
+          success:function(responseData){
+          $("#statusreport").html(responseData);
+          }
+          });
+     }else
      {
       document.getElementById('lessonreport').innerHTML = '';
      }

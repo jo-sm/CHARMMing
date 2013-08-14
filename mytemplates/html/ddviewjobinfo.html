@@ -1,15 +1,15 @@
 
-<table class="sortable resizable" border=1>
+<table class="sortable resizable" border=1 style="margin-left:auto;margin-right:auto">
 <tr><th>Job ID</th><th>Description</th><th>Current Status</th><th>Submitted</th><th>Wait time</th><th>Running time</th><th>Total time</th><th>Results</th></tr>
            <tr>
-           <td align = "center" width ="50">{{ job.owner_index }}</td>
-           <td><font size='2'>{{job.description}}</font></td> 
-           <td align="center" width = "80" id="job_status">{{ job.status|safe }}</td>
-	   <td align="center"><font size='2'>{{ job.queued }}</font></td>
-	   <td align="center"><font size='2'>{{ job.waited }}</font></td>
-	   <td align="center"><font size='2'>{{ job.runtime }}</font></td>
-           <td align="center"><font size='2'>{{ job.totaltime }}</font></td>
-	   <td align="center"><a href="#" style="font-size:12pt; color:Red;" onclick="viewDDJobResults('{{job.id}}')" id="viewhideddjobresults">View/Hide Results</a></td>
+           <td style="text-align:center;width:50px">{{ job.owner_index }}</td>
+           <td><p class="fontsmall">{{job.description}}</p></td> 
+           <td style="text-align:center;width:80px" id="job_status_{{job.id}}">{{ job.status|safe }}</td>
+           <td style="text-align:center"><p class="fontsmall">{{ job.queued }}</p></td>
+           <td style="text-align:center"><p class="fontsmall">{{ job.waited }}</p></td>
+           <td style="text-align:center"><p class="fontsmall">{{ job.runtime }}</p></td>
+           <td style="text-align:center"><p class="fontsmall">{{ job.totaltime }}</p></td>
+           <td style="text-align:center"><a href="#" style="font-size:12pt; color:Red;" onclick="viewDDJobResults('{{job.id}}')" id="viewhideddjobresults">View/Hide Results</a></td>
 	   </tr>
 </table>
 

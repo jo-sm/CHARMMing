@@ -131,7 +131,7 @@ def makeQchem_val(modelType,atomselection):
         prms['charge'] = atomselection.charge
         prms['multi'] = atomselection.multiplicity
         if atomselection.linkatom_num > 0:
-            prms['linkatoms'] = handleLinkAtoms(atomselection) #TODO: Modify this so it uses the database!
+            prms['linkatoms'] = handleLinkAtoms(atomselection)
         else:
             prms['linkatoms'] = None
     elif modelType == "oniom":
@@ -144,7 +144,7 @@ def makeQchem_val(modelType,atomselection):
             prms['charge'] = atomselection.charge
             prms['multi'] = atomselection.multiplicity
             if atomselection.linkatom_num > 0:
-                prms['linkatoms'] = handleLinkAtoms(atomselection) #TODO: Modify this so it uses the database!
+                prms['linkatoms'] = handleLinkAtoms(atomselection)
             else:
                 prms['linkatoms'] = None
 #    if postdata['qmmm_exchange'] in ['HF','B','B3']:
@@ -186,7 +186,9 @@ def makeQchem_val(modelType,atomselection):
 
 ##def makeQChem_tpl(template_dict, file, exch, corr, bs, qmsel, jobtype, charge, multi, last_struct, linkatoms = None):
 #Fname is included because we want to be able to call wrtQchemInp with it.
-def makeQChem_tpl(template_dict,qmparms,workstruct,fname):
+#Task is included because we need a decent naming convention. 
+#TODO: Adapt this to multi-task file name conventions
+def makeQChem_tpl(template_dict,qmparms,fname,task):
     template_dict['bad_exchange'] = 0
     template_dict['bad_correlation'] = 0
     template_dict['bad_basis'] = 0
@@ -204,16 +206,16 @@ def makeQChem_tpl(template_dict,qmparms,workstruct,fname):
       template_dict['bad_jobtype'] = 1
       return template_dict
     if not fname: #In the interests of safety, make fname start off as False. TODO: Ask Tim about kwargs.
-        qchemin  = "qchem-" + workstruct.identifier + ".in"
-        qcheminp = "qchem-" + workstruct.identifier + ".inp"
-        qchemout = "qchem-" + workstruct.identifier + ".out"
+        qchemin  = "qchem-" + task.workstruct.identifier + "-" + task.action + ".in"
+        qcheminp = "qchem-" + task.workstruct.identifier + "-" + task.action + ".inp"
+        qchemout = "qchem-" + task.workstruct.identifier + "-" + task.action + ".out"
     else:
         qchemin = fname + ".in"
         qcheminp = fname + ".inp"
         qchemout = fname + ".out"
     ## BTM -- I vaguely remember why we put this in here, but I am not sure how it fits in
     ## with the new GUTS-style CHARMMing, so I am going to leave it commented out for now.
-    qmcheck = checkQMregion(workstruct,qmparms['qmsel'])
+    qmcheck = checkQMregion(task.workstruct,qmparms['qmsel'])
 
     template_dict['qmcheck'] = qmcheck 
     if qmcheck == 0:
@@ -228,10 +230,10 @@ def makeQChem_tpl(template_dict,qmparms,workstruct,fname):
        if tqm != 'all':
            fullhess = True
     if not fname:
-        wrtQchemInp(workstruct.structure.location + '/' + qchemin, qmparms['exch'], qmparms['corr'], \
+        wrtQchemInp(task.workstruct.structure.location + '/' + qchemin, qmparms['exch'], qmparms['corr'], \
                qmparms['bs'], qmparms['jobtype'], qmparms['charge'], qmparms['multi'], fullhess) #This will write to a specific filename, which helps with ONIOM.
     else:
-        wrtQchemInp(workstruct.structure.location + '/' + qchemin, qmparms['exch'], qmparms['corr'], \
+        wrtQchemInp(task.workstruct.structure.location + '/' + qchemin, qmparms['exch'], qmparms['corr'], \
                qmparms['bs'], qmparms['jobtype'], qmparms['charge'], qmparms['multi'], fullhess) #This will write to a specific filename, which helps with ONIOM.
     template_dict['qmsel'] = qmparms['qmsel']
 

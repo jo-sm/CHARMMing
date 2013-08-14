@@ -136,6 +136,7 @@ def setLigands(request,ligandset_id,addedids,removedids):
                 (where=["id in (select file_id from dd_infrastructure_files_objects where object_table_name='dd_substrate_ligands' " \
                 " and object_id=%s)" % (ligand_info.id)])[0]
                 ligand_info.file_id=ligandfile.id
+                ligand_info.file_location = ligandfile.file_location.replace("/home/schedd/","/charmming/pdbuploads/") + ligandfile.file_name
             except:
                 ligand_info.file_id=0
             #for ligandfile in ligandfiles:                                                                                                                                                                              
@@ -223,6 +224,7 @@ def updateAvailableSetLigands(request,selected_set_id):
             (where=["id in (select file_id from dd_infrastructure_files_objects where object_table_name='dd_substrate_ligands' "\
             "and object_id=%s)" % (ligand_info.id)])[0]
             ligand_info.file_id=ligandfile.id
+            ligand_info.file_location = ligandfile.file_location.replace("/home/schedd/","/charmming/pdbuploads/") + ligandfile.file_name
         except:
             ligand_info.file_id=0
         #for ligandfile in ligandfiles:
@@ -1305,46 +1307,47 @@ def viewLigandGLmol(request, ligand_file_id):
     except:
         return HttpResponse("No ligand file found")
 
-def viewLigandJmol(request,ligand_file_id):
-
-    if not request.user.is_authenticated():
-        return render_to_response('html/loggedout.html')
-
-    lesson_ok, dd_ok = checkPermissions(request)
-    if not dd_ok:
-        return render_to_response('html/unauthorized.html')
-
-
-
-    #if not request.user.is_authenticated():
-    #    return render_to_response('html/loggedout.html')
-    
-    username = request.user.username
-    u = User.objects.get(username=username)
-    public_user=User.objects.get(username='public')
-    #ligand_filename="vcsdrawn30"
-    #job=jobs.objects.get(owner=request.user,job_scheduler_id=job_id.replace("/",""))
-    #job_folder = charmming_config.user_dd_jobs_home + '/' + username + '/' + 'dd_job_' + str(job.job_owner_index)
-    ligandfile = files.objects.get(owner__in=[u,public_user],id=ligand_file_id.replace("/",""))
-    filename=ligandfile.file_location + "/" + ligandfile.file_name
-
-
-    viewligand=open("/tmp/viewligand.log",'w')
-    #viewpose.write("jobid:%s\n" % job_id)
-    #Getting the pdb
-    
-    #conformation_file=files.objects.filter(owner=request.user).extra(where=["id IN (select file_id from dd_infrastructure_files_objects where owner_id=%s and object_table_name='dd_infrastructure_jobs' and object_id=%s)" % (request.user.id,job.id)]).extra(where=["id IN (select file_id from dd_infrastructure_files_objects where owner_id=%s and object_table_name='dd_target_protein_conformations')" % (request.user.id)])[0]
-    
-    ligandfile=filename.replace("/home/schedd/","/charmming/pdbuploads/")
-    #proteinfile=conformation_file.file_location+conformation_file.file_name
-    #viewpose.write("babel -imol2 %s -opdb %s" % (proteinfile,proteinfile.replace(".mol2",".pdb")))
-    #os.system("babel -imol2 %s -opdb %s" % (proteinfile,proteinfile.replace(".mol2",".pdb")))
-    #proteinfile=conformation_file.file_location.replace("/var/tmp/","/charmming/")+conformation_file.file_name
-    #proteinfile=proteinfile.replace(".mol2",".pdb").replace("/var/tmp/","/charmming/")
-    viewligand.write("ligandfile: %s\n" % (ligandfile))
-    
-    try:
-        username = request.user.username
-        return render_to_response('html/ddviewligandjmol.html', {'ligandfile': ligandfile })
-    except:
-        return HttpResponse("No ligand file found")
+#This has been made obsolete by JSmol modal window.
+#def viewLigandJmol(request,ligand_file_id):
+#
+#    if not request.user.is_authenticated():
+#        return render_to_response('html/loggedout.html')
+#
+#    lesson_ok, dd_ok = checkPermissions(request)
+#    if not dd_ok:
+#        return render_to_response('html/unauthorized.html')
+#
+#
+#
+#    #if not request.user.is_authenticated():
+#    #    return render_to_response('html/loggedout.html')
+#    
+#    username = request.user.username
+#    u = User.objects.get(username=username)
+#    public_user=User.objects.get(username='public')
+#    #ligand_filename="vcsdrawn30"
+#    #job=jobs.objects.get(owner=request.user,job_scheduler_id=job_id.replace("/",""))
+#    #job_folder = charmming_config.user_dd_jobs_home + '/' + username + '/' + 'dd_job_' + str(job.job_owner_index)
+#    ligandfile = files.objects.get(owner__in=[u,public_user],id=ligand_file_id.replace("/",""))
+#    filename=ligandfile.file_location + "/" + ligandfile.file_name
+#
+#
+#    viewligand=open("/tmp/viewligand.log",'w')
+#    #viewpose.write("jobid:%s\n" % job_id)
+#    #Getting the pdb
+#    
+#    #conformation_file=files.objects.filter(owner=request.user).extra(where=["id IN (select file_id from dd_infrastructure_files_objects where owner_id=%s and object_table_name='dd_infrastructure_jobs' and object_id=%s)" % (request.user.id,job.id)]).extra(where=["id IN (select file_id from dd_infrastructure_files_objects where owner_id=%s and object_table_name='dd_target_protein_conformations')" % (request.user.id)])[0]
+#    
+#    ligandfile=filename.replace("/home/schedd/","/charmming/pdbuploads/")
+#    #proteinfile=conformation_file.file_location+conformation_file.file_name
+#    #viewpose.write("babel -imol2 %s -opdb %s" % (proteinfile,proteinfile.replace(".mol2",".pdb")))
+#    #os.system("babel -imol2 %s -opdb %s" % (proteinfile,proteinfile.replace(".mol2",".pdb")))
+#    #proteinfile=conformation_file.file_location.replace("/var/tmp/","/charmming/")+conformation_file.file_name
+#    #proteinfile=proteinfile.replace(".mol2",".pdb").replace("/var/tmp/","/charmming/")
+#    viewligand.write("ligandfile: %s\n" % (ligandfile))
+#    
+#    try:
+#        username = request.user.username
+#        return render_to_response('html/ddviewligandjmol.html', {'ligandfile': ligandfile })
+#    except:
+#        return HttpResponse("No ligand file found")

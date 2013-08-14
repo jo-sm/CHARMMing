@@ -5,44 +5,41 @@
     <h1 class="center_header">Solvate</h1>
     <hr class="noshade_hr"/>
 
-  <div id='change_solv' style="text-align:center;">
+  <div id='change_solv' class="center_header">
       <form id="solv_form" name="solv_form" method="post"  action=".">
-          <h2 class="center_header">Working structure: {{ ws_identifier }}</h2>
+          <h2>Working structure: {{ ws_identifier }}</h2>
  
           {% include "html/taskfiles.html" %}
 
           <hr class="noshade_hr" />
-          <h2 class="center_header">Solvation Parameters</h2>
-
-          <h3 class="center_header">Choose What Sort of Solvation You Want</h3>
-          <table style="width:40%;text-align:left;margin-left:auto;margin-right:auto">
+          <h2>Solvation Parameters</h2>
+          <h3>Choose Solvation Type</h3>
+          <table class="table_center align_left" style="width:40%">
             <tr><td>Calculate dimensions based on structure size + a buffer</td><td><input id="no_pref" type="radio" name="solvtype" value="determine_dimensions" onclick="$('#pick_sphere').hide();$('#pick_shape').show();$('#set_buffer').show();$('#set_dimensions').hide();" checked /></td></tr>          
             <tr><td>Set the exact dimensions of the solvation cell</td><td><input id="set_pref" type="radio" name="solvtype" value="set_dimensions" onclick="$('#pick_sphere').hide();$('#pick_shape').show();$('#set_buffer').hide();$('#set_dimensions').show();"  /></td></tr>          
             <tr><td>Spherical water shell (cannot be used for PBC)</td><td><input type="radio" name="solvtype" value="sphere_solvation" onclick="$('#pick_sphere').show();$('#pick_shape').hide();$('#set_buffer').hide();$('#set_dimensions').hide();" /></td></tr>
           </table>
 
-          <div id="pick_sphere" style="display:none;text-align:center">
+          <div id="pick_sphere" class="hidden table_center">
                Radius of the sphere (in angstroms) = <input type="text" style="width=10%" name="spradius" value="0.0" />
           </div>
           <div id="pick_shape">
-            <h3 class="center_header">Choose the shape of the solvation structure.</h3>
-            <div style="text-align:center">
+            <h3>Choose the shape of the solvation structure.</h3>
               <select name="solvation_structure" id="solv_struc" onchange="setSolvSize();">
                  <option id="id_solvation_structure_0" value="cubic">cubic (X=Y=Z, 90 degree angles)</option>
                   <option id="id_solvation_structure_1" value="tetra">tetragonal (X=Y, 90 degree angles)</option>
                   <option id="id_solvation_structure_2" value="rhdo" selected >Rhombic Dodecahedron (X=Y=Z)</option>
                   <option id="id_solvation_structure_3" value="hexa" >Hexagonal Prism (X=Y)</option>
                </select>
-            </div>
           </div>
 
-          <div id="set_buffer" style="text-align:center">
-             <h3 class="center_header">Set the buffer size</h3>
+          <div id="set_buffer">
+             <h3>Set the buffer size</h3>
              Buffer Size = <input type="text" name="buffer" value="5.0" style="width:5%" /> Angstroms
           </div>
 
-          <div id="set_dimensions" style="display:none;text-align:center">
-             <h3 class="center_header">Manually set solvation structure dimensions</h3>
+          <div id="set_dimensions" class="hidden">
+             <h3>Manually set solvation structure dimensions</h3>
              <div id="set_x"> X DIMENSION = <input type="text" name="set_x" value="0.0" /><br /></div> 
              <div id="set_y"> Y DIMENSION = <input type="text" name="set_y" value="0.0" /><br /></div>
              <div id="set_z"> Z DIMENSION = <input type="text" name="set_z" value="0.0" /><br /></div>

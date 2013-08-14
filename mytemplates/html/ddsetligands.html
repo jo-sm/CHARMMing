@@ -1,31 +1,30 @@
-<table class="sortable" style="width:100%">
-<tr><td colspan="4"><p class="fontsmall">Ligands: {{ ligandcount }}</p></td>
-  <tr><th style="text-align:left;width:50px"><input id="setcheckall" type="checkbox" name="setcheckall" onclick='LigandSet_SetCheckUncheck();'/></th>
-    <th style="text-align:left;width:230px">Ligand Name</th>
-    <th style="text-align:left;width:580px">Ligand Description</th>
-    <th style="text-align:center;width:100px">View in JSmol</th>
-    <th style="text-align:center;width:100px">View in GLmol</th></tr>
+<div id="setligandsinsidediv" style="overflow:auto;border:0px solid #336699;text-align:left">
+<table class="full_table">
+  <tr><td class="fontsmall" colspan="4">Ligands: {{ ligandcount }}</td>
 </table>
-<div id="setligandsinsidediv" style="overflow:auto;width:99%;height:155px;border:0px solid #336699;padding-left:5px;text-align:left">
-<table class="sortable">
+<table id="setligandsinsidetable" class="sortable full_table">
+  <tr><th class="small_field"><input id="setcheckall" type="checkbox" name="setcheckall" onclick='LigandSet_SetCheckUncheck();'/></th>
+    <th class="ligand_name_field">Ligand Name</th>
+    <th class="wider_ligand_desc_field">Ligand Description</th>
+    <th class="center_header">View in JSmol</th>
+    <th class="center_header">View in GLmol</th></tr>
 {% for setligand in setligands %}
 <tr>
-  <td style="width:30px"><input id="set_ligand_id_{{setligand.ligandsetid}}" type="checkbox" name="set_ligand_id" value="{{ setligand.ligandsetid}}"/></td>
-  <td style="width:220px"><p class="fontsmall">{{ setligand.name}}</p></td>
-  <td style="width:650px"><p class="fontsmall">{{ setligand.description }}</p></td>
-  <td style="text-align:center;width:50px">
+  <td class="small_field"><input id="set_ligand_id_{{setligand.ligandsetid}}" type="checkbox" name="set_ligand_id" value="{{ setligand.ligandsetid}}"/></td>
+  <td class="ligand_name_field fontsmall">{{ setligand.name}}</td>
+  <td class="wider_ligand_desc_field fontsmall">{{ setligand.description }}</td>
+  <td class="align_left small_field">
 {% if setligand.file_id == 0 %}
 ---
 {% else %}
- <a href="#" onclick="window.open('/charmming/dd_substrate/viewligandjmol/{{setligand.file_id}}/', 'View Ligand', 'height=700, width=700');">View</a>
+<a href="javascript:getLigandJSmolView('{{setligand.file_location}}');">View</a>
 {% endif %}
 </td>
-  <td style="text-align:center;width:50px">
+  <td class="center_header small_field">
 {% if setligand.file_id == 0 %}
 ---
 {% else %}
-
-  <td style="text-align:center"><a href="#" onclick="window.open('/charmming/dd_substrate/viewligandglmol/{{setligand.file_id}}/', 'View Ligand', 'height=700, width=700');">View</a>
+  <a href="javascript:window.open('/charmming/dd_substrate/viewligandglmol/{{setligand.file_id}}/', 'View Ligand', 'height=700, width=700');">View</a>
 {% endif %}
 </td>
 </tr>

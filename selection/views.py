@@ -142,13 +142,14 @@ def selectstructure(request):
                     tdict['basis_set'] = postdata['qmmm_basisset']
                     tdict['multiplicity'] = postdata['qmmm_multiplicity']
         else:
-            #TODO: Replace all of this with validate function in atomselection_aux.py
             validate_inputs_result = validateInputs(tdict,postdata,layers)
             if validate_inputs_result != "Passed":
                 messages.error(request,validate_inputs_result)
                 return HttpResponseRedirect('/charmming/'+dest)
             error_message = saveAtomSelections(request,ws,task)
-            if error_message != True: #i.e. there's an error message
+            try:
+                arf = int(error_message)
+            except: #If it's not an int, we have a problem
                 messages.error(request, error_message)
                 return HttpResponseRedirect('/charmming/'+dest)
             return HttpResponseRedirect('/charmming/'+ dest)

@@ -1,18 +1,21 @@
 {% extends "html/skeleton.html" %}
 
 {% block content %}
-<div id="mainpage" style="text-align:center">
+<div class="status center_header" id="mainpage">
 <h1>View Process Files</h1>
-<hr style="width:50%">
+<hr class="half">
 
-
-  <!-- <form method="post" action=".">  Why is this a form? django doesn't need it... -->
   {% for header in headers %}
   <div id="collapse-{{ header }}">
-    <h2><button onclick="hideFileList('{{ header }}');">+</button>{{ header }} files</h2>
+        <table class="table_center small_table">
+         <tr>
+         <td class="name_field"><button onclick="hideFileList('{%ifequal header "Segment setup"%}setup{%else%}{{header}}{%endifequal%}');">+</button></h3></td>
+         <td class="desc_header"><h3>{{ header }} files</h3></td>
+         </tr>
+        </table>
     </div>
-   <div id="{{ header }}" style="display:none">
-     <table class="sortable resizable" style="text-align:left;width:40%;border:2px solid black;margin-left:auto;margin-right:auto;">
+   <div id="{{ header }}" class="hidden">
+     <table class="sortable resizable align_left normal_border table_center" style="width:40%;">
        {% for file in files %}
           {% ifequal file.0 header %}
              <tr>
@@ -22,6 +25,5 @@
      </table>
     </div>
    {% endfor %}
-<!-- </form> -->
 </div>
 {% endblock %}

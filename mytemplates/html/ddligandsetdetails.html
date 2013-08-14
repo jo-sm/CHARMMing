@@ -1,5 +1,11 @@
 {% extends "html/skeleton.html" %}
-
+{%block extra_scripts%}
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
+{%endblock%}
 {% block content %}
 <div id="mainpage">
 <h2 class="center_header">Ligand Set Details</h2>
@@ -15,7 +21,7 @@
 <div id="ligandsetinfodiv">
 </div>
 <form id="setdetail" enctype="multipart/form-data" method="post" action="/charmming/dd_substrate/ligandsetdetails/">
-<table style="margin-left:auto;margin-right:auto">
+<table class="table_center">
 <tr>
 <td>
   <p class="fontsmall">Use Existing Sets:</p>
@@ -27,18 +33,18 @@
 </td>
 </tr>
 <tr><td>
-<div id="availableligandsdiv" style="overflow:auto;width:100%;height:200px;border:1px solid #336699;padding-left:5px;text-align:left">
+<div id="availableligandsdiv" class="align_left full_table" style="overflow:auto;height:200px;border:1px solid #336699;padding-left:5px;">
 </div>
 </td></tr></table>
-<table style="width:83%;margin-left:auto;margin-right:auto;">
+<table class="table_center" style="width:87%;">
 <tr>
-<td style="text-align:center"><button type="button" onclick="AddLigands({{ set_id }});">Add Selected Ligands to this Set</button></td>
-<td style="text-align:center"><button type="button" onclick="RemoveLigands({{ set_id }});">Remove Selected Ligands from this Set</button></td>
+<td class="center_header"><button type="button" onclick="AddLigands({{ set_id }});">Add Selected Ligands to this Set</button></td>
+<td class="center_header"><button type="button" onclick="RemoveLigands({{ set_id }});">Remove Selected Ligands from this Set</button></td>
 </tr>
-<td></td><td>
-  <p class="fontmed" style="text-align:center">Ligands Belonging to This Set</p></td></tr>
+<td colspan=2>
+  <p class="fontmed" class="center_header">Ligands Belonging to This Set</p></td></tr>
 <tr>
-<td colspan=2 style="text-align:center">
+<td colspan=2 class="center_header">
 <div id="setligandsdiv" style="overflow:auto;width:100%;height:230px;border:1px solid #336699;padding-left:5px;text-align:left">
 </div>
 </td></tr>
@@ -52,6 +58,49 @@
 </script>
 
 </form>
+<!-- Incoming code is generic for implementing JSmol modal windows -->
+<div class="hidden" id="jsmol_test">
+  <script>
+    var jmolApplet;
+    jmol_isReady = function(applet){
+      console.log("test");
+    }
+    
+    
+    var Info = {
+        width: "500",
+        height: "500",
+        debug: false,
+        color: "black",
+        use: "HTML5",
+        j2sPath: "/charmming/js/jsmol/j2s",
+        readyFunction: jmol_isReady,
+        script: "set antialiasDisplay;",
+        disableJ2SLoadMonitor:true,
+        disableInitialConsole:true
+      }
+      jmolApplet = Jmol.getApplet("jmolApplet",Info);
+  </script>
+</div>
+
+<script>
+  $("#jmolApplet_appletinfotablediv").attr("title","JSmol modal test");
+  $(function($){
+    $("#jmolApplet_appletinfotablediv").dialog({
+      resizable:true,
+      height:600,
+      width:600,
+      modal:true,
+      autoOpen:false,
+      buttons:{
+        "OK":function(){
+          $(this).dialog("close");
+        }
+    }
+  });
+});
+  
+</script>
 </div>
 
 {% endblock %}

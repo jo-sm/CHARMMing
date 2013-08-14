@@ -1,23 +1,16 @@
 {% extends "html/skeleton.html" %}
-
+{%block extra_scripts %}
+  <script type="text/javascript" src="/charmming/js/selection.js"></script>
+{%endblock%}
 {% block content %}
 <div id="mainpage">
-  <script type="text/javascript" src="/charmming/js/selection.js"></script>
-<!--  <div id="script_dothis" style="display:none;">
-    makeUniqueDiv('nma_form');
-    makeUniqueDiv('atomnumbernma');
-    refreshToolTips();
-  </div>
-  Legacy code.
--->
-
-  <div id="change_nma" style="text-align:center;">
-    <h1 class="center_header">Normal Mode Analysis</h1>
+  <div id="change_nma" class="center_header">
+    <h1>Normal Mode Analysis</h1>
     <br />
 
     {%if nmode_lines %}
        <h3>First 10 non-zero modes From Previous Run:</h3>
-       <pre text-align="left">
+       <pre>
          {% for line in nmode_lines %}
            {{line}}
          {% endfor %}
@@ -27,14 +20,13 @@
 
     <form id='nma_form' name="nma" method="post" action=".">
 
-        <h2 class="center_header">Working structure: {{ ws_identifier }}</h2>
+        <h2>Working structure: {{ ws_identifier }}</h2>
 
         {% include "html/taskfiles.html" %}
       <hr class="noshade_hr" />
 
-      <p class="fontmed">Choose one of the following types of Normal Mode Analysis to run.</p>
-      <br>
-      <table style="width:70%;margin-left:auto;margin-right:auto;text-align:left">
+      <p class="fontmed small_break">Choose one of the following types of Normal Mode Analysis to run.</p>
+      <table class="table_center align_left" style="width:70%;">
         <tr><td>All atoms</td><td><input type="radio" id="usevibran" value="usevibran" name="nma" checked onclick="$('#useenm').attr('checked',false);$('#enm').hide();$('#vibran').show()"></td></tr>
         <tr><td>ENM (Elastic Network Model)</td><td><input type="radio" id="useenm" value="useenm" name="nma" onclick="$('#usevibran').attr('checked',false);$('#vibran').hide();$('#enm').show()"></td></tr>
         <tr><td>Number of normal modes to generate:</td><td> <input type="text" id="num_normalmodes" name="num_normalmodes" value="100" /></td></tr>
@@ -52,29 +44,26 @@
 
       <div id="vibran">
         {%if not cg_model %}
-        <h3 class="center_header">All atom vibrational analysis parameters</h3>
+        <h3>All atom vibrational analysis parameters</h3>
         <p class="fontmed">Use Multi-Scale modeling<input id="useqmmm" type="checkbox" name="useqmmm" onclick="showHideQM();"></p>
-        <table class="qm_table">
           {%comment%}For future devs confused at our choice of id/name - this used to be "Use QM/MM calculations". Feel free to replace all instances of "useqmmm" in the code.
           I'm not doing that until I'm done with my current work, and that may likely not happen.
           ~VS{%endcomment%}
           {% include 'html/qmmm_params.html' %}
-        </table>
         {%endif%}
         
       </div>
 
-      <div id="enm" style="display:none;text-align:center">
-        <h3 class="center_header">ENM parameters</h3>
-        <table style="width:20%;margin-left:auto;margin-right:auto">
+      <div id="enm" class="hidden">
+        <h3>ENM parameters</h3>
+        <table class="table_center" style="width:20%;">
           <tr><td>RCUT:</td><td><input type="text" name="rcut" id="rcut" value="10"></td><td><a href="#" title="Maximum distance at which there can be a spring force constant.">?</a></td></tr>
           <tr><td>KSHORT:</td><td><input type="text" name="kshort" id="kshort" value="10.000"></td><td><a href="#" title="Near range force constant.">?</a></td></tr>
           <tr><td>KLONG:</td><td><input type="text" name="klong" id="klong" value="1.000"></td><td><a href="#" title="Long range force constant.">?</a></td></tr>
         </table> 
       </div>
-      <input type="submit" value="Start Normal Mode Analysis" />   
+      <input class="big_break" type="submit" value="Start Normal Mode Analysis" />   
     </form>
-      <br>
 
   </div>
 </div>

@@ -19,7 +19,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from scheduler.schedInterface import schedInterface
-from structure.models import WorkingFile, Task
+from structure.models import WorkingFile, Task, saveQCWorkingFiles
 import os,re
 
 class nmodeTask(Task):
@@ -35,6 +35,8 @@ class nmodeTask(Task):
     make_nma_movie = models.BooleanField(default=False)
     nma_movie_req = models.BooleanField(default=False)
     num_trjs = models.PositiveIntegerField(default=5) #Holds how many trajectories are generated...
+    useqmmm= models.CharField(max_length=1,null=True,default="n")
+    modelType = models.CharField(max_length=30,null=True,default=None)
 
     #Combines all the smaller PDBs make in the above method into one large PDB that
     #jmol understands
@@ -103,6 +105,9 @@ class nmodeTask(Task):
 
         if self.status == 'F':
             return
+
+        #Generic Qchem inp/out function
+        saveQCWorkingFiles(self,basepath)
 
         # if there is a movie, make the files.
         if self.make_nma_movie:
