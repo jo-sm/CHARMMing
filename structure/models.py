@@ -293,6 +293,12 @@ class Segment(models.Model):
         # The atoms DO change after a build, however. But at most of the places where
         # this function gets called, this is irrelevant since 
         # we haven't built yet
+        #TODO: This is VERY problematic with mutated structures, particularly solvated
+        #mutated structure, which just break this as a whole, since you lose the "a-good", for example.
+        #However, why we are passing good/badhets into this function is beyond me. ~VS
+        #We can probably handle multi-model protonizable residues with JavaScript but
+        #It will make the buildstruct page bloat quite a lot, and it's pretty
+        #bloated as it is now.
 
         found = False
         for s in mol.iter_seg():
@@ -476,6 +482,7 @@ class WorkingSegment(Segment):
         fp = open(self.structure.pickle, 'r')
         mol = (cPickle.load(fp))[mdlname]
         logfp.write('string of mol = %s\n' % str(mol))
+        fname = ""
         for s in mol.iter_seg():
             if s.segid == self.name:
                 logfp.write('string of seg %s = %s\n' % (s.segid,str(s)))

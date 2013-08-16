@@ -21,7 +21,7 @@
             <option value="{{ str.identifier }}" {% ifequal str.selected 'y' %}selected{% endifequal %}>{{ str.identifier }}</option>
           {% endfor %}
         </select>
-        <input type="submit" value="Switch structures" />
+        <input type="submit" value="Switch Working Structure" />
       </form>
     </div>
   {% endif %}
@@ -45,8 +45,10 @@
             <tr><td><input type="radio" name="buildtype" value="go" onclick="setCGDisplay('go');" /></td><td>A Klimov-Thirumalai style Go model.</td></tr>
             <tr><td><input type="radio" name="buildtype" value="bln" onclick="setCGDisplay('bln');" /></td><td>A two site BLN type model based on the work of Marrink and Bond &amp; Sansom.</td></tr>
           </table>
-        </div>
-
+        {%if customCount > 1 %}
+        <p class="fontlarge">Your structure has more than one custom ligand. Before performing any other calculations on this working structure, please <br> perform a minimization to ensure accurate results.</p>
+        {%endif%}
+      </div>
         <div id="form_stuff">
           <div id="aa_display">
            <h3>Configure patching and chemical properties of the structure</h3>

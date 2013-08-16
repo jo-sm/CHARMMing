@@ -107,9 +107,10 @@ $(function($){
 
 
 $(document).ready(function() {
-    $("#LigName").keyup(function(event) {
+    $("#LigName").keydown(function(event) {
       if (event.keyCode == 13) { 
         normalFormSubmit(false);
+        return false;
       }
     })
   });
@@ -155,30 +156,30 @@ function setbonds(applet, bondbutton){
 }
 
 function normalFormSubmit(input){
+  var MOLdata = "";
   if(!(input)){
     var ligname = document.getElementById("LigName");
     if (ligname.value.length == 0){ 
       $("#dialog_no_name").dialog("open");
       return;
     }
-    var spec_chars = "!@#$%^&*()+=-[]\\\';,./{}|\":<>?";
+    var spec_chars = "!@#$%^&*()`~+=-[]\\\';,./{}|\":<>?";
     for (var i=0; i < ligname.value.length; i++){
       if (spec_chars.indexOf(ligname.value.charAt(i)) != -1){
-        $("#dialog_spec_char_alert p").html('You cannot have any of the following characters in your ligand name:\n' + spec_chars);
+        $("#dialog_spec_char_alert p").html('You cannot have any of the following characters in your ligand name:<br>' + spec_chars);
         $("#dialog_spec_char_alert").dialog("open");
         return;
       }
     }
-    var MOLdata = Jmol.scriptWaitOutput(jmolApplet, "write PDB");
+    MOLdata = Jmol.scriptWaitOutput(jmolApplet, "write PDB");
     if (MOLdata.indexOf("HETATM") == -1){
       $("#dialog_no_ligand").dialog("open");
-      return;
-    }else{
-      var regex = new RegExp("\n", "gi");
-      document.getElementById("molinfo").value = MOLdata.replace(regex,"\\n"); 
+      return false;
     }
-  }
-  document.getElementById("ligand_form").submit(); //This sends it and hands it off to django/Python for processing
+    }
+    var regex = new RegExp("\n", "gi");
+    $("#molinfo").val(MOLdata.replace(regex,("\\n")));
+    document.getElementById("ligand_form").submit(); //This sends it and hands it off to django/Python for processing
 }
 
 

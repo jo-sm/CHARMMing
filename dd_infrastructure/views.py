@@ -44,6 +44,7 @@ from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from account.views import isUserTrustworthy
+from django.contrib import messages
 from account.views import checkPermissions
 #from pdbinfo.editscripts import generateHTMLScriptEdit
 #from pdbinfo.aux import checkNterPatch
@@ -1138,7 +1139,11 @@ def DSFFormDisplay(request):
             dsflog.write("adding native ligand: %s\n" % abadfile.tag)
             abadfiles.append(abadfile)
             
-        dsflog.write("native ligands: %s\n" % str(abadfiles[0].name))
+        try:
+            dsflog.write("native ligands: %s\n" % str(abadfiles[0].name))
+        except:
+            messages.error(request, "Your structure does not have any native ligands. CHARMMing does not currently support docking into structures without native ligands.")
+            return HttpResponseRedirect("/charmming/buildstruct/")
         #except:
         #    return HttpResponse("No native ligands found in the structure. Cannot identify binding site")
 

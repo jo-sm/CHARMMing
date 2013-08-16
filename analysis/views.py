@@ -47,7 +47,7 @@ def doRMSD(postdata,location,id,picklefile,stlist):
             mols[t.action] = pdb['mini_' + id]
         elif t.action == 'solvation':
             mols[t.action] = pdb['neut_' + id]
-        elif t.action == 'neutralzation':
+        elif t.action == 'neutralization':
             mols[t.action] = pdb['neut_' + id]
         elif t.action == 'md':
             mols[t.action] = pdb['md_' + id]
@@ -72,39 +72,39 @@ def doRMSD(postdata,location,id,picklefile,stlist):
         for k in smols.keys():
             finmol = Mol()
             if postdata.has_key('bb_n'):
-                tmp = smols[k].find(atomtype='n')
-                finmol = Mol(sorted(finmol + tmp))         
+                tmp = smols[k].find(atomtype=' n  ')
+                finmol = Mol(sorted(finmol + tmp))
             if postdata.has_key('bb_ca'):
-                tmp = smols[k].find(atomtype='ca')
-                finmol = Mol(sorted(finmol + tmp))         
+                tmp = smols[k].find(atomtype=' ca ')
+                finmol = Mol(sorted(finmol + tmp))
             if postdata.has_key('bb_c'):
-                tmp = smols[k].find(atomtype='c')
-                finmol = Mol(sorted(finmol + tmp))         
+                tmp = smols[k].find(atomtype=' c  ')
+                finmol = Mol(sorted(finmol + tmp))
             if postdata.has_key('bb_o'):
-                tmp = smols[k].find(atomtype='o')
-                finmol = Mol(sorted(finmol + tmp))         
+                tmp = smols[k].find(atomtype=' o  ')
+                finmol = Mol(sorted(finmol + tmp))
             if postdata.has_key('bb_hn'):
-                tmp = smols[k].find(atomtype='hn')
-                finmol = Mol(sorted(finmol + tmp))         
+                tmp = smols[k].find(atomtype=' hn ')
+                finmol = Mol(sorted(finmol + tmp))
             if postdata.has_key('bb_ha'):
-                tmp = smols[k].find(atomtype='ha')
-                finmol = Mol(sorted(finmol + tmp))         
-
+                tmp = smols[k].find(atomtype=' ha ')
+                finmol = Mol(sorted(finmol + tmp))
+            fmols[k] = Mol(sorted(finmol))
     else:
         fmols = smols
 
     # now go ahead and calculate the RMSDs:
 
-    rmsdlines = ['<table align="center">\n']
+    rmsdlines = ['<table class="table_center" border="1">\n']
 
     fp = open(location + '/rmsd-' + id + '.html', 'w')
     structlist = fmols.keys()
     structlist.sort()
 
     tabwidth = float(100.0/(len(structlist)+1))
-    headline = '<tr><td width="%f%%"></td>' % tabwidth
+    headline = '<tr><td style="width:%f%%"></td>' % tabwidth
     for k in structlist:
-        headline += '<td width="%f%%">%s</td>' % (tabwidth,k)
+        headline += '<td style="width:%f%%">%s</td>' % (tabwidth,k)
     headline += '</tr>\n'
     rmsdlines.append(headline)
 
@@ -151,7 +151,9 @@ def rmsformdisplay(request):
 
     feedback = ''
     tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
-
+    tdict = {}
+    tdict['ws_identifier'] = ws.identifier
+    tdict['tasks'] = tasks
     rmsd_list = []
     for t in tasks:
         if request.POST.has_key('dotask_%d' % t.id):
@@ -160,24 +162,32 @@ def rmsformdisplay(request):
         if len(rmsd_list) == 1:
             messages.error(request, "More than 1 structure must be selected.")
             lesson_ok, dd_ok = checkPermissions(request)
-            return render_to_response('html/rmsdform.html', {'ws_identifier': ws.identifier, 'tasks':tasks, 'messages':get_messages(request), 'lesson_ok':lesson_ok, 'dd_ok':dd_ok})
+            tdict['lesson_ok'] = lesson_ok
+            tdict['dd_ok'] = dd_ok
+            tdict['messages'] = messages.get_messages(request)
+            return render_to_response('html/rmsdform.html', tdict)
 #            return output.returnSubmission('RMS Calculation', error='More than 1 structure must be selected.')
         else:
-            return doRMSD(request.POST,ws.structure.location,ws.identifier,struct.pickle,rmsd_list)
-
-    prior_matrix = ''
-    try:
-        os.stat(struct.location + '/rmsd-' + ws.identifier + '.html')
-    except:
-        pass
+            picklefile = struct.pickle
+            if ws.localpickle != None:
+                picklefile = ws.localpickle
+            return doRMSD(request.POST,ws.structure.location,ws.identifier,picklefile,rmsd_list)
     else:
-        fp = open(struct.location + '/rmsd-' + ws.identifier + '.html')
-        for line in fp:
-            prior_matrix += line
-        fp.close()
-
+        prior_matrix = ''
+        try:
+            os.stat(struct.location + '/rmsd-' + ws.identifier + '.html')
+        except:
+            pass
+        else:
+            fp = open(struct.location + '/rmsd-' + ws.identifier + '.html')
+            for line in fp:
+                prior_matrix += line
+            fp.close()
+            tdict['prior_matrix'] = prior_matrix
     lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/rmsdform.html', {'ws_identifier': ws.identifier, 'tasks': tasks, 'prior_matrix': prior_matrix, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    tdict['lesson_ok'] = lesson_ok
+    tdict['dd_ok'] = dd_ok
+    return render_to_response('html/rmsdform.html', tdict)
 
 import dynamics.models
 import traceback

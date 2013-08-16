@@ -12,8 +12,8 @@
       <tr><td><input type="radio" name="ptask" id="{{task.action}}" value="{{ task.id }}" checked /></td><td>Coordinates from {{ task.action }}</td></tr>
       {% else %}
       <tr><td><input type="radio" name="ptask" id="{{task.action}}" value="{{ task.id }}" /></td><td>Coordinates from {{ task.action }}</td></tr>
-      <!-- Note - we can change all our code for radio buttons to use $('input:radio') and then not have to bother checking name="ptask".
-      That way we also don't have to keep task.action in id for fancy JS stuffs. -->
+      {%comment%}      <!-- Note - we can change all our code for radio buttons to use $('input:radio') and then not have to bother checking name="ptask".
+      That way we also don't have to keep task.action in id for fancy JS stuffs. However it is a bit problematic in other ways. --> {%endcomment%}
          {% endif %}
     {% endif %}
   {% endfor %}

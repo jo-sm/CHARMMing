@@ -1191,10 +1191,6 @@ def newupload(request, template="html/fileupload.html"):
     location = charmming_config.user_home + '/' + request.user.username + '/'
 
     all_messages = get_messages(request) #Gets any error messages from redirects.
-    logfp=open("/tmp/messagetest.txt","w")
-    for message in all_messages:
-        logfp.write(str(type(message)) + "\n")
-    logfp.close()
     if request.POST.has_key('modeltype') and request.POST['modeltype'] == 'gomodel':
         makeGoModel = True
     if request.POST.has_key('modeltype') and request.POST['modeltype'] == 'blnmodel':
@@ -1287,6 +1283,11 @@ def newupload(request, template="html/fileupload.html"):
     elif file_uploaded or request.POST.has_key('pdbid'):
         if file_uploaded:
             filename = request.FILES['pdbupload'].name
+            specialchars_string = "#$/;\n\\_+=[]{}()&^%"
+            specialchars = set(specialchars_string)
+            if len(specialchars.intersection(filename)) > 0:
+                messages.error(request, "Your structure name cannot contain any of the following characters: " + specialchars_string)
+                return HttpResponseRedirect("/charmming/about/")
         elif request.POST.has_key('pdbid'):
             filename = request.POST['pdbid'].strip().lower()
         filename = filename.lower()
@@ -1433,6 +1434,7 @@ def buildstruct(request):
     # pick out a proposed name for this working structure
     proposedname = struct.name
     existingWorkStructs = structure.models.WorkingStructure.objects.filter(structure=struct)
+
     if existingWorkStructs:
         usedNameList = [ews.identifier for ews in existingWorkStructs]
 
@@ -1467,15 +1469,22 @@ def buildstruct(request):
     sl = []
     sl.extend(structure.models.Segment.objects.filter(structure=struct,is_working='n'))
     sl = sorted(sl,key=lambda x: x.name)
+    customCount = 0 #Checks each seg for "is_custom", and if customCount > 1, make a fuss
+    for seg in sl:
+        if seg.is_custom:
+            customCount += 1
     #By having the database field resName in each Segment object we can save a lot of grief
     #Somehow this doesn't work that well in normalmodes...
+    tdict['customCount'] = customCount
     tdict['seg_list'] = sl
     tdict['disulfide_list'] = struct.getDisulfideList()
     tdict['proto_list'] = []
     tdict['super_user'] = request.user.is_superuser
     tdict['filepath'] = "/charmming/pdbuploads/" + struct.location.replace(charmming_config.user_home,'') + "/" + struct.name + ".pdb" #This assumes we have a PDB file! Please be careful with this.
     for seg in sl:
-        tdict['proto_list'].extend(seg.getProtonizableResidues(pickleFile=pdb))
+        if seg.type == "pro": #Good and badhets are not supported and will have trouble, especially if part of solvation since solvation changes the composition.
+            tdict['proto_list'].extend(seg.getProtonizableResidues(pickleFile=pdb))
+            #Why do we even pass good/bad hets into this if they don't have protonizable residues?
     #The following procedure is very similar to the one in selection.views. 
     #See selection.views.selectrstructure lines 180-196 for more data.
     #Since we hav emore than protein chains, we need to figure out the chain terminators in a more elaborate way
@@ -1519,6 +1528,11 @@ def modstruct(request):
     if not request.POST.has_key('wsidentifier'):
         messages.error(request, "You must give this working structure an identifier.")
         return HttpResponseRedirect("/charmming/buildstruct/")
+    else:
+        if len(request.POST['wsidentifier']) > 20:
+            messages.error(request, "Working structure identifier too long. Please make sure your identifier is under 20 characters long.")
+            return HttpResponseRedirect("/charmming/buildstruct/")
+    #You can't steal cookies in 20 characters. But just in case...
     if not request.POST['wsidentifier']: #Aren't these two equivalent?
         messages.error(request, "You must give this working structure an identifier.")
         return HttpResponseRedirect("/charmming/buildstruct/")

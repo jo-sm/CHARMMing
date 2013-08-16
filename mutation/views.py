@@ -70,6 +70,10 @@ def mutestructure(request):
     MutSegi = postdata['MutSegi']
     MutFile = postdata['MutFile']
 
+    if len(MutFile) > 20:
+        messages.error(request, "Working structure identifier is too long. Please make sure your identifier is under 20 characters.")
+        return HttpResponseRedirect("/charmming/mutation/")
+
     modstruct = structure.models.WorkingStructure()
     modstruct.structure = ws.structure
     modstruct.doblncharge = copy.deepcopy(ws.doblncharge) #This may be a primitive but I don't care, let's be safe
@@ -229,15 +233,23 @@ def selectstructure(request):
         pass
 
     segments = ws.segments.all()
+    proCheck = False
     for segment in segments:
         if "good" in segment.name:
             messages.error(request, "GOOD hets are not currently supported by the mutation procedure. Please build a working structure with only PRO-type segments.")
             return HttpResponseRedirect('/charmming/buildstruct')
+        if "pro" in segment.name:
+            proCheck = True
+    #If there's no "pro" segment, we shouldn't be mutating at all.
+    if not proCheck:
+        messages.error(request, "Your molecule does not have 'PRO' segments. CHARMMing only support mutating on 'PRO' segments at this time.")
+        return HttpResponseRedirect('/charmming/buildstruct/')
     #This way we need less JS black magic
     tdict = {}
     tdict['proposedname'] = proposedname
     tdict['structname'] = struct.name
-    filepath = struct.location.replace(charmming_config.user_home, '') + '/' + ws.identifier #This makes it so we can change the coordinates on-the-fly
+    filepath = struct.location.replace(charmming_config.user_home, '') + '/'
+    filename = ws.identifier #This makes it so we can change the coordinates on-the-fly
 #    ws = []
 #    if len(existingWorkStructs) > 0:
 #        tdict['haveworkingstruct'] = True
@@ -270,13 +282,14 @@ def selectstructure(request):
     pdbfile = cPickle.load(pdb)
     taco = pdbfile['model00']
     pdb.close()
-    tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
+    tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True).exclude(action="solvation") #Things that were solvated on, you run at your own risk
+    isMutated = False
     for task in tasks:
         if task.action == 'mutation':
-            full_filepath = filepath + "-mutation.pdb"
-            break;
-        full_filepath = filepath + "-build.pdb"
-    filepath = full_filepath
+            isMutated = True
+            break
+    tdict['filename'] = filename
+    tdict['isMutated'] = isMutated
     #This way it gets replaced if there's mutation, or otherwise it'll just stay the same
     try:
         segments = ws.segments.all()
@@ -308,6 +321,7 @@ def selectstructure(request):
     tdict['dictlist'] = dictlist
     tdict['chain_terminators'] = json.dumps(chain_terminators)
     tdict['tasks'] = tasks
+    tdict['messages'] = messages.get_messages(request)
     tdict['ws_identifier'] = ws.identifier
     tdict['filepath'] = filepath
 #    tdict['disulfide_list'] = struct.getDisulfideList() #NO idea if we even need this, or proto_list, it's just more cPickle open reads and those make everything slow

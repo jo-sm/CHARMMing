@@ -6,6 +6,7 @@
   <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
   <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
   <script type="text/javascript" src="/charmming/js/selection.js"></script>
+  <script type="text/javascript" src="/charmming/js/visualization.js"></script>
   <link rel="stylesheet" href="/charmming/css/atomselect_visualize.css" />
   {%endblock%}
 {% block content %}
@@ -43,17 +44,19 @@
       var chain_terminators = {{chain_terminators|safe}};
       var segmentlist = {{segmentlist|safe}};
       jmolApplet = Jmol.getApplet("jmolApplet", Info);
-      Jmol.script(jmolApplet,  "load /charmming/pdbuploads/{{filepath}}; slab off; spin off; trace off; set ambient 40; set specpower 40;");
-      Jmol.script(jmolApplet, "select none;selectionHalos on");
+      Jmol.script(jmolApplet,  "load /charmming/pdbuploads/{{filepath}}; cpk 30%;wireframe 55;slab off; spin off; trace off; set ambient 40; set specpower 40;");
+      Jmol.script(jmolApplet, "select none;selectionhalos on;");
      </script>
      <br />
      <div class="qm_table normal_border">
-      <h3 class="center_header">Display options</h3>
-      <button onclick="Jmol.script(jmolApplet, 'selectionhalos off;select all;ribbons off;cartoons off;cpk 30%;wireframe 55;color jmol;select none;selectionhalos on;');">Ball and Stick</button>
-      <button onclick="Jmol.script(jmolApplet, 'selectionhalos off;select all;cpk off;wireframe off;cartoons off;ribbons on;color structure;select none;selectionhalos on;');">Ribbons</button>
-      <button onclick="Jmol.script(jmolApplet, 'selectionhalos off;select all;cpk off;wireframe off;ribbons off;cartoons on;set cartoonsfancy false;color structure;select none;selectionhalos on;');">Cartoons (fast)</button>
-      <button onclick="Jmol.script(jmolApplet, 'selectionhalos off;select all;cpk off;wireframe off;ribbons off;set cartoonsfancy true;cartoons on;color structure;select none;selectionhalos on;');">Fancy Cartoons (slow)</button>
-      <button onclick="Jmol.script(jmolApplet, 'selectionhalos off;select all;cpk off;ribbons off;cartoons off;color jmol;wireframe 45;select none;selectionhalos on;');">Wireframe</button>
+       <h3 class="center_header">Display options</h3>
+      <!-- These buttons are getting pretty complex. I'm considering shoving these into their own function... -->
+      <button onclick="changeDisplay('ballandstick');refresh_select();">Ball and Stick</button>
+      <button onclick="changeDisplay('ribbons');refresh_select();">Ribbons</button>
+      <button onclick="changeDisplay('cartoons');refresh_select();">Cartoons (fast)</button>
+      <button onclick="changeDisplay('fancyCartoons');refresh_select();">Fancy Cartoons (slow)</button>
+      <button onclick="changeDisplay('wireframe');refresh_select();">Wireframe</button>
+      <button onclick="toggleSolvent(true);refresh_select();">Show/Hide Solvent Molecules</button>
       <br>
     </div>
       

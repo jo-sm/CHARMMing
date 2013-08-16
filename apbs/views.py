@@ -95,7 +95,10 @@ def redoxformdisplay(request):
         try:
             myMol = pdb['append_%s' % ws.identifier]
         except:
-            return output.returnSubmission("Oxidation/reduction", error='Your working structure must be built before you perform a redox calculation')
+            try:
+                myMol = pdb['model00'] #Some things only have model00
+            except:
+                return output.returnSubmission("Oxidation/reduction", error='Your working structure must be built before you perform a redox calculation')
 
 
         pfp = open(struct.pickle, 'r')

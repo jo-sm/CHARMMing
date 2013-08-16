@@ -57,8 +57,8 @@ segs have iter_res(), so we can easily get a bunch of stuff from there
   {% if not no_coords %}
   <div id=jsmol_window style="height:600px">
   <script type="text/javascript">
-        var filepath = "/charmming/pdbuploads/" + "{{filepath}}"; //base filepath. then we need to fetch which  is currently selected...
-        var load_filepath = filepath;
+        var filepath = "/charmming/pdbuploads" + "{{filepath}}{{filename}}"; //base filepath. then we need to fetch which  is currently selected...
+        var load_filepath = filepath + "{%if isMutated%}-mutation.pdb{%else%}-build.pdb{%endif%}";
         var jmolApplet; 
         jmol_isReady = function(applet) {
         Jmol._getElement(applet, "appletdiv".style.border="1px solid blue");

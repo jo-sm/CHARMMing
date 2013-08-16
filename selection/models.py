@@ -29,7 +29,7 @@ class AtomSelection(models.Model):
     #The NULLs are all present because MM selections don't have any of those fields. However, they much be attached to a task and a workingstructure and have a selection
     workstruct = models.ForeignKey(WorkingStructure)
     task = models.ForeignKey(Task) #HOlds the parent task for this atom selection. NOT the one that was performed on it, but the one where the original coordinates come from.
-    #Not sure why we have that field.
+    #This field is for re-populating the qmmm_params page
     selectionstring = models.CharField(max_length=4000,default="all") #Default "all" to make outer-layer selections easier; i.e. sele all 
     linkatom_num = models.PositiveIntegerField(default=None,null=True)
     selection_type = models.CharField(max_length=100,default="qmmm") #"qmmm" for standard, "oniom" for MSCALE, open to additional fields like semi_emp

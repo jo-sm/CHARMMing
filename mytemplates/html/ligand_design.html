@@ -11,7 +11,7 @@
   <div id="top_of_page">
     <h1 class="center_header">Build a {% if structname %} Ligand for Structure {{ structname }} {% else %} Custom Ligand{% endif %}</h1>
   <hr />
-  <form id="ligand_form" method="post" action="/charmming/ligand_design/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/ligand_design/',makeUniqueDiv('Build Ligand'));" > 
+  <form id="ligand_form" method="post" action="/charmming/ligand_design/" enctype="multipart/form-data" > 
     <div class="gray_green_bg"><b style="margin-right:5px">Please choose a name for the new ligand:</b>
       <input class="header_separator" type="text" name="LigName" id="LigName" value="{{ molname }}"><br>
         (only the first 4 characters will be used as a residue name)<br />
@@ -62,7 +62,7 @@
         <p><span class="ui icon ui-icon alert"></span></p>
       </div>
       <div id="dialog_no_ligand" title="No ligand built">
-        <p><span class="ui icon ui-icon alert"></span>Please build a ligand before submitting.</p>
+        <p>Please build a ligand before submitting.</p>
       </div>
     <script type="text/javascript" src="/charmming/js/ligand.js"></script>
     <script type="text/javascript">
@@ -111,8 +111,6 @@
           });
         });
       }
-
-      
       
       //We use a jQuery UI thing because using prototypejs makes things silly.
         var initialscript = 'set antialiasDisplay;set atompicking on;set picking assignatom_C;'

@@ -45,7 +45,7 @@ def clear_struct(request): #To write less repetitive code...
 def build_ligand(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
-#    logfp = open("/tmp/ligand_design.txt","w")
+    logfp = open("/tmp/ligand_design.txt","w")
     segletter = "a"
     seggoodletter = "a"
     if request.POST and request.POST.has_key('attach_check'):
@@ -60,6 +60,7 @@ def build_ligand(request):
             maxgoodletter = "" #For GOOD segments
             for seg in sl: #This way we limit ourselves to the "bad" hetatms
                 if seg.type == "bad" and seg.name[0] > maxletter:
+                    logfp.write("maxletter is: " + maxletter + "\n")
                     maxletter = seg.name[0]
                 if seg.type == "good" and seg.name[0] > maxgoodletter:
                     maxgoodletter = seg.name[0]
@@ -69,14 +70,16 @@ def build_ligand(request):
                 return HttpResponseRedirect('/charmming/ligand_design/') #This is only a minor setback! We shall figure out how to handle these later.
             else:
                 if maxletter: #if there's an issue, default to 'a'
+                    logfp.write("maxletter set to: " + maxletter + "\n")
                     segletter = chr(ord(maxletter) + 1) #Can't handle anything but standard letters, but that's fine, neither can CHARMM.
+                    logfp.write("segletter set to: " + segletter + "\n")
                 if maxgoodletter:
                     seggoodletter = chr(ord(maxgoodletter) + 1)
         except Exception as e: #If you get here, the user tried to attach to structure when there are no structures uploaded.
-#            logfp.write("No structures found.\n")
+            logfp.write("No structures found.\n")
             struct, filepath = clear_struct(request)
-#        finally:
-#            logfp.close()
+        finally:
+            logfp.close()
     else:
         struct, filepath = clear_struct(request)
     tdict = {}
@@ -90,19 +93,10 @@ def build_ligand(request):
         tdict['moldata'] = moldata #pass them back and forth until we have valid data
         tdict['molname'] = molname
         tdict['mol_short'] = molname[0:4].upper()
-        #First do name checks...
-        try:
-            residue = Residue.objects.filter(residue_name=tdict['mol_short'])[0]
-            tdict['messages'] = messages.get_messages(request)
-            if len(residue.residue_desc) > 0:
-                desc = "(" + residue.residue_desc + ")"
-            else:
-                desc = ""
-            resn = residue.residue_name
-            messages.error(request, "The residue name " + resn + " " + desc + " is a reserved word in CHARMM. Please choose another name for your molecule.")
-            return render_to_response('html/ligand_design.html', tdict)
-        except: #Not found
-           pass
+        tdict['filepath'] = '/charmming/pdbuploads/' + request.user.username + "/"
+        if struct:
+            tdict['filepath'] = tdict['filepath'] + struct.name + "/"
+        #First check if we have our residue database.
         try:
             test_query = len(Residue.objects.all())
             if test_query < 1:
@@ -111,6 +105,19 @@ def build_ligand(request):
         except: #There are no records for residues in the database, or something else went wrong, so make them
             write_toppar_info()
             os.chdir(full_filepath)
+        #Then do name checks...
+        try:
+            residue = Residue.objects.filter(residue_name=tdict['mol_short'])[0]
+            if len(residue.residue_desc) > 0:
+                desc = "(" + residue.residue_desc + ")"
+            else:
+                desc = ""
+            resn = residue.residue_name
+            messages.error(request, "The residue name " + resn + " " + desc + " is a reserved word in CHARMM. Please choose another name for your molecule.")
+            tdict['messages'] = messages.get_messages(request)
+            return render_to_response('html/ligand_design.html', tdict)
+        except: #Not found
+           pass
         #Now write a file...
         if 'attach_check' in postdata.keys():
             tdict['attach_check'] = True
@@ -127,13 +134,16 @@ def build_ligand(request):
                 line = "COMPND    LIGAND: " + molname + "\n"
             end_data += line + "\n"
         resname = ""
-        if len(molname) >= 4:
-            resname = molname[0:4]
-        else:
-            resname = molname
-        end_data = end_data.replace(" UNK ", resname.upper())
+        resname = tdict['mol_short'] #Bless Python's list indexing.
+        ligname = resname #This way you don't look for YZQ B_IDEAL
+        resname = resname.upper() + (" " * (5-len(resname))) + segletter.upper()
+        end_data = end_data.replace(" UNK  ", resname.upper())
         tmpfile.write(end_data)
         tmpfile.close()
+        if "URA" in ligname[1:] or "THY" in ligname[1:] or "GUA" in ligname[1:] or "ADE" in ligname[1:] or "CYT" in ligname[1:]: #No worries if it's a prefix though.
+            messages.error(request, "CHARMMing does not support ligand names containing nucleotide suffixes (THY, URA, GUA, ADE, CYT).")
+            tdict['messages'] = messages.get_messages(request)
+            return render_to_response('html/ligand_design.html',tdict)
 #We write this first...moldata.pdb is useful as a debug check and we can do all sorts of things with it
         end_data = end_data.encode("utf-8")
         obConversion = openbabel.OBConversion()
@@ -151,9 +161,6 @@ def build_ligand(request):
             atom_idx = atom.GetIdx()
             molec_charges += atom.GetPartialCharge()
             core_charges += atom.GetAtomicNum()
-        tdict['filepath'] = '/charmming/pdbuploads/' + request.user.username + "/"
-        if struct:
-            tdict['filepath'] = tdict['filepath'] + struct.name + "/"
 
         if (core_charges - molec_charges) % 2 != 0 and postdata['force_charge'] == "false":
             tdict['charge_alert'] = True
@@ -161,13 +168,6 @@ def build_ligand(request):
         #If force_charge is true we just pass the molecule on regardless.
         else:
             tdict['charge_alert'] = False
-            resname = ""
-            if len(molname) >= 4:
-                resname = molname[0:4]
-            else:
-                resname = molname
-            ligname = resname #This way you don't look for YZQ B_IDEAL
-            resname = resname.upper() + (" " * (5-len(resname))) + segletter.upper()
             force_custom = postdata['force_custom'] == "true"
             #If set to false, we check whether the molecule exists in PDB.org,
             #and if it does, warn the user.

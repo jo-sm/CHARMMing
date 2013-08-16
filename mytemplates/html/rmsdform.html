@@ -4,7 +4,6 @@
 <div id="mainpage">
   <h1 class="center_header">Calculate RMSD</h1>
 
-  <div class="center_header" id='change_rmsd'>
     {% if feedback %}
     <h3 class="center_header" style="color:red">{{ feedback }}</font></h3>
     {% endif %}
@@ -14,15 +13,20 @@
       {{prior_matrix}}<br />
     {% endif %}
     {% endautoescape %}
+    <div class="center_header">
 
     <hr class="noshade_hr">
     <h2>Select Structures</h2>
     <br />
-
-       <form id="rmsd_form" method="post"  action=".">
-         {% if tasks %}
-          {%include 'html/taskfiles.html'%}
-         {% endif %}
+    <form id="rmsd_form" method="post"  action="/charmming/analysis/rmsd/">
+       {% if tasks %}
+       <table class="qm_table">
+         {% for task in tasks %}
+            <tr><td>Coordinates from {{task.action}}&nbsp;<input type="checkbox" name="dotask_{{ task.id }}" checked/></td></tr>
+         {% endfor %}
+        </table>
+       {% endif %}
+                                                                    
         <br>
 
 

@@ -86,9 +86,13 @@ def solvationformdisplay(request):
         return solvate_tpl(request,st,pTaskID)
     else:
         # get all completed tasks associated with this struct
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
-
         lesson_ok, dd_ok = checkPermissions(request)
+        tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
+#        for task in tasks:
+#            if task.action == "mutation":
+#                messages.error(request, "Solvation is not currently supported for mutated structures.")
+#                return HttpResponseRedirect("/charmming/buildstruct/")
+#
         return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 

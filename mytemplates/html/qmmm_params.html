@@ -115,6 +115,7 @@ function generateParams(modelType,layers){
   $(document).ready(function(){
     $("#useqmmm").attr("checked",true);
     {% if oniom_selections %}{%comment%}We are going to keep a list of OniomSelections, ordered by layer number, since they're derivatives of AtomSelections.{%endcomment%}
+      $("#{{oniom_selections.0.task.action}}").attr("checked",true);
       $("#model_select_qmmm").prop('checked',false);
       $("#model_select_oniom").prop('checked',true);
       $(".oniom_params").show();
@@ -154,7 +155,7 @@ function generateParams(modelType,layers){
       $(".qmmm_params").show();
     {%comment%} Do nothing for now. May be better to just put the below stuff as always-present...? Unsure for now. {%endcomment%}
     {%else%}
-        $("#useqmmm").attr("checked",true);
+        $("#{{atomselection.task.action}}").attr("checked",true);
         //Remember to generateParams! Make sure everything is displayed right according to the new workflow
         $(".model_selection").show();
         $("#model_select_qmmm").prop('checked',true);
