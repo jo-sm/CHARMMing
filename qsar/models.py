@@ -47,13 +47,13 @@ class qsar_models(models.Model):
     def getNewModelOwnerIndex(self,user):
 
         try:
-            last_model = models.objects.filter(model_owner=user).order_by('-id')[0]
+            last_model = qsar_models.objects.filter(model_owner=user.id).order_by('-id')[0]
             next_model_owner_index=int(last_model.model_owner_index)+1
 
         except:
             next_model_owner_index=1
 
-        return next_job_owner_index
+        return next_model_owner_index
 
 class data_types(models.Model):
 
@@ -68,11 +68,11 @@ class units(models.Model):
 class attributes(models.Model):
 
     attribute_owner = models.ForeignKey(User,related_name='attribute_owner')
-    attribute_short_name = models.CharField(max_length=10,null=True, blank=True)
+    attribute_short_name = models.CharField(max_length=50,null=True, blank=True)
     attribute_name = models.CharField(max_length=100,null=True, blank=True)
     description = models.CharField(max_length=250,null=True, blank=True)
-    units = models.ForeignKey(units)
-    data_type = models.ForeignKey(data_types)
+    units = models.ForeignKey(units,null=True, blank=True)
+    data_type = models.ForeignKey(data_types,null=True, blank=True)
 
 
 class object_attributes(models.Model):

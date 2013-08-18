@@ -12,5 +12,8 @@ urlpatterns = patterns('qsar.views',
     url(r'^download/$', 'download', name='download'),
     url(r'^viewjobs/$', 'viewJobs', name='viewJobs'),
     url(r'^newmodel/$', 'newModel', name='newModel'),
+    url(r'^viewmodels/$', 'viewModels', name='viewModels'),
+    url(r'^newpredict/(?P<model_id>.*)$', 'newPredict', name='newPredict'),
+    url(r'^downloadqsarresults/(?P<qsar_job_id>.*)$', 'downloadQSARResults', name='downloadQSARResults'),
 )
 

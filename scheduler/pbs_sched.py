@@ -37,7 +37,7 @@ class jobScheduler:
          if self.debugMode:
             self.logfd.write("line> %s\n" % line)
             self.logfd.flush()
-         if line.startswith(pbs_id + ".myhost"):
+         if line.startswith(pbs_id + ".ctb4"):
             self.logfd.write("OK found it\n")
             larr = string.splitfields(line)
             if larr[4] == 'R' or larr[4] == 'E' or larr[4] == 'H':

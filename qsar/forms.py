@@ -6,8 +6,12 @@ from rdkit.Chem import AllChem
 from qsar.train import get_sd_properties
 from qsar.models import model_types
 
+
 class TrainingUploadForm(forms.Form):
-    model_type=forms.ChoiceField(choices=[ (o.id, str(o.model_type_name)) for o in model_types.objects.all()])
+    
+    model_choices = [(obj.id, obj.model_type_name) for obj in model_types.objects.all()]
+    model_type=forms.ChoiceField(label="Select Model Type",choices=model_choices)
+
     model_name=forms.CharField(max_length=100,required=True)
     trainfile = forms.FileField(
         label='Select a training file',
@@ -18,10 +22,14 @@ class TrainingUploadForm(forms.Form):
 class SelectProperty(forms.Form):
   def __init__(self, *args, **kwargs):
     name = kwargs['filename']
+    model_id=kwargs['qsar_model_id']
     del kwargs['filename']
+    del kwargs['qsar_model_id']
     super(SelectProperty, self).__init__(*args, **kwargs)
     filewidget = forms.HiddenInput(attrs={'value' : name})
+    modelwidget = forms.HiddenInput(attrs={'value' : model_id})
     self.fields['filename'] = forms.CharField(widget=filewidget, required=True)
+    self.fields['qsar_model_id'] = forms.CharField(widget=modelwidget, required=True)
     self.fields['activity_property'] = forms.ChoiceField(choices=get_sd_properties(name),
                                                          label='Select property which contains activity')
 

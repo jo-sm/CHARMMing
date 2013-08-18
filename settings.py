@@ -29,12 +29,22 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'mysql' # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-DATABASE_NAME = 'charmming'             # Or path to database file if using sqlite3.
+DATABASES = {
+    'default': {
+                  'ENGINE': 'django.db.backends.mysql',
+                  'HOST': '/var/run/mysqld/mysqld.sock',
+                  'NAME': 'charmming2',
+                  'USER': 'charmming',
+                  'PASSWORD': 'qwerty',
+               }
+}
+
+#DATABASE_ENGINE = 'mysql' # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
+DATABASE_NAME = 'charmming2'             # Or path to database file if using sqlite3.
 DATABASE_USER = 'charmming'         # Not used with sqlite3.
-DATABASE_PASSWORD = 'charmming'         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+DATABASE_PASSWORD = 'qwerty'         # Not used with sqlite3.
+#DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
+#DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
 # Local time zone for this installation. Choices can be found here:
 # http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
@@ -56,11 +66,11 @@ USE_I18N = False
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = '/home/pdb_uploads'
+MEDIA_ROOT = '/home/schedd'
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
-MEDIA_URL = '/charmming/pdbuploads/'
+MEDIA_URL = '/charmming/schedd/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -74,8 +84,10 @@ AUTH_PROFILE_MODULE = "UserProfile"
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
+     'django.template.loaders.filesystem.Loader',
+     'django.template.loaders.app_directories.Loader',
+#    'django.template.loaders.filesystem.load_template_source',
+#    'django.template.loaders.app_directories.load_template_source',
 #     'django.template.loaders.eggs.load_template_source',
 )
 
@@ -104,6 +116,10 @@ INSTALLED_APPS = (
     'account',
     'analysis',
     'apbs',
+    'dd_analysis',
+    'dd_infrastructure',
+    'dd_substrate',
+    'dd_target',
     'dynamics',
     'lessons',
     'ligdes',
@@ -115,6 +131,7 @@ INSTALLED_APPS = (
     'structure',
     'solvation',
     'trajanal',
+    'qsar',
 )
 
 # all lessons in lesson_num_lis(lesson_config.py) will be put in extra_apps and then added into INSTALLED_APPS

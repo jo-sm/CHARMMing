@@ -13,7 +13,7 @@ import lesson1
 import lesson2
 import lesson3
 import lesson4
-import lesson6
+##import lesson6
 #import lesson96
 # by importing lesson_config to import all lessons created
 from lesson_config import *
