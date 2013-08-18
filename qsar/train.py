@@ -9,7 +9,8 @@ from rdkit.ML.DecTree.BuildSigTree import SigTreeBuilder
 from rdkit.ML.Composite.Composite import Composite
 from rdkit.ML.DecTree import CrossValidate
 from rdkit.ML import ScreenComposite
-
+from sklearn.ensemble import RandomForestRegressor
+from sklearn import tree,metrics
 
 def get_sd_properties(filename):
   path = filename
@@ -52,6 +53,10 @@ def train_model(pts):
                       maxDepth=2,silent=True)
     return cmp
 
+def train_model_regression(fps,acts):
+    nclf = RandomForestRegressor(n_estimators=100, max_depth=5,random_state=0,n_jobs=4)
+    nclf = nclf.fit(fps,acts)
+    return nclf
 
 def auc(pts,cmp):
     positive=0;
@@ -80,6 +85,11 @@ def auc(pts,cmp):
                               
     auc/=positive
     return auc
+
+def r2(fps,acts,nclf):
+    preds=nclf.predict(fps)
+    r = metrics.r2_score(acts,preds)
+    return r
     
 def y_randomization(pts):
     acts = [x[2] for x in pts]
@@ -91,6 +101,14 @@ def y_randomization(pts):
     rand_auc = auc(rand_pts,rand_cmp)
     return rand_auc
 
+def y_randomization_r2(fps,acts):
+    rand_acts = acts[:]
+    random.shuffle(rand_acts)
+    rand_cmp = train_model_regression(fps,rand_acts)
+    rand_r2 = r2(fps,rand_acts,rand_cmp)
+    return rand_r2
+                                    
+                                    
 def cross_validation(pts):
     random.shuffle(pts)
     avg_auc = 0
@@ -108,6 +126,32 @@ def cross_validation(pts):
     avg_auc /= 5
     return avg_auc
 
+def cross_validation_r2(fps,acts):
+    pts = zip(fps,acts)
+    random.shuffle(pts)
+    cross_fps,cross_acts = zip(*pts)   
+    avg_r2 = 0
+    for i in range(5):
+        test_fp = [] 
+        train_fp = []
+        test_act = []
+        train_act = []
+        for j,p in enumerate(cross_fps):
+            if ( j % 5 == i):
+                test_fp.append(p)
+            else:
+                 train_fp.append(p)
+        for j,a in enumerate(cross_acts):
+            if ( j % 5 == i):
+                test_act.append(a)
+            else:
+                train_act.append(a)
+        train_cmp = train_model_regression(train_fp,train_act)
+        test_r2 = r2(test_fp,test_act,train_cmp)
+        avg_r2 += test_r2
+    avg_r2 /= 5
+    return avg_r2
+                                                                                                                            
 
 def calculate_threshold(pts,cmp):
     positive=0;
@@ -209,3 +253,26 @@ def run_prediction(cmp,name,threshold,active,inactive,activity_property,out):
         precision=0
                         
     return recall, precision
+
+def run_prediction_regression(nclf,name,activity_property,out):
+    w = Chem.SDWriter(out)
+    preds = []
+    real_acts = []
+    count = 0
+    for m in  Chem.SDMolSupplier(name) :
+        if m is not None:
+            fp=AllChem.GetMorganFingerprintAsBitVect(m,2,2048)                        
+            fps = [fp]
+            pred=nclf.predict(fps)
+            m.SetProp('PREDICTED_'+str(activity_property),str(pred[0]))
+            w.write(m)
+            if m.HasProp(str(activity_property)):
+                real_act = m.GetProp(str(activity_property))
+                preds.append(pred[0])
+                real_acts.append(float(real_act))
+                count += 1
+    r = 0
+    if count > 10:
+        r = metrics.r2_score(real_acts,preds)
+    return r
+    
