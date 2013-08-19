@@ -1,0 +1,30 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+{% block title %}Coordinate Generator for Q-Chem calculations{%endblock%} blankme
+
+{%block body%}
+  {%comment%}We need to load in the whole structure, then delete atoms on a per-region basis.
+  e.g. in a 3-layer system, where r1 is high, r2 is med, r3 is all:
+  write PSF for r3 (no change)
+  delete .not. (r1 .or. r2)
+  write PSF for r2
+  delete .not. (r1)
+  write PSF for r1.
+
+  This is repeated for as many layers as we want.{%endcomment%} blankme
+
+  {% for layer in atomselections_reversed %} blankme
+  {% comment %} Start at highest level, go down. Try a reversed list. {% endcomment %} blankme
+  {% if forloop.first %} blankme
+    write psf card name {{psf_path}}layer_{{layer.layer_num}}.psf
+    * PSF for layer {{layer.layer_num}}
+    *
+    write coor card name {{psf_path}}layer_{{layer.layer_num}}.crd
+    * coordinates for layer {{layer.layer_num}}
+    *
+  {%else%} blankme
+    delete atom sele .not. ({{layer.selectionstring}}) end {%comment%} We only delete not in a certain region, since it automatically contains the region below it. {%endcomment%}
+    write psf card name {{psf_path}}layer_{{layer.layer_num}}.psf
+    write coor card name {{psf_path}}layer_{{layer.layer_num}}.crd
+  {% endif %} blankme
+  {% endfor %} blankme
+{%endblock%}
