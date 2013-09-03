@@ -8,11 +8,14 @@ from tempfile import mkstemp
 import os, os.path
 import subprocess
 import mimetypes
+import fnmatch
+import urllib, urllib2
+import unicodedata
 import charmming_config
 from django.contrib.auth.models import User
 from rdkit import Chem
 from qsar.train import active_inactive,get_sd_properties
-from qsar.models import jobs, job_types, qsar_models, model_types
+from qsar.models import jobs, job_types, qsar_models, model_types, jobs_models
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from account.views import checkPermissions
@@ -101,7 +104,7 @@ def property(request,filename=None,qsar_model_id=None):
         log.write("next\n")
         activity_property = request.POST["activity_property"]
         #qsar_model_id=request.POST['qsar_model_id']
-        common.AssignObjectAttribute(request.user.id,qsar_model_id,"qsar_qsar_models","Activity Property",activity_property)
+        #common.AssignObjectAttribute(request.user.id,qsar_model_id,"qsar_qsar_models","Activity Property",activity_property)
         #model_type=model_types.objects.get(id=qsar_model.model_type_id)
         return train(request,filename,activity_property,qsar_model_id)
   else:
@@ -112,8 +115,7 @@ def property(request,filename=None,qsar_model_id=None):
     qsar_model=qsar_models.objects.get(id=qsar_model_id)
     model_type=model_types.objects.get(id=qsar_model.model_type_id)
     activity_property_choice_length = len(get_sd_properties(filename));
-  return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 
-                            'qsar_model':qsar_model, 'model_type':model_type}, context_instance=RequestContext(request))
+  return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type}, context_instance=RequestContext(request))
 
 def train(request,filename=None,activity_property=None,qsar_model_id=None):
   if not request.user.is_authenticated():
@@ -137,8 +139,10 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
     
     active,inactive,not_two = active_inactive(ms,activity_property)
     if not_two:
+      #common.RemoveObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
       return HttpResponse('<h4> Property %s should take exactly 2 values</h4>' % activity_property)
-    
+    else:
+      common.AssignObjectAttribute(request.user.id,qsar_model_id,"qsar_qsar_models","Activity Property",activity_property)
 
     ####Iwona
     #work_dir = get_dir(request)
@@ -217,10 +221,18 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
     NewJob.job_type=jobtype
     NewJob.save()
 
+    
     qsar_model.model_file=model_file
     common.AssignObjectAttribute(request.user.id,qsar_model.id,"qsar_qsar_models","Active",active)
     common.AssignObjectAttribute(request.user.id,qsar_model.id,"qsar_qsar_models","Inactive",inactive)
     qsar_model.save()
+    
+    NewJobModel=jobs_models()
+    NewJobModel.owner = request.user
+    NewJobModel.job_id = NewJob.id
+    NewJobModel.qsar_model_id=qsar_model.id
+    NewJobModel.save()
+
     self_auc = 0
     recall = 0
     precision = 0
@@ -229,9 +241,11 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
     cross_auc = 0 
     ###end YP
 
-    form = TestUploadForm(active=active,inactive=inactive,saved_model=model_file,threshold=threshold,activity_property=activity_property,filename=filename)
-  return render_to_response('qsar/train.html', {'job_owner_index':NewJob.job_owner_index, 'self_auc': self_auc, 'auc_rand': auc_rand, 'cross_auc':cross_auc,
-                                                 'threshold':threshold,'recall':recall,'precision':precision, 'form':form}, context_instance=RequestContext(request))
+    #form = TestUploadForm(active=active,inactive=inactive,saved_model=model_file,threshold=threshold,activity_property=activity_property,filename=filename)
+  #return render_to_response('qsar/train.html', {'job_owner_index':NewJob.job_owner_index, 'self_auc': self_auc, 'auc_rand': auc_rand, 'cross_auc':cross_auc,
+  #                                               'threshold':threshold,'recall':recall,'precision':precision, 'form':form}, context_instance=RequestContext(request))
+  return viewJobs(request)
+
 def predict(request):
     if not request.user.is_authenticated():
       return render_to_response('html/loggedout.html')
@@ -321,8 +335,14 @@ def download(request):
       response['Content-Disposition'] = 'attachment; filename=%s' % new_name
       response.write(file(filename, "rb").read())
       return response
-                       
+               
 def viewJobs(request):
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+
+    return render_to_response('qsar/viewjobs.html')
+    
+def viewJobsDiv(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
 
@@ -338,9 +358,9 @@ def viewJobs(request):
     #    pass
 
     jobs=[]
-
+    log=open("/tmp/viewjobs.log","w")
     cursor = dba.cursor(MySQLdb.cursors.DictCursor)
-    jobssql = "SELECT js.id, dj.job_scheduler_id, jt.job_type_name, dj.job_owner_index, dj.description, js.queued, " \
+    jobssql = "SELECT dj.id, dj.job_scheduler_id, jt.job_type_name, dj.job_owner_index, dj.description, js.queued, " \
               "if (state=1,timediff(now(),js.queued),timediff(started,js.queued)) 'Waited', " \
               "if (state=2,timediff(now(),js.started),timediff(ended,started)) 'Runtime', " \
               "if (state=2,timediff(now(),js.queued),timediff(ended,js.queued)) 'Total Time', " \
@@ -365,12 +385,19 @@ def viewJobs(request):
         job.waited=row['Waited']
         job.runtime=row['Runtime']
         job.totaltime=row['Total Time']
+        try:
+            log.write("owner_id: %s, job_id: %s\n" % (request.user.id, job.id))
+            qsar_job_model=jobs_models.objects.get(owner_id=request.user.id, job_id = job.id)
+            job.model_id=qsar_job_model.qsar_model_id
+        except:
+            job.model_id=0
+        
         jobs.append(job)
 
 
     lesson_ok, dd_ok = checkPermissions(request)
 
-    return render_to_response('qsar/viewjobs.html', {'jobs': jobs,'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    return render_to_response('qsar/viewjobsdiv.html', {'jobs': jobs,'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 def viewModels(request):
     if not request.user.is_authenticated():
@@ -399,7 +426,9 @@ def viewModels(request):
           try:  
             if request.FILES['predict_file_' + str(qsar_model.id)]:
                 log.write("file: predict_file_" + str(qsar_model.id))
-                
+                orig_name=str(request.FILES['predict_file_' + str(qsar_model.id)].name)
+                name,ext=fileName, fileExtension = os.path.splitext(orig_name)
+                new_name=name + "-predicted"+ext
                 u = User.objects.get(username=request.user.username)
                 #job_owner_id=jobs.getNewJobOwnerIndex(u) 
                 #job_folder = charmming_config.user_home + '/' + username
@@ -414,7 +443,7 @@ def viewModels(request):
                 os.system("chmod -R g+w %s" % (job_folder))
                 log.write("mkdir %s\n" % (job_folder))
                 predict_output_file=job_folder + "/predict_output"
-                predict_results_file=job_folder + "/predict_results.sdf"
+                predict_results_file=job_folder +"/" +  new_name #"/predict_results.sdf"
                 #predict_input_file=request.POST['predict_file_' + str(qsar_model.id)]
                 predict_input_file = open("/%s/predict_input.sdf" % (job_folder), 'w')
                 for fchunk in request.FILES['predict_file_' + str(qsar_model.id)].chunks():
@@ -462,7 +491,8 @@ def viewModels(request):
                 NewJob.job_type=jobtype
                 NewJob.save()
                 log.write("redirecting to submit_predict\n")
-                return render_to_response ('qsar/submit_predict.html', {'job_owner_index' : NewJob.job_owner_index})
+                return viewJobs(request)
+                #return render_to_response ('qsar/submit_predict.html', {'job_owner_index' : NewJob.job_owner_index})
                 #return HttpResponse("Predict Job %s was successfully submitted." % (NewJob.job_owner_index))
           except:
             continue
@@ -495,6 +525,117 @@ def viewModels(request):
 
         return render_to_response('qsar/viewmodels.html', {'models': models_with_attributes_list,'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
+def viewModelDetails(request,qsar_model_id):
+    if not request.user.is_authenticated():
+        return render_to_reponse('html/loggedout.html')
+
+    username = request.user.username
+
+    u = User.objects.get(username=username)
+
+    qsar_model = qsar_models.objects.get(id=qsar_model_id,model_owner_id=request.user.id)
+    log=open("/tmp/modeldetails.log","w")
+    if request.method == 'POST':
+        
+        log.write("file: predict_file_" + str(qsar_model_id))
+
+        u = User.objects.get(username=request.user.username)
+        #job_owner_id=jobs.getNewJobOwnerIndex(u)                                                                                                                                                    
+        #job_folder = charmming_config.user_home + '/' + username                                                                                                                                    
+        NewJob=jobs()
+        qsar_folder = charmming_config.user_home + "/" + username + "/qsar"
+        qsar_jobs_folder = qsar_folder + "/jobs"
+        job_folder = qsar_folder + "/jobs/qsar_job_" + str(NewJob.getNewJobOwnerIndex(u))
+        os.system("mkdir %s" % (qsar_folder))
+        log.write("mkdir %s\n" % (qsar_folder))
+        os.system("mkdir %s" % (qsar_jobs_folder))
+        os.system("mkdir %s" % (job_folder))
+        os.system("chmod -R g+w %s" % (job_folder))
+        log.write("mkdir %s\n" % (job_folder))
+        predict_output_file=job_folder + "/predict_output"
+        orig_name=str(request.FILES['predict_file'].name)
+        name,ext=fileName, fileExtension = os.path.splitext(orig_name)
+        new_name=name + "-predicted"+ext
+        predict_results_file=job_folder + "/" + new_name #"/predict_results.sdf"
+        #predict_input_file=request.POST['predict_file_' + str(qsar_model.id)]                                                                                                                       
+        predict_input_file = open("/%s/predict_input.sdf" % (job_folder), 'w')
+        #for fchunk in request.FILES['predict_file_' + str(qsar_model.id)].chunks():
+        for fchunk in request.FILES['predict_file'].chunks():
+            predict_input_file.write(fchunk)
+        predict_input_file.close()
+        predict_input_file="/%s/predict_input.sdf" % (job_folder)
+        log.write("wrote predict input\n")
+        #os.system("chmod g+rw %s" % (predict_file))                                                                                                                                                 
+        os.system("chmod g+rw %s" % (predict_results_file))
+        os.system("chmod g+rw %s" % (predict_output_file))
+        predict_submitscript = open(job_folder + "/predict_submitscript.inp", 'w')
+        predict_submitscript.write("#! /bin/bash\n")
+        predict_submitscript.write("cd %s\n" % (job_folder))
+        predict_submitscript.write("export PYTHONPATH=$PYTHONPATH:%s/\n" % ("/var/www/charmming")) #job_folder))                                                                                     
+        predict_submitscript.write("export DJANGO_SETTINGS_MODULE=settings\n")
+        threshold=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
+        activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+        active=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Active")
+        inactive=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Inactive")
+        #subprocess.call(["python","/var/www/charmming/qsar/run_model.py",saved_model,str(name),str(threshold),active,inactive,activity_property,str(out),output_txt])                               
+        predict_submitscript.write("python /var/www/charmming/qsar/run_model.py %s %s %s %s %s %s %s %s\n" %
+                                  (qsar_model.model_file, predict_input_file, threshold, active, inactive, activity_property, predict_results_file, predict_output_file))
+        predict_submitscript.write("echo 'NORMAL TERMINATION'\n")
+        predict_submitscript.close()
+
+        scriptlist=[]
+        log.write("submitting predict script\n")
+        scriptlist.append(job_folder + "/predict_submitscript.inp")
+        exedict={job_folder + "/predict_submitscript.inp": 'sh'}
+        si = schedInterface()
+        newSchedulerJobID = si.submitJob(request.user.id,job_folder,scriptlist,exedict)
+
+        NewJob.job_owner=request.user
+        NewJob.job_scheduler_id=newSchedulerJobID
+        NewJob.job_owner_index=NewJob.getNewJobOwnerIndex(u)
+        NewJob.description = "QSAR Prediction Job"
+        log.write("creating a new job object\n")
+        try:
+            jobtype=job_types.objects.get(job_type_name='Predict')
+        except:
+            jobtype=job_types()
+            jobtype.job_type_name="Predict"
+            jobtype.save()
+
+        NewJob.job_type=jobtype
+        NewJob.save()
+        log.write("redirecting to submit_predict\n")
+        return viewJobs(request)
+        #return 
+        #return render_to_response ('qsar/submit_predict.html', {'job_owner_index' : NewJob.job_owner_index})
+
+    else:
+    
+        model_with_attributes=common.ObjectWithAttributes()
+        model_with_attributes.object_id=qsar_model.id
+        model_with_attributes.object_owner_id=qsar_model.model_owner_id
+        model_with_attributes.object_owner_index=qsar_model.model_owner_index
+        model_with_attributes.object_name=qsar_model.model_name
+        model_with_attributes.object_type=qsar_model.model_type.model_type_name
+        model_with_attributes.FillObjectAttributeList("qsar_qsar_models")
+
+        qsar_folder = charmming_config.user_home + "/" + username + "/qsar"
+        qsar_models_folder = qsar_folder + "/models"
+        model_folder = qsar_folder + "/models/qsar_model_" + str(qsar_model.model_owner_index)
+
+        training_output = model_folder + "/training_output"
+        model_with_attributes.object_status="<font color='Red'>Incomplete</font>"
+        if os.path.exists(training_output):
+            if os.path.getsize(training_output)>0:
+                model_with_attributes.object_status="<font color='Green'>Ready</font>"
+
+        
+
+        lesson_ok, dd_ok = checkPermissions(request)
+
+        return render_to_response('qsar/viewmodeldetails.html', {'model': model_with_attributes,'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+
+
 def downloadQSARResults(request,qsar_job_id,mimetype=None):
     if not request.user.is_authenticated():
         return render_to_reponse('html/loggedout.html')
@@ -502,21 +643,33 @@ def downloadQSARResults(request,qsar_job_id,mimetype=None):
     username = request.user.username
 
     u = User.objects.get(username=username)
-    
+    log=open("/tmp/qsardownload.log","w")
+
     qsar_folder = charmming_config.user_home + "/" + username + "/qsar"
+    #qsar_folder ="/schedd/" + username + "/qsar"
     qsar_jobs_folder = qsar_folder + "/jobs"
     job_folder = qsar_jobs_folder + "/qsar_job_" + qsar_job_id
+    
+   
+    log.write("calling: " + "ls -1 " + job_folder+"/*-predicted.*\n")
+    p = subprocess.Popen("ls -1 " + job_folder+"/*-predicted.*", shell=True, stdout=subprocess.PIPE)
+    pout, perr = p.communicate()
+    log.write ("pout is: %s\n" % (perr))
+    filename=pout.rstrip()
+    
+    log.write("filename is: %s\n" % (filename))
 
-    filename=job_folder + "/predict_results.sdf"
-
-    if mimetype is None:
-        mimetype, encoding = mimetypes.guess_type("%s" % (filename))
+    #if mimetype is None:
+    mimetype, encoding = mimetypes.guess_type("%s" % (filename))
     try:
         os.stat("%s" % (filename))
     except:
         return HttpResponse('Oops ... that file no longer exists.')
     
+    
     response = HttpResponse(mimetype=mimetype)
-    response['Content-Disposition'] = 'attachment; filename=predict_results.sdf'
+    response['Content-Disposition'] = 'attachment; filename=%s' % (os.path.basename(filename))
     response.write(file(filename,"rb").read())
     return response
+
+

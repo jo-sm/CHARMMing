@@ -55,6 +55,12 @@ class qsar_models(models.Model):
 
         return next_model_owner_index
 
+class jobs_models(models.Model):
+
+    owner = models.ForeignKey(User)
+    job = models.ForeignKey(jobs)
+    qsar_model = models.ForeignKey(qsar_models)
+
 class data_types(models.Model):
 
     data_type = models.CharField(max_length=100)

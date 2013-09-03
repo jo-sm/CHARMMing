@@ -44,6 +44,20 @@ def active_inactive(ms,activity_property):
       active = types[0]
       inactive = types[1]
     return active,inactive,False
+#YP
+def check_activity_property(ms, activity_property): 
+    types_count = dict()
+    types = []
+    for m in ms:
+      value = m.GetProp(str(activity_property))
+      if value in types_count:
+        types_count[value] += 1
+      else:
+        types_count[value] = 1
+    if len(types_count) != 2:
+      return True
+    
+    return False
 
 def train_model(pts):
     cmp = Composite()

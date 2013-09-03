@@ -13,6 +13,7 @@ class objQSARJob():
     runtime=datetime.datetime.now()
     totaltime=datetime.datetime.now()
     output_file=""
+    qsar_model_id=""
     target_conformations_file_list=[]
     ligands_file_list=[]
     results_file_list=[]
@@ -41,6 +42,14 @@ def GetObjectAttributeValue(user_id, object_id, object_table, attribute_name):
     object_attribute=object_attributes.objects.get(object_attribute_owner_id=user_id,object_id=object_id, 
                      attribute_id=qsar_attribute.id, object_table_name=object_table)
     return object_attribute.value
+
+def RemoveObjectAttributeValue(user_id, object_id, object_table, attribute_name):
+    #try:                                                                                                 
+    qsar_attribute=attributes.objects.get(attribute_short_name=attribute_name,attribute_owner_id=user_id)
+    object_attribute=object_attributes.objects.get(object_attribute_owner_id=user_id,object_id=object_id,
+                     attribute_id=qsar_attribute.id, object_table_name=object_table)
+    object_attribute.delete()
+    #return object_attribute.value
 
 class ObjectWithAttributes():
     

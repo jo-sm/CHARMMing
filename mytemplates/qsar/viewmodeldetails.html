@@ -1,0 +1,45 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<div id="mainpage">
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+<center>
+<h1>QSAR Model Details</h1>
+</center>
+<div class='status'>
+<body>
+<center>
+<form method="post" enctype="multipart/form-data" action="/charmming/qsar/viewmodeldetails/{{ model.object_id }}">
+<table class="sortable resizable" border=2 width="100%">
+<tr><th>Model ID</th><th>Name</th><th>Model Type</th><th>Current Status</th><th>Model Attributes</th><th>Predict</th></tr>
+
+           <tr>
+           <td align="center" width ="50">{{ model.object_owner_index }}</td>
+           <td align="center"><font size="2">{{model.object_name}}</font></td>
+           <td align="center" width = "250">{{ model.object_type }}</td> 
+           <td align="center" width = "80">{{ model.object_status|safe }}</td>
+           <td align="center" width ="400"><input type="file" name="predict_file" size="10"><input type="submit" value="Predict"></td>
+          </tr>
+</table>
+
+<p align="left"><h2>Model Attributes</h2></p>
+<p align="left"><table>
+{% for attribute in model.attributes %}
+   <tr>
+   <td><font size="3">{{ attribute.attribute.attribute_short_name }}:</font></td>
+   <td><font size="3">{{ attribute.value }}</font></td>
+   </tr>
+{% endfor %}
+</table>
+</p>
+
+           <!--<td align = "center" width ="50"><a href="/charmming/qsar/newpredict/{{model.object_id}}">Predict</a></td>-->
+	   </tr>
+
+</table>
+</form>
+</div>
+</center>
+
+
+{% endblock %}
