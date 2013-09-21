@@ -44,6 +44,20 @@ def active_inactive(ms,activity_property):
       active = types[0]
       inactive = types[1]
     return active,inactive,False
+    
+def check_regression_property(ms,activity_property):
+    types_count = dict()
+    for m in ms:
+        value = m.GetProp(str(activity_property))
+        try:
+            v = float(value)
+        except ValueError:
+            return False
+        types_count[v] = 1
+    if len(types_count) < 10:
+        return False
+    return True
+                                                        
 #YP
 def check_activity_property(ms, activity_property): 
     types_count = dict()

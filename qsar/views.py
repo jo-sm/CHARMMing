@@ -14,7 +14,7 @@ import unicodedata
 import charmming_config
 from django.contrib.auth.models import User
 from rdkit import Chem
-from qsar.train import active_inactive,get_sd_properties
+from qsar.train import active_inactive,get_sd_properties,check_regression_property
 from qsar.models import jobs, job_types, qsar_models, model_types, jobs_models
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
@@ -137,12 +137,21 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
     if count > 10000:
       return HttpResponse('<h4> Training file is too big <h4>')
     
-    active,inactive,not_two = active_inactive(ms,activity_property)
-    if not_two:
-      #common.RemoveObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
-      return HttpResponse('<h4> Property %s should take exactly 2 values</h4>' % activity_property)
-    else:
-      common.AssignObjectAttribute(request.user.id,qsar_model_id,"qsar_qsar_models","Activity Property",activity_property)
+    qsar_model=qsar_models.objects.get(id=qsar_model_id)
+    
+    if qsar_model.model_type.model_type_name=="Random Forest (SAR) Categorization":
+        active,inactive,not_two = active_inactive(ms,activity_property)
+        if not_two:
+        #common.RemoveObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+            return HttpResponse('<h4> Property %s should take exactly 2 values</h4>' % activity_property)
+        #else:
+        
+    if qsar_model.model_type.model_type_name=="Random Forest (QSAR) Regression":
+        if not check_regression_property(ms,activity_property):
+            return HttpResponse('<h4> Property %s is not numerical or takes fewer than 10 values</h4>' % activity_property)
+            
+    common.AssignObjectAttribute(request.user.id,qsar_model_id,"qsar_qsar_models","Activity Property",activity_property)
+    
 
     ####Iwona
     #work_dir = get_dir(request)
@@ -164,7 +173,7 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
 
     ###YP
     log=open("/tmp/qjob.log","w")
-    qsar_model=qsar_models.objects.get(id=qsar_model_id)
+    
     
     username=request.user.username
     u = User.objects.get(username=request.user.username)
@@ -196,7 +205,12 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
     train_submitscript.write("cd %s\n" % (job_folder))
     train_submitscript.write("export PYTHONPATH=$PYTHONPATH:%s/\n" % ("/var/www/charmming")) #job_folder))
     train_submitscript.write("export DJANGO_SETTINGS_MODULE=settings\n")
-    train_submitscript.write("python /var/www/charmming/qsar/create_model.py %s %s %s %s %s %s %s\n" % (filename, model_file, activity_property, active, training_output, str(qsar_model.id), str(u.id)))
+    log.write("model type: %s\n" % (qsar_model.model_type.model_type_name))
+    if qsar_model.model_type.model_type_name=="Random Forest (SAR) Categorization":
+        train_submitscript.write("python /var/www/charmming/qsar/create_model.py %s %s %s %s %s %s %s\n" % (filename, model_file, activity_property, active, training_output, str(qsar_model.id), str(u.id)))
+    elif qsar_model.model_type.model_type_name=="Random Forest (QSAR) Regression":
+        train_submitscript.write("python /var/www/charmming/qsar/create_model_regression.py %s %s %s %s %s %s\n" % (filename, model_file, activity_property, training_output, str(qsar_model.id), str(u.id)))
+    
     train_submitscript.write("echo 'NORMAL TERMINATION'\n")
     train_submitscript.close()
     
@@ -223,8 +237,10 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
 
     
     qsar_model.model_file=model_file
-    common.AssignObjectAttribute(request.user.id,qsar_model.id,"qsar_qsar_models","Active",active)
-    common.AssignObjectAttribute(request.user.id,qsar_model.id,"qsar_qsar_models","Inactive",inactive)
+    if qsar_model.model_type.model_type_name=="Random Forest (SAR) Categorization":
+        common.AssignObjectAttribute(request.user.id,qsar_model.id,"qsar_qsar_models","Active",active)
+        common.AssignObjectAttribute(request.user.id,qsar_model.id,"qsar_qsar_models","Inactive",inactive)
+    
     qsar_model.save()
     
     NewJobModel=jobs_models()
@@ -459,13 +475,30 @@ def viewModels(request):
                 predict_submitscript.write("cd %s\n" % (job_folder))
                 predict_submitscript.write("export PYTHONPATH=$PYTHONPATH:%s/\n" % ("/var/www/charmming")) #job_folder))
                 predict_submitscript.write("export DJANGO_SETTINGS_MODULE=settings\n")
-                threshold=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
-                activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
-                active=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Active")
-                inactive=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Inactive")
+                #threshold=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
+                #activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+                #active=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Active")
+                #inactive=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Inactive")
                 #subprocess.call(["python","/var/www/charmming/qsar/run_model.py",saved_model,str(name),str(threshold),active,inactive,activity_property,str(out),output_txt])
-                predict_submitscript.write("python /var/www/charmming/qsar/run_model.py %s %s %s %s %s %s %s %s\n" %  
+                log.write("model type: %s" % (qsar_model.model_type.model_type_name))
+                if qsar_model.model_type.model_type_name=="Random Forest (SAR) Categorization":
+                    threshold=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
+                    activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+                    active=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Active")
+                    inactive=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Inactive")
+
+                    predict_submitscript.write("python /var/www/charmming/qsar/run_model.py %s %s %s %s %s %s %s %s\n" %  
                                           (qsar_model.model_file, predict_input_file, threshold, active, inactive, activity_property, predict_results_file, predict_output_file))
+                elif qsar_model.model_type.model_type_name=="Random Forest (QSAR) Regression":
+                    
+                    activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+                    #common.AssignObjectAttribute(user_id, model_id, "qsar_qsar_models", "Self R2", str(self_r2))
+                    #common.AssignObjectAttribute(user_id, model_id, "qsar_qsar_models", "Y-randomization", str(r2_rand))
+                    #common.AssignObjectAttribute(user_id, model_id, "qsar_qsar_models", "5-fold cross-validation", str(cross_r2))
+
+                    predict_submitscript.write("python /var/www/charmming/qsar/run_model_regression.py %s %s %s %s %s\n" %
+                                          (qsar_model.model_file, predict_input_file, ativity_property, predict_results_file, predict_output_file))
+
                 predict_submitscript.write("echo 'NORMAL TERMINATION'\n")
                 predict_submitscript.close()
              
@@ -573,13 +606,26 @@ def viewModelDetails(request,qsar_model_id):
         predict_submitscript.write("cd %s\n" % (job_folder))
         predict_submitscript.write("export PYTHONPATH=$PYTHONPATH:%s/\n" % ("/var/www/charmming")) #job_folder))                                                                                     
         predict_submitscript.write("export DJANGO_SETTINGS_MODULE=settings\n")
-        threshold=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
-        activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
-        active=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Active")
-        inactive=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Inactive")
+        #threshold=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
+        #activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+        #active=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Active")
+        #inactive=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Inactive")
         #subprocess.call(["python","/var/www/charmming/qsar/run_model.py",saved_model,str(name),str(threshold),active,inactive,activity_property,str(out),output_txt])                               
-        predict_submitscript.write("python /var/www/charmming/qsar/run_model.py %s %s %s %s %s %s %s %s\n" %
-                                  (qsar_model.model_file, predict_input_file, threshold, active, inactive, activity_property, predict_results_file, predict_output_file))
+        #predict_submitscript.write("python /var/www/charmming/qsar/run_model.py %s %s %s %s %s %s %s %s\n" %
+        #                          (qsar_model.model_file, predict_input_file, threshold, active, inactive, activity_property, predict_results_file, predict_output_file))
+        if qsar_model.model_type.model_type_name=="Random Forest (SAR) Categorization":
+            
+            threshold=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
+            activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+            active=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Active")
+            inactive=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Inactive")
+            predict_submitscript.write("python /var/www/charmming/qsar/run_model.py %s %s %s %s %s %s %s %s\n" %
+                                      (qsar_model.model_file, predict_input_file, threshold, active, inactive, activity_property, predict_results_file, predict_output_file))
+        elif qsar_model.model_type.model_type_name=="Random Forest (QSAR) Regression":
+            activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+            predict_submitscript.write("python /var/www/charmming/qsar/run_model_regression.py %s %s %s %s %s\n" %
+                                  (qsar_model.model_file, predict_input_file, activity_property, predict_results_file, predict_output_file))
+
         predict_submitscript.write("echo 'NORMAL TERMINATION'\n")
         predict_submitscript.close()
 
