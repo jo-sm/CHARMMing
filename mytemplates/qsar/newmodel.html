@@ -4,6 +4,7 @@
 		<!-- Upload form. Note enctype attribute! -->
 		<form action="{% url newModel %}" method="post" enctype="multipart/form-data">
 			{% csrf_token %}
+                        <font color="Red">{{ message }}</font>
                         <table>
                         <tr><td>{{ form.model_type.label_tag }}</td>
                             <td>{{ form.model_type }}</td>

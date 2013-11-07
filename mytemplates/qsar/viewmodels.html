@@ -11,6 +11,10 @@
 <center>
 
 <form method="post" enctype="multipart/form-data" action=".">
+{% ifnotequal message "" %}
+<font color="Red">{{ message }}</font>
+{% endifnotequal %}
+
 <table class="sortable resizable" border=2 width="100%">
 <tr><th>Model ID</th><th>Name</th><th>Model Type</th><th>Current Status</th><th>Model Attributes</th><th>Predict</th></tr>
 {% for model in models %}
@@ -24,11 +28,16 @@
                {% for attribute in model.attributes %}
                    <tr>
                    <td>{{ attribute.attribute.attribute_short_name }}:</td>
-                   <td>{{ attribute.value }}</td>
+                   <td>{{ attribute.value|floatformat:3 }}</td>
                    </tr>
                {% endfor %}
                </table>
+           
+
+           {% ifequal model.object_status "<font color='Green'>Ready</font>" %}
+           
            <td align = "center" width ="400"><input type="file" name="predict_file_{{model.object_id}}" size="10"><input type="submit" value="Predict"></td>
+           {% endifequal %}
            <!--<td align = "center" width ="50"><a href="/charmming/qsar/newpredict/{{model.object_id}}">Predict</a></td>-->
 	   </tr>
 {% endfor %}

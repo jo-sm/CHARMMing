@@ -10,6 +10,10 @@
 <body>
 <center>
 <form method="post" enctype="multipart/form-data" action="/charmming/qsar/viewmodeldetails/{{ model.object_id }}">
+{% ifnotequal message "" %}
+<font color="Red">{{ message }}</font>
+{% endifnotequal %}
+
 <table class="sortable resizable" border=2 width="100%">
 <tr><th>Model ID</th><th>Name</th><th>Model Type</th><th>Current Status</th><th>Model Attributes</th><th>Predict</th></tr>
 

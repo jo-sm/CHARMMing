@@ -3,7 +3,11 @@
 
 	<form action="{% url property %}" method="post">
 	{% csrf_token %}
-	<table>
+	{% ifnotequal message "" %}
+        <font color="Red">{{ message }}</font>
+        {% endifnotequal %}
+        <table>
+        
         <tr><td>Model Type:</td><td>{{ model_type.model_type_name }}</td></tr>
         <tr><td>Model Name:</td><td>{{ qsar_model.model_name }}</td></tr>
         </table>
