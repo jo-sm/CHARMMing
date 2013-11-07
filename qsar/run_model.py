@@ -13,6 +13,8 @@ output_txt = sys.argv[8]
 
 cmp = load_model(saved_model)
 recall,precision = run_prediction(cmp,str(name),float(threshold),active,inactive,activity_property,str(out))
+recall = round(recall,3)
+precision = round(precision,3)
 
 f = open(output_txt,"w")
 f.write(str(recall))

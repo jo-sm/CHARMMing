@@ -25,8 +25,11 @@ for m in Chem.SDMolSupplier(str(input_sdf)):
 cmp = train_model_regression(fps,acts)
 cPickle.dump(cmp,file(output_model,'wb+'));
 self_r2 = r2(fps,acts,cmp)
+self_r2 = round(self_r2,3)
 r2_rand = y_randomization_r2(fps,acts)
+r2_rand = round(r2_rand,3)
 cross_r2 = cross_validation_r2(fps,acts)
+cross_r2 = round(cross_r2,3)
 f = open(output_txt,"w")
 f.write(str(self_r2))
 f.write("\n")

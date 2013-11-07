@@ -10,6 +10,7 @@ output_txt = sys.argv[5]
 
 cmp = load_model(saved_model)
 pred_r2 = run_prediction_regression(cmp,str(name),activity_property,str(out))
+pred_r2 = round(pred_r2,3)
 
 f = open(output_txt,"w")
 f.write(str(pred_r2))

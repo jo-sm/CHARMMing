@@ -436,10 +436,14 @@ def viewJobsDiv(request):
                 log.write("predict output opened\n")
                 for line in predict_output:
                     log.write("reading predit output value: %s\n" % (line))
-                    log.write("converted value: %s\n" % str(round(float(line),3)))
-                    output_data=output_data+str(round(float(line.strip("\n")),3))+"/"
-                    
-                output_data=output_data[:-1]
+                    stripped_line = line.strip("\n")
+                    if stripped_line:
+                        log.write("converted value: %s\n" % stripped_line)
+                        output_data += stripped_line+"/"
+                if output_data and output_data != "0.0/" and output_data != "0/0/":    
+                    output_data=output_data[:-1]
+                else:
+                    output_data="N/A"
                 predict_output.close()
 
         except:

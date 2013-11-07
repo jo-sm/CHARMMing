@@ -82,14 +82,14 @@ def check_activity_property(ms, activity_property):
 
 def train_model(pts):
     cmp = Composite()
-    cmp.Grow(pts,attrs=[1],nPossibleVals=[2],nTries=50,randomDescriptors=3,
+    cmp.Grow(pts,attrs=[1],nPossibleVals=[2],nTries=500,randomDescriptors=3,
              buildDriver=CrossValidate.CrossValidationDriver,
                       treeBuilder=SigTreeBuilder,needsQuantization=False,
                       maxDepth=2,silent=True)
     return cmp
 
 def train_model_regression(fps,acts):
-    nclf = RandomForestRegressor(n_estimators=100, max_depth=5,random_state=0,n_jobs=4)
+    nclf = RandomForestRegressor(n_estimators=500, max_depth=5,random_state=0,n_jobs=4)
     nclf = nclf.fit(fps,acts)
     return nclf
 
@@ -281,12 +281,11 @@ def run_prediction(cmp,name,threshold,active,inactive,activity_property,out):
     if actives != 0:
         recall=1.*TP/actives
     else:
-        recall=0
+        recall=0.
     if predicted != 0:
         precision=1.*TP/predicted
     else:
-        precision=0
-                        
+        precision=0.
     return recall, precision
 
 def run_prediction_regression(nclf,name,activity_property,out):
@@ -306,7 +305,7 @@ def run_prediction_regression(nclf,name,activity_property,out):
                 preds.append(pred[0])
                 real_acts.append(float(real_act))
                 count += 1
-    r = 0
+    r = 0.
     if count > 10:
         r = metrics.r2_score(real_acts,preds)
     return r
