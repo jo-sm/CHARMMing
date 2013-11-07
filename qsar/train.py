@@ -25,6 +25,13 @@ def get_sd_properties(filename):
       choices = []
   return choices
 
+def is_valid_sd(filename):
+    path = filename
+    for x in Chem.SDMolSupplier(str(path)):
+        if x is not None:
+            return True
+    return False
+          
 def active_inactive(ms,activity_property):
     types_count = dict()
     types = []

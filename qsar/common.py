@@ -13,6 +13,7 @@ class objQSARJob():
     runtime=datetime.datetime.now()
     totaltime=datetime.datetime.now()
     output_file=""
+    output_data=""
     qsar_model_id=""
     target_conformations_file_list=[]
     ligands_file_list=[]
