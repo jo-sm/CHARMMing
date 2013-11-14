@@ -3,6 +3,7 @@ import random
 import cPickle
 from tempfile import mkstemp
 import os
+import sys
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.ML.DecTree.BuildSigTree import SigTreeBuilder
@@ -206,10 +207,12 @@ def calculate_threshold(pts,cmp):
 
     recall = 1.
     precision = 0.
-    recall,precision,threshold = recall_precision(0.,1.,pa_act,recall,precision)
+    count = 0
+    recall,precision,threshold = recall_precision(0.,1.,pa_act,recall,precision,count)
     return recall,precision,threshold
 
-def recall_precision(low,top,pa_act,old_recall,old_precision):
+def recall_precision(low,top,pa_act,old_recall,old_precision,count):
+    count += 1
     threshold = 0.5*(low+top)
     actives=0
     predicted=0
@@ -238,10 +241,12 @@ def recall_precision(low,top,pa_act,old_recall,old_precision):
         return recall,precision,threshold
     if recall == precision and recall != 0:
         return recall,precision,threshold
+    if count > sys.getrecursionlimit() / 2:
+            return recall,precision,threshold
     if recall > precision:
-        return recall_precision(threshold,top,pa_act,recall,precision)
+        return recall_precision(threshold,top,pa_act,recall,precision,count)
     else:
-        return recall_precision(low,threshold,pa_act,recall,precision)
+        return recall_precision(low,threshold,pa_act,recall,precision,count)
         
 
 def load_model(name):
