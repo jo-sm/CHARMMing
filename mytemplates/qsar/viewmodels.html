@@ -28,7 +28,7 @@
                {% for attribute in model.attributes %}
                    <tr>
                    <td>{{ attribute.attribute.attribute_short_name }}:</td>
-                   <td>{{ attribute.value|floatformat:3 }}</td>
+                   <td>{{ attribute.value }}</td>
                    </tr>
                {% endfor %}
                </table>
