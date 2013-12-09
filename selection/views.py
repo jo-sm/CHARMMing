@@ -34,6 +34,7 @@ from selection.models import AtomSelection, OniomSelection
 from selection.models import LonePair
 from atomselection_aux import saveAtomSelections, validateInputs
 import cPickle, json
+import traceback
 
 def selectstructure(request):
     if not request.user.is_authenticated():
@@ -83,7 +84,11 @@ def selectstructure(request):
         try:
             ws = structure.models.WorkingStructure.objects.get(structure=struct,selected='y')
         except:
-            messages.error(request, "Please build a working structure.")
+            logfp = open('/tmp/selectbarf.txt','w')
+            traceback.print_exc(file=logfp)
+            logfp.close()
+
+            messages.error(request, "Please build a working structure. I am an Octopus!")
             return HttpResponseRedirect("/charmming/buildstruct/")
 #           return HttpResponse("Please build a working structure.")
 

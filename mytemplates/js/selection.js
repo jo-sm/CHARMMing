@@ -27,7 +27,7 @@ function writeLinkAtomLines(seg_ids,modelType,num_linkatoms,current_div_id)
  for(var i = 0; i < num_patches; i++)
  {
   tempi = i+1;
-  text = text + '<tr><td>QMHost '+tempi+'.</td><td> First SEGID:';
+  text = text + '<tr><td>QMHost '+tempi+'.</td><td> QM SEGID:';
   text = text + '<select size="1" name="linkqmsegid' + model_string +"_"+ i +'">';
 text = text + optionvalues + '</select><td> QM RESID:<input type="text" id="linkqm'+model_string+"_"+i+'" name="linkqm'+model_string+"_"+i+'" size=4></td> <td> QM Atom Type: <input type="text" id="qmatomtype'+model_string+"_"+i+'" name="qmatomtype' +model_string+"_"+i + '" size=5> </td></tr><tr><td>MMHost '+tempi+'.</td><td> MM SEGID: <select size="1" name="linkmmsegid'+model_string+"_"+i +'">' + optionvalues + '</select> </td><td>MM RESID:<input type="text" id="linkmm'+model_string+"_"+i+'" name="linkmm'+model_string+"_"+i+'" size=4></td><td> MM Atom Type: <input type="text" id="mmatomtype'+model_string+"_"+i+'" name="mmatomtype'+model_string+"_"+i + '" size=5> </td></tr>';
  }

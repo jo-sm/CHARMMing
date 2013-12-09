@@ -1,4 +1,4 @@
-{% if solvate_implicitly %}
+{% ifequal impsolv "scpism"  %}
 !Implicit solvation means there cannot be any TIP3s in the file
 delete atom select resname TIP3 end
 
@@ -6,5 +6,7 @@ delete atom select resname TIP3 end
 open read card unit 84 name /usr/local/charmming/solvation/scpism.inp
 scpism uism 84
 close unit 84
-{% endif %}
-
+{% endifequal %}
+{% ifequal impsolv "gbmv" %}
+  {% include  'input_scripts/gbmv.inp' %}
+{% endifequal %}

@@ -59,8 +59,6 @@ lib_path = ''
 # path to the single threaded CHARMM executable
 #charmm_exe = "/usr/local/charmming/c37b2-prelease.exe"
 #charmm_apbs_exe = "/usr/local/charmming/c37b2-prelease.exe"
-#charmm_exe = "/usr/local/charmming/c36b2-cgenff.exe"
-#charmm_apbs_exe = "/usr/local/charmming/c35b4-apbs-qc.one"
 
 charmm_exe = "/usr/local/charmming/c37b2-qc-apbs.one"
 charmm_apbs_exe = "/usr/local/charmming/c37b2-qc-apbs.one"
@@ -133,3 +131,12 @@ docking_iterations = 1
 ffld_energy_evaluations=2000
 ffld_generations = 100
 clustering_energy_cutoff = 10
+
+# qsar
+# user_qsar_home = user_home + "/qsar"
+
+# qsar jobs
+# user_qsar_jobs_home = user_qsar_home + "/jobs"
+
+# qsar jobs
+# user_qsar_models_home = user_qsar_home + "/models"

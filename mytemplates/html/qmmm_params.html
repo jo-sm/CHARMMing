@@ -175,8 +175,8 @@ function generateParams(modelType,layers){
         $("#linkmm_"+"{{lonepair.divid}}").val("{{lonepair.mmresid}}");
         $("#qmatomtype_"+"{{lonepair.divid}}").val("{{lonepair.qmatomname}}");
         $("#mmatomtype_"+"{{lonepair.divid}}").val("{{lonepair.mmatomname}}");
-        $("select[name=linkqmsegid{{lonepair.divid}}]").val("{{lonepair.qmsegid}}");
-        $("select[name=linkmmsegid{{lonepair.divid}}]").val("{{lonepair.mmsegid}}");{%endfor%}
+        $("select[name=linkqmsegid_{{lonepair.divid}}]").val("{{lonepair.qmsegid}}");
+        $("select[name=linkmmsegid_{{lonepair.divid}}]").val("{{lonepair.mmsegid}}");{%endfor%}
         $(".qmmm_params").show();
     //    $(".qmmm_params").show();
     //    {%for host in qmhosts %}$("#{{host.0}}").val("{{host.1}}");{%endfor%}

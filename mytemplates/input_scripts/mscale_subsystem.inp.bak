@@ -3,20 +3,19 @@
 {%block read_struct %}{%endblock%}{%comment%}We need to blank this one so that it doesn't load double PSF/CRD{%endcomment%} blankme
 {%block body %}
   {%comment %} IF this is a QM system, load the appropriate level of theory, otherwise just don't care. {%endcomment%} blankme
-  read psf card name {{psf_path}}subsys/layer{{sub.layer}}.psf
-  read coor card name {{psf_path}}subsys/layer{{sub.layer}}.crd
+  read psf card name {{psf_path}}subsys/system_with_linkatoms.psf
 
-{%if sub.deletion_string%}  !!define reg{{sub.layer}} sele {{sub.deletion_string}} end{%endif%}
+  read coor card name {{psf_path}}subsys/system_with_linkatoms.crd
+
+{%if sub.deletion_string%}  define reg{{sub.layer}} sele {{sub.deletion_string}} end{%endif%}
 
   ! get rid of any spare lone pairs that could mess us up...
-  ! BTM: I don't think that we need to do this any more, since the main processor wrote out
-  ! the PSF and coordinates we're supposed to read...
-  !!lonepair clear
-  !!delete atom sele .not. ({{sub.selection_string}}) end 
+  lonepair clear
+  delete atom sele .not. ({{sub.selection_string}}) end 
 
   {% if QM_subsystem %}
-  {%comment%}  {% for lonepair in sub.lonepairs %} blankme
-    !Re-add the lone pairs for this subsystem
+  !Re-add the lone pairs for this subsystem
+{%comment%}  {% for lonepair in sub.lonepairs %} blankme
     lonepair colinear dist 0.0 scaled -.7261 sele type qqh{{lonepair.qqh}} end sele atom {{lonepair.qmsegid}} {{lonepair.qmresid}} {{lonepair.qmatomname}} end sele atom {{lonepair.mmsegid}} {{lonepair.mmresid}} {{lonepair.mmatomname}} end
   {%endfor%} blankme{%endcomment%}
   

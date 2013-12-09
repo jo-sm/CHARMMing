@@ -17,6 +17,7 @@ read coor pdb name {{ pdb_in }}
 {% if patch_lines %}
   ! set up protonation patching on this segment
   {{ patch_lines }}
+  autogenerate angles dihedrals
 {% endif %}
 
 hbuild

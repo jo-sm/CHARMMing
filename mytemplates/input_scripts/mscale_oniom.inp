@@ -1,95 +1,111 @@
-{%comment%} One day, Django 1.4+ will deliver us from the scourge of the endless if test.{%endcomment%} blankme
-{% if bad_exchange %} blankme  
-   bomlev 3
-   achtung, bad QM exchange!
-{% else %} blankme
-   {% if bad_correlation %} blankme
-      bomlev 3
-      achtung, bad QM correlation!
-   {% else %} blankme
-      {% if bad_basis %} blankme
-         bomlev 3
-         achtung, bad QM basis set!    
-      {% else %} blankme
-         {% if bad_jobtype %} blankme
-            bomlev 3
-            achtung, bad QM job type! 
-         {% else %} blankme
-            {% if not qmcheck %} blankme
-               bomlev 3
-               achtung, you changed the QM region from a previous calculation. This isn't allowed!
-            {% else %} blankme
-            {%comment%}We leave all these  warnings in there because we might end up using them. {%endcomment%}
-               {% ifequal jobtype 'freq' %} blankme 
-                  !TQM {{tqm}} 
-                  {% ifequal tqm 'all' %} blankme
-                  {% else %} blankme     
-                     ! check to make sure the QM region is not all atoms (if it's not sele all end)
-                     ! unless you select all the Q-Chem script assumes that there are some MM atoms.
-                     define junk sele {{qmsel}} end 
-                     if ?nsel .ne. ?natom then goto qmok
-                     achtung, QM region is all atoms, please use ALL as your selection!
-                     label qmok
-                  {% endifequal %} blankme
-               {% endifequal %} blankme
-               {% for selection in atomselections_reversed %} blankme
-                  define reg{{selection.layer_num}} sele {{selection.selectionstring}} end
-                  {%comment%} We use layer_num for easier processing. We use the reversed list since it's silly to add more crap to the template and order doesn't matter. {%endcomment%} blankme
-                {%endfor%} blankme
-               {% for selection in atomselections %} blankme
-                  {%comment%} blankme
-                  This is ASSUMED to be in the data structure [(OniomSelectionObject,[LonePairObject])], i.e. a list of tuples
-                  where the first half is an OniomSelection, and the second a list of its associated lonepairs.
-                  There should only be two OniomSelections for a 3-layer and one for a 2-layer.
-                  {%endcomment%} blankme
-                  {% for lonepair in selection.1 %}
-                  addl qqh{{lonepair.qqh}} {{lonepair.qmsegid}} {{lonepair.qmresid}} {{lonepair.qmatomname}} {{lonepair.mmsegid}} {{lonepair.mmresid}} {{lonepair.mmatomname}}
-                  lonepair colinear dist 0.0 scaled -.7261 sele type qqh{{lonepair.qqh}} end sele atom {{lonepair.qmsegid}} {{lonepair.qmresid}} {{lonepair.qmatomname}} end sele atom {{lonepair.mmsegid}} {{lonepair.mmresid}} {{lonepair.mmatomname}} end
-                  {%endfor%} blankme
-                {%endfor%} blankme
-                  {%comment%}Here we print out the whole system (with linkatoms) and let the subsystems figure out the rest.{%endcomment%}
-                  ! make sure mass of carbons is set correctly 
-                  ! addl qqh removes the mass of the hydrogen link atom then adds it back in
-                  ! but since we're in a different script from the main, CHARMM doesn't know about it
-                  scalar mass set 12.01100 sele ( .bonded. type qqh* ) .and. ( type C* ) show end  
-                  write psf card name {{psf_path}}system_with_linkatoms.psf
-                  * PSF for whole system (incl. linkatoms)
-                  *
-                  
-                  write coor card name {{psf_path}}system_with_linkatoms.crd
-                  * CRD for whole system (incl. linkatoms)
-                  *
-                  
-                  mscale nsubs {{num_subsystems}} {%comment%}django does not support math in the templates, so pass this in as a var{%endcomment%}
+!! top of mscale
 
-                  {% for sub in subsystems %} blankme
-                  {%comment%} django does not support numeric forloops, so make something up for subsystems. Maybe make subsystems a list that we iterate and template from?{%endcomment%} blankme
-                  subs {{sub.name}} coef {{sub.coef}} prog "{{mscale_path}}" -
-                  outp "{{sub.out_file}}" inpu "{{sub.inp_file}}" -
-                  sele {{sub.selection_string}} end
+! set our bynum selections up first
+set nbynum = {{ bynum_list|length }}
+{% for item in bynum_list %} blankme
+set bynuma{{ forloop.counter }} = {{ item.numa }}
+set bynumb{{ forloop.counter }} = {{ item.numb }}
+{% endfor %} blankme
 
-                  {%endfor%} blankme
-                  {%comment%} blankme
-                  Define subsystems in mscale.py. Pass to this script. Execute.
-                  mscale.py should be in either CHARMMing root or in /charmming/etc/
-                  {%endcomment%} blankme
-                  
-                  sysd
-                  end
-                  
-                  skip all
-                  prnlev 5 node 0
-                  {%comment%} Other tasks go here?
-               !---------- Needed to define Q-Chem env. vars. ----------
-               envi qchemcnt  "{{qchemin}}"
-               envi qcheminp  "{{qcheminp}}"
-               envi qchemexe  "qchem"
-               envi qchemout  "{{qchemout}}"
-               !--------------------------------------------------------
+! then our regions
+set nregion = {{ nregion }}
+{% for item in region_list %} blankme
+set regid{{ forloop.counter }} = {{ item }}
+{% endfor %} blankme
 
-               qchem remove sele qmregion end  {%endcomment%}
-            {% endif %} blankme
-         {% endif %} blankme
-      {% endif %} blankme
-   {% endif %} blankme
-{% endif %} blankme
+! finally our link atoms
+set nlink = {{ linkat_list|length }}
+{% for item in linkat_list %} blankme
+set segq{{ forloop.counter }} = {{ item.segq }}
+set resq{{ forloop.counter }} = {{ item.resq }}
+set atypq{{ forloop.counter }} = {{ item.atypq }}
+set segm{{ forloop.counter }} = {{ item.segm }}
+set resm{{ forloop.counter }} = {{ item.resm }}
+set atypm{{ forloop.counter }} = {{ item.atypm }}
+{% endfor %} blankme
+
+calc toplayer = @nregion
+
+write psf card name {{psf_path}}layer@{toplayer}.psf
+* top layer includes everything but no link atoms
+*
+
+write coor card name {{psf_path}}layer@{toplayer}.crd
+* top layer includes everything but no link atoms
+*
+
+! and begin
+stream {{data_home}}/renumber.str
+
+! make sure mass of carbons is set correctly 
+! addl qqh removes the mass of the hydrogen link atom then adds it back in
+! but since we're in a different script from the main, CHARMM doesn't know about it
+scalar mass set 12.01100 sele ( .bonded. type qqh* ) .and. ( type C* ) show end  
+
+{%comment%}Here we print out the whole system (with linkatoms) and let the subsystems figure out the rest.{%endcomment%}
+write psf card name {{psf_path}}system_with_linkatoms.psf
+* PSF for whole system (incl. linkatoms)
+*
+                  
+write coor card name {{psf_path}}system_with_linkatoms.crd
+* CRD for whole system (incl. linkatoms)
+*
+
+
+! We are now going to write out PSF and coordinates for each "layer" of the system. Unfortunately, this
+! means completely clobbering our own PSF and coordinates, so it's a good thing that we wrote them out
+! above and can just read them back in at the end.
+
+bomlev -2 ! BAD! Needed to get around definition and lonepair deletion warnings
+
+{%comment%}
+We need to load in the whole structure, then delete atoms on a per-region basis.
+e.g. in a 3-layer system, where r1 is high, r2 is med, r3 is all:
+write PSF for r3 (no change)
+delete .not. (r1 .or. r2)
+write PSF for r2
+delete .not. (r1)
+write PSF for r1.
+
+This is repeated for as many layers as we want.
+{%endcomment%}
+
+calc region = @nregion - 1 ! we already wrote out the top layer
+
+label loop
+delete atom sele .not. reg@region end {%comment%} We only delete not in a certain region, since it automatically contains the region below it. {%endcomment%}
+
+write psf card name {{psf_path}}layer@{region}.psf
+write coor card name {{psf_path}}layer@{region}.crd
+
+incr region by -1
+
+if @region .gt. 0 then stream regdef@{region}.str
+if @region .gt. 0 then goto loop
+
+bomlev 0 ! back to normal bomlev
+
+delete atom sele all end
+read psf card name {{psf_path}}system_with_linkatoms.psf
+read coor card name {{psf_path}}system_with_linkatoms.crd
+                  
+mscale nsubs {{num_subsystems}} {%comment%}django does not support math in the templates, so pass this in as a var{%endcomment%}
+
+{% for sub in subsystems %} blankme
+  {%comment%} django does not support numeric forloops, so make something up for subsystems. Maybe make subsystems a list that we iterate and template from?{%endcomment%} blankme
+  subs {{sub.name}} coef {{sub.coef}} prog "{{mscale_path}}" -
+  outp "{{sub.out_file}}" inpu "{{sub.inp_file}}" -
+  sele {{sub.selection_string}} end
+{%endfor%} blankme
+
+{%comment%} blankme
+   Define subsystems in mscale.py. Pass to this script. Execute.
+   mscale.py should be in either CHARMMing root or in /charmming/etc/
+{%endcomment%} blankme
+   sysd
+end
+                  
+skip all
+prnlev 5 node 0
+
+!! bottom of mscale

@@ -164,14 +164,13 @@ def minimize_tpl(request,mp,pTaskID):
     mp.parent = pTask
     mp.save()
 
-    solvate_implicitly = 0
+    impsolv = ''
     try:
-        if(postdata['solvate_implicitly']):
-            solvate_implicitly = 1
+        impsolv = postdata['solvate_implicitly']
     except:
-        pass
+        impsolv = 'none'
 
-    template_dict['solvate_implicitly'] = solvate_implicitly
+    template_dict['impsolv'] = impsolv
     if postdata.has_key('fixnonh'):
         template_dict['fixnonh'] = 1
     else:
@@ -198,7 +197,7 @@ def minimize_tpl(request,mp,pTaskID):
     # check to see if PBC needs to be used -- if so we have to set up Ewald
     dopbc = False
     if request.POST.has_key('usepbc'):
-        if solvate_implicitly:
+        if impsolv != 'none':
             return output.returnSubmission('Minimization', error='Conflicting solvation options given')
 
         # decide if the structure we're dealing with has

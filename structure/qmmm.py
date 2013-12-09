@@ -16,8 +16,10 @@
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
 
+import copy
 import re
 import selection.models
+import charmming_config
 
 # Yee-haw, a recursive function
 def writeQMheader(charmm_inp, selection):
@@ -110,9 +112,9 @@ def wrtQchemInp(fname, exchange, correlation, basis, jobtype, charge, multi, ful
 
 #Note: This is made to take two args so as to make it easy to process.
 #Since we may implement more models than ONIOM and QM/MM, it's better to leave modelType as a field
-#Instead o fusing properties of the database object (especially since the exceptions can get weird).
+#Instead of using properties of the database object (especially since the exceptions can get weird).
 #For ONIOM, just loop over this thing multiple times.
-def makeQchem_val(modelType,atomselection):
+def makeQchem_val(modelType,atomselection,**kwargs):
     prms = {}
 
     logfp = open('/tmp/makeqchem_val.txt', 'w')
@@ -127,59 +129,47 @@ def makeQchem_val(modelType,atomselection):
         prms['exch'] = atomselection.exchange
         prms['corr'] = atomselection.correlation
         prms['bs'] = atomselection.basis_set
-        prms['qmsel'] = atomselection.selectionstring
+        ##prms['qmsel'] = atomselection.selectionstring
         prms['charge'] = atomselection.charge
         prms['multi'] = atomselection.multiplicity
         if atomselection.linkatom_num > 0:
-            prms['linkatoms'] = handleLinkAtoms(atomselection)
+            prms['linkat_list'] = handleLinkAtoms(atomselection)
         else:
-            prms['linkatoms'] = None
+            prms['linkat_list'] = None
     elif modelType == "oniom":
         if atomselection.isQM:
             #If not, just blank this out, but we should check elsewhere. Make the check anyway.
             prms['exch'] = atomselection.exchange
             prms['corr'] = atomselection.correlation
             prms['bs'] = atomselection.basis_set
-            prms['qmsel'] = atomselection.selectionstring
+            ##prms['qmsel'] = atomselection.selectionstring
             prms['charge'] = atomselection.charge
             prms['multi'] = atomselection.multiplicity
             if atomselection.linkatom_num > 0:
-                prms['linkatoms'] = handleLinkAtoms(atomselection)
+                prms['linkat_list'] = handleLinkAtoms(atomselection)
             else:
-                prms['linkatoms'] = None
-#    if postdata['qmmm_exchange'] in ['HF','B','B3']:
-#        prms['exch'] = postdata['qmmm_exchange']
-#    else:   
-#        prms['exch'] = 'HF'
-#    if postdata['qmmm_correlation'] in ['None','LYP']:
-#        prms['corr'] = postdata['qmmm_correlation']
-#    else:   
-#        prms['corr'] = 'None'
-#    if postdata['qmmm_basisset'] in ['STO-3G','3-21G*','6-31G*']:
-#        prms['bs'] = postdata['qmmm_basisset']
-#    else:   
-#        prms['bs'] = 'sto3g'
-#    prms['qmsel'] = qmsel
-#    if qmsel == '':
-#        prms['qmsel'] = 'resid 1'
-#    if postdata['qmmm_charge'] in ['-5','-4','-3','-2','-1','0','1','2','3','4','5']:
-#        prms['charge'] = postdata['qmmm_charge']
-#    else:   
-#        prms['charge'] = '0'
-#    if postdata['qmmm_multiplicity'] in ['0','1','2','3','4','5','6','7','8','9','10']:
-#        prms['multi'] = postdata['qmmm_multiplicity']
-#    else:   
-#        prms['multi'] = '0'
-#
-#    logfp.write('num_linkatoms = %s\n' % postdata['num_linkatoms'])
-#
-#    if int(postdata['num_linkatoms']) > 0:
-#        logfp.write('Call handleLinkAtoms\n')
-#        logfp.flush()
-#        prms['linkatoms'] = handleLinkAtoms(file,postdata) #file is never defined...how does this code even work?
-#        logfp.write('Done\n')
-#    else:   
-#        prms['linkatoms'] = None
+                prms['linkat_list'] = None
+
+    prms['bynum_list'] = []
+    prms['region_list'] = []
+    selar = atomselection.selectionstring.replace('.or.',"").split('bynum')
+    logfp.write('selar = %s\n' % selar)
+    for bnp in selar:
+        bnp = bnp.strip()
+        if bnp:
+            bynumdict = {}
+            # ToDo -- need some error checking in here
+            logfp.write('bnp = %s\n' % bnp)
+            bynumdict['numa'] = bnp.split(':')[0]
+            try:
+                bynumdict['numb'] = bnp.split(':')[1]
+            except IndexError, e:
+                bynumdict['numb'] = -9999
+            if modelType == "qmmm":
+                prms['region_list'].append(1)
+            elif modelType == 'oniom':
+                pass
+            prms['bynum_list'].append(bynumdict)
 
     logfp.close()
     return prms
@@ -193,7 +183,7 @@ def makeQChem_tpl(template_dict,qmparms,fname,task):
     template_dict['bad_correlation'] = 0
     template_dict['bad_basis'] = 0
     template_dict['bad_jobtype'] = 0
-    if qmparms['exch'] != "HF" and qmparms['exch'] != "B" and qmparms['exch'] != "B3":
+    if qmparms['exch'] != "HF" and qmparms['exch'] != "B" and qmparms['exch'] != "B3LYP":
       template_dict['bad_exchange'] = 1
       return template_dict
     if qmparms['corr'] != "None" and qmparms['corr'].upper() != "LYP":
@@ -215,11 +205,11 @@ def makeQChem_tpl(template_dict,qmparms,fname,task):
         qchemout = fname + ".out"
     ## BTM -- I vaguely remember why we put this in here, but I am not sure how it fits in
     ## with the new GUTS-style CHARMMing, so I am going to leave it commented out for now.
-    qmcheck = checkQMregion(task.workstruct,qmparms['qmsel'])
+    ##qmcheck = checkQMregion(task.workstruct,qmparms['qmsel'])
 
-    template_dict['qmcheck'] = qmcheck 
-    if qmcheck == 0:
-      return template_dict
+    template_dict['qmcheck'] = False
+    ##if qmcheck == 0:
+    ##    return template_dict
 
     fullhess = False
     template_dict['jobtype'] = qmparms['jobtype']
@@ -235,28 +225,16 @@ def makeQChem_tpl(template_dict,qmparms,fname,task):
     else:
         wrtQchemInp(task.workstruct.structure.location + '/' + qchemin, qmparms['exch'], qmparms['corr'], \
                qmparms['bs'], qmparms['jobtype'], qmparms['charge'], qmparms['multi'], fullhess) #This will write to a specific filename, which helps with ONIOM.
-    template_dict['qmsel'] = qmparms['qmsel']
+    ##template_dict['qmsel'] = qmparms['qmsel']
 
-    # user-specified link atoms are passed in as a list of 6-ples (qm-segid, qm-resid, qm-type,
-    # mm-segid, mm-resid, mm-type)
-    # If qmcheck is 1, that means that the correct link atoms are already in the structure and
-    # we should not re-add them.
-    template_dict['linkatom_list'] = []
-    template_dict['linkatoms'] = ''
-    if qmcheck != 1:
-      template_dict['linkatoms'] = qmparms['linkatoms']
-      if qmparms['linkatoms']:
-         for las in qmparms['linkatoms']:
-            try:
-               qmseg, qmres, qmtyp, mmseg, mmres, mmtyp = las[0:6]
-            except:
-               return -1
-            # TODO, validate that these are actually OK...
-            atom = "%s %s %s %s %s %s" % (qmseg,qmres,qmtyp,mmseg,mmres,mmtyp)
-            template_dict['linkatom_list'].append(atom)
+    template_dict['region_list'] = copy.deepcopy(qmparms['region_list'])
+    template_dict['bynum_list'] = copy.deepcopy(qmparms['bynum_list'])
+    template_dict['linkat_list'] = copy.deepcopy(qmparms['linkat_list'])
+
     template_dict['qchemin'] = qchemin
     template_dict['qcheminp'] = qcheminp
     template_dict['qchemout'] = qchemout
+    template_dict['data_home'] = charmming_config.data_home
 
     return template_dict
 
@@ -277,36 +255,18 @@ def handleLinkAtoms(atomselection):
     link_list = []
     link_tuple = ()
 
-    logfp = open('/tmp/handlelinkatoms.txt', 'w')
-    logfp.write('processing link atoms.\n')
-
     lonepairs = selection.models.LonePair.objects.filter(selection=atomselection) #All atomselections have that in them, and it's an int field so there's no reason to worry.
 
     for lonepair in lonepairs:
-        linkqmsegid = lonepair.qmsegid
-        linkqm = lonepair.qmresid
-        qmatomtype = lonepair.qmatomname
+        ldict = {} 
+        ldict['segq'] = lonepair.qmsegid
+        ldict['segm'] = lonepair.mmsegid
+        ldict['resq'] = lonepair.qmresid
+        ldict['resm'] = lonepair.mmresid
+        ldict['atypq'] = lonepair.qmatomname
+        ldict['atypm'] = lonepair.mmatomname
 
-        linkmmsegid = lonepair.mmsegid
-        linkmm = lonepair.mmresid
-        mmatomtype = lonepair.mmatomname
+        link_list.append(ldict)
 
-#    num_linkatoms = int(postdata['num_linkatoms'])
-#    for i in range(num_linkatoms):
-#        logfp.write('Doing link atom %d\n' % i)
-#        #Watch for the _! The _ make all the difference. This is modified from the original format in lobos!
-#        linkqmsegid = postdata['linkqmsegid_' + str(i)]
-#        linkqm = postdata['linkqm_' + str(i)]
-#        qmatomtype = postdata['qmatomtype_' + str(i)]
-#
-#        linkmmsegid = postdata['linkmmsegid_' + str(i)]
-#        linkmm = postdata['linkmm_' + str(i)]
-#        mmatomtype = postdata['mmatomtype_' + str(i)]
-#
-        link_tuple = (linkqmsegid,linkqm,qmatomtype,linkmmsegid,linkmm,mmatomtype)
-        link_list.append(link_tuple)
-
-    logfp.write('Done\n')
-    logfp.close()
     return link_list
 

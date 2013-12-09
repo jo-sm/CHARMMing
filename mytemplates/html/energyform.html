@@ -32,8 +32,8 @@
       ~VS{%endcomment%}
            {% include "html/qmmm_params.html" %}
            {%endif%}
-        <p class="fontmed">Use Periodic Boundary Conditions (PBC)<input id="usepbc" type="checkbox" name="usepbc"></p>
-   <p class="fontmed">Solvate implicitly with SCPISM<input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></p>
+       <p class="fontmed">Use Periodic Boundary Conditions (PBC)<input id="usepbc" type="checkbox" name="usepbc"></p>
+       {% include "html/impsolv.html" %}
        <input type="hidden" name="form_submit" value="1" />
        <input type="submit" value="Calculate Energy" />
   </form>

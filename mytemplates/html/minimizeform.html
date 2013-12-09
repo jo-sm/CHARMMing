@@ -36,16 +36,16 @@
             <p class="fontmed">Apply patch<input id="usepatch" type="checkbox" name="usepatch" onclick="checkPatch(makeUniqueDiv('usepatch'),makeUniqueDiv('patch_area'));"></p>
         {%endif%}
 
+        {% include 'html/impsolv.html' %}
         <p class="fontmed">Use restraints<input type="checkbox" id="use_restraints" name="apply_restraints" onclick="checkRestraints(makeUniqueDiv('use_restraints'),makeUniqueDiv('apply_restraints'));"></p>
            <div id="apply_restraints" class="hidden">
              <p class="fontmed">Enter number of separate minimizations that will use restraints:<input type="text" size="4" id="num_restraints" name="num_restraints" onkeyup="writeRestraintLines('restraint_lines');"></p><br>
               <div id='restraint_lines'></div>
               </div>
           <p class="fontmed">Use shake<input type="checkbox" id="use_shake" name="apply_shake" onclick="checkShake(makeUniqueDiv('use_shake'),makeUniqueDiv('apply_shake'));" checked></p>
-           <div id="apply_shake" class="fontmed" >
-              {% include 'html/shake_params.html' %}
-            </div>
-            <p class="fontmed">Solvate implicitly with SCPISM<input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></p>
+          <div id="apply_shake" class="fontmed" >
+             {% include 'html/shake_params.html' %}
+          </div>
          <hr class="noshade_hr" class="big_break">
          <input type="submit" value="Minimize" class="big_break" />
 

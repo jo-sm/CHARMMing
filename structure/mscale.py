@@ -18,8 +18,8 @@ Subsystem objects have the following attributes:
 class Subsystem:
     name = str()
     coef = float()
-    out_file = "/home/schedd/user/structure/subsys/"
-    inp_file = "/home/schedd/user/structure/subsys/"
+    ##out_file = charmming_config.user_home+ "/" +  + "/structure/subsys/"
+    ##inp_file = charmming_config.user_home+"/structure/subsys/"
     layer = int() #This notes what layer it's associated to, for the sake of getting the right PSF/CRDs for it.
     selection_string = str()
     deletion_string = str() #Hack because reg1 etc. doesn't get transferred to the subsystem input files...
@@ -36,11 +36,11 @@ class Subsystem:
         self.layer = lay
         self.lonepairs = lp
 
-    def __init__(self):
+    def __init__(self,username):
         self.name = ""
         self.coef = float()
-        self.out_file = "/home/schedd/user/structure/subsys/"
-        self.inp_file = "/home/schedd/user/structure/subsys/"
+        self.out_file = charmming_config.user_home + "/" + username + "/structure/subsys/"
+        self.inp_file = charmming_config.user_home + "/" + username + "/structure/subsys/"
         self.selection_string = ""
         self.level_of_theory = 0
         self.layer = 1
@@ -85,7 +85,7 @@ def generateSubsystems(oniom_selections, username, structname):
         #STart at layer of lowest level of theory (since that one gets added once and doesn't get subtracted by another level)
         #Add terms in pairs after.
         if current_layer == total_layers: #"Whole system" level.
-            sub = Subsystem()
+            sub = Subsystem(username)
             sub.name = "alllow"
             sub.coef = 1.00
             sub.layer = current_layer
@@ -96,7 +96,7 @@ def generateSubsystems(oniom_selections, username, structname):
             subsystems.append(sub)
         else:
             #I am aware that this procedure is repetitive, but we need to take different standards for different pieces of the MSCALE equation.
-            sub1 = Subsystem()
+            sub1 = Subsystem(username)
             sub1.name = "r"+str(current_layer)+"_plus" #For a fully generic experience, we need to just make these +/- since once we go past 3 layers, the terms "high/med/low" have no meaning anymore
             sub1.coef = 1.00
             sub1.layer = current_layer
@@ -109,7 +109,7 @@ def generateSubsystems(oniom_selections, username, structname):
             sub1.out_file = sub1.out_file.replace("structure",structname).replace("user",username) + sub1.name + ".out"
             sub1.inp_file = sub1.out_file.replace(".out",".inp")
             sub1.level_of_theory = (total_layers - current_layer) + 1
-            sub2 = Subsystem()
+            sub2 = Subsystem(username)
             sub2.name = sub1.name.replace("plus","minus")
             sub2.coef = -1.00
             sub2.layer = current_layer #Both of these live in the same place
@@ -133,23 +133,16 @@ def make_mscale(template_dict, request, modelType, task):
         oniom_selections = selection.models.OniomSelection.objects.filter(workstruct=task.workstruct) #TODO: Modify this for implementing name functionality
         atomselections = getLonePairs(oniom_selections)
         subsystems = generateSubsystems(oniom_selections,request.user.username,task.workstruct.structure.name)
+        template_dict['nregion'] = oniom_selections[0].total_layers
         template_dict['num_subsystems'] = len(subsystems)
         template_dict['subsystems'] = subsystems
         template_dict['atomselections'] = atomselections
         template_dict['psf_path'] = task.workstruct.structure.location + "/subsys/"
-        #Now that we've got this stuff, we need to generate the per-region input files for PSF/CRDs
-        #First wipe all the old Qchem inp/out files so we don't have files from a 3-layer still held over when we do a 2-layer
-        #TODO: Adapt this for multiple file-saving
-#        oldqchem = re.compile("r\d+_(plus|minus)\.(inp|in|out)") #matches r(numeral)_(plus/minus).(inp/in/out)
-#        for fp in os.listdir(task.workstruct.structure.location):
-#            if re.search(oldqchem,fp): #If it matches...
-#                os.remove(os.path.join(task.workstruct.structure.location,fp)) #Kill it
+
         path_to_make = task.workstruct.structure.location + "/subsys/"
         if not os.path.isdir(path_to_make):
             os.mkdir(path_to_make) #Check permissions...
-#        else: #Wipe it, we don't want the old files there
-#            shutil.rmtree(path_to_make)
-#            os.mkdir(path_to_make) #Make it again, this is easier than loop-delete programming wise, but has the same actual effect.
+
         os.chmod(path_to_make,0775)
         template_dict['atomselections_reversed'] = oniom_selections.order_by('-layer_num')
         #Now generate QChem scripts (see qmmm.py)
@@ -168,24 +161,14 @@ def make_mscale(template_dict, request, modelType, task):
             if reversed_selections[current_layer].isQM:
                 if lowest_qm_level_of_theory < 1:
                     lowest_qm_level_of_theory = current_level_of_theory #This makes the subsystem input scripts easier. Only need to check once, all layers "after" a QM layer are QM
-                qmparams = structure.qmmm.makeQchem_val("oniom",reversed_selections[current_layer]) #Since we start at, say, 4 and go down, this works out.
+                qmparams = structure.qmmm.makeQchem_val("oniom",reversed_selections[current_layer],layer=current_layer) #Since we start at, say, 4 and go down, this works out.
                 qmparams['jobtype'] = 'Force' #????
                 template_dict = structure.qmmm.makeQChem_tpl(template_dict,qmparams,"level-"+str(current_level_of_theory),task)  #This would make the level correct
                 #We make input file WorkingFiles so that the user can see them...then in the finish() we fetch the .out versions.
 
                 basepath = task.workstruct.structure.location +'/'
                 path = basepath + "level-"+str(current_level_of_theory)+".inp"
-#                wflayerinp = WorkingFile()
-#                try:
-#                    wftest = WorkingFile.objects.get(task=task,path=path)
-#                except:
-#                    wflayerinp.task = task
-#                    wflayerinp.path = path
-#                    wflayerinp.canonPath = wflayerinp.path #Fix later?
-#                    wflayerinp.type = "inp"
-#                    wflayerinp.description = "QChem input for level of theory " + str(current_level_of_theory)
-#                    wflayerinp.save()
-                #makeQChem_tpl actually does write the files thankfully.
+
             current_level_of_theory += 1
             current_layer += 1
         #Now generate subsystem scripts
@@ -200,19 +183,48 @@ def make_mscale(template_dict, request, modelType, task):
             templ = get_template('%s/mytemplates/input_scripts/mscale_subsystem.inp' % charmming_config.charmming_root)
             charmm_input = output.tidyInp(templ.render(Context(template_dict))) #Since we already have atomselections and the other stuff, this should be easy.
             path = basepath + "subsys/" + subsystem.name + ".inp"
-#            wfsubsys = WorkingFile()
-#            try:
-#                wftest = WorkingFile.objects.get(task=task,path=path)
-#            except:
-#                wfsubsys.task = task
-#                wfsubsys.path = path
-#                wfsubsys.canonPath = wfsubsys.path
-#                wfsubsys.type = "inp"
-#                wfsubsys.description = "Subsystem input for subsystem " + subsystem.name
-#                wfsubsys.save()
             inp_out = open(path,"w")
             inp_out.write(charmm_input)
             inp_out.close()
         template_dict['psf_path'] = psf_path #Just in case we need it again somewhere...
+
+        # I have no idea if this is the right place to do things, but let's find out...
+        template_dict['linkat_list'] = []
+        template_dict['bynum_list'] = []
+        template_dict['region_list'] = []
+
+        for atomselection in oniom_selections:
+
+            lonepairs = selection.models.LonePair.objects.filter(selection=atomselection)
+            for lonepair in lonepairs:
+                ldict = {}
+                ldict['segq'] = lonepair.qmsegid
+                ldict['segm'] = lonepair.mmsegid
+                ldict['resq'] = lonepair.qmresid
+                ldict['resm'] = lonepair.mmresid
+                ldict['atypq'] = lonepair.qmatomname
+                ldict['atypm'] = lonepair.mmatomname
+                template_dict['linkat_list'].append(ldict)
+
+            selar = atomselection.selectionstring.replace('.or.',"").split('bynum')
+            for bnp in selar:
+                bnp = bnp.strip()
+                if bnp:
+                    bynumdict = {}
+                    # ToDo -- need some error checking in here
+                    bynumdict['numa'] = bnp.split(':')[0]
+                    try:
+                        bynumdict['numb'] = bnp.split(':')[1]
+                    except IndexError, e:
+                        bynumdict['numb'] = -9999
+                    template_dict['region_list'].append(atomselection.layer_num)
+                    template_dict['bynum_list'].append(bynumdict)
+
+        logfp = open('/tmp/mscale_renumber.txt','w')
+        logfp.write('bynum_list: %s\n' % template_dict['bynum_list'])
+        logfp.write('region_list: %s\n' % template_dict['region_list'])
+        logfp.write('linkat_list: %s\n' % template_dict['linkat_list'])
+        logfp.close()
+
         task.save()
         return template_dict

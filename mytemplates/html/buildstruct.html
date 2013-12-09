@@ -1,10 +1,10 @@
 {% extends "html/skeleton.html" %}
 {%block extra_scripts%}
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmolCore.js"></script>
+  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmolApplet.js"></script>
+  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmolApi.js"></script>
+  <script type="text/javascript" src="/charmming/js/new-jsmol/js/j2sjmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmol.js"></script>
   <script type="text/javascript" src="/charmming/js/buildstruct.js"></script>
 {%endblock%}
 {% block content %}
@@ -143,7 +143,7 @@
                {% for pproto in proto_list %}
                  <tr><td>{{ pproto.0 }}</td><td><a href="javascript:select_residue('{{pproto.3}}','{{pproto.0}}')">{{ pproto.1 }}</a></td>
                    <td>
-                     <select> <!-- onchange="change_proto_state(this,'{{pproto.3}}','{{pproto.0}}');" name="protostate_{{ pproto.0 }}_{{ pproto.1 }}">  This code will be re-implemented if JSmol every works correctly.-->
+                     <select onchange="change_proto_state(this,'{{pproto.3}}','{{pproto.0}}');" name="protostate_{{ pproto.0 }}_{{ pproto.1 }}">
                          {% for alt in pproto.2 %}
                             <option value="{{ alt.0 }}">{{ alt.0 }} ({{ alt.1 }})</option>
                          {% endfor %}
@@ -169,7 +169,7 @@
                     debug: false,
                     color: "black",
                     use: "HTML5",
-                    j2sPath: "/charmming/js/jsmol/j2s",
+                    j2sPath: "/charmming/js/new-jsmol/j2s",
                     readyFunction: jmol_isReady,
                     script: "set antialiasDisplay;",
                     disableJ2SLoadMonitor: true,

@@ -1,0 +1,32 @@
+{% extends 'html/skeleton.html' %}
+{% block content %}
+        Prediction job {{job_owner_index}} has been Submitted.<br>
+        <a href="/charmming/qsar/viewjobs/">Click here to monitor jobs</a><br>
+<!--	Model training complete
+        <p>
+	Self AUC: {{self_auc}}<br>
+	Y-randomization: {{auc_rand}}<br>
+	5-fold cross-validation: {{cross_auc}}<br>
+	Recommended threshold: {{threshold}}<br>
+	Recall: {{recall}}<br>
+	Precision: {{precision}}<br>
+
+	<p>	
+	<form action="{% url predict %}" method="post" enctype="multipart/form-data">
+	{% csrf_token %}
+	{% for hidden in form.hidden_fields %}
+	{{ hidden }}
+	{% endfor %}
+	<p>{{ form.non_field_errors }}</p>
+
+	<p>
+	Upload SD file for prediction:<br>
+	{{ form.predictfile.errors }}
+	{{ form.predictfile }}
+	</p>
+	<input type="submit" name="back" value="Back" />
+	<input type="submit" name="predict" value="Predict" />
+	</form>
+	</p>
+-->
+{% endblock %}

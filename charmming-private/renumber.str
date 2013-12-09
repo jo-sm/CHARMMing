@@ -1,0 +1,71 @@
+* stream file to handle renumbering selections based on link atoms
+* Tim Miller, 9/2013
+* ==============================================
+* Prior to invoking, please set the following:
+* nlink: number of link atoms for each region
+* segq[X] resq[X] atypq[X}: definition of QM host for link atom X
+* segm[X] resm[X] atypm[X}: definition of MM host for link atom X
+* nbynum: number of separate bynums
+* bynuma[X]: first elt of the bynum
+* bynumb[X]: second elt of the bynum
+* nregion: number of QM regions (1 or 2)
+* regid[X]: tells whether bynum X should be a part of region 1 or region 2
+*
+
+set i = 1
+label linkloop
+
+! define this link atom
+addl qqh@i @segq@@i @resq@@i @atypq@@i @segm@@i @resm@@i @atypm@@i
+lonepair colinear dist 0.0 scaled -.7261 sele type qqh@i end sele atom @segq@@i @resq@@i @atypq@@i end -
+                                                             sele atom @segm@@i @resm@@i @atypm@@i end
+
+define myfoo sele type qqh@i end
+set latnum = ?selatom
+
+! increment any elements of the bynum selections that are greater than or equal to
+! the number of our new link atom.
+set j = 1
+label bnloop
+
+if @bynuma@@j .ge. @latnum then
+  calc foo = @bynuma@@j + 1
+  set bynuma@j = @foo
+endif
+if @bynumb@@j .ge. @latnum then
+  calc foo = @bynumb@@j + 1
+  set bynumb@j = @foo
+endif
+
+incr j by 1
+if @j .le. @nbynum then goto bnloop 
+
+incr i by 1
+if @i .le. @nlink then goto linkloop
+
+! OK, kids, all our selections should now have the correct link atom numbers, go ahead and
+! define the regions
+set i = 1
+label makesel
+
+define reg@i sele none end ! create empty selection to add to
+
+set j = 1
+label loopbn2
+
+if @regid@@j .le. @i then
+  if @bynumb@@j .gt. 0 then
+    define reg@i sele reg@i .or. bynum @bynuma@@j:@bynumb@@j show end
+  else
+    define reg@i sele reg@i .or. bynum @bynuma@@j show end
+  endif
+endif
+
+incr j by 1
+if @j .le. @nbynum then goto loopbn2
+
+incr i by 1
+if @i .le. @nregion then goto makesel
+
+define reg@i sele .not. type qqh* end
+return

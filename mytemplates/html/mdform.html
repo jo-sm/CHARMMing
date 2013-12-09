@@ -40,7 +40,6 @@
         </div>
 
         <table class="qm_table">
-          <tr><td>Solvate Implicitly with SCPISM</td><td><input type="checkbox" id="solvate_implicitly" name="solvate_implicitly" value="1"></td></tr>
           <tr><td>Use periodic boundary conditions (PBC) with dynamics (you must choose a solvated input structure)</td><td><input type="checkbox" id="usepbc" name="usepbc" value="1" /></td></tr>
           <tr><td>Make a movie</td><td><input type="checkbox" id="make_movie" name="make_movie" value="make_movie"></td></tr>
           <tr><td>Generate the average structure from the MD run</td><td><input type="checkbox" id="gen_avgstruct" name="gen_avgstruct" value="gen_avgstruct"></td></tr>
@@ -84,6 +83,7 @@
           <tr><td>Pressure piston collision frequency (collisions per picosecond)</td><td><input type="text" name="pgamma" value="0.0"></td></tr>
         </table>
       </div>
+      {% include 'html/impsolv.html' %}
       <input style="margin-top:10px" class="big_break" type="submit" value="Apply Molecular Dynamics" />
     </form>
     <script>

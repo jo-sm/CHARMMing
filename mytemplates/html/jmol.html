@@ -1,11 +1,12 @@
 {% extends 'html/skeleton.html' %}
 {%block extra_scripts %}
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmolCore.js"></script>
+  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmolApplet.js"></script>
+  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmolApi.js"></script>
+  <script type="text/javascript" src="/charmming/js/new-jsmol/js/j2sjmol.js"></script>
+  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmol.js"></script>
   <script type="text/javascript" src="/charmming/js/visualization.js"></script>
+  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmoljQueryExt.js"></script>
   <link rel="icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
   <link rel="shortcut icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
 {%endblock%}
@@ -27,7 +28,7 @@
 	debug: false,
 	color: "black",
 	use: "HTML5",
-	j2sPath: "/charmming/js/jsmol/j2s",
+	j2sPath: "/charmming/js/new-jsmol/j2s",
 	readyFunction: jmol_isReady,
   script: "set antialiasDisplay;",
   disableJ2SLoadMonitor: debug_on,

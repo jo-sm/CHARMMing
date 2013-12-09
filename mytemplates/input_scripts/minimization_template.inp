@@ -18,8 +18,11 @@
 
   coor copy comp
 
+  !!BTM foo
   {% if useqmmm %} blankme
+    !!BTM useqmmm on
     {%if modelType == "qmmm" %} blankme
+     !!BTM make_qchem
      {% include "input_scripts/make_qchem.inp" %} blankme
     {%else %} blankme
       {% if modelType == "oniom" %} blankme
@@ -27,6 +30,7 @@
       {%endif%} blankme
     {%endif%} blankme
   {% endif %} blankme
+  !!BTM bar
 
   mini SD nstep {{sdsteps}} 
   mini abnr nstep {{abnr}} nprint 100 tolg {{tolg}}

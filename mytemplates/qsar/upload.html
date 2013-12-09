@@ -1,0 +1,16 @@
+{% extends 'html/skeleton.html' %}
+{% block content %}
+
+		<!-- Upload form. Note enctype attribute! -->
+		<form action="{% url upload %}" method="post" enctype="multipart/form-data">
+			{% csrf_token %}
+			<p>{{ form.non_field_errors }}</p>
+			<p>{{ form.trainfile.label_tag }} <br> {{ form.trainfile.help_text }}</p>
+			<p>
+				{{ form.trainfile.errors }}
+				{{ form.trainfile }}
+			</p>
+			<p><input type="submit" value="Upload" /></p>
+		</form>
+		
+{% endblock %}

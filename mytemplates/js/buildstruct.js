@@ -19,7 +19,7 @@ function change_proto_state(newresbox, oldresid, segid){
      if(NZ.length < 1){
       //Make a fancy error box
     }else{
-      if (NZ.formalCharge > 0){
+      if (NZ[0].formalCharge > 0){
         if(proto_state_identifier.toUpperCase() == "LSN"){
           //Deprotonate
           Jmol.script(jmolApplet, 'assign atom ({' + oldresid + '.NZ' + selection_string + '}) "Mi"');
@@ -38,7 +38,7 @@ function change_proto_state(newresbox, oldresid, segid){
     if(OE2.length < 1){
       //Fancy error box
     }else{
-      if(OE2.formalCharge < 0){
+      if(OE2[0].formalCharge < 0){
         if(proto_state_identifier.toUpperCase() == "GLUP"){ 
           //Protonate
           Jmol.script(jmolApplet, 'assign atom ({'+oldresid+'.OE2'+selection_string+'}) "Pl"');
@@ -51,6 +51,21 @@ function change_proto_state(newresbox, oldresid, segid){
         }
       }
     }
+  }else if(proto_state_identifier.toUpperCase() == "ASP" || proto_state_identifier.toUpperCase() == "ASPP"){
+    var OD2 = Jmol.getPropertyAsArray(jmolApplet, "atominfo", ("("+oldresid+".OD2"+selection_string+")"));
+    if(OD2.length < 1){
+      //Fancy error box
+    }else{
+      if(OD2[0].formalCharge < 0){
+       if(proto_state_identifier.toUpperCase() == "ASPP"){
+        Jmol.script(jmolApplet, 'assign atom ({'+oldresid+'.OD2'+selection_string+'}) "Pl"');
+      }
+    }else{
+      if(proto_state_identifier.toUpperCase() == "ASP"){
+        Jmol.script(jmolApplet, 'assign atom ({'+oldresid+'.OD2'+selection_string+'}) "Mi"');
+      }
+    }
+  }
 //  }else if(proto_state_identifier.toUpperCase() == "HSD" || proto_state_identifier.toUpperCase() == "HSE" || proto_state_identifier.toUpperCase() == "HSP"){
 //  var 
   }else{
@@ -70,7 +85,7 @@ function select_residue(resid,segid){
     selection_string = selection_string + " and atomno < " + chain_terminators[segment_number + 1];
   }
   Jmol.script(jmolApplet, "select resno=" + selection_string);
-  Jmol.script(jmolApplet, "display within(5.0,selected); center selected; zoom 0;");
+  Jmol.script(jmolApplet, "display within(5.0,selected); center selected; zoom 0;selectionhalos on;");
   if(!(show_hydrogens)){
     Jmol.script(jmolApplet, "display displayed and not hydrogen;");
   }

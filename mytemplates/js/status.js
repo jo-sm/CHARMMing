@@ -2,7 +2,6 @@ var scroll_to_bottom = true;
 
 function dialog_open(task_id,task_status){
   if ($("#dialog_output_"+task_id).dialog().length > 0){
-    $("#dialog_output_"+task_id).PeriodicalUpdater("stop");
     $("#dialog_output_"+task_id).dialog("close"); //If it exists, close it.
   }
   var opt = {
@@ -11,6 +10,10 @@ function dialog_open(task_id,task_status){
                       width:800,
                       modal:false,
                       autoOpen:false,
+                      autoStop:1000, //Depressingly, this jQuery mod has no way to stop the caller other than autoStop, even though it has a stop function...it just can't be called except interally.
+                      autoStopCallback:function(){
+                        $("#dialog_output_"+task_id).html() = $("#dialog_output_"+task_id).html() + "You have been watching this job run for a while. Please consider checking your output files for any errors, or simply reload this window to continue live output watching.";
+                      },
                       buttons:{
                         "Close":function(){
                           $(this).dialog("close");

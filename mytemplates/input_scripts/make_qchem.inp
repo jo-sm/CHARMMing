@@ -1,76 +1,81 @@
 {%comment%} One day, Django 1.4+ will deliver us from the scourge of the endless if test.{%endcomment%} blankme
+
+! make qchem template here...
+
 {% if bad_exchange %} blankme  
    bomlev 3
    achtung, bad QM exchange!
-{% else %} blankme
-   {% if bad_correlation %} blankme
-      bomlev 3
-      achtung, bad QM correlation!
-   {% else %} blankme
-      {% if bad_basis %} blankme
-         bomlev 3
-         achtung, bad QM basis set!    
-      {% else %} blankme
-         {% if bad_jobtype %} blankme
-            bomlev 3
-            achtung, bad QM job type! 
-         {% else %} blankme
-            {% if not qmcheck %} blankme
-               bomlev 3
-               achtung, you changed the QM region from a previous calculation. This isn't allowed!
-            {% else %} blankme
-               {% ifequal jobtype 'freq' %} blankme 
-                  !TQM {{tqm}} 
-                  {% ifequal tqm 'all' %} blankme
-                  {% else %} blankme     
-                     ! check to make sure the QM region is not all atoms (if it's not sele all end)
-                     ! unless you select all the Q-Chem script assumes that there are some MM atoms.
-                     define junk sele {{qmsel}} end 
-                     if ?nsel .ne. ?natom then goto qmok
-                     achtung, QM region is all atoms, please use ALL as your selection!
-                     label qmok
-                  {% endifequal %} blankme
-               {% endifequal %} blankme
-               define qmregion sele {{qmsel}} end
-               define mmregion sele .not. qmregion end
-               {% ifequal qmcheck 1 %} blankme
-                  coor copy comp
-                  coor shake
-               {% else %} blankme
-                  {% if linkatoms %} blankme
-                     !LINKATOMS   
-                     {% for las in linkatoms %} blankme
-                    {%comment%} linkatom_list doesn't give me control over the specific bits of the link atom lone pair I want. So I override it. {%endcomment%} blankme
-                        coor copy comp
-                        coor shake
-                        addl qqh{{forloop.counter}} {{las.0}} {{las.1}} {{las.2}} {{las.3}} {{las.4}} {{las.5}} {%comment%}This adds the link atom selection as a whole.{%endcomment%}
-                        lonepair colinear scaled -.7261 sele type qqh{{forloop.counter}} end sele atom {{las.0}} {{las.1}} {{las.2}} end sele atom {{las.3}} {{las.4}} {{las.5}} end
-                        {%comment%}las = [qmseg, qmres, qmtyp, mmseg, mmres, mmtyp]. Thus we sele atom qmseg qmres qmtyp end, according to select.doc{%endcomment%} blankme
-                     {% endfor %} blankme
-                  {% else %} blankme
-                      set j 1 
-                      label linkloop
+   stop
+{% endif %}
 
-                      stream /usr/local/newcharmming/definereg.str
-                      addl qqh@j bynum @qmhost@@j bynum @mmhost@@j
-                      stream /usr/local/newcharmming/definereg.str
-                      lonepair colinear scaled -.7261 bynum @qqh@@j bynum @qmhost@@j bynum @mmhost@@j
-                      incre j by 1 
+{% if bad_correlation %} blankme
+   bomlev 3
+   achtung, bad QM correlation!
+   stop
+{% endif %}
 
-                      if @j .le. @nlink goto linkloop 
-                  {% endif %} blankme
-               {% endifequal %} blankme
-               !---------- Needed to define Q-Chem env. vars. ----------
-               envi qchemcnt  "{{qchemin}}"
-               envi qcheminp  "{{qcheminp}}"
-               envi qchemexe  "qchem"
-               envi qchemout  "{{qchemout}}"
-               !--------------------------------------------------------
+{% if bad_basis %} blankme
+   bomlev 3
+   achtung, bad QM basis set!    
+   stop
+{% endif %}
 
-               qchem remove sele qmregion end  
-            {% endif %} blankme
-         {% endif %} blankme
-      {% endif %} blankme
-   {% endif %} blankme
-{% endif %} blankme
+{% if bad_jobtype %} blankme
+   bomlev 3
+   achtung, bad QM job type! 
+   stop
+{% endif %}
+
+{% ifequal jobtype 'freq' %} blankme 
+   !TQM {{tqm}} 
+   {% ifequal tqm 'all' %} blankme
+   {% else %} blankme     
+      ! check to make sure the QM region is not all atoms (if it's not sele all end)
+      ! unless you select all the Q-Chem script assumes that there are some MM atoms.
+      define junk sele {{qmsel}} end 
+      if ?nsel .ne. ?natom then goto qmok
+      achtung, QM region is all atoms, please use ALL as your selection!
+      label qmok
+  {% endifequal %} blankme
+{% endifequal %} blankme
+
+coor copy comp
+coor shake
+
+! set our bynum selections up first
+set nbynum = {{ bynum_list|length }}
+{% for item in bynum_list %} blankme
+set bynuma{{ forloop.counter }} = {{ item.numa }}
+set bynumb{{ forloop.counter }} = {{ item.numb }}
+{% endfor %} blankme
+
+! then our regions
+set nregion = 1 ! always 1 QM region
+{% for item in region_list %} blankme
+set regid{{ forloop.counter }} = {{ item }}
+{% endfor %} blankme
+
+! finally our link atoms
+set nlink = {{ linkat_list|length }}
+{% for item in linkat_list %} blankme
+set segq{{ forloop.counter }} = {{ item.segq }}
+set resq{{ forloop.counter }} = {{ item.resq }}
+set atypq{{ forloop.counter }} = {{ item.atypq }}
+set segm{{ forloop.counter }} = {{ item.segm }}
+set resm{{ forloop.counter }} = {{ item.resm }}
+set atypm{{ forloop.counter }} = {{ item.atypm }}
+{% endfor %} blankme
+
+! and begin
+stream {{data_home}}/renumber.str
+
+
+!---------- Needed to define Q-Chem env. vars. ----------
+envi qchemcnt  "{{qchemin}}"
+envi qcheminp  "{{qcheminp}}"
+envi qchemexe  "qchem"
+envi qchemout  "{{qchemout}}"
+!--------------------------------------------------------
+
+qchem remove sele reg1 show end  
 

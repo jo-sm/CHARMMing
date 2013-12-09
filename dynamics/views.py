@@ -207,13 +207,14 @@ def applyld_tpl(request,ldt,pTaskID):
 
     #If the user wants to solvate implicitly the scpism line is needed
     #84 will be the scpism number in this program
-    template_dict['solvate_implicitly'] = False
+    impsolv = ''
     try:
-        template_dict['solvate_implicitly'] = postdata['solvate_implicitly']
-        if(postdata['solvate_implicitly']):
+        impsolv = postdata['solvate_implicitly']
+        if impsolv == 'scpism':
 	    ldt.scpism = True
     except:
-        pass
+        impsolv = 'none'
+    template_dict['impsolv'] = impsolv
 
     if ldt.action == 'sgld':
         tsgavg = '0.0'
@@ -302,8 +303,14 @@ def applyld_tpl(request,ldt,pTaskID):
 def applymd_tpl(request,mdt,pTaskID):
     postdata = request.POST
 
+    impsolv = ''
+    try:
+        impsolv = postdata['solvate_implicitly']
+    except:
+        impsolv = 'none'
+
     mdt.make_movie = postdata.has_key('make_movie')
-    mdt.scpism = postdata.has_key('solvate_implicitly')
+    mdt.scpism = impsolv == 'scpism'
     
     # template dictionary passes the needed variables to the templat
     template_dict = {}     
@@ -317,7 +324,7 @@ def applymd_tpl(request,mdt,pTaskID):
 
     pTask = Task.objects.get(id=pTaskID)
     template_dict['input_file'] = mdt.workstruct.identifier + '-' + pTask.action
-    template_dict['solvate_implicitly'] = mdt.scpism
+    template_dict['impsolv'] = impsolv
     mdt.parent = pTask
 
     orig_rst = mdt.workstruct.structure.location + "/" + pTask.action + "-md.res"

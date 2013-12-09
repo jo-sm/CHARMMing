@@ -23,11 +23,11 @@
         <h2>Select Langevin dynamics options</h2>
         <table class="qm_table align_left" style="padding-left:10%">
           <tr><td>Number of steps</td><td><input type="text" id="nstep" name="nstep" value="1000"></td></tr>
-          <tr><td>Solvate Implicitly with SCPISM</td><td><input type="checkbox" id="solvate_implicitly" name="solvate_implicitly"></td></tr>
           <tr><td>Use SGLD</td><td><input type="checkbox" id="usesgld" name="usesgld" value="usesgld" onclick="if(this.checked){$('#sgldparm').show();}else{$('#sgldparm').hide();}"></td></tr>
           <tr><td>Use PBC</td><td><input type="checkbox" id="usepbc" name="usepbc" value="usepbc"></td></tr>
           <tr><td>Make a movie</td><td><input type="checkbox" id="make_movie" name="make_movie" value="make_movie"></td></tr>
         </table>
+        {% include 'html/impsolv.html' %}
 
         <div id="sgldparm" class="hidden">
           TSGAVG:<input type="text" name="tsgavg" value="0.5">

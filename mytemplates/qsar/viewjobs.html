@@ -1,0 +1,31 @@
+{% extends "html/skeleton.html" %}
+
+{% block content %}
+<script type="text/javascript">
+    function LaunchUpdater() {
+        $("#viewjobs").PeriodicalUpdater('/charmming/qsar/viewjobsdiv/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("viewjobs").innerHTML = remoteData;});
+    }
+    
+    $(document).ready(function () {
+        LaunchUpdater();
+    });
+
+</script>
+<div id="mainpage">
+  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" media="all" />
+<center>
+<h1>QSAR Jobs History</h1>
+</center>
+<div class='status'>
+<body>
+<center>
+
+<form method="post" action=".">
+<div id="viewjobs" name="viewjobs">
+</div>
+</form>
+</div>
+</center>
+
+
+{% endblock %}
