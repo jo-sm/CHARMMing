@@ -12,6 +12,7 @@ from rdkit.ML.DecTree import CrossValidate
 from rdkit.ML import ScreenComposite
 from sklearn.ensemble import RandomForestRegressor
 from sklearn import tree,metrics
+from sklearn import svm
 
 def get_sd_properties(filename):
   path = filename
@@ -81,7 +82,12 @@ def check_activity_property(ms, activity_property):
     
     return False
 
-def train_model(pts):
+def train_model(pts,type):
+    if type == "svm":
+        return train_model_svm(pts)
+    return train_model_rf(pts)
+        
+def train_model_rf(pts):
     cmp = Composite()
     cmp.Grow(pts,attrs=[1],nPossibleVals=[2],nTries=500,randomDescriptors=3,
              buildDriver=CrossValidate.CrossValidationDriver,
@@ -89,17 +95,44 @@ def train_model(pts):
                       maxDepth=2,silent=True)
     return cmp
 
-def train_model_regression(fps,acts):
+def train_model_svm(pts):
+    fps = [x[1] for x in pts]
+    act = [x[2] for x in pts]
+    clf = svm.SVC()
+    clf.fit(fps, act)  
+    return clf
+    
+def classify(p,cmp,type):
+    if type != "rf":
+        fp = p[1]
+        a = cmp.predict(fp);
+        pred = a[0]
+        b = cmp.decision_function(fp);
+        prob = 1-b[0][0]
+        return pred,prob
+    return cmp.ClassifyExample(p)
+    
+def train_model_regression(fps,acts,type):
+    if type == "svm":
+        return train_model_regression_svm(fps,acts)
+    return train_model_regression_rf(fps,acts)
+        
+def train_model_regression_rf(fps,acts):
     nclf = RandomForestRegressor(n_estimators=500, max_depth=5,random_state=0,n_jobs=4)
     nclf = nclf.fit(fps,acts)
     return nclf
 
-def auc(pts,cmp):
+def train_model_regression_svm(fps,acts):
+    clf = svm.SVR()
+    clf.fit(fps, acts) 
+    return clf
+    
+def auc(pts,cmp,type):
     positive=0;
     decoy=0
     pa_act = []
     for p in pts:
-      [pred,prob] = cmp.ClassifyExample(p)
+      [pred,prob] = classify(p,cmp,type) #cmp.ClassifyExample(p)
       pa=prob
       if pred==0:
         pa=1-prob
@@ -127,25 +160,25 @@ def r2(fps,acts,nclf):
     r = metrics.r2_score(acts,preds)
     return r
     
-def y_randomization(pts):
+def y_randomization(pts,type):
     acts = [x[2] for x in pts]
     random.shuffle(acts)
     rand_pts = []
     for i,p in enumerate(pts):
         rand_pts.append([p[0],p[1],acts[i]])
-    rand_cmp = train_model(rand_pts)
-    rand_auc = auc(rand_pts,rand_cmp)
+    rand_cmp = train_model(rand_pts,type)
+    rand_auc = auc(rand_pts,rand_cmp,type)
     return rand_auc
 
-def y_randomization_r2(fps,acts):
+def y_randomization_r2(fps,acts,type):
     rand_acts = acts[:]
     random.shuffle(rand_acts)
-    rand_cmp = train_model_regression(fps,rand_acts)
+    rand_cmp = train_model_regression(fps,rand_acts,type)
     rand_r2 = r2(fps,rand_acts,rand_cmp)
     return rand_r2
                                     
                                     
-def cross_validation(pts):
+def cross_validation(pts,type):
     random.shuffle(pts)
     avg_auc = 0
     for i in range(5):
@@ -156,13 +189,13 @@ def cross_validation(pts):
                 test_set.append(p)
             else:
                 train_set.append(p)
-        train_cmp = train_model(train_set)
-        test_auc = auc(test_set,train_cmp)
+        train_cmp = train_model(train_set,type)
+        test_auc = auc(test_set,train_cmp,type)
         avg_auc += test_auc
     avg_auc /= 5
     return avg_auc
 
-def cross_validation_r2(fps,acts):
+def cross_validation_r2(fps,acts,type):
     pts = zip(fps,acts)
     random.shuffle(pts)
     cross_fps,cross_acts = zip(*pts)   
@@ -182,19 +215,19 @@ def cross_validation_r2(fps,acts):
                 test_act.append(a)
             else:
                 train_act.append(a)
-        train_cmp = train_model_regression(train_fp,train_act)
+        train_cmp = train_model_regression(train_fp,train_act,type)
         test_r2 = r2(test_fp,test_act,train_cmp)
         avg_r2 += test_r2
     avg_r2 /= 5
     return avg_r2
                                                                                                                             
 
-def calculate_threshold(pts,cmp):
+def calculate_threshold(pts,cmp,type):
     positive=0;
     decoy=0
     pa_act = []
     for p in pts:
-      [pred,prob] = cmp.ClassifyExample(p)
+      [pred,prob] = classify(p,cmp,type) #cmp.ClassifyExample(p)
       pa=prob
       if pred==0:
         pa=1-prob
@@ -253,7 +286,7 @@ def load_model(name):
     cmp = cPickle.load(file(name,'rb'))
     return cmp
 
-def run_prediction(cmp,name,threshold,active,inactive,activity_property,out):
+def run_prediction(cmp,name,threshold,active,inactive,activity_property,out,type):
     actives=0
     predicted=0
     TP=0
@@ -263,7 +296,7 @@ def run_prediction(cmp,name,threshold,active,inactive,activity_property,out):
         if m is not None:
             act=0
             fp=AllChem.GetMorganFingerprintAsBitVect(m,2,2048)
-            [pred,prob] = cmp.ClassifyExample([i,fp,act])
+            [pred,prob] = classify([i,fp,act],cmp,type) #cmp.ClassifyExample([i,fp,act])
             pa=prob
             if pred==0:
                 pa=1-prob
@@ -315,3 +348,16 @@ def run_prediction_regression(nclf,name,activity_property,out):
         r = metrics.r2_score(real_acts,preds)
     return r
     
+def categorization_regression(name):
+    type = "rf"
+    categorization = True
+    if name == "SVM (SAR) Categorization":
+        type = "svm"
+        categorization = True
+    elif name == "Random Forest (QSAR) Regression":
+        type = "rf"
+        categorization = False
+    elif name == "SVM (QSAR) Regression":
+        type = "svm"
+        categorization = False
+    return type,categorization

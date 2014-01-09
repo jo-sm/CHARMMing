@@ -12,6 +12,8 @@ activity_property = sys.argv[3]
 output_txt = sys.argv[4]
 model_id = sys.argv[5]
 user_id = sys.argv[6]
+type = sys.argv[7]
+        
 
 fps = []
 acts = []
@@ -22,13 +24,13 @@ for m in Chem.SDMolSupplier(str(input_sdf)):
         	fps.append(fp)
         	acts.append(act)
         	
-cmp = train_model_regression(fps,acts)
+cmp = train_model_regression(fps,acts,type)
 cPickle.dump(cmp,file(output_model,'wb+'));
 self_r2 = r2(fps,acts,cmp)
 self_r2 = round(self_r2,3)
-r2_rand = y_randomization_r2(fps,acts)
+r2_rand = y_randomization_r2(fps,acts,type)
 r2_rand = round(r2_rand,3)
-cross_r2 = cross_validation_r2(fps,acts)
+cross_r2 = cross_validation_r2(fps,acts,type)
 cross_r2 = round(cross_r2,3)
 f = open(output_txt,"w")
 f.write(str(self_r2))
