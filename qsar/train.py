@@ -10,9 +10,10 @@ from rdkit.ML.DecTree.BuildSigTree import SigTreeBuilder
 from rdkit.ML.Composite.Composite import Composite
 from rdkit.ML.DecTree import CrossValidate
 from rdkit.ML import ScreenComposite
-from sklearn.ensemble import RandomForestRegressor
 from sklearn import tree,metrics
-from sklearn import svm
+from sklearn import svm,linear_model,ensemble,tree
+#from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
 
 def get_sd_properties(filename):
   path = filename
@@ -83,8 +84,8 @@ def check_activity_property(ms, activity_property):
     return False
 
 def train_model(pts,type):
-    if type == "svm":
-        return train_model_svm(pts)
+    if type != "rf":
+        return train_model_other(pts,type)
     return train_model_rf(pts)
         
 def train_model_rf(pts):
@@ -95,10 +96,10 @@ def train_model_rf(pts):
                       maxDepth=2,silent=True)
     return cmp
 
-def train_model_svm(pts):
+def train_model_other(pts,type):
     fps = [x[1] for x in pts]
     act = [x[2] for x in pts]
-    clf = svm.SVC()
+    clf = eval(type+"()")
     clf.fit(fps, act)  
     return clf
     
@@ -107,25 +108,31 @@ def classify(p,cmp,type):
         fp = p[1]
         a = cmp.predict(fp);
         pred = a[0]
-        b = cmp.decision_function(fp);
-        prob = 1-b[0][0]
+        if "decision_function" in dir(cmp):
+            b = cmp.decision_function(fp);
+        else:
+            b = cmp.predict_proba(fp);
+        try:
+            prob = b[0][0]
+        except IndexError:
+            try:
+                prob = b[0]
+            except IndexError:
+                prob = b
+        if "decision_function" in dir(cmp):
+            if pred == 0:
+                prob = 1-prob
+        else:
+            if pred == 1:
+                prob = 1-prob
         return pred,prob
     return cmp.ClassifyExample(p)
     
 def train_model_regression(fps,acts,type):
-    if type == "svm":
-        return train_model_regression_svm(fps,acts)
-    return train_model_regression_rf(fps,acts)
-        
-def train_model_regression_rf(fps,acts):
-    nclf = RandomForestRegressor(n_estimators=500, max_depth=5,random_state=0,n_jobs=4)
+    nclf = eval(type+"()")
+#    RandomForestRegressor(n_estimators=500, max_depth=5,random_state=0,n_jobs=4)
     nclf = nclf.fit(fps,acts)
     return nclf
-
-def train_model_regression_svm(fps,acts):
-    clf = svm.SVR()
-    clf.fit(fps, acts) 
-    return clf
     
 def auc(pts,cmp,type):
     positive=0;
@@ -226,9 +233,15 @@ def calculate_threshold(pts,cmp,type):
     positive=0;
     decoy=0
     pa_act = []
+    low = sys.float_info.max
+    top = -(sys.float_info.max/2)
     for p in pts:
       [pred,prob] = classify(p,cmp,type) #cmp.ClassifyExample(p)
       pa=prob
+      if prob > top:
+          top = prob
+      if prob < low:
+          low = prob
       if pred==0:
         pa=1-prob
       act = p[2]
@@ -241,7 +254,7 @@ def calculate_threshold(pts,cmp,type):
     recall = 1.
     precision = 0.
     count = 0
-    recall,precision,threshold = recall_precision(0.,1.,pa_act,recall,precision,count)
+    recall,precision,threshold = recall_precision(low,top,pa_act,recall,precision,count)
     return recall,precision,threshold
 
 def recall_precision(low,top,pa_act,old_recall,old_precision,count):
@@ -347,17 +360,27 @@ def run_prediction_regression(nclf,name,activity_property,out):
     if count > 10:
         r = metrics.r2_score(real_acts,preds)
     return r
-    
+
+name_to_type_cat = dict()
+name_to_type_cat["Random Forest (SAR) Categorization"] = ["rf",True]
+name_to_type_cat["SVM (SAR) Categorization"] = ["svm.SVC",True]
+name_to_type_cat["Random Forest (QSAR) Regression"] = ["ensemble.RandomForestRegressor",False]
+name_to_type_cat["SVM (QSAR) Regression"] = ["svm.SVR",False]
+name_to_type_cat["Logit (SAR) Categorization"] = ["linear_model.LogisticRegression",True]
+name_to_type_cat["SGD (SAR) Categorization"] = ["linear_model.SGDClassifier",True]
+#name_to_type_cat["Nearest Neighbors (SAR) Categorization"] = ["KNeighborsClassifier",True]
+name_to_type_cat["Naive Bayes (SAR) Categorization"] = ["GaussianNB", True]
+#name_to_type_cat["AdaBoost (SAR) Categorization"] = ["ensemble.AdaBoostClassifier", True]
+name_to_type_cat["Gradient Boosting (SAR) Categorization"] = ["ensemble.GradientBoostingClassifier", True]
+name_to_type_cat["Decision Tree (SAR) Categorization"] = ["tree.DecisionTreeClassifier",True]
+name_to_type_cat["Gradient Boosting (QSAR) Regression"] = ["ensemble.GradientBoostingRegressor",False]
+name_to_type_cat["Decision Tree (QSAR) Regression"] = ["tree.DecisionTreeRegressor",False]
+#name_to_type_cat["Least Squares Linear (QSAR) Regression"] = ["linear_model.LinearRegression",False]
+name_to_type_cat["Ridge (QSAR) Regression"] = ["linear_model.Ridge",False]
+name_to_type_cat["Lasso (QSAR) Regression"] = ["linear_model.Lasso",False]
+name_to_type_cat["Elastic Net (QSAR) Regression"] = ["linear_model.ElasticNet",False]
+name_to_type_cat["SGD (QSAR) Regression"] = ["linear_model.SGDRegressor",False]
+
 def categorization_regression(name):
-    type = "rf"
-    categorization = True
-    if name == "SVM (SAR) Categorization":
-        type = "svm"
-        categorization = True
-    elif name == "Random Forest (QSAR) Regression":
-        type = "rf"
-        categorization = False
-    elif name == "SVM (QSAR) Regression":
-        type = "svm"
-        categorization = False
-    return type,categorization
+    type,category = name_to_type_cat[name]
+    return type,category
