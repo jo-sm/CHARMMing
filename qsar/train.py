@@ -238,10 +238,6 @@ def calculate_threshold(pts,cmp,type):
     for p in pts:
       [pred,prob] = classify(p,cmp,type) #cmp.ClassifyExample(p)
       pa=prob
-      if prob > top:
-          top = prob
-      if prob < low:
-          low = prob
       if pred==0:
         pa=1-prob
       act = p[2]
@@ -249,11 +245,16 @@ def calculate_threshold(pts,cmp,type):
         positive+=1
       else:
         decoy+=1
+      if pa > top:
+          top = pa
+      if pa < low:
+          low = pa
       pa_act.append({"pa":pa,"act":act});
 
     recall = 1.
     precision = 0.
     count = 0
+    #print low,top
     recall,precision,threshold = recall_precision(low,top,pa_act,recall,precision,count)
     return recall,precision,threshold
 
