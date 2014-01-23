@@ -22,7 +22,7 @@ from account.views import isUserTrustworthy
 from account.views import checkPermissions
 from structure.models import Structure
 from lessons.models import LessonProblem
-from lesson1.models import Lesson1
+from lesson5.models import Lesson5
 from django.contrib.auth.models import User
 from django.template import *
 from scheduler.schedInterface import schedInterface
@@ -42,21 +42,20 @@ def lesson5Display(request):
     input.checkRequestData(request)
     try:
         #YP
-        file = structure.models.Structure.objects.filter(owner=request.user,
-                                                        selected='y')[0]
+        file = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
         return render_to_response('html/lesson5.html')
+
     #If its a lesson5 object, get the id by the file id
+
     if file.lesson_type == 'lesson5':
-        lesson_obj = Lesson5.objects.filter(user=request.user,
-                                            id=file.lesson_id)[0]
+        lesson_obj = Lesson5.objects.filter(user=request.user,id=file.lesson_id)[0]
         html_step_list = lesson_obj.getHtmlStepList()
     else:
         lesson_obj = None
         html_step_list = None
     try:
-        lessonproblems = LessonProblem.objects.filter(lesson_type='lesson5',
-                                    lesson_id=lesson_obj.id, errorstep__lt=999)
+        lessonproblems = LessonProblem.objects.filter(lesson_type='lesson5',lesson_id=lesson_obj.id, errorstep__lt=999)
     except:
         lessonproblems = None
 
@@ -64,10 +63,9 @@ def lesson5Display(request):
     if not lesson_ok:
         return render_to_response('html/unauthorized.html')
 
-    tmp_dict = {'lesson1':lesson_obj,
+    tmp_dict = {'lesson5':lesson_obj,
                 'lessonproblems':lessonproblems,
                 'html_step_list':html_step_list,
                 'lesson_ok': lesson_ok, 'dd_ok': dd_ok}
     
-
     return render_to_response('html/lesson5.html', tmp_dict)

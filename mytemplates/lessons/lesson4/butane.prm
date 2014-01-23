@@ -1,6 +1,13 @@
 * Butane parameters
 *
 
+ATOMS
+
+MASS 106   HAL2  1.008000 H ! alphatic proton
+MASS 107   HAL3  1.008000 H ! alphatic proton
+MASS 122   CTL2 12.011000 C ! carbon of methylene group (-CH2-)
+MASS 123   CTL3 12.011000 C ! carbon of methyl group (-CH3)
+
 BONDS
 !
 !V(bond) = Kb(b - b0)**2

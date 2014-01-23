@@ -35,6 +35,7 @@ from atomselection_aux import getAtomSelections, saveAtomSelections
 import structure.mscale
 import selection.models
 import charmming_config, input, output, lessonaux, lessons, lesson1, lesson2, lesson3, lesson4
+import lesson5, lesson6
 import re, copy
 import os, shutil
 import commands, traceback

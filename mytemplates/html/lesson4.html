@@ -44,7 +44,6 @@
   was developed with (RTF file format is unchanged since version 27, so this is the number you should use. This is followed by the number 1. Your 
   title and the version line should look like:</p>
 <br />
-<!-- TODO: Add class to these pre tags so that the text is now centered. -->
 <pre style="font-family:courier;fixed">
 * Butane residue topology file
 * Made by &lt;your name&gt;
@@ -187,7 +186,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
  <p class="intro">You have successfully calculated the energy of Butane. This indicates that the RTF file you made is correct. For the next step of this
     lesson, we will re-do the energy calculation using QM/MM. Go back to the <b>Energy</b> page, select the segment again, and this time check the
-    &quot;Use QM/MM&quot; box. A full discussion of Quantum chemistry and QM/MM simulations is far beyond the scope of this lesson, so for now we'll go
+    &quot;Use Multiscale Modeling&quot; and select &quot;Additive Model (QM/MM)&quot;. A full discussion of Quantum chemistry and QM/MM simulations is far beyond the scope of this lesson, so for now we'll go
     over some of the basic options. Note that CHARMM will invoke Q-Chem to perform the QM part of the calculation.
     <br />
     <ul>
@@ -197,7 +196,9 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
       <li><i>STO-3G</i> can be used as the basis set, which is the set of functions which are used to create the wavefunctions for the molecular
           orbitals. STO-3G is a minimal basis set, which is sufficient for a simple example.</li>
       <li>Set the multiplicity to <i>1</i>
-      <li>To define the QM region put <i>type c1 .or. type h11 .or. type h12 .or. type h13 .or. type c2 .or. type h21 .or. type h22</i>. This selects the first methyl group and the methylene group bound to it.</li>
+      <li>To define the QM region put <i>bynum 1:7</i>. This selects the first methyl group and the methylene group bound to it.</li>
+      <li>You will need to define a link atom, since we break the bond between the carbons of the middle two methylene groups of Butane. Therefore,
+          define a link atom with the QM host being atom C2 of residue 1 and the MM host beinbg atom C3 of residue 1.</li>
     </ul>
   </p><br />
 
@@ -223,7 +224,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% ifequal html_step_list.3 2 %}
   <br />
-  <span style="color:red"> Step 4: QM/MM minimization Running </span><br>
+  <p class="intro"><span style="color:red"> Step 4: QM/MM minimization Running </span></p>
   <br />
 
   <p class="intro">Congratulations! You have almost completed the lesson!</p>
@@ -245,7 +246,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% endif %}
 {% endautoescape %}
-
+<br>
 </div>
 
 {% endblock %}

@@ -108,6 +108,7 @@ set MutSegi {{ MutSegi }}                          ! Segment Name
 ! WRITE CRD, PSF, PDB
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+cons fix sele none end
 ioformat extend
 
 write psf  card name {{ MutFile }}.psf

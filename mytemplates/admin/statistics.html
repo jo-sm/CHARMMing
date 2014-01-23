@@ -1,0 +1,43 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}General statistics{% endblock %}
+
+{%block content %}
+<div id="content-main">
+  <p>Total users: {{total_users}}</p>
+  <p>Top 50 users by structures uploaded (if less than 50, this lists all)</p>
+  <table>
+    <tr><th>Username</th><th>Structures uploaded</th></tr>
+    {%for user in users_by_structure %}
+    <tr><td>{{user.user}}</td><td>{{user.scount}}</td></tr>
+    {%endfor%}
+  </table>
+  <p>Total tasks performed: {{total_tasks}}</p>
+  <p>Task breakdown by success:</p>
+  <table>
+    <tr><th>Successful Tasks</th><th>Failed tasks</th></tr>
+    <tr><td>{{successful_tasks}}</td><td>{{failed_tasks}}</td>
+    </tr>
+  </table><br>
+  <p>Task breakdown by action:</p>
+  <table>
+    <tr>
+    {% for action in task_list %}
+    <th>{{action.0}} tasks</th>
+    {%endfor%}
+  </tr>
+  <tr style="text-align:center">
+    {% for action in task_list %}
+    <td>{{action.1}}</td>
+    {%endfor%}
+  </tr>
+</table>
+<p>50 Most popular structures (if less than 50, this lists all)</p>
+<table>
+  <tr><th>Structure name</th><th>Number of times uploaded</th></tr>
+  {% for structure in top_structures %}
+  <tr><td>{{structure.0}}</td><td>{{structure.1}}</td></tr>
+  {%endfor%}
+</table>
+</div>
+{%endblock%}

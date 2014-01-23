@@ -7,7 +7,7 @@ from lessons.models import LessonProblem
 from solvation.models import solvationTask
 from minimization.models import minimizeTask
 from dynamics.models import mdTask
-import os
+import os, math
 import structure, lessonaux, charmming_config
 import re
 
@@ -52,6 +52,12 @@ class Lesson1(models.Model):
         return True
 
     def onEditPDBInfo(self,postdata):
+        return True
+
+    def onBuildStructureDone(self,postdata):
+        return True
+
+    def onBuildStructureSubmit(self,postdata):
         return True
 
     def onMinimizeSubmit(self,mp,filename):
@@ -200,6 +206,12 @@ class Lesson1(models.Model):
         ##    lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=2,description='Please run dynamics on the minimized PDB (-min).')
         ##    lessonprob.save()
         ##    return False
+        task=structure.models.Task.objects.get(id=mdp.task_ptr_id)
+        parent_task=structure.models.Task.objects.get(id=task.parent_id)
+        if parent_task.action!='minimization':
+            lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=4,description='Please use the minimized and solvated PDB coordinates.')                                                             
+            lessonprob.save()
+            return False
         if mdp.ensemble != 'heat':
             lessonprob = LessonProblem(lesson_type='lesson1',lesson_id=self.id,errorstep=4,severity=2,description='You used an equilibration calculation instead of a heating one. Please use heating to continue.')
             lessonprob.save()
@@ -266,6 +278,9 @@ class Lesson1(models.Model):
     def onRMSDSubmit(self,file):
         return True
 
+    def onNATQSubmit(self,postdata):
+        return True
+
     def onEnergySubmit(self,postdata):
         return True
 
@@ -286,7 +301,7 @@ class Lesson1(models.Model):
         except:
             lessonprob = None
         for i in range(self.nSteps):
-            if lessonprob and lessonprob.errorstep == (self.curStep+1) and self.curStep == i:
+            if lessonprob and lessonprob.errorstep == math.floor(self.curStep+1) and math.floor(self.curStep) == i:
                 step_status_list[i] += ("<font color='red'>Failed</font></td></tr>")
                 continue
             elif (float(self.curStep)-0.5) == i and float(self.curStep) % 1.0 == 0.5:

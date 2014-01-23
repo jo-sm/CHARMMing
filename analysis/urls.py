@@ -22,6 +22,7 @@ from django.contrib import admin
 
 urlpatterns = patterns('analysis.views',
      (r'^rmsd/$', 'rmsformdisplay'),
+     (r'^natq/$', 'natqdisplay'),
      (r'^mdprop/$', 'getmdprop'),
      (r'^domdprop/$', 'domdprop'),
 

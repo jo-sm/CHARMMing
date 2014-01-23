@@ -1158,6 +1158,7 @@ def DSFFormDisplay(request):
     dsflog.write("job_owner_id: %s\n" % (job_owner_id) )
     job_basename='dd_job_' + str(job_owner_id)
     job_folder = charmming_config.user_dd_jobs_home + '/' + username + '/' + job_basename
+    os.system("mkdir %s" % (charmming_config.user_dd_jobs_home + '/' + username + '/'))
     os.system("mkdir %s" % (job_folder))
     os.system("chmod -R g+w %s" % (job_folder))
     os.chdir(job_folder)
@@ -1407,6 +1408,7 @@ def DSFFormDisplay(request):
 
 
     pTask=Task.objects.get(id=pTaskID)
+    dsflog.write("dsftask id: %s\n" % (dsftask.id))
     dsflog.write("location : %s\n" % (dsftask.workstruct.structure.location))
     dsflog.write("identifier: %s\n" % (dsftask.workstruct.identifier))
     dsflog.write("identifier action: %s\n" % (dsftask.workstruct.identifier + '-' + pTask.action))

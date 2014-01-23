@@ -94,6 +94,15 @@ padding-top: 10px;
 padding-bottom: 15px;
 }
 
+#lessonreport {
+width: 150px;
+margin: 0px;
+float: left;
+padding-left: 0px;
+padding-top: 10px;
+padding-bottom: 15px;
+}
+
 #maincolumn {
 width: 1060px;
 margin: 0px;

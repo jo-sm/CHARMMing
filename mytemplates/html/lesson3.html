@@ -25,8 +25,9 @@
 <p class="intro">This lesson will initially have you upload the primary structure of a very small protein (1YJP) and will then use dynamics to induce folding. One
   good method for doing this is to use Self-Guided Langevin Dynamics (SGLD). Langevin Dynamics (LD) is very similar to the Molecular Dynamics method used in lessons 
   one and two. The primary difference is that a frictional force (drag) and random forces are added to Newton's equation. The net sum of the random forces is
-  guaranteed to be zero. (Say something about temperature coupling here). SGLD adds a self-guiding force to LD which induces more rapid conformational changes 
-  making it useful for studying protein folding.</p>
+  guaranteed to be zero. The random forces also allow the system to be simulated at a particular temperature specified by the user. Although the net sum of the random
+  forces is zero, the magnitude of individual forces can be adjusted so that the amount of kinetic energy imparted to the system corresponds to a specific temperature. SGLD is an extension
+  of adds a self-guiding force to LD which induces more rapid conformational changes, making it useful for studying protein folding.</p>
 <br />
 
 <p class="intro">To begin this lesson, download 1YJP from PDB.org, figure out the sequence, and simply type it into the custom sequence box on the <b>Submit Structure</b> 
@@ -54,13 +55,15 @@
     <br />
 
     <p class="intro">The next step is to run Self Guided Langevin Dynamics (SGLD). SGLD, like regular Langevin Dynamics, will run dynamics with a frictional force applied as
-      well as with temperature coupling. To set up the job, go to the <b>Langevin Dynamics</b> page and select the minimized structure and the &quot;Use SGLD&quot; check box.
+    well as with temperature coupling. To set up the job, go to the <b>Langevin Dynamics</b> page and select the minimized structure (i.e. "coordinates from minimization)
+    and the &quot;Use SGLD&quot; check box.
       The collision frequency is set with the FBETA parameter (this simulates the solvent effect, which is why this lesson leaves the structure unsolvated). We
       will set a low FBETA (set it to 5) to try to retard motion as little as possible. This is also why we are using SGLD; SGLD adds a guiding force to standard Langevin
       Dynamics which means more conformations should be sampled in a given interval.</p>
     <br />
 
-    <p class="intro">Please don't actually start the SGLD until the minimization completes.</p>
+    <p class="intro">Please don't actually start the SGLD until the minimization completes. When it does, make sure that &quot;coordinates from
+minimization&quot; is selected on the LD page.</p>
     </p>
   {% endifequal %}
 

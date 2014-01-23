@@ -73,7 +73,7 @@ This is repeated for as many layers as we want.
 calc region = @nregion - 1 ! we already wrote out the top layer
 
 label loop
-delete atom sele .not. reg@region end {%comment%} We only delete not in a certain region, since it automatically contains the region below it. {%endcomment%}
+delete atom sele .not. ( reg@region .or. type qqh* ) end {%comment%} We only delete not in a certain region, since it automatically contains the region below it. {%endcomment%}
 
 write psf card name {{psf_path}}layer@{region}.psf
 write coor card name {{psf_path}}layer@{region}.crd

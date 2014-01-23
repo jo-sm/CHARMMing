@@ -82,7 +82,7 @@ def selectstructure(request):
 #            return HttpResponse("No structure selected.")
 
         try:
-            ws = structure.models.WorkingStructure.objects.get(structure=struct,selected='y')
+            ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
         except:
             logfp = open('/tmp/selectbarf.txt','w')
             traceback.print_exc(file=logfp)

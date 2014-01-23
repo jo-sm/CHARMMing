@@ -31,7 +31,7 @@ from httplib import HTTPConnection
 import charmming_config, input
 import commands, datetime, sys, re, os, glob, shutil
 import normalmodes, dynamics, minimization, mutation
-import solvation, lessons.models, apbs, lesson1, lesson2, lesson3, lesson4, lesson, lessonaux
+import solvation, lessons.models, apbs, lesson1, lesson2, lesson3, lesson4, lesson5, lesson6, lesson, lessonaux
 import string, output, charmming_config
 import toppar.Top, toppar.Par, lib.Etc
 import cPickle, copy, traceback, socket
@@ -54,7 +54,7 @@ class Structure(models.Model):
     name   = models.CharField(max_length=100)
     pickle = models.CharField(max_length=100)
 
-    pdb_disul = models.CharField(max_length=250)
+    pdb_disul = models.CharField(max_length=1000)
     location = models.CharField(max_length=200) 
     title = models.CharField(max_length=250) 
     author = models.CharField(max_length=250) 
@@ -170,7 +170,7 @@ class Structure(models.Model):
 	else:
 	    self.journal = "No information found"
         if self.pdb_disul:
-            if len(self.pdb_disul) > 249:
+            if len(self.pdb_disul) > 999:
                 raise AssertionError('Too many disulfides in PDB')
 
         self.save()
@@ -201,7 +201,8 @@ class Structure(models.Model):
     def getCHARMMFiles(self):
         """Get all CHARMM input, output, and stram files associated with this structure.
         """
-        return [x for x in structure.models.StructureFile.objects.filter(structure=self) if x.endswith(".inp") or x.endswith(".out")]
+        return [x for x in StructureFile.objects.filter(structure=self) if x.endswith(".inp") or x.endswith(".out")]
+    #This used to be structure.models.StructureFile, but given that we're calling it from inside structure.models, it doesn't work
 
 
     def putSeqOnDisk(self, sequence, path):
@@ -312,6 +313,31 @@ class Segment(models.Model):
         rarr = []
 
         # todo, make the actual one the default
+        #TODO:
+        #This will be done using PROPKA and  pKa data for certain protonation states
+        #Outline goes as follows:
+        #run PROPKA on the PDB from the protein (if any...if there isn't one, i.e. just PSF/CRD, we can't do anything since
+        #babel used to have CHARMM format in 2002, but 12 years later they still haven't re-added support for it for openbabel 2.0)
+        #Anyway!
+        #we run PROPKA, and use data garnished/stolen from organic chem textbooks on the pKa of these things
+        # (we can probably cite him if need be)
+        # and use that to predict the proto state. If < the pKa of a certain proto state, it's protonated, else, it's deprotonated
+        # if pKa = the turning point, tell the user that there's a problem
+        #should be simple
+        #propka output is big on big proteins
+        #but no summary on smaller ones
+        #might be best to just ignore those lines when on small proteins, though that just adds more chekcing ops...
+        #TODO: Make test output on big and small proteins for algorithm evaluation
+        #also check on proto_list code in the template so we can do automatic selection
+        #basically we're going to append one last thing to the tuple containing the resname to mark it as selected
+        #We also need to keep track of whether the pKa is equal to the 50/50 point on the pKa chart at that point, so we'll 
+        # need another piece of information in each tuple in rarr which would say whether that is the case
+        #glup-pka = 4.07 #side-chain pKa for glutamates
+        #hsp-pka = 6.00 #side-chain pKa for histidines
+        #lsn-pka = 10.8
+        #asp-pka = 4.1 #should be close enough to glup-pka
+        #now we check for whether we have a PDB file, and we need to do some magic because
+
         for m in s.iter_res():
             nm = m.resName.strip()
             if nm in ['hsd','hse','hsp','his']:
@@ -1581,11 +1607,15 @@ class WorkingStructure(models.Model):
 
         tasks = Task.objects.filter(workstruct=self,active='y',finished='n')
         #YP lesson stuff 
+        logfp = open('/tmp/lessonobj.txt','a+')
         try:
             lnum=self.structure.lesson_type
             lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
         except:
             lesson_obj=None
+
+        logfp.write('I found lesson object %s\n' % lesson_obj)
+        logfp.close()
         #YP
 
         for t in tasks:
@@ -1593,19 +1623,7 @@ class WorkingStructure(models.Model):
 
             if t.status == 'C' or t.status == 'F':
                 if t.action != "redox":
-                    self.lock() #updates locked field and prevents this code from executing more than once at a time
-#                lockfile = '/tmp/lockfile-%d-%s' % (t.id,t.workstruct.structure.owner)
-#                try: #If it exists, stop. This prevents multiple file
-#                    if os.stat(lockfile).st_size > 0:
-#                        continue
-#                except:
-#                    lockfp = open(lockfile,'a') #Should work even if it doesn't exist
-#                    lockfp.write(str(os.getpid()) + "\n" + str(datetime.datetime.now()) + "\n")
-#                    lockfp.flush()
-#                try:
-#                    fcntl.lockf(lockfp,fcntl.LOCK_EX | fcntl.LOCK_NB)
-#                except IOError, e:
-#                    continue
+                    self.lock() 
 
                 if t.action == 'minimization':
                     t2 = minimization.models.minimizeTask.objects.get(id=t.id)
@@ -1617,6 +1635,7 @@ class WorkingStructure(models.Model):
                     if lesson_obj:lessonaux.doLessonAct(self.structure,"onMDDone",t)
                     t2 = dynamics.models.mdTask.objects.get(id=t.id)
                 elif t.action == 'ld':
+                    if lesson_obj:lessonaux.doLessonAct(self.structure,"onLDDone",t)
                     t2 = dynamics.models.ldTask.objects.get(id=t.id)
                 elif t.action == 'sgld':
                     if lesson_obj:lessonaux.doLessonAct(self.structure,"onSGLDDone",t)
@@ -1750,17 +1769,26 @@ class CGWorkingStructure(WorkingStructure):
             logfp.write("Point OSCAR self.cg_type = '%s'\n" % self.cg_type)
             if self.cg_type == 'go':
                 # need to set strideBin via kwargs
+                intgo = goModel() #This used to be structure.models.goModel(). We're in structure.models right now.
+                intgo.cgws = self
+
                 cgm = pychm.cg.ktgo.KTGo(pdbfile, strideBin=charmming_config.stride_bin)
                 if kwargs.has_key('nScale'):
                     cgm.nScale = float(kwargs['nScale'])
+                    intgo.nScale = kwargs['nScale']
                 if kwargs.has_key('contactSet'):
                     cgm.contactSet = kwargs['contactSet']
+                    intgo.contactType = kwargs['contactSet']
                 if kwargs.has_key('kBond'):
                     cgm.kBond = float(kwargs['kBond'])
+                    intgo.kBond = kwargs['kBond']
                 if kwargs.has_key('kAngle'):
                     cgm.kAngle = float(kwargs['kAngle'])
+                    intgo.kAngle = kwargs['kAngle']
                 if kwargs.has_key('contactrad'):
-                    cgm.contactrad = float(kwargs['contactrad'])
+                    cgm.contactrad = kwargs['contactrad']
+
+                intgo.save()
 
             elif self.cg_type == 'bln':
                 # kwargs can be hbondstream
@@ -2165,14 +2193,16 @@ class energyTask(Task):
         self.status = 'C'
 
 class goModel(models.Model):
-    selected = models.CharField(max_length=1)
-    pdb = models.ForeignKey(Structure)
+    selected    = models.CharField(max_length=1)
+    cgws        = models.ForeignKey(CGWorkingStructure)
     contactType = models.CharField(max_length=10)
     nScale      = models.DecimalField(max_digits=6,decimal_places=3)
     kBond       = models.DecimalField(max_digits=6,decimal_places=3)
     kAngle      = models.DecimalField(max_digits=6,decimal_places=3)
 
 class blnModel(models.Model):
+    selected    = models.CharField(max_length=1)
+    cgws        = models.ForeignKey(CGWorkingStructure)
     nScale      = models.DecimalField(max_digits=6,decimal_places=3)
     kBondHelix  = models.DecimalField(max_digits=6,decimal_places=3)
     kBondCoil   = models.DecimalField(max_digits=6,decimal_places=3)

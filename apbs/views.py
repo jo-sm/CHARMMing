@@ -28,6 +28,8 @@ from apbs.models import redoxTask
 from apbs import redox_mod
 from pychm.lib.mol import Mol
 from pychm.io.rtf import RTFFile
+import lessonaux, lessons, lesson1, lesson2, lesson3, lesson4, lesson5, lesson6
+
 
 def redoxformdisplay(request):
     if not request.user.is_authenticated():
@@ -593,6 +595,19 @@ def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
     # all scripts generated, submit to the scheduler
     redoxTask.start(altexe=charmming_config.charmm_apbs_exe)
     redoxTask.save()
+
+    #YP lessons status update
+    try:
+        lnum=workstruct.structure.lesson_type
+        lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+    except:
+        lesson_obj = None
+
+    if lesson_obj:
+        lessonaux.doLessonAct(workstruct.structure,"onRedoxSubmit",redoxTask,"")
+    #YP
+    workstruct.save()
+
 
     return output.returnSubmission('Oxidation/reduction')
 

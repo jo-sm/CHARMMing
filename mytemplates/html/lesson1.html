@@ -87,7 +87,8 @@
     minimization are Steepest Descent (SD) and Adopted-Basis Newton-Rhapson (ABNR).</p>
   <br />
 
-  <p class="intro">In order to minimize your water structure, go to <b>Minimize</b> in the left hand menu, select the water molecule, set Steepest Descent to 1000 and ABNR to 1000. The
+  <p class="intro">In order to minimize your water structure, go to <b>Minimize</b> in the left hand menu, select the water molecule, select "coordinates from
+solvation" at the top of the page, and set Steepest Descent to 1000 and ABNR to 1000. The
     TOLG parameter specifies the minimum average gradient that can be reached before the simulation stops. The average gradient is essentially a mesaure of how &quot;steep&quot; the
     energy surface is. The closer this is to 0, the closer to being converged the minimization is. For this example, set the tolg to 0.01. Additionally, since dynamics uses periodic
     boundary conditions (PBC) we need to use them in the minimization as well (otherwise there will be problems with the dynamics simulation), so make sure that the &quot;Use PBC&quot;
@@ -121,7 +122,7 @@
 
  {% ifequal html_step_list.2 2 %}
    <br /> 
-   <p class="intro"><font style="color:red"> Step 3: Minimization Running </span></p>
+   <p class="intro"><span style="color:red"> Step 3: Minimization Running </span></p>
    <br />
 
    <p class="intro">Minimization is currently running. Until it is finished you can read ahead.</p>
@@ -133,7 +134,7 @@
      not attempt to regulate the temperature.
      Because we brought the system to a low energy conformation, we should start by heating the system gradually. Leave the 
      number of steps at 1000, the starting temperature at 210.15 K, the final temprature at 310.15 K (physiological temperature), temperature increment at 10 K, steps between temperature 
-     increases (IHTFRQ) to 100, and temperature of bath at 310.15 K. This increases the the temperature 300 K over the 1000 step simulation, which is a more rapid increase than is
+     increases (IHTFRQ) to 100, and temperature of bath at 310.15 K. This increases the the temperature 100 K over the 1000 step simulation, which is a more rapid increase than is
      usually used.</p>
    <br />
 
@@ -155,7 +156,7 @@
      Because we brought the system to a low energy conformation, we should start by heating the system gradually. Leave the 
      number of steps at 1000, the starting temperature at 210.15 K, the final temprature at 310.15 K (physiological temperature), temperature increment at 10 K, steps between temperature 
      increases (IHTFRQ) to 100, and temperature of bath at 310.15 K. This increases the the temperature 300 K over the 1000 step simulation, which is a more rapid increase than is
-     usually used.</p>
+     usually used. For this simulation, make sure to select "coordinates from minimization" to use the structure generated from the previous step.</p>
    <br />
  {% endifequal %}
 
@@ -170,7 +171,7 @@
 
  {% ifequal html_step_list.3 1 %}
    <br />
-   <p class="intro"><span style=":red"> Step 4: Molecular Dynamics Performed </span></p>
+   <p class="intro"><span style="color:red"> Step 4: Molecular Dynamics Performed </span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully run Molecular Dynamics (MD) on the system!</p>

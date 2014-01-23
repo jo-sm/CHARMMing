@@ -16,7 +16,7 @@
 <br />
 
 <p class="intro">1ZHY is the Protein Data Bank (PDB) ID of a Oxysterol binding protein complexed with cholesterol. This protein is known to transport 
-  cholesterol within the cell and to the cell memebrane. It is found in high concentrations in cancer patients. The standard CHARMM topology and parameter
+  cholesterol within the cell and to the cell membrane. It is found in high concentrations in cancer patients. The standard CHARMM topology and parameter
   files for proteins and nucleic acids do not have residue and parameter information for cholesterol, so the custom topology files below will be used with this lesson. You 
   will need to download them, along with the PDB file itself, to continue. The links are below: 
 </p><br>
@@ -24,8 +24,8 @@
 <p class="intro">
   <ul>
     <li><a href="/charmming/lessons/download/lesson2/1zhy.pdb">1ZHY.pdb</a></li>
-    <li><a href="/charmming/lessons/download/lesson2/par_all27_cmap_chol.prm">par_all27_cmap_chol.prm</a> (the parameter file)</li>
-    <li><a href="/charmming/lessons/download/lesson2/top_all27_prot_lipid.rtf">top_all27_prot_lipid.rtf</a> (the topology file)</li>
+    <li><a href="/charmming/lessons/download/lesson2/par_all36_lipid_chol.prm">par_all36_lipid_chol.prm</a> (the parameter file)</li>
+    <li><a href="/charmming/lessons/download/lesson2/top_all36_lipid_chol.rtf">top_all36_lipid_chol.rtf</a> (the topology file)</li>
   </ul>
 <br />
 
@@ -44,16 +44,37 @@
    <p class="intro">Congratulations! You successfully uploaded the PDB file along with the custom topology and parameter!</p>
    <br />
 
-   <p class="intro">If you look at the <b>View PDBs</b> page and see the protein you'll notice it is globular. Because it is a globular protein we should use a cubic 
-     or RHDO structure. An RHDO structure is most efficient, so solvate the structure in an RHDO and choose a buffer size of 10 angstroms. 1ZHY has a negative charge, and in order 
-     for CHARMM to use the Particle Mesh Ewald Summation method for electrostatics, the system must be neutral. In order to ensure this, you may neutralize through the 
-     &quot;Solvate&quot; page. For this lesson, use Potassium Chloride, and set the molar concentration to .15. The number of trials will determine a lower energy 
-     position for these ions but significantly add to the neutralization calculation time. For this reason, please set the number of trials to 1.</p>
+   <p class="intro">We would like to make sure that this structure was uploaded successfully and be able to visualize it. To do so, we need to perform a calculation so that CHARMMing
+   will build the structure. Therefore, submit a single point energy calculation by visiting the <b>Energy</b> page under the calculations submenu.</p>
+
  {% endifequal %}
  
  {% ifequal html_step_list.1 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 2: Solvation Running </span></p>
+   <p class="intro"><span style="color:red"> Step 2: Energy Running </span></p>
+   <br>
+
+   <p class="intro">The solvation job is still running. Once it's done, please visualize the system</p>
+   <br />
+ {% endifequal %}
+ 
+ {% ifequal html_step_list.1 1 %}
+   <br />
+   <p class="intro"><span style="color:red"> Step 2: Energy Done </span></p>
+   <br />
+
+   <p class="intro">If you look at the <b>Visualize system</b> page, you'll notice that the protein is globular. Because it is a globular protein we should use a cubic 
+     or RHDO structure. An RHDO structure is most efficient, so solvate the structure in an RHDO and choose a buffer size of 10 angstroms. 1ZHY has a negative charge, and in order 
+     for CHARMM to use the Particle Mesh Ewald Summation method for electrostatics, the system must be neutral. In order to ensure this, you may neutralize through the 
+     &quot;Solvate&quot; page. For this lesson, use Potassium Chloride, and set the molar concentration to .15. The number of trials will determine a lower energy 
+     position for these ions but significantly add to the neutralization calculation time. For this reason, please set the number of trials to 1.</p>
+
+   <br /> 
+ {% endifequal %}
+
+ {% ifequal html_step_list.2 2 %}
+   <br />
+   <p class="intro"><span style="color:red"> Step 3: Solvation Running </span></p>
    <br>
 
    <p class="intro">The solvation job is still running but you can read ahead.</p>
@@ -63,16 +84,16 @@
      lesson, set the number of steps for SD and ABNR to 1000 and tolg to .01. This time, select &quot;Use Periodic Boundary Conditions (PBC)&quot;.
      This will tell CHARMMing that periodic boundary conditions should be used with minimization, thus avoiding undesirable vacuum boundary effects. 
       Since dynamics is run with PBC, it is important
-     that the final minimization be run under the same conditions. Once you have set it up, go ahead and submit the minimization. Because this is a large
-     structure, it may take over half an hour to run.</p>
+     that the minimization be run under the same conditions. Once you have set it up, go ahead and submit the minimization. Because this is a large
+     structure, it may take over an hour to run.</p>
    <br />
 
    <p class="intro">Please wait until solvation of the solvated structure is complete before starting the minimization calculation.</p>
  {% endifequal %}
  
- {% ifequal html_step_list.1 1 %}
+ {% ifequal html_step_list.2 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 2: Solvation Done </span></p>
+   <p class="intro"><span style="color:red"> Step 3: Solvation Done </span></p>
    <br />
 
    <p class="intro">The next step is to minimize the system. Go to the <b>Minimization</b> page and select the neutralized structure. Like the previous
@@ -84,9 +105,9 @@
    <br /> 
  {% endifequal %}
 
- {% ifequal html_step_list.2 2 %}
+ {% ifequal html_step_list.3 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 3: Minimization Running </span></p>
+   <p class="intro"><span style="color:red"> Step 4: Minimization Running </span></p>
    <br />
 
    <p class="intro">The minimization job is still in progress but you can read ahead to the next step in the lesson.</p>
@@ -101,9 +122,9 @@
    <p class="intro">Please do not submit the dynamics job until the solvation is completed.</p>
  {% endifequal %}
 
- {% ifequal html_step_list.2 1 %}
+ {% ifequal html_step_list.3 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 3: Minimization Done </span></p>
+   <p class="intro"><span style="color:red"> Step 4: Minimization Done </span></p>
    <br />
 
    <p class="intro">The next step is to run dynamics on the system. Before a production run, the system should be heated to bring it out of its minimized
@@ -116,9 +137,9 @@
    <br />
  {% endifequal %}
 
- {% ifequal html_step_list.3 2 %}
+ {% ifequal html_step_list.4 2 %}
    <br />
-   <p class="intro"><span style="color:red">Step 4: Molecular Dynamics Heating Running</span></p>
+   <p class="intro"><span style="color:red">Step 5: Molecular Dynamics Heating Running</span></p>
    <br />
 
    <p class="intro">The MD job is still in progress. Meanwhile, you can read ahead about the next part of the lesson.</p>
@@ -135,14 +156,13 @@
    <br />
 
    <p class="intro">In general, trajectories from early equilibrium runs are not used for analysis (as the system is still &quot;settling in&quot;, however they
-     still can show how the system moves over time. In order to see this for yourself, go back to the <b>Molecular Dynamics</b> page and select the output of
-     the heating run to work on. This time, select &quot;NPT&quot; and make the thermostat temperature 310.15 K. Also, have CHARMMing make a movie.</p>
-
+     still can show how the system moves over time. In order to see this for yourself, go back to the <b>Molecular Dynamics</b> page and select &quot;Coordinates from md&quot; at the
+     top of the page. This will use the coordinates from your heating run. This time, select &quot;NPT&quot; and make the thermostat temperature 310.15 K. Also, have CHARMMing make a movie.</p>
  {% endifequal %}
 
- {% ifequal html_step_list.3 1 %}
+ {% ifequal html_step_list.4 1 %}
    <br />
-   <p class="intro"><span style="color:red">Step 4: Molecular Dynamics Heating Done</span></p>
+   <p class="intro"><span style="color:red">Step 5: Molecular Dynamics Heating Done</span></p>
    <br />
 
    <p class="intro">The next step after heating is to perform equilibration on the system in order to let it &quot;settle in&quot; at the desired temperature.
@@ -156,24 +176,22 @@
    <br />
 
    <p class="intro">In general, trajectories from early equilibrium runs are not used for analysis (as the system is still &quot;settling in&quot;, however they
-     still can show how the system moves over time. In order to see this for yourself, go back to the <b>Molecular Dynamics</b> page and select the output of
-     the heating run to work on. This time, select &quot;NPT&quot; and make the thermostat temperature 310.15 K. Also, have CHARMMing make a movie.</p>
+     still can show how the system moves over time. In order to see this for yourself, go back to the <b>Molecular Dynamics</b> page and select the &quot;Coordinates from md&quot; at the 
+     top of the page. This will use the coordinates from your heating run. This time, select &quot;NPT&quot; and make the thermostat temperature 310.15 K. Also, have CHARMMing make a movie.</p>
    <br />
-
  {% endifequal %}
 
- {% ifequal html_step_list.4 2 %}
+ {% ifequal html_step_list.5 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 5: Equilibration Molecular Dynamics Running</span></p>
+   <p class="intro"><span style="color:red"> Step 6: Equilibration Molecular Dynamics Running</span></p>
    <br />
 
    <p class="intro">The MD equilibration job is still in progress.</p>
-
  {% endifequal %}
 
- {% ifequal html_step_list.4 1 %}
+ {% ifequal html_step_list.5 1 %}
    <br />
-   <p class="intro"<<span style="color:red"> Step 5: Equilibration Molecular Dynamics Performed </span></p>
+   <p class="intro"<<span style="color:red"> Step 6: Equilibration Molecular Dynamics Performed </span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully run Molecular Dynamics (MD) on the system! If you made a movie of the dynamics, you can

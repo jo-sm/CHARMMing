@@ -81,6 +81,16 @@ class Lesson(models.Model):
 
     def onBuildStructureDone(self,file):
         return True
+
+    def onRedoxSubmit(self,postdata):
+        return True
+
+    def onRedoxDone(self,file):
+        return True
+
+    def onRMSDSubmit(self,postdata):
+        return True
+
 """
 Eventually this should be included as its own model but temporarily 
 this will be left here:

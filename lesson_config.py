@@ -18,9 +18,8 @@ file_type = {
     '2':'PDB',
     '3':'CUSTOM/SEQ',
     '4':'CRD',
+    '5':'CRD',
     '6':'PDB',
-    '99':'CRD',
-    '98':'CRD',
 }
 
 # Text-format lesson number
@@ -29,10 +28,8 @@ lesson_txt = {
     '2':'Lesson Two',
     '3':'Lesson Three',
     '4':'Lesson Four',
-    '5':'Lesson Taco',
+    '5':'Lesson Five',
     '6':'Lesson Six',
-    '99':'Lesson 99',
-    '98':'Lesson 98'
 }
 
 # Lesson description
@@ -40,6 +37,7 @@ lesson_desc = {
     '1':'Lesson One will familiarize the user with basic CHARMM commands and basic methods used in computational chemistry.',
     '2':'Lesson Two will use a protein to demonstrate how a user can conduct computational chemistry.',
     '3':'Lesson Three will make the user create their amino acid, replicated 1YJP then running dynamics on it.',
-    '4':'Put lesson description here.',
+    '4':'Lesson Four introduces custom RTFs and QM/MM.',
+    '5':'Lesson Four shows the user how to build a coarse-grained Go model.',
     '6':'Lesson Six will show the user how to calculate the reduction potential of a [4Fe-4S]-containing protein.',
 }

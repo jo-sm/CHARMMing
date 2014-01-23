@@ -11,12 +11,192 @@
 <p class="intro">
   <span style="color:red">Lesson Objectives</span>
   <ul>
-    <li> Tacos </li>
-    <li> are </li>
-    <li> yummy! </li>
+    <li>Introduce the user to the concept of coarse-grained models</li>
+    <li>Show the user how to build a coarse-grained Go model using CHARMMing</li>
+    <li>Describe some of the various types of analyses that can be performed on a Go model</li>
   </ul>	
+</p>
+
+<p class="intro">As you have noticed from previous lessons, simulating a large biomolecule like a
+protein can be a time-consuming effort, especially when an explicit solvent is used. Consequently, one
+technique that many practitioners use is coarse-grained simulation. In a coarse-grained simulation,
+multiple atoms are combined into interaction centers. A simplified, but still qualitatively realistic
+energy function is used with these centers. This approach yields speed-ups in two different ways:
+(1) fewer particles in the system and a simplified potential makes the calculation of
+the energies and forces much quicker, and (2) high frequency motions (for example carbon-
+hydrogen bond stretching) are removed from the model, so a larger time step can be used in dynamics.</p>
+<br>
+<p class="intro">Many coarse grained models have been developed over the years. Examples of commonly
+used models are the BLN models, the MARTINI model (a development of BLN), Go models, PRIMO, and others.
+This lesson uses a particular Go model, which was developed by Klimov and Thirumalai specifically for
+protein modelling. 
+For more details, please see 
+<a target="_blank" href="http://onlinelibrary.wiley.com/doi/10.1002/bip.1978.360170612/abstract">Ueda <i>et al.</i></a>, 
+<a target="_blank" href="http://jcp.aip.org/resource/1/jcpsa6/v109/i10/p4119_s1">Klimov <i>et al</i> (1998)</a>, and&nbsp;  
+<a target="_blank" href="http://www.pnas.org/content/97/6/2544.abstract">Klimov and Thirumalai (2000)</a>.</p>
+<br>
+<p class="intro">
+Go models are built from an all-atom structure, which is usually an NMR or crystal structure from the PDB. They
+assume that this structure is the stable energy minimum. Distance based contacts between residues in this native
+structure are considered to be native and are modeled as attractive in the energy function. Non-native
+interactions (i.e. those interactions between residues that do not have a native contact) are repulsive.
+The exact attractive interaction between two residues that form a native contact is determined by an
+experimentally-determined contact potential. CHARMMing supports several such potentials.</p>
+<br>
+<p class="intro">For this lesson, we will be using the protein "1PRB" from the RCSB Protein Data Bank. Go to the <b>Submit Structure</b>
+page, select "Retrieve a PDB using a PDB ID", and type in 1PRB. Make sure to select "Lesson 5" from the dropdown box at the
+bottom of the page to associate the protein with this lesson.</p>
+
+{% if lesson5 %}
+
+ {% ifequal html_step_list.0 1 %}
+   <br />
+   <p class="intro"><span style="color:red"> Step 1: Upload Done </span></p>
+   <br />
+
+   <p class="intro">Congratulations! You have successfully loaded 1PRB into CHARMMing!</p>
+   <br />
+
+   <p class="intro">The next thing that must be done is to build a coarse-grained working structure. To do so, visit
+   the <b>Build/Select working structure page</b>. Under &quot;What type of structure should be built&quot; you should
+   select &quot;A Klimov-Thirumalai Go-style model.&quot; When building your model, make sure that you select segment a-pro
+   (this is the only protein segment available).</p>
+   <br>
+   <p class="intro">The only model parameters that generally need to be manipulated atr the nScale parameter and the contact potential. The
+   value of nScale controls the strength or weakness of the interactions between coarse grained particles. <b>The nScale
+   parameter varies from system to system and must be individually tuned!</b> This is done by running replica exchange molecular
+   dynamics or langevin dynamics simulations using various values for nScale until a physiological melting temperature is achieved. A value of 1.0 is
+   a good initial guess. If replica exchange simulations with nScale = 1.0 produce a melting temperature that is too high, nScale
+   should be lowered (weakening interactions); if the melting temperature is too low, nScale should be raised. Because of the
+   necessity of this procedure, this model is best used on proteins that have a known experimental melting point. More details
+   on this procedure are given in (cite).</p>
+   <br>
+   <p class="intro">The contact potential is an empirically determined measurement of how likely two different amino acid
+   residues are to attact each others. This can be based on a number of factors such as electrostatic and van der Waals
+   interactions. Several such potentials have been determined, many from statistical studies of a large number or proteins.
+   The potential that we use is from Miyazawa and Jernigan and described in a <a href="http://www.sciencedirect.com/science/article/pii/S002228369690114X">
+   paper in <i>J. Mol. Biol.</i></a></p>
+   <br>
+   <p class="intro">For the purposes of this lesson, we have pre-calculated the correct nScale of 1PRB to be 0.91 and you should
+   use the MJ (Miyazawa-Jernigan) contact potential.</p>
+   <br>
+ {% endifequal %}
+
+ {% ifequal html_step_list.1 1 %}
+    <br />
+    <p class="intro"><span style="color:red"> Step 2: Working structure built</span></p>
+    <br />
+
+    <p class="intro">Congratulations! You have successfully built a coarse-grained working structure of 1PRB. Although Go models
+    are built in such a way that the crystal structure represents a low-energy state, it is still necessary to do a small
+    amount of minimization to relax and potentially nonoptimal bonds, angles, or dihedrals that are present in the initial
+    structure. To do this, visit the <b>Minimization</b> page. Since only a little bit of minimization is needed, set the
+    number of SD steps to 10 and the number of ABNR steps to 100. Leave all other parameters unchanged.</p>
+ {% endifequal %}
+
+ {% ifequal html_step_list.2 2 %}
+    <br />
+    <p class="intro"><span style="color:red"> Step 3: Minimization submitted</span></p>
+    <br />
+
+   <p class="intro">Minimization is still ongoing, but you can read ahead. The next step will be to submit a langevin
+   dynamics simulation.</p>
+
+   <p class="intro">Once the structure is minimized, we can run molecular dynamics on it. This will run extremely quickly, since
+   there are so few degrees of freedom. Go to the <b>Langevin Dynamics</b> page and run an regular LD simulation (do not use SGLD). 
+   Make sure to select "coordinates from minimization" at the top of the page.
+   We do not want to use an implicit solvent model with coarse graining because the contact potential (Miyazawa-Jernigan in this case) incorporates 
+   the effect of solvent screening into the model already. Also, since we do not have any high frequency bonded interactions, you should turn off shake. By default, all MD
+   and LD simulations in CHARMMing are run with a 1 fs time step. In real simulations, practitioners often use a time step of 5 fs (or even higher)
+   for coarse-grained models, for the reasons mentioned in the introduction to this lesson. Finally, set the collision frequency (FBETA) to 1 per picosecond
+   to minimize damping.</p>
+ {% endifequal %}
+
+ {% ifequal html_step_list.2 1 %}
+    <br />
+    <p class="intro"><span style="color:red"> Step 3: Minimization done</span></p>
+    <br />
+
+   <p class="intro">Once the structure is minimized, we can run molecular dynamics on it. This will run extremely quickly, since
+   there are so few degrees of freedom. Go to the <b>Langevin Dynamics</b> page and run an regular LD simulation (do not use SGLD). 
+   Make sure to select "coordinates from minimization" at the top of the page.
+   We do not want to use an implicit solvent model with coarse graining because the contact potential (Miyazawa-Jernigan in this case) incorporates
+   the effect of solvent screening into the model already. Also, since we do not have any high frequency bonded interactions, you should turn off shake. By default, all MD
+   and LD simulations in CHARMMing are run with a 1 fs time step. In real simulations, practitioners often use a time step of 5 fs (or even higher)
+   for coarse-grained models, for the reasons mentioned in the introduction to this lesson. Finally, set the collision frequency (FBETA) to 1 per picosecond
+   to minimize damping while still allowing for a reasonable number of collisions.</p>
+
+   <br />
+   <p class="intro">Once you have set up the LD calculation, please submit it. If you'd like, you can ask CHARMMing to make a movie
+   of the dynamics trajectory.</p>
+ {% endifequal %}
+
+ {% ifequal html_step_list.3 2 %}
+    <br />
+    <p class="intro"><span style="color:red"> Step 4: Molecular dynamics in progress</span></p>
+    <br />
+
+    <p class="intro">Langevin dynamics is still running. Once it finishes, we want to calculate how the fraction
+    of native contacts change throughout the simulation. In a production coarse grained simulation, careful
+    consideration should be given to the reaction coordinate that would be analyzed, depending on which scientific
+    questions that the simulation is trying to answer. Examples of other possible reaction coordinates are radius of gyration
+    or the RMSD. However, fraction of native contacts are a good metric for a KT Go model since they can be used to calculate
+    thermodynamic properties. Normally, several calculations
+    would be run at different temperatures to determine if there is a physiological melting point (indicating that nScale
+    is set correctly). Above the melting temperature, most time steps will have a relatively low fraction of native contacts,
+    while below it the fraction of native contacts will remain high, indicating that the protein is still folded.</p>
+ {% endifequal %}
+
+ {% ifequal html_step_list.3 1 %}
+    <br />
+    <p class="intro"><span style="color:red"> Step 4: Molecular dynamics done</span></p>
+    <br />
+
+    <p class="intro">Now that Langevin dynamics is finished, we want to calculate how the fraction
+    of native contacts change throughout the simulation. In a production coarse grained simulation, careful
+    consideration should be given to the reaction coordinate that would be analyzed, depending on which scientific
+    questions that the simulation is trying to answer. Examples of other possible reaction coordinates are radius of gyration
+    or the RMSD. However, fraction of native contacts are a good metric for a KT Go model since they can be used to calculate
+    thermodynamic properties. Normally, several calculations
+    would be run at different temperatures to determine if there is a physiological melting point (indicating that nScale
+    is set correctly). Above the melting temperature, most time steps will have a relatively low fraction of native contacts,
+    while below it the fraction of native contacts will remain high, indicating that the protein is still folded.</p>
+    <br />
+
+    <p class="intro">To calculate the fraction of native contacts, simply click on &quot;KT-Go Native Contacts&quot;
+    under analysis. The native contacts will be displayed and the lesson will finish. The fraction of native contacts
+    will not change much during a short simulation at physiological temperature (there's not enough time or energy for
+    contacts to break and re-form), but, if nScale is chosen correctly, it should vary over longer time scales.</p>
+ {% endifequal %}
+
+ {% ifequal html_step_list.4 2 %}
+    <br />
+    <p class="intro"><span style="color:red"> Step 5: NATQ submitted</span></p>
+    <br />
+
+    <p class="intro">This lesson is almost finished.</p>
+ {% endifequal %}
+
+ {% ifequal html_step_list.4 1 %}
+    <br />
+    <p class="intro"><span style="color:red"> Step 5: NATQ finished</span></p>
+    <br />
+
+    <p class="intro">The native contacts have been calculated and this lesson is over.</p>
+ {% endifequal %}
+
+{% endif %}
 
 {% endautoescape %}
+<br>
+{% for problem in lessonproblems %}
+  <br />
+  <p class="intro"><span style="color:red">LESSON ERROR: STEP - {{problem.errorstep}}, SEVERITY - {{problem.severity}}</span></p> <br>
+  {{problem.description}}
+  <br />
+  <br />
+  </p>
+{% endfor %}
 
 </div>
 {% endblock %}

@@ -651,6 +651,7 @@ def newLigandUpload(request, template="html/ddligandfileupload.html"):
             #newligand = ligands.objects.filter(owner=u).order_by("-id")[0]
         #if 1==1:
         #try:
+            os.system("mkdir " + charmming_config.user_dd_ligands_home + '/' + username + '/')
             location = charmming_config.user_dd_ligands_home + '/' + username + '/' + 'ligand_' + str(newligand.ligand_owner_index) + '/'
             filename='ligand_' + str(newligand.ligand_owner_index) + '_1.mol2'
             uploadligandlog.write("mkdir " + location)

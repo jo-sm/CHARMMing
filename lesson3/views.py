@@ -38,10 +38,10 @@ def lesson3Display(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     input.checkRequestData(request)
-    #try:
-    file = Structure.objects.filter(owner=request.user,selected='y')[0]
-    #except:
-    #    return render_to_response('html/lesson3.html')
+    try:
+        file = Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        return render_to_response('html/lesson3.html')
     #If its a lesson1 object, get the id by the file id
     if file.lesson_type == 'lesson3':
         lesson_obj = Lesson3.objects.filter(user=request.user,id=file.lesson_id)[0] 

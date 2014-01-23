@@ -28,7 +28,7 @@
   <div id="newbuild">
      <h2>Build A New Working Structure</h2>
 
-     <form id="config_form" method="post" action="/charmming/modstruct/" enctype="multipart/form-data" onsubmit="return send_form_gener('config_form','/charmming/modstruct/',$('#content')[0]);" >
+     <form id="config_form" method="post" action="/charmming/modstruct/" enctype="multipart/form-data" >
         <div class="gray_green_bg"><b>Please choose a name for this working structure:</b> <input type="text" name="wsidentifier" value="{{ proposedname }}" /></div><br />
         <b>Please choose which model you want this working structure based from:</b>
 
@@ -93,8 +93,10 @@
 	                {% endif %}
                       </select>
                       <br />
-                      <div class="hidden" id="toppar_upload_{{seg.name}}"> topology file: <input type="file" name="topology_{{ seg.name }}" /><br />
-                      parameter file: <input type="file" name="parameter_{{ seg.name }}" /><br /></div>
+                      <div class="hidden" id="toppar_upload_{{seg.name}}"> 
+                        topology file: <input type="file" name="topology_{{ seg.name }}" /><br />
+                        parameter file: <input type="file" name="parameter_{{ seg.name }}" /><br />
+                      </div>
                     {% else %}
                       CHARMM36 topology/parameters for proteins/nucleic acids will be used
                       <input type="hidden" name="toppar_{{ seg.name }}" value="standard" />
@@ -307,7 +309,7 @@
              </tr>
            </table>
         </div>
-           <input type="submit" value="Submit" onclick="$('#config_form').submit();"/>
+           <input type="submit" value="Submit"/>
         </div>
      </form>     
   </div>

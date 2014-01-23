@@ -13,7 +13,8 @@ import lesson1
 import lesson2
 import lesson3
 import lesson4
-##import lesson6
+import lesson5
+import lesson6
 #import lesson96
 # by importing lesson_config to import all lessons created
 from lesson_config import *
@@ -59,7 +60,7 @@ def doLessonAct(file,function,task=None,filename=None,finale=None):
         lesson_obj.onLDSubmit(task)
         return True
     elif function == 'onLDDone':
-        lesson_obj.onLDDone(file)
+        lesson_obj.onLDDone(task)
         return True
     elif function == 'onSGLDSubmit':
         lesson_obj.onSGLDSubmit(task)
@@ -75,6 +76,9 @@ def doLessonAct(file,function,task=None,filename=None,finale=None):
         return True
     elif function == 'onRMSDSubmit':
         lesson_obj.onRMSDSubmit(task)
+        return True
+    elif function == 'onNATQSubmit':
+        lesson_obj.onNATQSubmit(task)
         return True
     elif function == 'onRedoxSubmit':
         lesson_obj.onRedoxSubmit(task)

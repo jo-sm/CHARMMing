@@ -46,10 +46,19 @@
        myMenu = new SDMenu("my_menu");
        myMenu.init();
        //CHrome doesn't like PeriodicalUpdater sometimes and will fire infinitely many XHR and never load anything; however, if you force a single XHR (as I do here),
-      //Chrome will start loading them right. I have no idea why, and no one else seems to have this issue, so I'm assuming it's a Chrome bug more than anything.
+       //Chrome will start loading them right. I have no idea why, and no one else seems to have this issue, so I'm assuming it's a Chrome bug more than anything.
        $("#statusreport").PeriodicalUpdater('/charmming/status/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
        $.ajax({
           url:'/charmming/status/',
+          method:'post',
+          success:function(responseData){
+          $("#statusreport").html(responseData);
+          }
+          });
+
+       $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("lessonreport").innerHTML = remoteData;});
+       $.ajax({
+          url:'/charmming/lessons/lessonstatus/',
           method:'post',
           success:function(responseData){
           $("#statusreport").html(responseData);
@@ -64,7 +73,8 @@
       currperiodicalupdater.stop();
      }
      if(lesson != "nolesson" && lesson != 'None'){
-       currperiodicalupdater = $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {method: 'post', multiplier:5, minTimeout:1000, maxTimeout:3000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
+       currperiodicalupdater = $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {method: 'post', multiplier:5, minTimeout:100,
+maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
     //Same Chrome hack as before
        $.ajax({
           url:'/charmming/lessons/lessonstatus/',
@@ -127,6 +137,7 @@
             <a href="/charmming/analysis/mdprop/">MD Properties</a>
             <a href="/charmming/analysis/rmsd/">RMSD calculator</a>
             <a href="/charmming/analysis/redox/">Redox</a>
+            <a href="/charmming/analysis/natq/">KT-Go native contacts</a>
           </div>
           <div class="collapsed">
             <span>Docking</span>

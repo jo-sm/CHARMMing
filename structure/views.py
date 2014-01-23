@@ -45,7 +45,7 @@ from structure.aux import checkNterPatch
 from lessons.models import LessonProblem
 from structure.qmmm import makeQChem_tpl, makeQchem_val
 from atomselection_aux import getAtomSelections, saveAtomSelections
-import output, lesson1, lesson2, lesson3, lesson4, lessonaux
+import output, lesson1, lesson2, lesson3, lesson4, lesson5, lesson6, lessonaux
 import structure.models, input
 import selection.models
 import structure.mscale
@@ -920,17 +920,22 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
 
     #If the user wants to solvate implicitly the scpism line is needed
     #84 will be the scpism number in this program
-    solvate_implicitly = 0
+    impsolv = ''
     try:
-        if(postdata['solvate_implicitly']):
-            solvate_implicitly = 1
+        impsolv = postdata['solvate_implicitly']
     except:
-        pass
-    template_dict['solvate_implicitly'] = solvate_implicitly
+        impsolv = 'none'
+
+    logfp = open('/tmp/impsolv.txt','w')
+    logfp.write('impsolv = %s\n' % impsolv)
+    logfp.close()
+
+    template_dict['impsolv'] = impsolv
+
 
     # check to see if PBC needs to be used -- if so we have to set up Ewald
     if request.POST.has_key('usepbc'):
-        if solvate_implicitly:
+        if impsolv != 'none':
             return output.returnSubmission('energy', error='Invalid options')
 
         # decide if the structure we're dealing with has
@@ -1013,9 +1018,6 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
         template_dict['useqmmm'] = False
 
     eobj.save()
-    # lessons are still borked
-    #if file.lesson_type:
-    #    lessonaux.doLessonAct(file,"onEnergySubmit",request.POST)
     t = get_template('%s/mytemplates/input_scripts/calcEnergy_template.inp' % charmming_config.charmming_root)
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
@@ -1029,6 +1031,22 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
     #For some very strange and unknown reason, the field is modified when this method (the one we are in) is called.
     #We force-set it to false just in case.
     eobj.save()
+
+    #YP lessons status update
+    try:
+        lnum=eobj.workstruct.structure.lesson_type
+        lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+    except:
+        lesson_obj = None
+
+    if lesson_obj:
+        logfp = open('/tmp/energylesson.txt','a+')
+        logfp.write('going to call onenergysubmit for lesson %s\n' % lnum)
+        logfp.flush()
+        lessonaux.doLessonAct(eobj.workstruct.structure,"onEnergySubmit",eobj,"")
+        logfp.write('onenergysubmit returns!\n')
+        logfp.close()
+    #YP
 
     # go ahead and submit
     if eobj.useqmmm == 'y' and modelType == "oniom":
@@ -1044,17 +1062,6 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
             break
         if "failed" in sstring:
             return HttpResponse('Energy calculation failed. Please check output from ' +pTask.action + '.')
-
-    #YP lessons status update
-    try:
-        lnum=eobj.workstruct.structure.lesson_type
-        lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
-    except:
-        lesson_obj = None
-
-    if lesson_obj:
-        lessonaux.doLessonAct(eobj.workstruct.structure,"onEnergySubmit",eobj,"")
-    #YP
 
     workstruct.save()
 
@@ -1096,10 +1103,6 @@ def parseEnergy(workstruct,output_filename,enerobj=None):
     writefp = open(workstruct.structure.location + '/' + workstruct.identifier + '-energy.txt','w')
     writefp.write(energy_lines)
     writefp.close()
-
-    # lessons are still borked
-    #if file.lesson_type:
-    #    lessonaux.doLessonAct(file=file,function="onEnergyDone",finale=enerobj.finale)
 
     return render_to_response('html/displayenergy.html',{'linelist':energy_lines})
 
@@ -1219,11 +1222,21 @@ def newupload(request, template="html/fileupload.html"):
         lessonid = lesson_obj.id
     #YP end of checking for lesson   
 
+    file_uploaded = 0
+    pdb_uploaded = 0
+    psf_uploaded = 0
     try:
         request.FILES['pdbupload'].name
         file_uploaded = 1
+        pdb_uploaded = 1
     except:
-        file_uploaded = 0
+        try:
+            request.FILES['psfupload'].name
+            request.FILES['crdupload'].name #If there's no CRD with your PSF, what are you doing?
+            file_uploaded = 1
+            psf_uploaded = 1
+        except:
+            file_uploaded = 0
 
     # begin gigantic if test
     if request.POST.has_key('sequ') and request.POST['sequ']:
@@ -1282,7 +1295,10 @@ def newupload(request, template="html/fileupload.html"):
 
     elif file_uploaded or request.POST.has_key('pdbid'):
         if file_uploaded:
-            filename = request.FILES['pdbupload'].name
+            if pdb_uploaded:
+                filename = request.FILES['pdbupload'].name
+            else:
+                filename = request.FILES['crdupload'].name
             specialchars_string = "#$/;\n\\_+=[]{}()&^%"
             specialchars = set(specialchars_string)
             if len(specialchars.intersection(filename)) > 0:
@@ -1308,8 +1324,12 @@ def newupload(request, template="html/fileupload.html"):
         # Put the initial PDB onto the disk
         if file_uploaded:
             temp = open(fullpath, 'w')
-            for fchunk in request.FILES['pdbupload'].chunks():
-                temp.write(fchunk)
+            if pdb_uploaded:
+                for fchunk in request.FILES['pdbupload'].chunks():
+                    temp.write(fchunk)
+            else:
+                for fchunk in request.FILES['crdupload'].chunks():
+                    temp.write(fchunk) #We apparently don't care about the PSF? That's what the below logic says
             temp.close()
         elif request.POST.has_key('pdbid'):
             pdbid = request.POST['pdbid']
@@ -1355,7 +1375,7 @@ def newupload(request, template="html/fileupload.html"):
                 pdb = pychm.io.pdb.PDBFile()
                 thisMol = pychm.io.pdb.get_molFromCRD(fullpath)
                 pdb._mols["model00"] = thisMol
-                getSegs(mol,struct,auto_append=True)
+                getSegs(thisMol,struct,auto_append=True)
             except ValueError:
                 messages.error(request, "Error parsing PDB file.")
                 return HttpResponseRedirect("/charmming/fileupload/")
@@ -1439,7 +1459,7 @@ def buildstruct(request):
         usedNameList = [ews.identifier for ews in existingWorkStructs]
 
         while proposedname in usedNameList:
-           m = re.search("([^-\s]+)-ws([0-9]+)$", proposedname)
+           m = re.search("([^\s]+)-ws([0-9]+)$", proposedname)
            if m:
                basename = m.group(1)
                numbah   = int(m.group(2))
@@ -1553,8 +1573,13 @@ def modstruct(request):
             return HttpResponseRedirect("/charmming/buildstruct/")
 
         tpdict = {}
+        filedata = request.FILES
+        logfp = open('/tmp/notupload.txt','w')
+        logfp.write('filedata (before) = %s\n\n' % filedata)
         for seg in seglist:
+            logfp.write('in the loop\n')
             if request.POST.has_key('toppar_' + seg):
+                logfp.write('looking for toppar, seglist length ' + "%s\n" % len(seglist))
                 tpdict[seg] = request.POST['toppar_' + seg]
 
                 allowedList = ['standard','upload','autogen','redox']
@@ -1566,18 +1591,25 @@ def modstruct(request):
 
                 if tpdict[seg] == 'upload':
                     try:
-                        uptop = request.FILES['topology_' + seg]
-                        uppar = request.FILES['parameter_' + seg]
+                        uptop = filedata['topology_' + seg]
+                        uppar = filedata['parameter_' + seg]
                     except:
+                        loggp = open('/tmp/badupload.txt','w')
+                        traceback.print_exc(file=loggp)
+                        loggp.write('seg = %s\n\n' % seg)
+                        loggp.write('filedata (after) = %s\n\n' % filedata)
+                        loggp.write('full requests = %s\n\n' % request)
+                        loggp.close()
                         messages.error(request, "Topology/parameter files not uploaded.")
                         return HttpResponseRedirect("/charmming/buildstruct/")
-
+                    logfp.write("Successfully loaded top/par files.")
                     topfp = open(struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.rtf', 'w+')
                     prmfp = open(struct.location + '/' + request.POST['wsidentifier'] + '-' + seg + '.prm', 'w+')
                     for chunk in uptop.chunks(): topfp.write(chunk)
                     for chunk in uppar.chunks(): prmfp.write(chunk)
             else:
                 tpdict[seg] = 'standard'
+        logfp.close()
 
         new_ws = structure.models.WorkingStructure()
         # to do, make this not contain spaces
@@ -1634,6 +1666,10 @@ def modstruct(request):
             if request.POST.has_key(ulkey) and request.POST[ulkey] == 'y':
                 seglist.append(s.name)
 
+        if len(seglist) < 1:
+            messages.error(request, "You must choose at least one segment!")
+            return HttpResponseRedirect("/charmming/buildstruct/")
+
         new_ws = structure.models.CGWorkingStructure()
         new_ws.identifier = request.POST['wsidentifier']
         new_ws.modelName = request.POST['basemodel']
@@ -1650,6 +1686,10 @@ def modstruct(request):
             ulkey = 'bln_select_' + s.name
             if request.POST.has_key(ulkey) and request.POST[ulkey] == 'y':
                 seglist.append(s.name)
+
+        if len(seglist) < 1:
+            messages.error(request, "You must choose at least one segment!")
+            return HttpResponseRedirect("/charmming/buildstruct/")
 
         new_ws = structure.models.CGWorkingStructure()
         new_ws.identifier = request.POST['wsidentifier']
@@ -1676,6 +1716,20 @@ def modstruct(request):
 
     new_ws.selected = 'y'
     new_ws.save()
+
+    logfp = open('/tmp/buldlesson.txt','w')
+    try:
+        lnum=new_ws.structure.lesson_type
+        lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+        logfp.write('lnum = %s\n' % lnum)
+    except:
+        logfp.write('Found no lesson object!\n')
+        lesson_obj = None
+
+    if lesson_obj:
+        logfp.write('call doLessonAct onBuildStructureSubmit\n')
+        lessonaux.doLessonAct(new_ws.structure,"onBuildStructureSubmit",request.POST)
+    logfp.close()
 
     lesson_ok, dd_ok = checkPermissions(request)
     return render_to_response('html/built.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok})

@@ -109,6 +109,7 @@ class redoxTask(Task):
             segments = self.workstruct.segments
             for segment in segments:
                 logfp.write(str(segment.name) + "\n")
+            logfp.write("Task Action is...%s\n" % self.action)
             logfp.close()
     #        path = basepath + "
             '''

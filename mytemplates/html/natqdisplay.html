@@ -1,0 +1,10 @@
+{% extends 'html/skeleton.html' %}
+
+{% block content %}
+  <table>
+  <tr><td>Step</td><td>Fraction of native contacts</td></tr>
+  {% for line in natqlines %}
+    <tr><td>{{ line.0 }}</td><td>{{ line.1 }}</td></tr>
+  {% endfor %}
+  </table>
+{% endblock %}

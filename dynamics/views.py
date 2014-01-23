@@ -30,7 +30,7 @@ from scheduler.statsDisplay import statsDisplay
 from solvation.models import solvationTask
 import django.forms
 import copy, shutil, os, re
-import lessonaux, input, output, charmming_config, lessons, lesson1, lesson2, lesson3, lesson4
+import lessonaux, input, output, charmming_config, lessons, lesson1, lesson2, lesson3, lesson4, lesson5
 
 #processes form data for ld simulations
 def lddisplay(request):
@@ -216,6 +216,12 @@ def applyld_tpl(request,ldt,pTaskID):
         impsolv = 'none'
     template_dict['impsolv'] = impsolv
 
+    logfp = open('/tmp/impsolv.txt','w')
+    logfp.write('impsolv = %s\n' % impsolv)
+    logfp.close()
+
+    template_dict['impsolv'] = impsolv
+
     if ldt.action == 'sgld':
         tsgavg = '0.0'
         tempsg = '0.0'
@@ -232,7 +238,7 @@ def applyld_tpl(request,ldt,pTaskID):
     # so pass the necessary crystal and image parameters
     dopbc = False
     if request.POST.has_key('usepbc'):
-        if request.POST.has_key('solvate_inplicitly'):
+        if impsolv != 'none':
             return output.returnSubmission('Langevin dynamics',error='Conflicting solvation options chosen')
 
         # decide if the structure we're dealing with has
@@ -274,15 +280,6 @@ def applyld_tpl(request,ldt,pTaskID):
     inp_out.close()  
     ldt.scripts += ',%s' % ld_filename
 
-    if postdata.has_key('make_movie'):
-        ldt.make_movie = 't'
-        return makeJmolMovie(ldt,postdata,ldt.action)
-    else:
-        ldt.start()
-        ldt.save()
-
-    ldt.workstruct.save()
-
     #YP lessons status update
     try:
         lnum=ldt.workstruct.structure.lesson_type
@@ -297,23 +294,38 @@ def applyld_tpl(request,ldt,pTaskID):
             lessonaux.doLessonAct(ldt.workstruct.structure,"onLDSubmit",ldt,"")
     #YP
 
+    if postdata.has_key('make_movie'):
+        ldt.make_movie = 't'
+        return makeJmolMovie(ldt,postdata,ldt.action)
+    else:
+        ldt.start()
+        ldt.save()
+
+    ldt.workstruct.save()
+
     return output.returnSubmission('Langevin dynamics')
 
 #Generates MD script and runs it
 def applymd_tpl(request,mdt,pTaskID):
     postdata = request.POST
 
+    template_dict = {}     
     impsolv = ''
     try:
         impsolv = postdata['solvate_implicitly']
     except:
         impsolv = 'none'
 
+    logfp = open('/tmp/impsolv.txt','w')
+    logfp.write('impsolv = %s\n' % impsolv)
+    logfp.close()
+
+    template_dict['impsolv'] = impsolv
+
     mdt.make_movie = postdata.has_key('make_movie')
-    mdt.scpism = impsolv == 'scpism'
+    mdt.scpism = (impsolv == 'scpism')
     
     # template dictionary passes the needed variables to the templat
-    template_dict = {}     
     template_dict['topology_list'], template_dict['parameter_list'] = mdt.workstruct.getTopparList()
     template_dict['output_name'] = mdt.workstruct.identifier + '-md'
     if mdt.workstruct.topparStream:
@@ -343,10 +355,9 @@ def applymd_tpl(request,mdt,pTaskID):
     # so pass the necessary crystal and image parameters
     dopbc = False
     if request.POST.has_key('usepbc'):
-        if request.POST.has_key('solvate_inplicitly'):
-            messages.error(request, "Invalid options.")
+        if impsolv != 'none':
+            messages.error(request, "Conflicting solvation options.")
             return HttpResponseRedirect("/charmming/dynamics/md/")
-#            return HttpResponse('Invalid options')
 
         # decide if the structure we're dealing with has
         # been solvated.
@@ -434,15 +445,6 @@ def applymd_tpl(request,mdt,pTaskID):
     mdt.scripts += ',%s' % md_filename
     mdt.save()
 
-    if postdata.has_key('make_movie'):
-        mdt.make_movie = 't'
-        return makeJmolMovie(mdt,postdata,'md')
-    else:
-        mdt.start()
-
-    mdt.save()
-    mdt.workstruct.save()
-
     #YP lessons status update
     try:
         lnum=mdt.workstruct.structure.lesson_type
@@ -453,6 +455,15 @@ def applymd_tpl(request,mdt,pTaskID):
     if lesson_obj:
         lessonaux.doLessonAct(mdt.workstruct.structure,"onMDSubmit",mdt,"")
     #YP
+
+    if postdata.has_key('make_movie'):
+        mdt.make_movie = 't'
+        return makeJmolMovie(mdt,postdata,'md')
+    else:
+        mdt.start()
+
+    mdt.save()
+    mdt.workstruct.save()
 
     return output.returnSubmission("Molecular dynamics")
 

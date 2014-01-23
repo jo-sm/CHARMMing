@@ -20,19 +20,26 @@ from django.template.loader import get_template
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.shortcuts import render_to_response
-from structure.models import Structure, WorkingStructure, WorkingFile, Task
+from django.http import HttpResponseRedirect
+from structure.models import Structure, WorkingStructure, CGWorkingStructure, WorkingFile, Task
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from django.template import *
 from pychm.lib.mol import Mol
-import output, charmming_config, lessonaux, input, lessons, lesson1, lesson2, lesson3, lesson4
+from pychm.tools import expandPath, flatten
+from pychm.io.pdb import get_molFromPDB
+from pychm.future.io.charmm.dcd import open_dcd
+import numpy as np
+import output, charmming_config, lessonaux, input, lessons, lesson1, lesson2, lesson3, lesson4, lesson5
 from account.views import checkPermissions
 from pychm.scripts.getprop import getProp
 #import structure.models
 #import Structure
 import os, re, time, cPickle
+import pychm
+import traceback
 
-def doRMSD(postdata,location,id,picklefile,stlist):
+def doRMSD(user,postdata,location,id,picklefile,stlist):
 
     pfp = open(picklefile, 'r')
     pdb = cPickle.load(pfp)
@@ -53,6 +60,8 @@ def doRMSD(postdata,location,id,picklefile,stlist):
             mols[t.action] = pdb['md_' + id]
         elif t.action == 'ld':
             mols[t.action] = pdb['ld_' + id]
+        elif t.action == 'sgld':
+            mols[t.action] = pdb['sgld_' + id]
         else:
             return output.returnSubmission('RMS Calculation', error='RMSD does not handle %s' % t.action)
 
@@ -63,7 +72,10 @@ def doRMSD(postdata,location,id,picklefile,stlist):
         tmp1 = mols[k].find(segtype='pro')
         tmp2 = mols[k].find(segtype='dna')
         tmp3 = mols[k].find(segtype='rna')
-        smols[k] = Mol(sorted(tmp1 + tmp2 + tmp3))
+        tmp4 = mols[k].find(segtype='go')
+        tmp5 = mols[k].find(segtype='bln')
+        tmp6 = mols[k].find(segtype='bad')
+        smols[k] = Mol(sorted(tmp1 + tmp2 + tmp3 + tmp4 + tmp5 + tmp6))
 
     # Last step: if we want only the backbone, pull those atoms out of the first struct,
     # reorient it, and get the transform matrix to apply to all of the rest of the structs.
@@ -128,6 +140,26 @@ def doRMSD(postdata,location,id,picklefile,stlist):
         fp.write(line)
     fp.close()
 
+    # lesson time...
+    try:
+         struct = Structure.objects.filter(owner=user,selected='y')[0]
+    except:
+        return HttpResponseRedirect("/charmming/fileupload/")
+    try:
+         ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        return HttpResponseRedirect("/charmming/buildstruct/")
+
+    try:
+        lnum=ws.structure.lesson_type
+        lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+    except:
+        lesson_obj = None
+
+    if lesson_obj:
+        lessonaux.doLessonAct(ws.structure,"onRMSDSubmit",postdata)
+    # end lesson time
+
     return render_to_response('html/rmsddisplay.html', {'rmsdlines': rmsdlines})
 
 def rmsformdisplay(request):
@@ -171,7 +203,7 @@ def rmsformdisplay(request):
             picklefile = struct.pickle
             if ws.localpickle != None:
                 picklefile = ws.localpickle
-            return doRMSD(request.POST,ws.structure.location,ws.identifier,picklefile,rmsd_list)
+            return doRMSD(request.user,request.POST,ws.structure.location,ws.identifier,picklefile,rmsd_list)
     else:
         prior_matrix = ''
         try:
@@ -188,6 +220,191 @@ def rmsformdisplay(request):
     tdict['lesson_ok'] = lesson_ok
     tdict['dd_ok'] = dd_ok
     return render_to_response('html/rmsdform.html', tdict)
+
+## aux routines for NatQ
+def get_native_contacts(mymol, AACUT=4.5):
+    # build AA.resid -> CG.atomid map
+    mymap = [ None, ]
+    ngly = 0
+    for i, res in ( (res.resid, res) for res in mymol.iter_res()):
+        if res.resName == 'gly':
+            ngly += 1
+            mymap.append(None)
+        cur_index = i*2 + ngly
+        mymap.append(cur_index)
+    # nuke backbone atoms
+    atoms = ( atom for atom in mymol if not atom.is_backbone() )
+    # nuke hydrogens
+    atoms = ( atom for atom in atoms if atom.element != 'h' )
+    # rebuild Mol obj
+    mymol = Mol(atoms)
+    # build list of residue pairs in native contact
+    native_contacts = []
+    iterres = [ (res.resid, res) for res in mymol.iter_res() ]
+    for i, res_i in iterres:
+        for j, res_j in iterres:
+            if i >= j-1:
+                continue # dont consider adjacent residues
+            try:
+                for atom_i in res_i:
+                    for atom_j in res_j:
+                        r_ij = atom_i.calc_length(atom_j)
+                        if r_ij <= AACUT:
+                            native_contacts.append((i, j))
+                            raise AssertionError # break a double loop
+            except AssertionError:
+                pass
+    # apply AA.resid -> CG.atomid map to native_contacts
+    def fun(inp):
+        return (mymap[inp[0]], mymap[inp[1]])
+    #
+    return map(fun, native_contacts)
+
+def extract_xyz(mydcd, native_contacts):
+
+    logfp = open('/tmp/extract_xyz.txt','w')
+
+    # dump all data
+    with open_dcd(mydcd) as fp:
+        data = fp.get_massive_dump()
+    # figure out which cg atoms we need
+    logfp.write("len data = %d %d %d\n\n\n" % (len(data['x']),len(data['y']),len(data['z'])))
+    cg_ids = sorted(set(flatten(native_contacts)))
+    logfp.write('cg_ids = ' + str(cg_ids) + '\n')
+    logfp.flush()
+    # extract the xyz data from the dump, for our coordinates of interest
+    x = {}
+    y = {}
+    z = {}
+    for id in cg_ids:
+        try:
+            logfp.write('id = %s\n' % id)
+            x[id] = data['x'][:,id-1]
+            logfp.write('got x\n')
+            y[id] = data['y'][:,id-1]
+            logfp.write('got y\n')
+            z[id] = data['z'][:,id-1]
+            logfp.write('got z\n')
+        except:
+            logfp.write('got exception ... skipping\n')
+            logfp.flush()
+
+    logfp.close()
+    return (x, y, z)
+
+def calc_q(native_contacts, x, y, z, CGCUT = 8.0):
+    # look at cut**2, instead of cut, sqrt's are expensive
+    CUT = CGCUT * CGCUT
+    # build scratch space for r**2
+    dim0 = len(native_contacts)
+    dim1 = x[native_contacts[0][0]].shape[0]
+    data = np.zeros((dim0, dim1))
+    # populate scratch with r**2 values for all native contacts
+    for n, (i, j) in enumerate(native_contacts):
+        dx = x[i]-x[j]
+        dy = y[i]-y[j]
+        dz = z[i]-z[j]
+        rr = (dx*dx+dy*dy+dz*dz)
+        data[n, :] = rr
+    # build scratch for Q
+    tmp = np.zeros(data.shape)
+    # use fancy numpy mapping to check if R**2 is .gt. or .lt. CUT**2
+    tmp[data <= CUT] = 1
+    tmp[data > CUT] = 0
+    # return Q(T)
+    return tmp.mean(axis=0)
+
+## main routine for native contacts...
+def natqdisplay(request):
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+    input.checkRequestData(request)
+
+    #chooses the file based on if it is selected or not
+    try:
+         struct = Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        messages.error(request, "Please upload a structure first.")
+        return HttpResponseRedirect("/charmming/fileupload/")
+#         return output.returnSubmission("RMS calculation", error="Please submit a structure first.")
+    try:
+         ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        messages.error(request, "Please build your structure first.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+
+    try:
+        cgws = CGWorkingStructure.objects.get(workingstructure_ptr=ws.id)
+    except:
+        logfp = open('/tmp/cdws.txt', 'w')
+        traceback.print_exc(file=logfp)
+        logfp.close()
+
+        messages.error(request, "Native contact analysis is only available for CG models")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+    if cgws.cg_type != 'go':
+        messages.error(request, "Native contact analysis is only available for KT Go models")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+
+    pdbfile = struct.location + '/cgbase-' + str(cgws.id) + '.pdb'
+    dcdfile = struct.location + '/' + ws.identifier + '-md.dcd'
+    try:
+        os.stat(pdbfile)
+    except:
+        messages.error(request,"Please build your structure and run dynamics first")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+        
+    baddcd = False
+    try:
+        os.stat(dcdfile)
+    except:
+        baddcd = True
+
+    if baddcd:
+        dcdfile = struct.location + '/' + ws.identifier + '-ld.dcd'
+        try:
+            os.stat(dcdfile)
+        except:
+            messages.error(request,"Please run dynamics first")
+            return HttpResponseRedirect("/charmming/buildstruct/")
+
+
+    natqlines = []
+
+    # --- Frank's main routine here ---
+    my_aa_mol = get_molFromPDB(pdbfile)
+    my_aa_mol.parse()
+
+    # scan the AA Mol object, to build a list of residues that are in native
+    # contact in the crystal structure.
+    my_native_contacts = get_native_contacts(my_aa_mol)
+    # read the xyz data from the DCD file, throw away the coordinates that
+    # arent part of a native contact pair
+    x, y, z = extract_xyz(dcdfile,my_native_contacts)
+    q = calc_q(my_native_contacts, x, y, z)
+
+    # we only have 1000 frames in a CHARMMing trajectory file by default.
+    # One frame every 100 steps
+    mystep = 100
+    for i in range(len(q)):
+        natqlines.append((mystep,'%5.3f' % q[i]))
+        mystep += 100
+
+    logfp = open('/tmp/l5thing.txt','w')
+    logfp.write('at end\n')
+    try:
+        lnum=ws.structure.lesson_type
+        lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
+    except:
+        lesson_obj = None
+
+    logfp.write('lesson_obj = %s\n' % str(lesson_obj))
+    logfp.close()
+
+    if lesson_obj:
+        lessonaux.doLessonAct(ws.structure,"onNATQSubmit",request.POST)
+
+    return render_to_response('html/natqdisplay.html', {'natqlines': natqlines})
 
 import dynamics.models
 import traceback

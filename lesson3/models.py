@@ -7,7 +7,7 @@ from lessons.models import LessonProblem
 from solvation.models import solvationTask
 from minimization.models import minimizeTask
 from dynamics.models import mdTask, ldTask, sgldTask
-import os, re
+import os, re, math
 import structure, lessonaux, charmming_config
 
 class Lesson3(models.Model):
@@ -111,6 +111,10 @@ class Lesson3(models.Model):
             return False
         if float(mp.tolg) != .01:
             lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=2,severity=2,description='TOLG was not set not 0.01.')
+            lessonprob.save()
+            return False
+        if mp.usepbc == 't':
+            lessonprob = LessonProblem(lesson_type='lesson3',lesson_id=self.id,errorstep=2,severity=2,description='PBC was used.')
             lessonprob.save()
             return False
         #2.5 Means it is running
@@ -221,20 +225,29 @@ class Lesson3(models.Model):
             self.save()
         return True
 
-    def onRMSDSubmit(self,file):
+    def onRMSDSubmit(self,postdata):
         # no checking
         try:
-            LessonProblem.objects.filter(lesson_type='lesson1',lesson_id=self.id)[0].delete()
+            LessonProblem.objects.filter(lesson_type='lesson3',lesson_id=self.id)[0].delete()
         except:
             pass
         self.curStep = '4'
         self.save()
         return True
 
+    def onNATQSubmit(self,postdata):
+        return True
+
     def onEnergySubmit(self,postdata):
         return True
 
     def onEnergyDone(self,finale):
+        return True
+
+    def onBuildStructureDone(self,file):
+        return True
+
+    def onBuildStructureSubmit(self,postdata):
         return True
 
     #generates html for the lesson status page
@@ -251,7 +264,7 @@ class Lesson3(models.Model):
         except:
             lessonprob = None
         for i in range(self.nSteps):
-            if lessonprob and lessonprob.errorstep == (self.curStep+1) and self.curStep == i:
+            if lessonprob and lessonprob.errorstep == math.floor(self.curStep+1) and math.floor(self.curStep) == i:
                 step_status_list[i] += ("<font color='red'>Failed</font></td></tr>")
                 continue
             elif (float(self.curStep)-0.5) == i and float(self.curStep) % 1 == 0.5:
