@@ -36,22 +36,20 @@
     novel redox complexes. </p>
 <br />
 <p class="intro">
-    Two main factors contribute to the <i>E</i>&#176 of a redox protein. The primary factor is the chemical 
-    composition of the redox site. Different redox site metal types, ligands, and conformations will affect 
-    the energy required to add or remove an electron. Here, the free energy contribution for the reduction 
-    of any redox site in vacuum is referred to as the intrinsic free energy contribution to the <i>E</i>&#176 
-    or <i>G</i><sub>in</sub>. The second factor contributing to the reduction potential is the combined 
-    protein and solvent environments surrounding a redox site. This contribution, referred to here as 
-    <i>G</i><sub>out</sub>, is relatively smaller than <i>G</i><sub>in</sub>. In the DFT+PB method, E° is 
-    calculated as 
-    <br><br> 
+    Two main factors contribute to the <i>E</i>&#176 of a redox protein. The primary factor is the chemical
+    composition of the redox site. Different redox site metal types, ligands, and conformations will affect
+    the energy required to add or remove an electron. Here, the free energy contribution for the reduction
+    of any redox site in vacuum is referred to as the intrinsic free energy contribution to the <i>E</i>&#176.
+    We will refer to this value as <i>G</i><sub>in</sub>. The second factor contributing to the reduction 
+    potential is the combined protein and solvent environments surrounding a redox site. This contribution, 
+    referred to here as <i>G</i><sub>out</sub>, is relatively smaller than <i>G</i><sub>in</sub>. In the 
+    DFT+PB method, E° is calculated as     
+    <br><br>
     <i>E</i>&#176 = -&#916<i>G</i><sub>in</sub>/n<i>F</i> - &#916<i>G</i><sub>out</sub>/n<i>F</i> - &#916<i>G</i><sub>SHE</sub>/n<i>F</i>
     <br /><br />
-    Where n is the number of electons being transferred, <i>F</i> is Faradays constant, <i>G</i><sub>in</sub> 
-    is the intrinsic contribution to the reduction potential, and <i>G</i><sub>out</sub> is the contribution 
-    of the environment. <i>G</i><sub>in</sub> is calculated for each cluster and charge stat using density 
-    functional theory (DFT). Since this is a computationally expensive calculation, a database of <i>G</i><sub>in</sub> 
-    values are stored in CHARMMing. 
+    where n is the number of electons being transferred and <i>F</i> is the Faraday constant. <i>G</i><sub>in</sub> is 
+    determined for each cluster and charge state using density functional theory (DFT). Since this is a computationally 
+    expensive calculation, a database of pre-calculated <i>G</i><sub>in</sub> values are stored in CHARMMing.
 </p>
 <br />
 <p class="intro">
@@ -97,7 +95,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
 
  <!-- Step 1 -->
  {% ifequal html_step_list.0 2 %}
-   <p class="intro"><span style="color:red"> Step 1: Upload a [4Fe-4S]-containing protein: Running </span></p>
+   <p class="intro"><span style="color:red"> Step 1A: Upload a [4Fe-4S]-containing protein: Running </span></p>
    <br />
 
    <p class="intro">The redox site is categorized as a 'bad' segment type since redox site parmeters are not 
@@ -106,9 +104,21 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
        <u>'Use only for REDOX calculations'</u></span> from the drop-down list in the a-bad row. Select submit to 
        build the working structure.</p>
    <br />
+   <p class="intro"><span style="color:red"> Step 1B: Build the structure and calculate the energy: Running </span></p>
+   <br />
+
+   <p class="intro">Your structure is currently being built. If you have not done so, perform and energy caclulation
+       on the build structure. To do so, select <b>Energy</b> from the <i>Calculations</i> tab.
+       Using the default values, submit the energy calculation (click on 'Calculate Enegy').</p>
+   <br />
+
+   <p class="intro">*Note: Due to the setup of CHARMMing, you <b>MUST</b> calculate the energy prior to performing
+       a redox calculation.</p>
+   <br />
+
  {% endifequal %}
  {% ifequal html_step_list.0 1 %}
-   <p class="intro"><span style="color:red"> Step 1: Upload a [4Fe-4S]-containing protein: Done </span></p>
+   <p class="intro"><span style="color:red"> Step 1A: Upload a [4Fe-4S]-containing protein: Done </span></p>
    <br />
 
    <p class="intro">Congratulations! You successfully uploaded the PDB file! This file contains the atomic 
@@ -133,27 +143,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
        <u>'Use only for REDOX calculations'</u></span> from the drop-down list in the a-bad row. Select submit to 
        build the working structure.</p>
    <br />
- {% endifequal %}
-
- <!-- Step 2 -->
- {% ifequal html_step_list.1 2 %}
-   <br /> 
-   <p class="intro"><span style="color:red"> Step 2: Build the structure and calculate the energy: Running </span></p> 
-   <br />
-
-   <p class="intro">Your structure is currently being built. If you have not done so, perform and energy caclulation
-       on the build structure. To do so, select <b>Energy</b> from the <i>Calculations</i> tab.
-       Using the default values, submit the energy calculation (click on 'Calculate Enegy').</p>
-   <br />
-
-   <p class="intro">*Note: Due to the setup of CHARMMing, you <b>MUST</b> calculate the energy prior to performing 
-       a redox calculation.</p>
-   <br />
-
- {% endifequal %}
- {% ifequal html_step_list.1 1 %}
-   <br />
-   <p class="intro"><span style="color:red"> Step 2: Build the structure and calculate the energy: Done </span></p>
+   <p class="intro"><span style="color:red"> Step 1B: Build the structure and calculate the energy: Done </span></p>
    <br />
 
    <p class="intro">Good job! Now that you have calculated the energy, go to the &quot;Redox&quot; page under 
@@ -173,49 +163,49 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
    </p>
  {% endifequal %}
 
- <!-- Step 3 -->
- {% ifequal html_step_list.2 2 %}
+ <!-- Step 2 -->
+ {% ifequal html_step_list.1 2 %}
    <br /> 
-   <p class="intro"><span style="color:red"> Step 3: Perform a redox calculation: Running </span></p>
+   <p class="intro"><span style="color:red"> Step 2: Perform a redox calculation: Running </span></p>
    <br />
 
    <p class="intro">Please wait until the redox calculation is complete.</p>
    <br />
  {% endifequal %}
 
- {% ifequal html_step_list.2 1 %}
+ {% ifequal html_step_list.1 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 3: Perform a redox calculation: Done</span></p>
+   <p class="intro"><span style="color:red"> Step 2: Perform a redox calculation: Done</span></p>
    <br />
 
    <p class="intro">Congratulations, you have successfully calculated the reduction potential of <i>Cv</i> HiPIP.</p>
    <br />
 
    <p class="intro">
-       The <i>E</i>&#176 of <i>Cv</i> HiPIP is known to be pH dependent. In this step, the change in <i>E</i>&#176 with protonation
-       of histidine 42 is determined. A new structure of <i>Cv</i> HiPIP must be built with a protonated His 42. To do
-       so, follow step 1 again. Before submitting the page, select the checkbox next to “Modify protonation
-       states of titratable residues. A list of titratable residues will appear. For Residue 42 of SEGID “a-pro”,
+       The <i>E</i>&#176 of <i>Cv</i> HiPIP is known to be pH dependent. In this step, the change in <i>E</i>&#176 with 
+       protonation of histidine 42 is determined. A new structure of <i>Cv</i> HiPIP must be built with a protonated His 
+       42. To do so, return to <b>Build/Select Protein Working Structure</b>. This time, select the checkbox next to 
+       “Modify protonation states of titratable residues. A list of titratable residues will appear. For Residue 42 of SEGID “a-pro”,
        select Protonation State “hsp” from the drop down menu. Submit the structure, and repeat steps 2 and 3.
        The new <i>E</i>&#176 should be 0.37 V
    </p>
    <br />
  {% endifequal %}
 
- <!-- Step 4 -->
- {% ifequal html_step_list.3 2 %}
+ <!-- Step 3 -->
+ {% ifequal html_step_list.2 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 4: Calculate <i>E</i>&#176 with charged histidine.</span></p>
+   <p class="intro"><span style="color:red"> Step 3: Calculate <i>E</i>&#176 with charged histidine.</span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully calculated the reduction potential!</p>
    <br />
  {% endifequal %}
- {% ifequal html_step_list.3 1 %}
+ {% ifequal html_step_list.2 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 4: Calculate <i>E</i>&#176 with charged histidine.</span></p>
+   <p class="intro"><span style="color:red"> Step 3: Calculate <i>E</i>&#176 with charged histidine.</span></p>
    <br />
-   <p class="intro">Congratulations! You have successfully calculated <i>E</i>&#176 for <i>Cv</i> HiPI with a charged histidine.</p>
+   <p class="intro">Congratulations! You have successfully calculated <i>E</i>&#176 for <i>Cv</i> HiPIP with a charged histidine.</p>
    <br />
    <p class="intro">
        In the next step, the contribution of charged histidine 42 to the <i>E</i>&#176 is determined by turning off the
@@ -236,54 +226,54 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
    <br />
  {% endifequal %}
 
- <!-- Step 5 -->
- {% ifequal html_step_list.4 2 %}
+ <!-- Step 4 -->
+ {% ifequal html_step_list.3 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 5: Identify a Residue that Modifies <i>E</i>&#176 Using Charge-Knockout: Running</span></p>
+   <p class="intro"><span style="color:red"> Step 4: Identify a Residue that Modifies <i>E</i>&#176 Using Charge-Knockout: Running</span></p>
    <br />
 
    <p class="intro">The <i>E</i>&#176 for <i>Cv</i> HiPIP with a charge knock-out is currently running. Please check back after the calculation completes.</p>
    <br />
  {% endifequal %}
- {% ifequal html_step_list.4 1 %}
+ {% ifequal html_step_list.3 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 5: Identify a Residue that Modifies <i>E</i>&#176 Using Charge-Knockout: Done</span></p>
+   <p class="intro"><span style="color:red"> Step 4: Identify a Residue that Modifies <i>E</i>&#176 Using Charge-Knockout: Done</span></p>
    <br />
    <p class="intro">Congratulations! You have successfully calculated the <i>E</i>&#176 for <i>Cv</i> HiPIP with His42 partial charges turned off.</p>
    <br />
    <p class="intro">
-       The previous three steps have demonstrated that protonation of His 42 will raise the reduction
-       potential of <i>Cv</i> HiPIP by 0.03 V. The total contribution of His 42 is 0.06 V, when the residue is absent.
+       The previous two steps demonstrated that protonation of His 42 will raise the reduction
+       potential of <i>Cv</i> HiPIP by 0.05 V. The total contribution of His 42 is 0.04 V vs WT at pH 7.
        However, the more realistic model of a pH insensitive <i>Cv</i> HiPIP would involve a mutation of the
        residue. In this step, a mutation of <i>Cv</i> HiPIP is modeled and <i>E</i>&#176 for the mutant is calculated. Navigate to
        the “Modify Structure by Point-Mutation” page. Select the residue HSP 42 and replace it with and
        alanine (ALA). The graphical representation will show the position of the mutation on a three-
        dimensional model of <i>Cv</i> HiPIP. Return to the redox module and calculate the <i>E</i>&#176 for the mutant. The
-       new <i>E</i>&#176 should be __ V.
+       new <i>E</i>&#176 should be 0.28 V.
    </p>
    <br />
 
  {% endifequal %}
 
- <!-- Step 6 -->
- {% ifequal html_step_list.5 2 %}
+ <!-- Step 5 -->
+ {% ifequal html_step_list.4 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 6: Predict <i>E</i>&#176 for <i>Cv</i> HiPIP with a Point Mutation: Running</span></p>
+   <p class="intro"><span style="color:red"> Step 5: Predict <i>E</i>&#176 for <i>Cv</i> HiPIP with a Point Mutation: Running</span></p>
    <br />
 
    <p class="intro">The <i>E</i>&#176 for the mutated <i>Cv</i> HiPIP is currently running. Please check back after the calculation completes.</p>
    <br />
  {% endifequal %}
- {% ifequal html_step_list.5 1 %}
+ {% ifequal html_step_list.4 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 6: Predict <i>E</i>&#176 for <i>Cv</i> HiPIP with a Point Mutation: Done</span></p>
+   <p class="intro"><span style="color:red"> Step 5: Predict <i>E</i>&#176 for <i>Cv</i> HiPIP with a Point Mutation: Done</span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully calculated the <i>E</i>&#176 for a mutated redox protein</p>
    <br />
 
-   <p class="intro">Compare this value to the previous calculation (when H42 was neutral). The 30 mV increase in Eo 
-       caused by placing a positive charge near the redox site. You can scan for other residues with significant 
+   <p class="intro">Compare this value (0.29 V) to the original calculation (when H42 was neutral). The 30 mV decrease in Eo 
+       caused by removing the polar His near the redox site. You can scan for other residues with significant 
        contributions to Eo by changing the charge state, turning off the partial charge, or mutating the residue.</p>
    <br />
 

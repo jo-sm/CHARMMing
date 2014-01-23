@@ -112,9 +112,6 @@ class redoxTask(Task):
             logfp.write("Task Action is...%s\n" % self.action)
             logfp.close()
     #        path = basepath + "
-            '''
-            OH WOW! I just stopped caring!!!!
-            '''
         except:
             pass
         self.status = 'C'

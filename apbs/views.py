@@ -67,6 +67,7 @@ def redoxformdisplay(request):
     tmpfp.close()
 
     if request.POST.has_key('picksite'):
+
         # This code path is taken if the form IS filled in
         try:
             oldtsk = redoxTask.objects.filter(workstruct=ws,active='y')[0]
@@ -84,7 +85,10 @@ def redoxformdisplay(request):
             return output.returnSubmission("Oxidation/reduction", error='Your working structure must be built before you perform a redox calculation')
 
         isBuilt = True
-        pTaskID = Task.objects.get(workstruct=ws,action='build').id
+        try:
+            pTaskID = Task.objects.get(workstruct=ws,action='build').id
+        except:
+            pTaskID = 0.
         pdb = createFinalPDB(request,ws)
         return HttpResponse(redox_tpl(request,rdxtsk,ws,pdb,pdb_metadata))
 
@@ -111,14 +115,18 @@ def redoxformdisplay(request):
         redox_segs = []
         redox_nums = {}
 
-        het = list(myMol.iter_res(segtypes = ['bad'],resName = ['fs4','sf4']))
-        for res in het:
-            if redox_nums.has_key(res.chainid.upper()):
-                redox_nums[res.chainid.upper()] += 1
-            else:
-                redox_segs.append(res.chainid.upper())
-                redox_nums[res.chainid.upper()] = 1
-
+        #myMol.write('/tmp/scotttmp.pdb',outfmt='charmm')
+        '''
+        ### THIS CAUSES ERRORS WITH MUTATION
+        '''
+        if 'mt1' not in ws.identifier:
+            het = list(myMol.iter_res(segtypes = ['bad'],resName = ['fs4','sf4']))
+            for res in het:
+                if redox_nums.has_key(res.chainid.upper()):
+                    redox_nums[res.chainid.upper()] += 1
+                else:
+                    redox_segs.append(res.chainid.upper())
+                    redox_nums[res.chainid.upper()] = 1
 
         # if we have any segments that are marked as redox only, we need to take
         # them into consideration ... this is a bit of a hack.
@@ -162,6 +170,7 @@ def redoxformdisplay(request):
             calc_final = False
         else:
             logfp.write("OK\n")
+            noredox = False
             print_result = True
             fp = open(struct.location + '/redox-' + ws.identifier + '-modpot.txt', 'r')
             try:
@@ -228,6 +237,8 @@ def redoxformdisplay(request):
         rn = {}
         for k in redox_nums.keys():
              rn[k] = range(1,redox_nums[k]+1)
+
+
         return django.shortcuts.render_to_response('html/redox.html', {'redox_segs': redox_segs, 'noredox': noredox, 'print_result': print_result, \
                                                                        'oxipot': oxipot, 'oxipotref': oxipotref, 'modpot': modpot, 'modpotref': modpotref, \
                                                                        'delg': delg, 'delgnf': delgnf, 'ade':ade, 'finres': finres, 'she':she, \
@@ -446,7 +457,7 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,rsite_resid,cysDict):
     td['prm'] = '%s/toppar/par_all22_4fe4s_esp_090209.inp' % charmming_config.data_home
     td['id'] = workstruct.identifier
 
-    logfp = open('/tmp/cysres,txt', 'w')
+    logfp = open('/tmp/cysres.txt', 'w')
     logfp.write('cysDict = %s\nrsite_resid = %s\n' % (cysDict,rsite_resid))
 
     NumberOfRedoxSites=len(cysDict)
@@ -541,6 +552,8 @@ def genstruct_tpl(workstruct,redoxTask,rsite_chain,rsite_resid,cysDict):
 
 def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
 
+    #creatMutantPDB(request,workstruct)
+
     if not request.POST.has_key('couple'):
         raise AssertionError('No coupling found')
 
@@ -567,6 +580,8 @@ def redox_tpl(request,redoxTask,workstruct,pdb,pdb_metadata):
         redoxTask.redoxsite = 'couple_red' 
 
     rtf = RTFFile('%s/toppar/top_all22_4fe4s_esp_090209.inp' % charmming_config.data_home)
+
+    pdb.write('/tmp/Redox_test2.pdb',outfmt='charmm')
 
     # Step 1: generate the patched structures of the redox site ... a call to Scott's
     # code replaces the old genstruct_tpl call.
@@ -615,21 +630,92 @@ def createFinalPDB(request,workstruct):
     if not request.POST.has_key('picksite'):
         raise AssertionError('Variable picksite must be specified')
 
-    pfp = open(workstruct.structure.pickle, 'r')
-    pdb = cPickle.load(pfp)
-    pfp.close()
-    ormdl = pdb[0] # first model has all of the segments
-    mymdl = pdb['append_%s' % workstruct.identifier]
-    numdl = copy.deepcopy(mymdl)
+    '''
+       Below is the code Scott removed to add in the mutation-friendly code.
+    '''
+#    try:
+#         pfp = open(workstruct.structure.location + '/' + workstruct.identifier + '-pickle.dat', 'r')
+#         mut = True
+#    except:
+#         pfp = open(workstruct.structure.pickle, 'r')
+# #   pfp = open(workstruct.structure.pickle, 'r')
+#    pdb = cPickle.load(pfp)
+#    pfp.close()
+#    ormdl = pdb[0] # first model has all of the segments
+# #   ormdl.write('/tmp/Redox_test3.pdb',outfmt='charmm') # WRITE
+#    try:
+#        if '-mt1' in workstruct.identifier:
+#            mymdl = pdb['append_%s' % workstruct.identifier[:-4]]  
+#        else:
+#            mymdl = pdb['append_%s' % workstruct.identifier]
+#    except:
+#        mymdl = pdb['model00']
+#    numdl = copy.deepcopy(mymdl)
+#
+#    for seg in workstruct.segments.all():
+# #       LogScottsProblems(seg.redox)          # WRITE
+#        if seg.redox:
+#            for mdlseg in ormdl.iter_seg():
+#                if mdlseg.segid == seg.name:
+#                    # add this segment to the model
+#                    numdl = numdl + Mol(mdlseg)
 
-    for seg in workstruct.segments.all():
-        if seg.redox:
-            for mdlseg in ormdl.iter_seg():
-                if mdlseg.segid == seg.name:
-                    # add this segment to the model
-                    numdl = numdl + Mol(mdlseg)
+
+    try:
+        '''
+            We'll attempt to read in two different PDB files; a mutant (pdb) and the original (wt_pdb).
+        '''
+        pfp     = open(workstruct.structure.location + '/' + workstruct.identifier + '-pickle.dat', 'r')
+        pdb     = cPickle.load(pfp)
+        pfp.close()
+    
+        pfp     = open(workstruct.structure.pickle, 'r')
+        wt_pdb  = cPickle.load(pfp)
+        pfp.close()
+    
+        m_ormdl = pdb[0] # first model has all of the segments
+        w_ormdl = wt_pdb[0] # first model has all of the segments
+        
+        m_mymdl = pdb['model00']
+        w_mymdl = wt_pdb['append_%s' % workstruct.identifier[:-4]]
+    
+        numdl = copy.deepcopy(m_mymdl)
+    
+        for seg in workstruct.segments.all():
+            if seg.redox:
+                for mdlseg in w_ormdl.iter_seg():
+                    if mdlseg.segid == seg.name:
+                        # add this segment to the model
+                        numdl = numdl + Mol(mdlseg)
+        LogScottsProblems('Tried')
+    except:
+        '''
+            If something went wrong, we'll got back to the single PDB code.
+        '''
+        pfp = open(workstruct.structure.pickle, 'r')
+        pdb = cPickle.load(pfp)
+        pfp.close()
+        ormdl = pdb[0] # first model has all of the segments
+        try:
+            if '-mt1' in workstruct.identifier:
+                mymdl = pdb['append_%s' % workstruct.identifier[:-4]]
+            else:
+                mymdl = pdb['append_%s' % workstruct.identifier]
+        except:
+            mymdl = pdb['model00']
+        numdl = copy.deepcopy(mymdl)
+    
+        for seg in workstruct.segments.all():
+            if seg.redox:
+                for mdlseg in ormdl.iter_seg():
+                    if mdlseg.segid == seg.name:
+                        # add this segment to the model
+                        numdl = numdl + Mol(mdlseg)
+        LogScottsProblems('Excepted') 
 
     numdl = Mol(numdl)
+    numdl.write('/tmp/Redox_test.pdb',outfmt='charmm')
+
     pdb['redox_%s' % workstruct.identifier] = numdl
 
     os.unlink(workstruct.structure.pickle) # to be safe
@@ -638,3 +724,10 @@ def createFinalPDB(request,workstruct):
     pfp.close()
 
     return numdl
+
+
+def LogScottsProblems(other):
+    log=open("/tmp/APBS_Testing.txt",'w')
+    log.write('\n%s\n' % other)
+    log.close()
+
