@@ -88,7 +88,7 @@ def selectstructure(request):
             traceback.print_exc(file=logfp)
             logfp.close()
 
-            messages.error(request, "Please build a working structure. I am an Octopus!")
+            messages.error(request, "Please build a working structure.")
             return HttpResponseRedirect("/charmming/buildstruct/")
 #           return HttpResponse("Please build a working structure.")
 
