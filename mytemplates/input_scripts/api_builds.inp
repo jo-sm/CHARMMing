@@ -1,0 +1,42 @@
+* build a segment
+*
+
+{% for rtf in rtf_list %}
+   {% ifequal forloop.counter 1 %}
+      read rtf card name {{rtf}}
+   {% else %}
+      read rtf card append name {{rtf}}
+   {% endifequal %}
+{% endfor %}
+
+{% for prm in prm_list %}
+   {% ifequal forloop.counter 1 %}
+      read param flex card name {{prm}}
+   {% else %}         
+      read param flex card append name {{prm}}
+   {% endifequal %}
+{% endfor %}
+
+{% for str in str_list %}
+stream {{str}}
+{% endfor %}
+
+open unit 80 read card name segment-{{segname}}.pdb
+read sequ pdb unit 80
+rewind unit 80
+
+generate {{segname}} setup {{genopts}}
+read coor pdb unit 80
+close unit 80
+
+hbuild
+
+write psf card name segment-{{segname}}.psf
+* ready for API use
+*
+
+write coor card name segment-{{segname}}.crd
+* ready for API use
+*
+
+stop

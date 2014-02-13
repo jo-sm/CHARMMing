@@ -1,0 +1,38 @@
+* API minimization
+*
+
+{% for rtf in rtf_list %}
+   {% ifequal forloop.counter 1 %}
+      read rtf card name {{rtf}}
+   {% else %}
+      read rtf card append name {{rtf}}
+   {% endifequal %}
+{% endfor %}
+
+{% for prm in prm_list %}
+   {% ifequal forloop.counter 1 %}       
+      read param flex card name {{prm}}
+   {% else %}       
+      read param flex card append name {{prm}}
+   {% endifequal %} 
+{% endfor %}
+
+read psf card name structure.psf
+read coor card name structure.crd
+
+{%if gbmv %}
+! GBMV requres slightly different non-bond parameters than normal
+UPDATE atom CDIE eps 1 cutnb 21 ctofnb 18 ctonnb 16 switch vswitch
+
+GBMV BETA -12 EPSILON 80 GEOM -
+     BUFR 0.2 Mem 20 CUTA 20 -
+     ALFRQ 1 P1 0.45 P2 1.25 P6 8.0 P3 0.65 -
+     WTYP 1 NPHI 5 CORR 1 SA 0.020 SB 0.0 SHIFT -0.1 SLOPE 0.9 -
+     FAST 0 SGBFRQ 4 SXD 0.3
+{% endif %}
+
+mini sd nstep {{sdstep}} nprint 50
+mini abnr nstep {{abnrstep}} nprint 200 tolg 0.1
+
+energy
+stop
