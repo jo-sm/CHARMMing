@@ -17,7 +17,7 @@
    {% endifequal %} 
 {% endfor %}
 {% for str in str_list %}
-  stream {{str}}
+  stream "{{str}}"
 {% endfor %}
 
 

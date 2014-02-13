@@ -18,7 +18,7 @@
 {% endfor %}
 
 {% for str in str_list %}
-stream {{str}}
+stream "{{str}}"
 {% endfor %}
 
 open unit 80 read card name segment-{{segname}}.pdb
@@ -28,6 +28,12 @@ rewind unit 80
 generate {{segname}} setup {{genopts}}
 read coor pdb unit 80
 close unit 80
+
+{%if doic %}
+  ic para
+  ic fill preserve
+  ic build
+{% endif %}
 
 hbuild
 

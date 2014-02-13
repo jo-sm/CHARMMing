@@ -18,7 +18,7 @@
 {% endfor %}
 
 {% for str in str_list %}
-stream {{str}}
+stream "{{str}}"
 {% endfor %}
 
 {% for seg in seg_list %}
