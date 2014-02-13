@@ -53,9 +53,9 @@
     var currentsegid = getSegID($("#MutSegi").val());
     if (segletter != null){
       if (currentsegid < (segnames.length - 1)){
-        var script = "select [" + resname + "] " + resnum + " and atomno < " + chain_terminators[currentsegid + 1] + " and atomno >= " + chain_terminators[currentsegid];
+        var script = "select " + resnum + " and atomno < " + chain_terminators[currentsegid + 1] + " and atomno >= " + chain_terminators[currentsegid];
       }else{
-        var script = "select [" + resname + "] " + resnum + " and atomno >= " + chain_terminators[currentsegid];
+        var script = "select " + resnum + " and atomno >= " + chain_terminators[currentsegid];
       }
       Jmol.script(jmolApplet, script);
     }
