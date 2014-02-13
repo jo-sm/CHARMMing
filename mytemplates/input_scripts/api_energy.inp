@@ -16,6 +16,10 @@
       read param flex card append name {{prm}}
    {% endifequal %} 
 {% endfor %}
+{% for str in str_list %}
+  stream {{str}}
+{% endfor %}
+
 
 read psf card name structure.psf
 read coor card name structure.crd
