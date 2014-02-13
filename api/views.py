@@ -19,8 +19,9 @@
 import pychm, re
 import charmming_config
 import os, json, sha, tempfile, cPickle, time
-import traceback
+import traceback, socket
 import output
+import openbabel
 from httplib import HTTPConnection
 from api.models import APIUser, APIJob, APIOptimization, APIEnergy
 from django.http import HttpResponseRedirect, HttpResponse
@@ -77,6 +78,70 @@ def validateUser(postdata):
     logfp.close()
     return 0, ddct
         
+def badRes(seg,dname):
+
+    logfp = open('/tmp/api_badres.txt','w')
+    
+    streamList = []
+    badResList = []
+    for res in seg.iter_res():
+        logfp.write('dealing with res %s\n' % res.resName)
+        if res.resName in badResList:
+            continue
+
+        filename_noh  = '%s/%s-%s.pdb' % (dname,seg.segid,res.resName)
+        filename_mol2 = '%s/%s-%s.mol2' % (dname,seg.segid,res.resName)
+
+        res.write(filename_noh,outformat='pdborg')
+        logfp.write('wrote out pdb\n')
+
+        obconv = openbabel.OBConversion()
+        mol = openbabel.OBMol()
+        obconv.SetInAndOutFormats("pdb","mol2")
+        obconv.ReadFile(mol, filename_noh.encode("utf-8"))
+        mol.AddHydrogens()
+        mol.SetTitle(res.resName)
+        obconv.WriteFile(mol, filename_mol2.encode("utf-8"))
+        logfp.write('converted it to MOL2\n')
+
+        header = '# USER_IP 165.112.184.30 USER_LOGIN apiuser\n\n'
+        fp = open(filename_mol2,'r')
+        payload = fp.read()
+        fp.close()
+        content = header + payload
+
+        recvbuff = ''
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((charmming_config.cgenff_host, charmming_config.cgenff_port))
+            s.sendall(content)
+            s.shutdown(socket.SHUT_WR)
+            while True:
+                data = s.recv(1024)
+                if not data:
+                    break
+                recvbuff += data
+
+        except Exception, e:
+            return None
+
+        logfp.write('got response from paramChem\n')
+        fp = open('%s/stream-%s-%s.str' % (dname,seg.segid,res.resName), 'w')
+        instr = False
+        for line in recvbuff.split('\n'):
+            if not instr:
+                if line.startswith('*'):
+                    instr = True
+                else:
+                    continue
+            fp.write(line + '\n')
+        fp.close()
+        streamList.append('%s/stream-%s-%s.str' % (dname,seg.segid,res.resName))
+
+    logfp.write('All done!\n')
+    logfp.close()
+        
+    return streamList
 
 def setUPDirectory(client,req,job):
     dirname = tempfile.mkdtemp(prefix='%s/%s/job' % (charmming_config.user_home,client.callerName))
@@ -137,10 +202,22 @@ def setUPDirectory(client,req,job):
             myPrms.append('%s/toppar/%s' % (charmming_config.data_home,charmming_config.default_pro_prm))
             myStrs.append('%s/toppar/toppar_water_ions.str' % charmming_config.data_home)
             genopts = 'first none last none noangle nodihedral'
+            doic = False
         elif seg.segType == 'pro':
             myRtfs.append('%s/toppar/%s' % (charmming_config.data_home,charmming_config.default_pro_top))
             myPrms.append('%s/toppar/%s' % (charmming_config.data_home,charmming_config.default_pro_prm))
             genopts = ''
+            doic = True
+        elif seg.segType == 'bad':
+            badtp = badRes(seg,dirname)
+            if not badtp:
+                return None
+            myRtfs.append('%s/toppar/top_all36_cgenff.rtf' % charmming_config.data_home)
+            myPrms.append('%s/toppar/par_all36_cgenff.prm' % charmming_config.data_home)
+            for item in badtp:
+                myStrs.append(item)
+            genopts = 'first none last none'
+            doic = False
         else:
             # let's not deal with anything else yet...
             logfp = open('/tmp/setupdir3.log','w')
@@ -156,7 +233,7 @@ def setUPDirectory(client,req,job):
             strList.add(x)
 
         template_dict = {'rtf_list': myRtfs, 'prm_list': myPrms, 'str_list': myStrs, \
-                         'segname': seg.segid, 'genopts': genopts}
+                         'segname': seg.segid, 'genopts': genopts, 'doic': doic}
         t = get_template('%s/mytemplates/input_scripts/api_builds.inp' % charmming_config.charmming_root)
         charmm_inp = output.tidyInp(t.render(Context(template_dict)))
 
