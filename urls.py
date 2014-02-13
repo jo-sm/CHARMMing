@@ -99,7 +99,7 @@ urlpatterns = patterns('',
      # Uncomment this for admin:
      (r'^charmming/admin/statistics/', 'account.admin_views.showStats'),
      (r'^charmming/admin/unapproved/', 'account.admin_views.showUnapproved'),
-     (r'^charmming/admin/(.*)', admin.site.root),
+     (r'^charmming/admin/(.*?)', include(admin.site.urls)),
      (r'^charmming/admin-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/usr/share/pyshared/django/contrib/admin/media'}),
 
 
@@ -145,11 +145,12 @@ urlpatterns = patterns('',
      (r'^charmming/dd_substrate/setligands/(?P<ligandset_id>.*)/(?P<addedids>.*)/(?P<removedids>.*)/$', 'dd_substrate.views.setLigands'),
      (r'^charmming/dd_substrate/viewligands/$', 'dd_substrate.views.viewligands'),
      (r'^charmming/dd_substrate/deleteligand/$', 'dd_substrate.views.deleteligand'),
-#     (r'^charmming/dd_substrate/viewligandjmol/(?P<ligand_file_id>.*)/$', 'dd_substrate.views.viewLigandJmol'),
+     #(r'^charmming/dd_substrate/viewligandjmol/(?P<ligand_file_id>.*)/$', 'dd_substrate.views.viewLigandJmol'),
      (r'^charmming/dd_substrate/viewligandglmol/(?P<ligand_file_id>.*)/$', 'dd_substrate.views.viewLigandGLmol'),
      #(r'^charmming/dd_target/viewtargetscontainer/$', 'dd_target.views.viewTargetsContainer'),
      (r'^charmming/dd_target/viewtargets/$', 'dd_target.views.viewTargets'),     
      #(r'^charmming/qsar/viewjobs/$', 'qsar.views.viewJobs'),
      (r'^charmming/qsar/', include('qsar.urls')),
+     (r'^charmming/api/', include('api.urls')),
      #(r'^charmming/qsar/$', 'qsar.views.upload'),
 )
