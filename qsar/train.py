@@ -10,8 +10,10 @@ from rdkit.ML.DecTree.BuildSigTree import SigTreeBuilder
 from rdkit.ML.Composite.Composite import Composite
 from rdkit.ML.DecTree import CrossValidate
 from rdkit.ML import ScreenComposite
-from sklearn.ensemble import RandomForestRegressor
 from sklearn import tree,metrics
+from sklearn import svm,linear_model,ensemble,tree
+#from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
 
 def get_sd_properties(filename):
   path = filename
@@ -81,7 +83,12 @@ def check_activity_property(ms, activity_property):
     
     return False
 
-def train_model(pts):
+def train_model(pts,type):
+    if type != "rf":
+        return train_model_other(pts,type)
+    return train_model_rf(pts)
+        
+def train_model_rf(pts):
     cmp = Composite()
     cmp.Grow(pts,attrs=[1],nPossibleVals=[2],nTries=500,randomDescriptors=3,
              buildDriver=CrossValidate.CrossValidationDriver,
@@ -89,17 +96,50 @@ def train_model(pts):
                       maxDepth=2,silent=True)
     return cmp
 
-def train_model_regression(fps,acts):
-    nclf = RandomForestRegressor(n_estimators=500, max_depth=5,random_state=0,n_jobs=4)
+def train_model_other(pts,type):
+    fps = [x[1] for x in pts]
+    act = [x[2] for x in pts]
+    clf = eval(type+"()")
+    clf.fit(fps, act)  
+    return clf
+    
+def classify(p,cmp,type):
+    if type != "rf":
+        fp = p[1]
+        a = cmp.predict(fp);
+        pred = a[0]
+        if "decision_function" in dir(cmp):
+            b = cmp.decision_function(fp);
+        else:
+            b = cmp.predict_proba(fp);
+        try:
+            prob = b[0][0]
+        except IndexError:
+            try:
+                prob = b[0]
+            except IndexError:
+                prob = b
+        if "decision_function" in dir(cmp):
+            if pred == 0:
+                prob = 1-prob
+        else:
+            if pred == 1:
+                prob = 1-prob
+        return pred,prob
+    return cmp.ClassifyExample(p)
+    
+def train_model_regression(fps,acts,type):
+    nclf = eval(type+"()")
+#    RandomForestRegressor(n_estimators=500, max_depth=5,random_state=0,n_jobs=4)
     nclf = nclf.fit(fps,acts)
     return nclf
-
-def auc(pts,cmp):
+    
+def auc(pts,cmp,type):
     positive=0;
     decoy=0
     pa_act = []
     for p in pts:
-      [pred,prob] = cmp.ClassifyExample(p)
+      [pred,prob] = classify(p,cmp,type) #cmp.ClassifyExample(p)
       pa=prob
       if pred==0:
         pa=1-prob
@@ -127,25 +167,25 @@ def r2(fps,acts,nclf):
     r = metrics.r2_score(acts,preds)
     return r
     
-def y_randomization(pts):
+def y_randomization(pts,type):
     acts = [x[2] for x in pts]
     random.shuffle(acts)
     rand_pts = []
     for i,p in enumerate(pts):
         rand_pts.append([p[0],p[1],acts[i]])
-    rand_cmp = train_model(rand_pts)
-    rand_auc = auc(rand_pts,rand_cmp)
+    rand_cmp = train_model(rand_pts,type)
+    rand_auc = auc(rand_pts,rand_cmp,type)
     return rand_auc
 
-def y_randomization_r2(fps,acts):
+def y_randomization_r2(fps,acts,type):
     rand_acts = acts[:]
     random.shuffle(rand_acts)
-    rand_cmp = train_model_regression(fps,rand_acts)
+    rand_cmp = train_model_regression(fps,rand_acts,type)
     rand_r2 = r2(fps,rand_acts,rand_cmp)
     return rand_r2
                                     
                                     
-def cross_validation(pts):
+def cross_validation(pts,type):
     random.shuffle(pts)
     avg_auc = 0
     for i in range(5):
@@ -156,13 +196,13 @@ def cross_validation(pts):
                 test_set.append(p)
             else:
                 train_set.append(p)
-        train_cmp = train_model(train_set)
-        test_auc = auc(test_set,train_cmp)
+        train_cmp = train_model(train_set,type)
+        test_auc = auc(test_set,train_cmp,type)
         avg_auc += test_auc
     avg_auc /= 5
     return avg_auc
 
-def cross_validation_r2(fps,acts):
+def cross_validation_r2(fps,acts,type):
     pts = zip(fps,acts)
     random.shuffle(pts)
     cross_fps,cross_acts = zip(*pts)   
@@ -182,19 +222,21 @@ def cross_validation_r2(fps,acts):
                 test_act.append(a)
             else:
                 train_act.append(a)
-        train_cmp = train_model_regression(train_fp,train_act)
+        train_cmp = train_model_regression(train_fp,train_act,type)
         test_r2 = r2(test_fp,test_act,train_cmp)
         avg_r2 += test_r2
     avg_r2 /= 5
     return avg_r2
                                                                                                                             
 
-def calculate_threshold(pts,cmp):
+def calculate_threshold(pts,cmp,type):
     positive=0;
     decoy=0
     pa_act = []
+    low = sys.float_info.max
+    top = -(sys.float_info.max/2)
     for p in pts:
-      [pred,prob] = cmp.ClassifyExample(p)
+      [pred,prob] = classify(p,cmp,type) #cmp.ClassifyExample(p)
       pa=prob
       if pred==0:
         pa=1-prob
@@ -203,12 +245,17 @@ def calculate_threshold(pts,cmp):
         positive+=1
       else:
         decoy+=1
+      if pa > top:
+          top = pa
+      if pa < low:
+          low = pa
       pa_act.append({"pa":pa,"act":act});
 
     recall = 1.
     precision = 0.
     count = 0
-    recall,precision,threshold = recall_precision(0.,1.,pa_act,recall,precision,count)
+    #print low,top
+    recall,precision,threshold = recall_precision(low,top,pa_act,recall,precision,count)
     return recall,precision,threshold
 
 def recall_precision(low,top,pa_act,old_recall,old_precision,count):
@@ -253,7 +300,7 @@ def load_model(name):
     cmp = cPickle.load(file(name,'rb'))
     return cmp
 
-def run_prediction(cmp,name,threshold,active,inactive,activity_property,out):
+def run_prediction(cmp,name,threshold,active,inactive,activity_property,out,type):
     actives=0
     predicted=0
     TP=0
@@ -263,7 +310,7 @@ def run_prediction(cmp,name,threshold,active,inactive,activity_property,out):
         if m is not None:
             act=0
             fp=AllChem.GetMorganFingerprintAsBitVect(m,2,2048)
-            [pred,prob] = cmp.ClassifyExample([i,fp,act])
+            [pred,prob] = classify([i,fp,act],cmp,type) #cmp.ClassifyExample([i,fp,act])
             pa=prob
             if pred==0:
                 pa=1-prob
@@ -314,4 +361,27 @@ def run_prediction_regression(nclf,name,activity_property,out):
     if count > 10:
         r = metrics.r2_score(real_acts,preds)
     return r
-    
+
+name_to_type_cat = dict()
+name_to_type_cat["Random Forest (SAR) Categorization"] = ["rf",True]
+name_to_type_cat["SVM (SAR) Categorization"] = ["svm.SVC",True]
+name_to_type_cat["Random Forest (QSAR) Regression"] = ["ensemble.RandomForestRegressor",False]
+name_to_type_cat["SVM (QSAR) Regression"] = ["svm.SVR",False]
+name_to_type_cat["Logit (SAR) Categorization"] = ["linear_model.LogisticRegression",True]
+name_to_type_cat["SGD (SAR) Categorization"] = ["linear_model.SGDClassifier",True]
+#name_to_type_cat["Nearest Neighbors (SAR) Categorization"] = ["KNeighborsClassifier",True]
+name_to_type_cat["Naive Bayes (SAR) Categorization"] = ["GaussianNB", True]
+#name_to_type_cat["AdaBoost (SAR) Categorization"] = ["ensemble.AdaBoostClassifier", True]
+name_to_type_cat["Gradient Boosting (SAR) Categorization"] = ["ensemble.GradientBoostingClassifier", True]
+name_to_type_cat["Decision Tree (SAR) Categorization"] = ["tree.DecisionTreeClassifier",True]
+name_to_type_cat["Gradient Boosting (QSAR) Regression"] = ["ensemble.GradientBoostingRegressor",False]
+name_to_type_cat["Decision Tree (QSAR) Regression"] = ["tree.DecisionTreeRegressor",False]
+#name_to_type_cat["Least Squares Linear (QSAR) Regression"] = ["linear_model.LinearRegression",False]
+name_to_type_cat["Ridge (QSAR) Regression"] = ["linear_model.Ridge",False]
+name_to_type_cat["Lasso (QSAR) Regression"] = ["linear_model.Lasso",False]
+name_to_type_cat["Elastic Net (QSAR) Regression"] = ["linear_model.ElasticNet",False]
+name_to_type_cat["SGD (QSAR) Regression"] = ["linear_model.SGDRegressor",False]
+
+def categorization_regression(name):
+    type,category = name_to_type_cat[name]
+    return type,category

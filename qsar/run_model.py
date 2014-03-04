@@ -10,9 +10,11 @@ inactive = sys.argv[5]
 activity_property = sys.argv[6]
 out = sys.argv[7]
 output_txt = sys.argv[8]
+type = sys.argv[9]
+
 
 cmp = load_model(saved_model)
-recall,precision = run_prediction(cmp,str(name),float(threshold),active,inactive,activity_property,str(out))
+recall,precision = run_prediction(cmp,str(name),float(threshold),active,inactive,activity_property,str(out),type)
 recall = round(recall,3)
 precision = round(precision,3)
 
