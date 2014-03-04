@@ -439,6 +439,7 @@ class WorkingSegment(Segment):
                 ## add more residues that we have stream files for here ##
 
             doitnow = True
+            very_bad_res = False
             if residue.resName not in badResList:
                 logfp.write('--> considering residue %s badRes = %s\n' % (residue.resName,badResList))
                 for stuff in badResList:
@@ -474,6 +475,21 @@ class WorkingSegment(Segment):
                     outfp = open(filename_sdf, 'w')
                     outfp.write(sdf_file)
                     outfp.close()
+
+                    # This is all new code developed by Vinushka at the USF Hack-a-thon
+                    # Feb. 2014
+                    sdf_re = re.compile(" +[0-9]+\.[0-9]+ +[0-9]+\.[0-9]+ +[0-9]+\.[0-9]+ +(?!H )[A-Z]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+")
+                    sdf_result = open(filename_sdf,"r")
+                    atom_count_sdf = 0
+                    atom_count_pdb = 0
+                    for line in sdf_result.readlines():
+                        if re.match(sdf_re,line):
+                            atom_count_sdf += 1
+                    for atom in residue.iter_atom():
+                        atom_count_pdb += 1
+                    if atom_count_pdb != atom_count_sdf: #We ignore hydrogens so these should match
+                        very_bad_res = True
+
                 else:
                     mylogfp.write('No: use PDB\n')
                     mylogfp.flush()
@@ -494,7 +510,7 @@ class WorkingSegment(Segment):
             mylogfp.close()
 
         logfp.close()
-        return badResList
+        return badResList,very_bad_res
 
     # This method will handle the building of the segment, including
     # any terminal patching
@@ -522,8 +538,9 @@ class WorkingSegment(Segment):
         os.system('cat %s >> /tmp/debug1.txt' % fname)
 
         # see if we need to build any topology or param files
+        use_other_buildscript = False
         if self.type == 'bad':
-            bhResList = self.getUniqueResidues(mol)
+            bhResList,use_other_buildscript = self.getUniqueResidues(mol)
 
             if len(bhResList) > 0:
                 if self.tpMethod == 'autogen':
@@ -537,7 +554,7 @@ class WorkingSegment(Segment):
                         elif tpmeth == 'antechamber':
                             rval = self.makeAntechamber(bhResList)
                         elif tpmeth == 'cgenff':
-                            rval = self.makeCGenFF(bhResList)
+                            rval = self.makeCGenFF(bhResList,use_other_buildscript)
                         elif tpmeth == 'match':
                             rval = self.makeMatch(bhResList)
 
@@ -551,7 +568,7 @@ class WorkingSegment(Segment):
                          raise AssertionError('Unable to build topology/parameters')
 
                 elif self.tpMethod == 'dogmans':
-                     rval = self.makeCGenFF(bhResList)
+                     rval = self.makeCGenFF(bhResList,use_other_buildscript)
                 elif self.tpMethod == 'match':
                      rval = self.makeMatch(bhResList)
                 elif self.tpMethod == 'antechamber':
@@ -626,7 +643,14 @@ class WorkingSegment(Segment):
         if patch_lines: template_dict['patch_lines'] = patch_lines
 
         # write out the job script
-        t = get_template('%s/mytemplates/input_scripts/buildSeg.inp' % charmming_config.charmming_root)
+        ##t = get_template('%s/mytemplates/input_scripts/buildSeg.inp' % charmming_config.charmming_root)
+
+        # fix from Vinushka!!
+        if use_other_buildscript:
+            t = get_template('%s/mytemplates/input_scripts/buildBadSeg.inp' % charmming_config.charmming_root)
+        else:
+            t = get_template('%s/mytemplates/input_scripts/buildSeg.inp' % charmming_config.charmming_root)
+
         charmm_inp = output.tidyInp(t.render(Context(template_dict)))
         charmm_inp_filename = self.structure.location + "/build-"  + template_dict['outname'] + ".inp"
         charmm_inp_file = open(charmm_inp_filename, 'w')
@@ -643,7 +667,7 @@ class WorkingSegment(Segment):
 
         return charmm_inp_filename
 
-    def makeCGenFF(self, badResList):
+    def makeCGenFF(self, badResList, very_bad_badres):
         """
         Connects to dogmans.umaryland.edu to build topology and
         parameter files using CGenFF
@@ -688,19 +712,20 @@ class WorkingSegment(Segment):
             logfp.write('Lengths: pdbmol %d molmol %d\n' % (len(pdbmol),len(molmol)))
             logfp.flush()
 
-            j = 0
-            for i, pdbatom in enumerate(pdbmol):
-                if pdbatom.resName != badRes.lower():
-                    continue
-                if pdbatom.atomType.startswith('H'):
-                    break
-                molatom = molmol[j]
-                j = j + 1
+            if not very_bad_badres:
+                j = 0
+                for i, pdbatom in enumerate(pdbmol):
+                    if pdbatom.resName != badRes.lower():
+                        continue
+                    if pdbatom.atomType.startswith('H'):
+                        break
+                    molatom = molmol[j]
+                    j = j + 1
 
-                # This is for debug purposes only
-                ##if pdbatom.atomType.strip()[0] != molatom.atomType.strip()[0]:
-                ##    raise(Exception('Mismatched atom types'))
-                molatom.atomType = pdbatom.atomType.strip()
+                    # This is for debug purposes only
+                    ##if pdbatom.atomType.strip()[0] != molatom.atomType.strip()[0]:
+                    ##    raise(Exception('Mismatched atom types'))
+                    molatom.atomType = pdbatom.atomType.strip()
 
             molmol.write(filename_mol2, outformat='mol2', header=mymol2.header, bonds=mymol2.bonds)
 

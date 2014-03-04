@@ -1,0 +1,52 @@
+{% extends "input_scripts/generic_charmm_script.inp" %} blankme
+
+{%block title%} Run Segment Through CHARMM {% endblock %}
+
+{% block body %} blankme
+
+read sequence pdb name {{ pdb_in }}
+generate {{ segname }} setu first {{ patch_first }}  last {{ patch_last }} {{noangdihe}}
+
+read coor pdb name {{pdb_in}}
+{% if doic %}
+  ic para
+  ic fill preserve
+  ic build
+{%endif%}
+print coor sele .not. init end 
+define notinit sele .not. init show end 
+
+coor stat sele .not. notinit show end 
+coor init sele notinit show end 
+
+cons fix sele .not. notinit show end 
+cons fix sele notinit .and. type H* show end 
+
+bomblev -6
+
+scalar X set ?XAVE sele notinit show end 
+scalar Y set ?YAVE sele notinit show end 
+scalar Z set ?ZAVE sele notinit show end 
+
+cons fix sele none end 
+cons fix sele .not. notinit end 
+
+mini sd nstep 500
+print coor 
+
+coor init sele notinit .and. type H* end 
+hbuild 
+mini sd nstep 500
+
+write psf card name {{ outname }}.psf
+* PSF
+*
+
+write coor card name {{ outname }}.crd
+* Coords
+*
+
+write coor pdb name {{ outname }}.pdb
+* PDB for JSmol visualization
+*
+{%endblock%} blankme
