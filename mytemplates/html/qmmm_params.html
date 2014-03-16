@@ -136,7 +136,7 @@ function generateParams(modelType,layers){
             $("#qmmm_charge_layer_{{atomselection.layer_num}}").val("{{atomselection.charge}}");
             $("#qmmm_correlation_layer_{{atomselection.layer_num}}").val("{{atomselection.correlation}}");
             $("#qmmm_basisset_layer_{{atomselection.layer_num}}").val("{{atomselection.basis_set}}");
-            $("#qmmm_multiplicity_layer_{{atomselection.layer_num}}").val("{{atomselection.basis_set}}");
+            $("#qmmm_multiplicity_layer_{{atomselection.layer_num}}").val("{{atomselection.multiplicity}}");
             {%comment%}divid was changed such that this forloop would be more easy to write. divid now lookslike "_layer_1_0", thus we can actually 
             take it out of everything and write them at the end. May be good for making the code generic?{%endcomment%}
           {% else %}

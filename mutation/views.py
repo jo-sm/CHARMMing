@@ -280,7 +280,7 @@ def selectstructure(request):
         pdb = open(struct.pickle)
     #This way you can do multi-level mutations without issue
     pdbfile = cPickle.load(pdb)
-    taco = pdbfile['model00']
+    taco = pdbfile.iter_models().next() #we don't care about which model we load, so long as we load one
     pdb.close()
     tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True).exclude(action="solvation") #Things that were solvated on, you run at your own risk
     isMutated = False
@@ -324,15 +324,11 @@ def selectstructure(request):
     tdict['messages'] = messages.get_messages(request)
     tdict['ws_identifier'] = ws.identifier
     tdict['filepath'] = filepath
-#    tdict['disulfide_list'] = struct.getDisulfideList() #NO idea if we even need this, or proto_list, it's just more cPickle open reads and those make everything slow
-#    tdict['proto_list'] = []
     tdict['super_user'] = request.user.is_superuser
     if (ws.isBuilt != 't'):
         messages.error(request, "Please perform a calculation on the whole atom set before performing a mutation.")
         return HttpResponseRedirect("/charmming/energy/")
 #        tdict['no_coords'] = True
-#    for seg in sl:
-#        tdict['proto_list'].extend(seg.getProtonizableResidues()) #Is this necessary?
 
     tdict['lesson_ok'], tdict['dd_ok'] = checkPermissions(request)
     return render_to_response('html/mutationselect.html', tdict)

@@ -52,6 +52,7 @@ class Structure(models.Model):
 
     natom  = models.PositiveIntegerField(default=0)
     name   = models.CharField(max_length=100)
+    original_name = models.CharField(max_length=100,null=True,default=None)
     pickle = models.CharField(max_length=100)
 
     pdb_disul = models.CharField(max_length=1000)
@@ -61,7 +62,7 @@ class Structure(models.Model):
     journal = models.CharField(max_length=250)
     pub_date = models.DateTimeField(default=datetime.datetime.now)
     domains = models.CharField(max_length=250,default='')
-    
+
     #Returns a list of files not specifically associated with the structure
     def getNonStructureFiles(self):
         file_list = []
@@ -84,7 +85,7 @@ class Structure(models.Model):
         pfp = open(self.pickle, 'r')
         pdb = cPickle.load(pfp)
         pfp.close()
-        mdl = pdb[0]
+        mdl = pdb.iter_models().next() #Usually this works out. Watch for multi-model systems.
 
         logfp = open('/tmp/getDisul.log', 'w')
 
@@ -271,9 +272,10 @@ class Segment(models.Model):
             self.default_patch_last = 'NONE'
         self.save()
 
-    def getProtonizableResidues(self,model=None,pickleFile=None):
+    def getProtonizableResidues(self,model=None,pickleFile=None,propka_residues=None):
         """
-        Returns tuples of information. ToDo: Document this!!!
+        Returns tuples of information and whether the user needs to decide on protonation states, in that order.
+        Returns "user needs to decide" by default.
         """
         if not pickleFile:
             pfp = open(self.structure.pickle, 'r')
@@ -281,11 +283,11 @@ class Segment(models.Model):
         else:
             pdb = pickleFile
 
-        if not model: 
+        if not model:
             mol = pdb.iter_models().next() # grab first model
         else:
             mol = pdb[model]
-
+        user_decision = True
         # ToDo: if there is more than one model, the protonizable
         # residues could change. We don't handle this right at
         # the moment, but it may not matter too much since the
@@ -294,17 +296,15 @@ class Segment(models.Model):
         # The atoms DO change after a build, however. But at most of the places where
         # this function gets called, this is irrelevant since 
         # we haven't built yet
-        #TODO: This is VERY problematic with mutated structures, particularly solvated
-        #mutated structure, which just break this as a whole, since you lose the "a-good", for example.
-        #However, why we are passing good/badhets into this function is beyond me. ~VS
         #We can probably handle multi-model protonizable residues with JavaScript but
         #It will make the buildstruct page bloat quite a lot, and it's pretty
         #bloated as it is now.
 
         found = False
         for s in mol.iter_seg():
-            if s.segid == self.name:
+            if self.name == s.segid:
                 found = True
+                curr_seg = s
                 break
 
         if not found:
@@ -312,45 +312,54 @@ class Segment(models.Model):
 
         rarr = []
 
-        # todo, make the actual one the default
-        #TODO:
-        #This will be done using PROPKA and  pKa data for certain protonation states
-        #Outline goes as follows:
-        #run PROPKA on the PDB from the protein (if any...if there isn't one, i.e. just PSF/CRD, we can't do anything since
-        #babel used to have CHARMM format in 2002, but 12 years later they still haven't re-added support for it for openbabel 2.0)
-        #Anyway!
-        #we run PROPKA, and use data garnished/stolen from organic chem textbooks on the pKa of these things
-        # (we can probably cite him if need be)
-        # and use that to predict the proto state. If < the pKa of a certain proto state, it's protonated, else, it's deprotonated
-        # if pKa = the turning point, tell the user that there's a problem
-        #should be simple
-        #propka output is big on big proteins
-        #but no summary on smaller ones
-        #might be best to just ignore those lines when on small proteins, though that just adds more chekcing ops...
-        #TODO: Make test output on big and small proteins for algorithm evaluation
-        #also check on proto_list code in the template so we can do automatic selection
-        #basically we're going to append one last thing to the tuple containing the resname to mark it as selected
-        #We also need to keep track of whether the pKa is equal to the 50/50 point on the pKa chart at that point, so we'll 
-        # need another piece of information in each tuple in rarr which would say whether that is the case
-        #glup-pka = 4.07 #side-chain pKa for glutamates
-        #hsp-pka = 6.00 #side-chain pKa for histidines
-        #lsn-pka = 10.8
-        #asp-pka = 4.1 #should be close enough to glup-pka
-        #now we check for whether we have a PDB file, and we need to do some magic because
-
-        for m in s.iter_res():
+        #At this point, we either use our regular logic, or use the PDB we wrote beforehand in PDBORG format
+        #which we then match with the chainid and resid in the list
+        asp_list = None
+        glup_list = None
+        hsp_list = None
+        lsn_list = None #We set to None first to make sure python doesn't freak out
+        if propka_residues != None: #this means we're using propka
+            asp_list = propka_residues[0]
+            glup_list = propka_residues[1]
+            hsp_list = propka_residues[2]
+            lsn_list = propka_residues[3]
+        for m in curr_seg.iter_res():
             nm = m.resName.strip()
             if nm in ['hsd','hse','hsp','his']:
+                proto_choice = 0
+                if hsp_list:
+                    for sub_list in hsp_list:
+                        if m.resid == sub_list[0] and m.chainid == sub_list[1]: #we need to write a good PDB file beforehand...
+                            proto_choice = sub_list[3]
+                            break
                 rarr.append((self.name,m.resid, \
-                            [('hsd','Neutral histadine with proton on the delta carbon'), \
-                             ('hse','Neutral histadine with proton on the epsilon carbon'),
-                             ('hsp','Positive histadine with protons on both the delta and epsilon carbons')],m.resid0))
+                            [('hsd','Neutral histidine with proton on the delta carbon'), \
+                             ('hse','Neutral histidine with proton on the epsilon carbon'),
+                             ('hsp','Positive histidine with protons on both the delta and epsilon carbons')],m.resid0,proto_choice))
             if nm in ['asp','aspp']:
-                rarr.append((self.name,m.resid,[('asp','-1 charged aspartic acid'),('aspp','Neutral aspartic acid')],m.resid0))
+                proto_choice = 0
+                if asp_list:
+                    for sub_list in asp_list:
+                        if m.resid == sub_list[0] and m.chainid == sub_list[1]:
+                            proto_choice = sub_list[3]
+                            break
+                rarr.append((self.name,m.resid,[('asp','-1 charged aspartic acid'),('aspp','Neutral aspartic acid')],m.resid0,proto_choice))
             if nm in ['glu','glup']:
-                rarr.append((self.name,m.resid,[('glu','-1 charged glutamic acid'),('glup','Neutral glutamic acid')],m.resid0))
+                proto_choice = 0
+                if glup_list:
+                    for sub_list in glup_list:
+                        if m.resid == sub_list[0] and m.chainid == sub_list[1]:
+                            proto_choice = sub_list[3]
+                            break
+                rarr.append((self.name,m.resid,[('glu','-1 charged glutamic acid'),('glup','Neutral glutamic acid')],m.resid0,proto_choice))
             if nm in ['lys','lsn']:
-                rarr.append((self.name,m.resid,[('lys','+1 charged Lysine'),('lsn','Neutral Lysine')],m.resid0))
+                proto_choice = 0
+                if lsn_list:
+                    for sub_list in lsn_list:
+                        if m.resid == sub_list[0] and m.chainid == sub_list[1]:
+                            proto_choice = sub_list[3]
+                            break
+                rarr.append((self.name,m.resid,[('lys','+1 charged Lysine'),('lsn','Neutral Lysine')],m.resid0,proto_choice))
         if not pickleFile:
             pfp.close()
         return rarr
@@ -476,8 +485,6 @@ class WorkingSegment(Segment):
                     outfp.write(sdf_file)
                     outfp.close()
 
-                    # This is all new code developed by Vinushka at the USF Hack-a-thon
-                    # Feb. 2014
                     sdf_re = re.compile(" +[0-9]+\.[0-9]+ +[0-9]+\.[0-9]+ +[0-9]+\.[0-9]+ +(?!H )[A-Z]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+ +[0-9]+")
                     sdf_result = open(filename_sdf,"r")
                     atom_count_sdf = 0
@@ -489,7 +496,6 @@ class WorkingSegment(Segment):
                         atom_count_pdb += 1
                     if atom_count_pdb != atom_count_sdf: #We ignore hydrogens so these should match
                         very_bad_res = True
-
                 else:
                     mylogfp.write('No: use PDB\n')
                     mylogfp.flush()
@@ -525,6 +531,7 @@ class WorkingSegment(Segment):
         mol = (cPickle.load(fp))[mdlname]
         logfp.write('string of mol = %s\n' % str(mol))
         fname = ""
+        use_other_buildscript = False
         for s in mol.iter_seg():
             if s.segid == self.name:
                 logfp.write('string of seg %s = %s\n' % (s.segid,str(s)))
@@ -599,7 +606,7 @@ class WorkingSegment(Segment):
             template_dict['tpstream'] = [x for x in self.stream_list.split()]
         else:
             template_dict['tpstream'] = []
-
+        #somewhere around here we need to inject the new build script
         mylogfp = open('/tmp/maketemplate.txt', 'w')
         mylogfp.write('%s\n' % template_dict['topology_list'])
         mylogfp.write('%s\n' % template_dict['parameter_list'])
@@ -627,7 +634,6 @@ class WorkingSegment(Segment):
             template_dict['sequ_line'] = sequ_line
             template_dict['number_of_sequences'] = `number_of_sequences`  
 
-        # Right around here is where we would want to handle any
         # protonation patching for this segment.
         patch_lines = ''
         patches = Patch.objects.filter(structure=workstruct)
@@ -643,14 +649,10 @@ class WorkingSegment(Segment):
         if patch_lines: template_dict['patch_lines'] = patch_lines
 
         # write out the job script
-        ##t = get_template('%s/mytemplates/input_scripts/buildSeg.inp' % charmming_config.charmming_root)
-
-        # fix from Vinushka!!
         if use_other_buildscript:
             t = get_template('%s/mytemplates/input_scripts/buildBadSeg.inp' % charmming_config.charmming_root)
         else:
             t = get_template('%s/mytemplates/input_scripts/buildSeg.inp' % charmming_config.charmming_root)
-
         charmm_inp = output.tidyInp(t.render(Context(template_dict)))
         charmm_inp_filename = self.structure.location + "/build-"  + template_dict['outname'] + ".inp"
         charmm_inp_file = open(charmm_inp_filename, 'w')
@@ -691,12 +693,15 @@ class WorkingSegment(Segment):
             filebase = '%s/%s-badres-h-%s' % (self.structure.location,self.name,badRes)
             filename_sdf = filebase + '.sdf'
             filename_mol2 = filebase + '.mol2'
-            obconv = openbabel.OBConversion()
-            mol = openbabel.OBMol()
-            obconv.SetInAndOutFormats("sdf", "mol2")
-            obconv.ReadFile(mol, filename_sdf.encode("UTF-8"))
-            mol.SetTitle(badRes)
-            obconv.WriteFile(mol, filename_mol2.encode("UTF-8"))
+          #  obconv = openbabel.OBConversion()
+          #  mol = openbabel.OBMol()
+          #  obconv.SetInAndOutFormats("sdf", "mol2")
+          #  obconv.ReadFile(mol, filename_sdf.encode("UTF-8"))
+          #  mol.SetTitle(badRes)
+          #  obconv.WriteFile(mol, filename_mol2.encode("UTF-8"))
+            exec_string = "babel -isdf %s -omol2 %s"%(filename_sdf,filename_mol2)
+            logfp.write(exec_string+"\n")
+            os.system(exec_string)
 
             # The following nasty crap attempts to make the names in the MOL2 file the same as those
             # in the PDB.
@@ -1240,7 +1245,7 @@ class WorkingStructure(models.Model):
         pdb = cPickle.load(pickle)
         pickle.close()
 
-        mol = pdb[0] # potentially dangerous: assume we're dealing with model 0
+        mol = pdb.iter_models().next() # potentially dangerous: assume we're dealing with model 0
         for seg in mol.iter_seg():
             if seg.segid in segnamelist:
                 for atom in seg:

@@ -57,6 +57,7 @@ import os, sys, re, copy, datetime, time, stat, json, openbabel
 import mimetypes, string, random, glob, traceback
 import pychm.io, charmming_config, minimization
 import cPickle
+import structure.propka
 
 
 # problem during upload
@@ -629,7 +630,7 @@ def glmol(request,filename):
     #The length of a "basic" HELIX line (1-character number) is 67, so we subtract from 67, then add 4 to get the correct number of spaces
     #Similarly the length of a basic SHEET line is 60.
     #Now we have the helix information for GLmol stored. 
-    # WARNING! We always take model00. Does this ever matter? I have no idea!
+    # WARNING! We always take first model. Does this ever matter? I have no idea!
     lesson_ok, dd_ok = checkPermissions(request)
     try:
         isProtein = not("-good-" in filename_end or "-bad-" in filename_end or filename_end[3] == "-")
@@ -925,6 +926,7 @@ def calcEnergy_tpl(request,workstruct,pTaskID,eobj):
         impsolv = postdata['solvate_implicitly']
     except:
         impsolv = 'none'
+    template_dict['impsolv'] = impsolv
 
     logfp = open('/tmp/impsolv.txt','w')
     logfp.write('impsolv = %s\n' % impsolv)
@@ -1252,6 +1254,7 @@ def newupload(request, template="html/fileupload.html"):
             dname = tmpdname + "-" + str(version)
 
         struct.name = dname
+        struct.original_name = 'sequ' #This way we can keep consistency for PROPKA
         struct.location = location + dname
         os.mkdir(struct.location)
         os.chmod(struct.location, 0775)
@@ -1259,7 +1262,7 @@ def newupload(request, template="html/fileupload.html"):
         struct.putSeqOnDisk(request.POST['sequ'], fullpath)
         try:
             pdb = pychm.io.pdb.PDBFile(fullpath)
-            mol = pdb[0]
+            mol = pdb.iter_models().next()
             mol.parse()
             getSegs(mol,struct,auto_append=True)
         except ValueError:
@@ -1291,6 +1294,28 @@ def newupload(request, template="html/fileupload.html"):
             lessonaux.doLessonAct(struct,"onFileUpload",postdata,"")
         #end YP lessons
         struct.save()
+        #VS PROPKA - we need it here because buildstruct doesn't get the POST
+        if request.POST.has_key('use_propka'):
+            os.chdir(struct.location) #have to change to here because PROPKA only outputs to the dir it's run in
+            mol.write(struct.original_name + "-fix.pdb",outfmt='pdborg')
+            propka_out = open(struct.original_name + "-propka.pdb","w") #we make a new file, because we need to change HSD/HSE/HSP to HIS or PROPKA won't get it
+            pychm_in = open(struct.original_name + "-fix.pdb","r")
+            for line in pychm_in.readlines():
+                if "HSE" in line:
+                    new_line = line.replace("HSE","HIS") + "\n"
+                    propka_out.write(new_line)
+                elif "HSP" in line:
+                    new_line = line.replace("HSP","HIS") + "\n"
+                    propka_out.write(new_line)
+                elif "HSD" in line:
+                    new_line = line.replace("HSD","HIS") + "\n"
+                    propka_out.write(new_line)
+                else:
+                    propka_out.write(line + "\n")
+            pychm_in.close()
+            os.unlink(struct.original_name + "-fix.pdb") #this file is trash now
+            propka_out.close()
+            subprocess.call(["propka31",struct.original_name + "-propka.pdb"]) #original_name will hold the filename of the PDB file, which should be there
         return HttpResponseRedirect('/charmming/buildstruct/')
 
     elif file_uploaded or request.POST.has_key('pdbid'):
@@ -1364,6 +1389,7 @@ def newupload(request, template="html/fileupload.html"):
         if file_uploaded and ( filename.endswith('crd') or filename.endswith('cor') ):
             # set up the new structure object
             struct = structure.models.Structure()
+            struct.original_name = filename[:-4] #We deal with the file extension later
             struct.name = dname
             #YP
             struct.owner = request.user
@@ -1374,7 +1400,10 @@ def newupload(request, template="html/fileupload.html"):
             try:
                 pdb = pychm.io.pdb.PDBFile()
                 thisMol = pychm.io.pdb.get_molFromCRD(fullpath)
-                pdb._mols["model00"] = thisMol
+                pdb._mols["model00"] = thisMol #We are NOT to use model00 specifically since some PDBs don't hav eit.
+                #we need to write a PDB file for PROPKA, but only if PROPKA will be used, so we check
+                if request.POST.has_key('use_propka'):
+                    thisMol.write(location + dname + filename[:-4] + ".pdb",outfmt='pdborg')
                 getSegs(thisMol,struct,auto_append=True)
             except ValueError:
                 messages.error(request, "Error parsing PDB file.")
@@ -1384,6 +1413,7 @@ def newupload(request, template="html/fileupload.html"):
                 pdb = pychm.io.pdb.PDBFile(fullpath)
                 mnum = 1
                 struct = structure.models.Structure()
+                struct.original_name = pdbid
                 struct.location = location + dname
                 struct.name = dname
                 struct.owner = request.user
@@ -1427,6 +1457,29 @@ def newupload(request, template="html/fileupload.html"):
         # set this structure as selected
         
         struct.save()
+        if request.POST.has_key('use_propka'):
+            os.chdir(struct.location) #have to change to here because PROPKA only outputs to the dir it's run in
+            pdb.iter_models().next().write(struct.original_name + "-fix.pdb",outfmt='pdborg')
+            propka_out = open(struct.original_name + "-propka.pdb","w") #we make a new file, because we need to change HSD/HSE/HSP to HIS or PROPKA won't get it
+            pychm_in = open(struct.original_name + "-fix.pdb","r")
+            for line in pychm_in.readlines():
+                if "HSE" in line:
+                    new_line = line.replace("HSE","HIS") + "\n"
+                    propka_out.write(new_line)
+                elif "HSP" in line:
+                    new_line = line.replace("HSP","HIS") + "\n"
+                    propka_out.write(new_line)
+                elif "HSD" in line:
+                    new_line = line.replace("HSD","HIS") + "\n"
+                    propka_out.write(new_line)
+                else:
+                    propka_out.write(line + "\n")
+            pychm_in.close()
+            os.unlink(struct.original_name + "-fix.pdb") #this file is trash now
+            propka_out.close()
+            #The above line is a PROBLEM for multiple models that have different connectivity!
+            #TODO: Find out how to fix this for non-model00!!
+            subprocess.call(["propka31",struct.original_name + "-propka.pdb"]) #original_name will hold the filename of the PDB file, which should be there
         return HttpResponseRedirect('/charmming/buildstruct/')
 
     # end of ye gigantic if test
@@ -1500,18 +1553,26 @@ def buildstruct(request):
     tdict['disulfide_list'] = struct.getDisulfideList()
     tdict['proto_list'] = []
     tdict['super_user'] = request.user.is_superuser
-    tdict['filepath'] = "/charmming/pdbuploads/" + struct.location.replace(charmming_config.user_home,'') + "/" + struct.name + ".pdb" #This assumes we have a PDB file! Please be careful with this.
+    tdict['filepath'] = "/charmming/pdbuploads/" + struct.location.replace(charmming_config.user_home,'') + "/" + struct.original_name + ".pdb" #This assumes we have a PDB file! Please be careful with this.
+    try:
+        os.stat(struct.location + "/" + struct.original_name + "-propka.pka")
+        propka_residues,user_decision = structure.propka.calculate_propka_residues(struct)
+    except:
+        traceback.print_exc("/tmp/propka-errors.txt") #In case there's actually a problem
+        propka_residues = None
+        user_decision = True
     for seg in sl:
-        if seg.type == "pro": #Good and badhets are not supported and will have trouble, especially if part of solvation since solvation changes the composition.
-            tdict['proto_list'].extend(seg.getProtonizableResidues(pickleFile=pdb))
-            #Why do we even pass good/bad hets into this if they don't have protonizable residues?
+        if seg.type == "pro":
+            tdict['proto_list'].extend(seg.getProtonizableResidues(pickleFile=pdb,propka_residues=propka_residues))
+    tdict['user_decision'] = user_decision #we need this to indicate to the user whether they need to make a decision
     #The following procedure is very similar to the one in selection.views. 
     #See selection.views.selectrstructure lines 180-196 for more data.
     #Since we hav emore than protein chains, we need to figure out the chain terminators in a more elaborate way
     if tdict['proto_list']: #We should only do these graphics if we have a proto list
         segmentlist = [] #Holds the segnames
         chain_terminators = []
-        for segment in pdb['model00'].iter_seg(): #More slow code!
+        iter_mol = pdb.iter_models().next() #not model00, this creates a bug
+        for segment in iter_mol.iter_seg(): #More slow code!
         #Connectivity difference in models is not a concern because this is BEFORE we build anything.
             atom = segment.iter_res().next().iter_atom().next().atomNum0
             segmentlist.append(segment)

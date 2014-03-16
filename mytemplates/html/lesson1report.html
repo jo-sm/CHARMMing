@@ -1,12 +1,8 @@
 {% autoescape off %}
 <html>
 <head>
-  <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
-  <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
-  <script type="text/javascript" src="/charmming/js/custom.js"> </script>
 </head>
 <body>
-<center>
   <table border=0 bordercolor=#e2e9fe class="status" cellspacing=0 cellpadding=0 width=150px>
    <tr class="status"><th class="status"> Lesson Progress </th></tr>
    <tr class="status"><td class="status">Steps:</td></tr>
@@ -21,11 +17,16 @@
 </table>
 
   <div id="lessonfooter">
-    <div class="content">
+    <div class="content center_header">
     </div>
   </div> 
-
-</center>
+  {% if lessonprob %}
+  <div id="dialog_lesson_failure" style="display:none" title="Lesson Error">
+    <p>Problem at <b>Step {{lessonprob.errorstep}}</b>, severity {{lessonprob.severity}}:<br>
+      {{lessonprob.description}}
+    </p>
+  </div>
+  {%endif%}
 </body>
 </html>
 {% endautoescape %}

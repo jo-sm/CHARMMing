@@ -14,12 +14,10 @@ So we leave this warning here.
      {% if haveWorkingStruct %}
        <tr class="status"><td class="status">Operations:</td></tr>
        {% for s in statuses %}   
-           <tr class="status"><td class="status"><a href="javascript:dialog_open('{{s.3}}','{{s.1}}');">{{ s.0 }}</a>: <span style="color:{%ifequal s.1 "Inactive"%}grey{%endifequal%}{%ifequal s.1 "Failed" %}red{%endifequal%}{%ifequal s.1 "Done" %}green{%endifequal%}{%ifequal s.1 "Running"%}blue{%endifequal%}">{{ s.1 }}</span>{% ifequal s.2 1 %}&nbsp;<a href="javascript:killJob({{ s.3 }});">X</a>{% endifequal %}
+           <tr class="status"><td class="status"><a href="javascript:dialog_open('{{s.3}}','{{s.1}}');">{{ s.0 }}</a>: <span class="{%ifequal s.1 "Inactive"%}inactive{%endifequal%}{%ifequal s.1 "Failed" %}failed{%endifequal%}{%ifequal s.1 "Done" %}done{%endifequal%}{%ifequal s.1 "Running"%}running{%endifequal%}">{{ s.1 }}</span>{% ifequal s.2 1 %}&nbsp;<a href="javascript:killJob({{ s.3 }});">X</a>{% endifequal %}
           <div id="dialog_output_{{s.3}}" title="File output">
             </div>
         </td></tr>
-         {% ifnotequal s.1 "Inactive" %}
-         {% endifnotequal %}
        {% endfor %}
      {% else %}
        <tr class="status"><th class="status"> Structure not built </th></tr>

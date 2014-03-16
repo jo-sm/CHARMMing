@@ -191,7 +191,7 @@ def build_ligand(request):
 #            outfile.write(end_data)
 #            outfile.close()
             ligpdb = PDBFile("moldata.pdb")
-            ligmol = ligpdb['model00']
+            ligmol = ligpdb.iter_models().next()
             for seg in ligmol.iter_seg():
                 if seg.segType == "pro": #If the builder caught it as GOOD/BAD, leave it, else change
                     seg.segType = "good" #If it became PRO, then we have params for it, so make it good
@@ -201,7 +201,7 @@ def build_ligand(request):
                 woof = open(struct.pickle)
                 fullpdb = cPickle.load(woof)
                 woof.close()
-                thisMol = fullpdb['model00'] #Model 0 again...
+                thisMol = fullpdb.iter_models().next() #Model 0 again...
                 #first a sanity check so that the user doesn't build more than one residue with the same name
                 for seg in thisMol.iter_seg():
                     for res in seg.iter_res():

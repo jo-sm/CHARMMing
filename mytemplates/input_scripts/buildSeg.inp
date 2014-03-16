@@ -34,7 +34,7 @@ write coor card name {{ outname }}.crd
 *
 
 write coor pdb name {{ outname }}.pdb
-* PDB for Jmol visualization
+* PDB for JSmol visualization
 *
 
 {% endblock %} blankme

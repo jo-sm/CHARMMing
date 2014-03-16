@@ -48,4 +48,21 @@ function dialog_open(task_id,task_status){
                   });
   }
   }
-  
+
+function open_failure(){
+$(function($){
+    $("#dialog_lesson_failure").dialog({
+      resizable:false,
+      height:200,
+      width:600,
+      modal:true,
+      buttons:{
+      "OK":function(){
+        $(this).dialog("close");
+      }
+    }
+  });
+});
+  $("#dialog_lesson_failure").show();
+}
+

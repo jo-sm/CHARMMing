@@ -265,16 +265,16 @@ class Lesson3(models.Model):
             lessonprob = None
         for i in range(self.nSteps):
             if lessonprob and lessonprob.errorstep == math.floor(self.curStep+1) and math.floor(self.curStep) == i:
-                step_status_list[i] += ("<font color='red'>Failed</font></td></tr>")
+                step_status_list[i] += ("<a class='failed' href='javascript:open_failure()'>Failed</a></td></tr>")
                 continue
             elif (float(self.curStep)-0.5) == i and float(self.curStep) % 1 == 0.5:
-                step_status_list[i] += ("<font color='blue'>Running</font></td></tr>")
+                step_status_list[i] += ("<a class='running'>Running</a></td></tr>")
                 continue
             elif i < float(self.curStep):
-                step_status_list[i] += ("<font color='green'>Done</font></td></tr>")
+                step_status_list[i] += ("<a class='done'>Done</a></td></tr>")
                 continue
             elif i >= float(self.curStep):
-                step_status_list[i] += ("<font color='grey'>N/A</font></td></tr>")
+                step_status_list[i] += ("<a class='inactive'>N/A</a></td></tr>")
                 continue
         return step_status_list 
 

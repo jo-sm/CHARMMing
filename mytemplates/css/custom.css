@@ -34,6 +34,25 @@ a:hover {color: #FF0F00; text-decoration: none; }
   width:70%;
 }
 
+/* This is for our status divs...since we re-use the same colors a lot, we should
+ * try to make them into classes - much easier than style='color:red' or whatever.*/
+
+.done{
+  color:green;
+}
+
+.running{
+  color:blue;
+}
+
+.inactive{
+  color:gray;
+}
+
+.failed{
+  color:red;
+}
+
 /* So you can visualize protonation states */
 #proton_divs{
   display:none;
