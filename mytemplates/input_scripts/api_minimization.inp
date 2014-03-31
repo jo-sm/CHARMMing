@@ -38,4 +38,9 @@ mini sd nstep {{sdstep}} nprint 50
 mini abnr nstep {{abnrstep}} nprint 200 tolg 0.1
 
 energy
+
+write coor pdb name mini.pdb
+* minimized coordinates
+*
+
 stop

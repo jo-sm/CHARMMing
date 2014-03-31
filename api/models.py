@@ -149,6 +149,9 @@ class APIOptimization(APIJob):
         if ene < -9000000:
             response['errcode'] = -980
         else:
+            fp = open('mini.pdb','r')
+            response['minpdb'] = fp.read()
+            fp.close()
             response['errcode'] = 0  
             response['eneval']  = ene
 
