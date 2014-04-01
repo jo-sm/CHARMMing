@@ -1,0 +1,49 @@
+* API simple build and energy
+*
+
+{% for rtf in rtf_list %}
+   {% ifequal forloop.counter 1 %}
+      read rtf card name {{rtf}}
+   {% else %}
+      read rtf card append name {{rtf}}
+   {% endifequal %}
+{% endfor %}
+
+{% for prm in prm_list %}
+   {% ifequal forloop.counter 1 %}       
+      read param flex card name {{prm}}
+   {% else %}       
+      read param flex card append name {{prm}}
+   {% endifequal %} 
+{% endfor %}
+
+{% for str in str_list %}
+stream "{{str}}"
+{% endfor %}
+
+{% for seg in seg_list %}
+   {% ifequal forloop.counter 1 %}
+      read psf card name segment-{{seg}}.psf
+   {% else %}
+      read psf card append name segment-{{seg}}.psf
+   {% endifequal %} 
+{% endfor %}
+{% for seg in seg_list %}
+   {% ifequal forloop.counter 1 %}
+      read coor card name segment-{{seg}}.crd
+   {% else %}
+      read coor card append name segment-{{seg}}.crd
+   {% endifequal %}
+{% endfor %}
+
+energy
+
+write psf card name structure.psf
+* the structure
+*
+
+write coor card name structure.crd
+* the structure
+*
+
+stop

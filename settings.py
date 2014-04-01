@@ -134,6 +134,7 @@ INSTALLED_APPS = (
     'toppar',
     'trajanal',
     'qsar',
+    'api',
 )
 
 # all lessons in lesson_num_lis(lesson_config.py) will be put in extra_apps and then added into INSTALLED_APPS

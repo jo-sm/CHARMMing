@@ -86,12 +86,14 @@ class binding_sites_residues(models.Model):
 
     binding_site = models.ForeignKey(binding_sites)
     residue = models.ForeignKey(protein_residues)
-    
-class protein_conformation_native_ligands(models.Model):
+ 
+"""   
+#class protein_conformation_native_ligands(models.Model):
 
     #protein_conformation_file = models.ForeignKey(dd_infrastructure.models.files,related_name="protein_conformation_file",null=True, blank=True)
-    protein_conformation = models.ForeignKey(protein_conformations)
+    #protein_conformation = models.ForeignKey(protein_conformations)
     #ligand_file = models.ForeignKey(dd_infrastructure.models.files,related_name="ligand_file",null=True, blank=True)
-    ligand = models.ForeignKey(get_model('dd_substrate', 'ligands'))
+    #ligand = models.ForeignKey(get_model('dd_substrate', 'ligands'))
     #project = models.ForeignKey(dd_infrastructure.models.projects)
-    description = models.CharField(max_length=250,null=True, blank=True)
+    #description = models.CharField(max_length=250,null=True, blank=True)
+"""
