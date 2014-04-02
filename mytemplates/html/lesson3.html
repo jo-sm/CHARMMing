@@ -47,6 +47,12 @@
       you should not use Periodic Boundary Conditions, so make sure that the PBC box remains unchecked. All of the other options can be left at their default
       values.
     </p>
+   <p class="intro">
+     <ul>
+       <li>The <a href="http://charmmtutorial.org/index.php/Minimization" target="_blank">&quot;minimization&quot; section</a> of charmmtutorial.org describes the
+           process of minimization, which is used in lessons 1 and 2 as well.</li>
+     </ul>
+   </p>
   {% endifequal %}
 
   {% ifequal html_step_list.1 2 %}
@@ -60,10 +66,17 @@
       The collision frequency is set with the FBETA parameter (this simulates the solvent effect, which is why this lesson leaves the structure unsolvated). We
       will set a low FBETA (set it to 5) to try to retard motion as little as possible. This is also why we are using SGLD; SGLD adds a guiding force to standard Langevin
       Dynamics which means more conformations should be sampled in a given interval.</p>
+     <p class="intro">
+      <ul>
+        <li>There is <a href="http://charmmtutorial.org/index.php/LD" target="_blank">a page</a> on charmmtutorial.org that explains Langevin Dynamics
+            and Self Guided Langevin Dynamics. Interested readers can also consult Wu XW and Brooks BR. <i>Chem Phys. Lett.</i> 381(3-4), 512-8. 2003.
+            and following papers.</li>
+      </ul>
+    </p>
     <br />
 
     <p class="intro">Please don't actually start the SGLD until the minimization completes. When it does, make sure that &quot;coordinates from
-minimization&quot; is selected on the LD page.</p>
+      minimization&quot; is selected on the LD page.</p>
     </p>
   {% endifequal %}
 
@@ -77,6 +90,13 @@ minimization&quot; is selected on the LD page.</p>
       The collision frequency is set with the FBETA parameter (this simulates the solvent effect, which is why this lesson leaves the structure unsolvated). We
       will set a low FBETA (set it to 5) to try to retard motion as little as possible. This is also why we are using SGLD; SGLD adds a guiding force to standard Langevin
       Dynamics which means more conformations should be sampled in a given interval.</p>
+     <p class="intro">
+      <ul>
+        <li>There is <a href="http://charmmtutorial.org/index.php/LD" target="_blank">a page</a> on charmmtutorial.org that explains Langevin Dynamics
+            and Self Guided Langevin Dynamics. Interested readers can also consult Wu XW and Brooks BR. <i>Chem Phys. Lett.</i> 381(3-4), 512-8. 2003.
+            and following papers.</li>
+      </ul>
+    </p>
     <br />
 
   {% endifequal %}
@@ -92,6 +112,15 @@ minimization&quot; is selected on the LD page.</p>
       square root of the sum of the squared distances between the individual atoms divided by the number of atoms. CHARMMing has a tool to perform RMSD calculations.
       Go to the <b>RMSD</b> page under the Analysis submenu, selected the appended PDB, the minimized PDB, and the final SGLD PDB. Observe the RMSDs between these three
       structures.</p>
+     <p class="intro">
+      <ul>
+        <li>One of CHARMM's main strengths is the many and powerful analysis tools included with the program. Some of these are described
+            <a href="http://charmmtutorial.org/index.php/Analysis" target="_blank">on charmmtutorial.org</a>. The method used here is a simple
+            and straightforward metric of how much atoms moved during dynamics. Often, this analyses would be repeated for each frame in a
+            dynamics trajectory.</li>
+      </ul>
+     </p>
+
   {% endifequal %}
 
   {% ifequal html_step_list.2 1 %}
@@ -103,6 +132,14 @@ minimization&quot; is selected on the LD page.</p>
       square root of the sum of the squared distances between the individual atoms divided by the number of atoms. CHARMMing has a tool to perform RMSD calculations.
       Go to the <b>RMSD</b> page under the Analysis submenu, selected the appended PDB, the minimized PDB, and the final SGLD PDB. Observe the RMSDs between these three
       structures. Note: your input to this step is not evaluated, so as soon as you submit the RMSD request the lesson will finish.</p>
+     <p class="intro">
+      <ul>
+        <li>One of CHARMM's main strengths is the many and powerful analysis tools included with the program. Some of these are described 
+            <a href="http://charmmtutorial.org/index.php/Analysis" target="_blank">on charmmtutorial.org</a>. The method used here is a simple 
+            and straightforward metric of how much atoms moved during dynamics. Often, this analyses would be repeated for each frame in a 
+            dynamics trajectory.</li>
+      </ul>
+     </p>
 
   {% endifequal %}
 

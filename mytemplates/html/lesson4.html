@@ -10,7 +10,7 @@
 <p class="intro">
   <span style="color:red">Lesson Objectives</span><br />
   <ul>
-    <li>Demonstrate how to create a custom residue topology file (RTF)</li>
+    <li>Demonstrate how to create a custom residue topology file (RTF) - this data structure is described <a target="_blank" href="http://charmmtutorial.org/index.php/Basic_CHARMM_Scripting#Data_Structures">on charmmtutorial.org</a>.</li>
     <li>Teach the user to perform a single point energy evaluation.</li>
     <li>Explain basic QM/MM principles and perform a QM/MM energy evaluation</li>
   </ul>
@@ -146,9 +146,9 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 <p class="intro">Once you have your RTF, you'll need the paramaters, a PSF, and a coordinate file. These files are:<br />
   <ul>
-    <li><a href="/charmming/lessons/download/lesson4/butane.prm">butane.prm</a>: the parameter file.</li>
-    <li><a href="/charmming/lessons/download/lesson4/butane.psf">butane.psf</a>: the protein structure file.</li>
-    <li><a href="/charmming/lessons/download/lesson4/butane.crd">butane.crd</a>: the coordinate file.</li>
+    <li><a href="/newcharmming/lessons/download/lesson4/butane.prm">butane.prm</a>: the parameter file.</li>
+    <li><a href="/newcharmming/lessons/download/lesson4/butane.psf">butane.psf</a>: the protein structure file.</li>
+    <li><a href="/newcharmming/lessons/download/lesson4/butane.crd">butane.crd</a>: the coordinate file.</li>
   </ul>
 
 <p class="intro">In order to start the lesson, go to the <b>Submit Structure</b> page and choose to upload your own PSF and CRD. Upload the files provided
@@ -168,6 +168,16 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
     energy evaluation on the structure. Select the PDB file and leave all other options on the page unchanged. Go ahead and submit this (note: once you've
     hit submit, do <b>not</b> navigate away from the page, otherwise you will have to redo the calculation). The energy calculation should only take a few seconds.
     Once it is done, come back to this page to see if you got the correct energy.</p>
+   <p class="intro">
+     <ul>
+        <li>As mentioned in Lesson 2, charmmtutorial.org has <a target="_blank" href="http://charmmtutorial.org/index.php/The_Energy_Function">a page</a> that describes CHARMM's potential energy
+            function. This page describes, among other things <a target="_blank" href="http://charmmtutorial.org/index.php/The_Energy_Function#What_the_ENERgy_command_really_does_--_or_how_to_break_ENERgy_into_its_individual_steps">
+            what actually happens when the energy command is called.</a> In this step, we are using this procedure exactly. Later on, we will be using a quantum package (Q-Chem) to
+            perform part of the energy calculation.</li>
+     </ul>
+     </p>
+   </p>
+
 {% endifequal %}
 
 {% ifequal html_step_list.1 2 %}
@@ -203,6 +213,11 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
   </p><br />
 
   <p class="intro">Also, turn shake off (uncheck the "use shake" box), so we do not accidentally put restraints on atoms treated quantum mechanically.</p>
+  <p class="intro">
+    <ul>
+       <li>For this calculation, CHARMM's energy function is only used to calculate the energy of the non-QM atoms (all expect atoms 1 though 7.</li>
+    </ul>
+  </p> 
 
   <p class="intro">Submit the calculation, and you will get a notice on this page about whether it was done correctly.</p>
   <br />
@@ -220,6 +235,14 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
     QM/MM&quot; checkbox and make the options the same as they were in step 2. Leave all other options on the page, including the number
     of SD and ABNR steps, unchanged. However, do turn shake off so that the hydrogen bond lengths can be optimized.  Once you've set it up, go 
     ahead and submit the minimization.</p>
+   <p class="intro">
+     <ul>
+       <li>Although some of the energy is calculated quantum mechanically, the actual minimization steps are taken by CHARMM (Q-Chem passes
+           both QM energies and forces back to CHARMM). Therefore, we use the same algorithms as described on the
+           <a href="http://charmmtutorial.org/index.php/Minimization" target="_blank">charmmtutorial.org minimization page</a>.
+     </ul>
+     </p> 
+
 {% endifequal %}
 
 {% ifequal html_step_list.3 2 %}

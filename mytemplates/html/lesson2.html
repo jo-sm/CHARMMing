@@ -23,9 +23,9 @@
 
 <p class="intro">
   <ul>
-    <li><a href="/charmming/lessons/download/lesson2/1zhy.pdb">1ZHY.pdb</a></li>
-    <li><a href="/charmming/lessons/download/lesson2/par_all36_lipid_chol.prm">par_all36_lipid_chol.prm</a> (the parameter file)</li>
-    <li><a href="/charmming/lessons/download/lesson2/top_all36_lipid_chol.rtf">top_all36_lipid_chol.rtf</a> (the topology file)</li>
+    <li><a href="/newcharmming/lessons/download/lesson2/1zhy.pdb">1ZHY.pdb</a></li>
+    <li><a href="/newcharmming/lessons/download/lesson2/par_all36_lipid_chol.prm">par_all36_lipid_chol.prm</a> (the parameter file)</li>
+    <li><a href="/newcharmming/lessons/download/lesson2/top_all36_lipid_chol.rtf">top_all36_lipid_chol.rtf</a> (the topology file)</li>
   </ul>
 <br />
 
@@ -46,6 +46,14 @@
 
    <p class="intro">We would like to make sure that this structure was uploaded successfully and be able to visualize it. To do so, we need to perform a calculation so that CHARMMing
    will build the structure. Therefore, submit a single point energy calculation by visiting the <b>Energy</b> page under the calculations submenu.</p>
+   <p class="intro">
+     <ul>
+        <li>charmmtutorial.org has <a target="_blank" href="http://charmmtutorial.org/index.php/The_Energy_Function">a page</a> that describes CHARMM's potential energy
+            function. This page describes, among other things <a target="_blank" href="http://charmmtutorial.org/index.php/The_Energy_Function#What_the_ENERgy_command_really_does_--_or_how_to_break_ENERgy_into_its_individual_steps">
+            what actually happens when the energy command is called.</a></li>
+     </ul>
+     </p>
+   </p>
 
  {% endifequal %}
  
@@ -54,7 +62,7 @@
    <p class="intro"><span style="color:red"> Step 2: Energy Running </span></p>
    <br>
 
-   <p class="intro">The solvation job is still running. Once it's done, please visualize the system</p>
+   <p class="intro">The energy job is still running. Once it's done, please visualize the system</p>
    <br />
  {% endifequal %}
  
@@ -68,6 +76,14 @@
      for CHARMM to use the Particle Mesh Ewald Summation method for electrostatics, the system must be neutral. In order to ensure this, you may neutralize through the 
      &quot;Solvate&quot; page. For this lesson, use Potassium Chloride, and set the molar concentration to .15. The number of trials will determine a lower energy 
      position for these ions but significantly add to the neutralization calculation time. For this reason, please set the number of trials to 1.</p>
+   <p class="intro">
+      <ul>
+         <li>The process of solvation was described in Lesson 1. There is <a target="_blank" href="http://charmmtutorial.org/index.php/Solvation">a page on charmmtutorial.org</a>
+             that describes the method used by CHARMMing.</li>
+         <li>Neutralization has <a target="_blank" href="http://charmmtutorial.org/index.php/Neutralization">its own CHARMM tutorial page</a>, which lays out several considerations
+             and provides the Monte Carlo algorithm used in CHARMMing.</li>
+      </ul>
+   </p>
 
    <br /> 
  {% endifequal %}
@@ -88,6 +104,15 @@
      structure, it may take over an hour to run.</p>
    <br />
 
+   <p class="intro">
+     <ul>
+       <li>The <a href="http://charmmtutorial.org/index.php/Minimization" target="_blank">&quot;minimization&quot; section</a> of charmmtutorial.org describes the
+           process of minimization. You can also work through Lesson 1, which describes the process in some detail, if you have not done so already.</li>
+       <li>CHARMM's handling of periodic boundary conditions is described in <a target="_blank" href="http://charmmtutorial.org/index.php/The_Energy_Function#Periodic_boundary_conditions_.28PBC.29:_IMAGe.2FCRYStal">
+           a section on the energy page</a> of charmmtutorial.org.</li>
+     </ul>
+   </p>
+
    <p class="intro">Please wait until solvation of the solvated structure is complete before starting the minimization calculation.</p>
  {% endifequal %}
  
@@ -102,6 +127,14 @@
       Since dynamics is run with PBC, it is important
      that the final minimization be run under the same conditions. Once you have set it up, go ahead and submit the minimization. Because this is a large
      structure, it may take over half an hour to run.</p>
+   <p class="intro">
+     <ul>
+       <li>The <a href="http://charmmtutorial.org/index.php/Minimization" target="_blank">&quot;minimization&quot; section</a> of charmmtutorial.org describes the
+           process of minimization. You can also work through Lesson 1, which describes the process in some detail, if you have not done so already.</li> 
+       <li>CHARMM's handling of periodic boundary conditions is described in <a target="_blank" href="http://charmmtutorial.org/index.php/The_Energy_Function#Periodic_boundary_conditions_.28PBC.29:_IMAGe.2FCRYStal">
+           a section on the energy page</a> of charmmtutorial.org.</li>
+     </ul>
+   </p>
    <br /> 
  {% endifequal %}
 
@@ -117,7 +150,15 @@
       state. Minimization brings the system to a low energy state and in so doing removes bad contacts (e.g. water molecules located in hydrophobic pockets). 
       Heating is applied to gradually bring the system up to a natural temperature for biochemical processes. Set the initial temperature to 210.15 K, the
       final temperature to 310.15 K, and the bath temperature (TBATH) to 310.15 K. Leave all other settings at their default values.</p>
+
    <br />
+
+   <p class="intro">
+      <ul>
+         <li>Dynamics was another topic that was discussed in the previous lesson, and which is described on a <a href="http://charmmtutorial.org/index.php/MD" target="_blank">
+             CHARMM Tutorial page</a>. The dynamics in this step is heating, like was run in Lesson 1. Constant temperature dynamics will be run in the final ste.</li>
+      </ul>
+   </p>
 
    <p class="intro">Please do not submit the dynamics job until the solvation is completed.</p>
  {% endifequal %}
@@ -131,6 +172,12 @@
       state. Minimization brings the system to a low energy state and in so doing removes bad contacts (e.g. water molecules located in hydrophobic pockets).
       Heating is applied to gradually bring the system up to a natural temperature for biochemical processes. Set the initial temperature to 210.15 K, the
       final temperature to 310.15 K, and the bath temperature (TBATH) to 310.15 K. Leave all other settings at their default values.</p>
+   <p class="intro">
+      <ul>
+         <li>Dynamics was another topic that was discussed in the previous lesson, and which is described on a <a href="http://charmmtutorial.org/index.php/MD" target="_blank">
+             CHARMM Tutorial page</a>. The dynamics in this step is heating, like was run in Lesson 1. Constant temperature dynamics will be run in the final ste.</li>
+      </ul>
+   </p>
    <br />
 
    <p class="intro">Now that minimization is done, please go ahead and submit the dynamics job.</p>
@@ -158,6 +205,13 @@
    <p class="intro">In general, trajectories from early equilibrium runs are not used for analysis (as the system is still &quot;settling in&quot;, however they
      still can show how the system moves over time. In order to see this for yourself, go back to the <b>Molecular Dynamics</b> page and select &quot;Coordinates from md&quot; at the
      top of the page. This will use the coordinates from your heating run. This time, select &quot;NPT&quot; and make the thermostat temperature 310.15 K. Also, have CHARMMing make a movie.</p>
+
+   <p class="intro">
+      <ul>
+         <li>The <a href="http://charmmtutorial.org/index.php/MD" target="_blank">
+             molecular dynamics tutorial page</a> describes the temperature and pressure options that are used in CHARMM.</li>
+      </ul>
+   </p>
  {% endifequal %}
 
  {% ifequal html_step_list.4 1 %}
@@ -178,6 +232,12 @@
    <p class="intro">In general, trajectories from early equilibrium runs are not used for analysis (as the system is still &quot;settling in&quot;, however they
      still can show how the system moves over time. In order to see this for yourself, go back to the <b>Molecular Dynamics</b> page and select the &quot;Coordinates from md&quot; at the 
      top of the page. This will use the coordinates from your heating run. This time, select &quot;NPT&quot; and make the thermostat temperature 310.15 K. Also, have CHARMMing make a movie.</p>
+   <p class="intro">
+      <ul>
+         <li>The <a href="http://charmmtutorial.org/index.php/MD" target="_blank">
+             molecular dynamics tutorial page</a> describes the temperature and pressure options that are used in CHARMM.</li>
+      </ul>
+   </p>
    <br />
  {% endifequal %}
 
