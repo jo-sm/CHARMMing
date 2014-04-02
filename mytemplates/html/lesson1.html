@@ -26,7 +26,16 @@
   guide you through setting up basic simulations. You can look at the input and output files produced on the <b>View Inputs and Outputs</b> page, and you can download
   them from the <b>Download Files</b> page. You should do this in order to get a sense of which CHARMM commands are used to perform various tasks. You should also
   explore the commands in more detail in the documentation (available on <a href="http://www.charmm.org/documentation/chmdoc.html">
-  the CHARMM home page</a>. A complete tutorial is available at <a href="http://www.charmmtutorial.org">www.charmmtutorial.org</a>.</p>
+  the CHARMM home page</a>.</p>
+
+<br />
+
+<p class="intro">A complete tutorial is available at <a target="_blank" href="http://www.charmmtutorial.org">www.charmmtutorial.org</a>. The
+   <a target="_blank" href="http://charmmtutorial.org/index.php/Introduction">introduction</a> to this tutorial describes several prerequisites
+   needed to run CHARMM. Even if you do not meet them, though, you can still work through the on-line CHARMMing lessons. Throughout
+   this and other lessons, links will be provided to various sections of the tutorial, which you can follow for more information about various
+   topics.</p>
+
 <br />
 
 <h2 class="intro">Protein structure and coordinate files</h2>
@@ -36,17 +45,26 @@
   the cartesian coordinates of each atom along with its residue and segment identification. Groups of atoms form commonly-used subunits called residues (e.g., an amino acid, 
   such as Lysine, is a residue). Residues are further grouped into segments which represent chains of amino acids. A PDB file contains the same information, but in a different 
   format.</p>
+
 <br />
 
 <p class="intro">In order for CHARMM to build a model of a molecule, it needs to know its structure (contained in the protein structure file) and the coordinates of its constituent
   atoms. To read this in via CHARMMing, go to the <b>Submit Structure</b> page, 
   select "Upload my own CRD/PSF files" and upload the following two files (be sure to select lesson 1 as the lesson your upload is associated with):<br>
   <ul>
-    <li><a href="/charmming/lessons/download/lesson1/1water.crd">1water.crd</a> (the coordinate file)</li>
-    <li><a href="/charmming/lessons/download/lesson1/1water.psf">1water.psf</a> (the protein structure file)</li>
+    <li><a href="/newcharmming/lessons/download/lesson1/1water.crd">1water.crd</a> (the coordinate file)</li>
+    <li><a href="/newcharmming/lessons/download/lesson1/1water.psf">1water.psf</a> (the protein structure file)</li>
   </ul>
 <br />
 <p class="intro">Once you have done so, come back to this page and you should see a confirmation that the files were uploaded correctly.</p>
+
+<p class="intro">
+  <ul>
+     <li>To learn more about some of the file formats used by CHARMMing, please see <a target="_blank" href="http://charmmtutorial.org/index.php/Basic_CHARMM_Scripting#Data_Structures">
+         the &quot;data structures&quot; section</a> of the tutorial.</li>
+  </ul>
+</p>
+
 <br />
 
 {% if lesson1 %}
@@ -71,6 +89,13 @@
       and press submit.</p>
    <br />
 
+   <p class="intro">
+     <ul>
+        <li>The solvation algorithm used by CHARMMing and various other considerations are described in the <a target="_blank" href="http://charmmtutorial.org/index.php/Solvation">
+            &quot;Solvation&quot; section</a> of the tutorial.</li>
+     </ul>
+   </p>
+
  {% endifequal %}
  
  {% ifequal html_step_list.1 2 %}
@@ -88,11 +113,18 @@
   <br />
 
   <p class="intro">In order to minimize your water structure, go to <b>Minimize</b> in the left hand menu, select the water molecule, select "coordinates from
-solvation" at the top of the page, and set Steepest Descent to 1000 and ABNR to 1000. The
+    solvation" at the top of the page, and set Steepest Descent to 1000 and ABNR to 1000. The
     TOLG parameter specifies the minimum average gradient that can be reached before the simulation stops. The average gradient is essentially a mesaure of how &quot;steep&quot; the
     energy surface is. The closer this is to 0, the closer to being converged the minimization is. For this example, set the tolg to 0.01. Additionally, since dynamics uses periodic
     boundary conditions (PBC) we need to use them in the minimization as well (otherwise there will be problems with the dynamics simulation), so make sure that the &quot;Use PBC&quot;
     option is set.
+   </p>
+
+   <p class="intro">
+     <ul>
+       <li>The <a href="http://charmmtutorial.org/index.php/Minimization" target="_blank">&quot;minimization&quot; section</a> of charmmtutorial.org describes the
+           process of minimization in more depth. For the illustrative purposes of this tutorial case, we are running more SD steps than is sometimes advised.</li>
+     </ul>
    </p>
    <br />
 
@@ -118,6 +150,14 @@ solvation" at the top of the page, and set Steepest Descent to 1000 and ABNR to 
     boundary conditions (PBC) we need to use them in the minimization as well (otherwise there will be problems with the dynamics simulation), so make sure that the &quot;Use PBC&quot;
     option is set.
    </p>
+
+   <p class="intro">
+     <ul> 
+       <li>The <a href="http://charmmtutorial.org/index.php/Minimization" target="_blank">&quot;minimization&quot; section</a> of charmmtutorial.org describes the
+           process of minimization in more depth. For the illustrative purposes of this tutorial case, we are running more SD steps than is sometimes advised.</li>    
+     </ul>
+   </p>
+   <br />
  {% endifequal %}
 
  {% ifequal html_step_list.2 2 %}
@@ -138,6 +178,15 @@ solvation" at the top of the page, and set Steepest Descent to 1000 and ABNR to 
      usually used.</p>
    <br />
 
+   <p class="intro">
+     <ul>
+       <li><a href="http://charmmtutorial.org/index.php/MD" target="_blank">Molecular dynamics</a> is described extensively on charmmtutorial.org, particular
+           attention should be paid to the descriptions of the various ensembles that can be run and which integrators may be used. All CHARMMing calculations
+           use the leapfrog Verlet algorithm.</li>
+     </ul>
+   </p>
+   <br />
+
    <p class="intro">Please wait until minimization of the solvated structure is complete before starting the MD simulation.</p>
  {% endifequal %}
 
@@ -155,8 +204,16 @@ solvation" at the top of the page, and set Steepest Descent to 1000 and ABNR to 
      not attempt to regulate the temperature.
      Because we brought the system to a low energy conformation, we should start by heating the system gradually. Leave the 
      number of steps at 1000, the starting temperature at 210.15 K, the final temprature at 310.15 K (physiological temperature), temperature increment at 10 K, steps between temperature 
-     increases (IHTFRQ) to 100, and temperature of bath at 310.15 K. This increases the the temperature 300 K over the 1000 step simulation, which is a more rapid increase than is
+     increases (IHTFRQ) to 100, and temperature of bath at 310.15 K. This increases the the temperature 100 K over the 1000 step simulation, which is a more rapid increase than is
      usually used. For this simulation, make sure to select "coordinates from minimization" to use the structure generated from the previous step.</p>
+
+   <p class="intro">
+     <ul>
+       <li><a href="http://charmmtutorial.org/index.php/MD" target="_blank">Molecular dynamics</a> is described extensively on charmmtutorial.org, particular
+           attention should be paid to the descriptions of the various ensembles that can be run and which integrators may be used. All CHARMMing calculations
+           use the leapfrog Verlet algorithm.</li>
+     </ul>
+   </p>
    <br />
  {% endifequal %}
 
@@ -188,6 +245,6 @@ solvation" at the top of the page, and set Steepest Descent to 1000 and ABNR to 
 
 {% endif %}
 {% endautoescape %}
-
+<br>
 </div>
 {% endblock %}
