@@ -33,7 +33,9 @@ read answer
 
 if [[ "$answer" == "Y" || "$answer" == "y" || "$answer" = "" || "$answer" = "yes" || "$answer" = "Yes" || "$answer" = "YES" ]];
 then
-  sudo apt-get install bc subversion python-django openbabel torque-server torque-scheduler torque-client torque-common torque-mom apache2 mysql-server mysql-client mysql-common libapache2-mod-python python-mysqldb python-numpy
+  sudo apt-get install bc subversion python-django openbabel torque-server torque-scheduler torque-client torque-common torque-mom \
+               apache2 mysql-server mysql-client mysql-common libapache2-mod-python python-mysqldb python-numpy scikit-learn rdkit \
+               csh tcsh
 else
   echo    "-----------------------"
   echo -e "Ok, I will skip this..." 
@@ -58,7 +60,7 @@ function download_charmming {
     fi
     
 # checkout charmming and charmminglib from svn 
-    svn co http://charmming.googlecode.com/svn/trunk/head charmming
+    svn co http://charmming.googlecode.com/svn/branches/CHARMMING_0_10 charmming
     svn co http://charmming.googlecode.com/svn/charmminglib charmminglib
     
 # install charmminglib 
@@ -118,6 +120,7 @@ function mysql_config {
 # call mysql to create database and set permissions...
     echo -e " Creating charmming tables:\n" 
     mysql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/scheduler.sql
+    mysql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/qsar_tables.sql
    
   else
     echo    "-----------------------"
