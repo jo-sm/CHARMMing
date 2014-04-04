@@ -34,8 +34,8 @@ read answer
 if [[ "$answer" == "Y" || "$answer" == "y" || "$answer" = "" || "$answer" = "yes" || "$answer" = "Yes" || "$answer" = "YES" ]];
 then
   sudo apt-get install bc subversion python-django openbabel torque-server torque-scheduler torque-client torque-common torque-mom \
-               apache2 mysql-server mysql-client mysql-common libapache2-mod-python python-mysqldb python-numpy scikit-learn rdkit \
-               csh tcsh
+               apache2 mysql-server mysql-client mysql-common libapache2-mod-python python-mysqldb python-numpy python-scikits-learn python-rdkit \
+               rdkit-data rdkit-doc csh tcsh
 else
   echo    "-----------------------"
   echo -e "Ok, I will skip this..." 
