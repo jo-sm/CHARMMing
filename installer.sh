@@ -33,7 +33,7 @@ read answer
 
 if [[ "$answer" == "Y" || "$answer" == "y" || "$answer" = "" || "$answer" = "yes" || "$answer" = "Yes" || "$answer" = "YES" ]];
 then
-  sudo apt-get install bc subversion python-django openbabel torque-server torque-scheduler torque-client torque-common torque-mom \
+  sudo apt-get install bc subversion python-django python-openbabel openbabel torque-server torque-scheduler torque-client torque-common torque-mom \
                apache2 mysql-server mysql-client mysql-common libapache2-mod-python python-mysqldb python-numpy python-scikits-learn python-rdkit \
                rdkit-data rdkit-doc csh tcsh
 else
@@ -120,7 +120,6 @@ function mysql_config {
 # call mysql to create database and set permissions...
     echo -e " Creating charmming tables:\n" 
     mysql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/scheduler.sql
-    mysql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/qsar_tables.sql
    
   else
     echo    "-----------------------"
@@ -281,6 +280,8 @@ function config_django {
     echo "INSERT INTO auth_group (id,name) VALUES (2,'student');" >> /tmp/charmming/groups.sql
     echo "INSERT INTO auth_group (id,name) VALUES (3,'lesson');" >> /tmp/charmming/groups.sql
     mysql -u charmming --password="$database_passwd" -D charmming < /tmp/charmming/groups.sql
+    mysql -u charmming --password="$database_passwd" -D charmming < /var/www/charmming/qsar_tables.sql
+
   else
     echo    "-----------------------"
     echo -e "Ok, I will skip this..." 
