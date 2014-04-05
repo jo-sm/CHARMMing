@@ -35,7 +35,7 @@ if [[ "$answer" == "Y" || "$answer" == "y" || "$answer" = "" || "$answer" = "yes
 then
   sudo apt-get install bc subversion python-django python-openbabel openbabel torque-server torque-scheduler torque-client torque-common torque-mom \
                apache2 mysql-server mysql-client mysql-common libapache2-mod-python python-mysqldb python-numpy python-scikits-learn python-rdkit \
-               rdkit-data rdkit-doc csh tcsh
+               rdkit-data rdkit-doc csh tcsh openmpi-common openmpi-bin libopenmpi-dev
 else
   echo    "-----------------------"
   echo -e "Ok, I will skip this..." 
