@@ -342,6 +342,17 @@ then
   echo -e "    Take Us Up to Warp Speed Mr. Sulu..." 
   echo "" 
 
+  echo "Before proceeding with the installation, please look over the install notes"
+  echo "located at http://charmmtutorial.org/index.php/Installation_of_CHARMMing"
+  echo ""
+  echo "This page provide information on prerequisite software that cannot be"
+  echo "distributed woith CHARMMing, as well as known issues with the installation"
+  echo "and their work-arounds. So, run don't walk, to:"
+  echo ""
+  echo "http://charmmtutorial.org/index.php/Installation_of_CHARMMing"
+  echo ""
+  echo ""
+
 # set config options 
   set_install_config
 
@@ -370,6 +381,7 @@ then
   start_schedd
   
   echo "Installation is complete ... please review charmming_config.py to make sure that everything is set up correctly."
+  echo "At the very least, you will need to provide CHARMM binaries and put their location in charmming_config.py"
 
 elif [ "${ARGV[0]}" == "-uninstall" ]
 then 
