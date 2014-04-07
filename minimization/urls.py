@@ -24,5 +24,5 @@ urlpatterns = patterns('minimization.views',
     (r'^$', 'minimizeformdisplay'),
 
     # Uncomment this for admin:
-    (r'^admin/(.*)', include(admin.site.urls)),
+    (r'^admin/', include(admin.site.urls)),
 )

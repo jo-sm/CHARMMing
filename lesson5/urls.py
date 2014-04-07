@@ -24,5 +24,5 @@ urlpatterns = patterns('',
      (r'^$', 'lesson5.views.lesson5Display'),
 
     # Uncomment this for admin:
-    (r'^admin/(.*)', include(admin.site.urls)),
+    #(r'^admin/(.*)', include(admin.site.urls)),
 )

@@ -24,5 +24,5 @@ from django.contrib import admin
 urlpatterns = patterns('api.views',
   (r'^energy/$', 'energyCall'),
   (r'^minimize/$', 'minimizeCall'),
-  (r'^admin/(.*)', include(admin.site.urls)),
+  (r'^admin/', include(admin.site.urls)),
 )

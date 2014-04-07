@@ -21,7 +21,7 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 import charmming_config
 
-admin.autodiscover()
+##admin.autodiscover()
 
 urlpatterns = patterns('',
      (r'^charmming/$', 'account.views.loadFrontPage'),
@@ -37,6 +37,7 @@ urlpatterns = patterns('',
      (r'^charmming/tabpage/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '%s/mytemplates/tabs/' % charmming_config.charmming_root}),
      (r'^charmming/js/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '%s/mytemplates/js/' % charmming_config.charmming_root}),
      (r'^charmming/css/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '%s/mytemplates/css/' % charmming_config.charmming_root}),
+     (r'^charmming/static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '%s/static/' % charmming_config.charmming_root}),
      (r'^charmming/login/$',  login),
      (r'^charmming/loginfrontpage/$',  'account.views.login'),
      (r'^charmming/accounts/resetpassword/$',  'account.views.resetUserPassword'),
@@ -96,13 +97,6 @@ urlpatterns = patterns('',
      # job killing
      (r'^charmming/killjob/(?P<taskid>.*)/$', 'structure.views.killTask'),
 
-     # Uncomment this for admin:
-     (r'^charmming/admin/statistics/', 'account.admin_views.showStats'),
-     (r'^charmming/admin/unapproved/', 'account.admin_views.showUnapproved'),
-     (r'^charmming/admin/(.*?)', include(admin.site.urls)),
-     (r'^charmming/admin-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/usr/share/pyshared/django/contrib/admin/media'}),
-
-
      # drug design
      (r'^charmming/dd/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/var/www/html/charmming/dd/'}),
      #(r'^charmming/dd_infrastructure/projectscontainer/$', 'dd_infrastructure.views.viewProjectsContainer'),
@@ -153,4 +147,10 @@ urlpatterns = patterns('',
      (r'^charmming/qsar/', include('qsar.urls')),
      (r'^charmming/api/', include('api.urls')),
      #(r'^charmming/qsar/$', 'qsar.views.upload'),
+
+     # Uncomment this for admin:
+     (r'^charmming/admin/statistics/', 'account.admin_views.showStats'),
+     (r'^charmming/admin/unapproved/', 'account.admin_views.showUnapproved'),
+     (r'^charmming/admin/', include(admin.site.urls)),
+     ##(r'^charmming/admin-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/usr/share/pyshared/django/contrib/admin/media'}),
 )

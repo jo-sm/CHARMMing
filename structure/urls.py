@@ -26,5 +26,5 @@ urlpatterns = patterns('',
      (r'^html/skeleton/$',  'account.views.skeleton'),
 
     # Uncomment this for admin:
-    (r'^admin/(.*)', include(admin.site.urls)),
+    (r'^admin/', include(admin.site.urls)),
 )

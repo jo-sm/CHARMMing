@@ -24,5 +24,5 @@ urlpatterns = patterns('solvation.views',
      (r'^$', 'solvationformdisplay'),
 
     # Uncomment this for admin:
-    (r'^admin/(.*)', include(admin.site.urls)),
+    (r'^admin/', include(admin.site.urls)),
 )

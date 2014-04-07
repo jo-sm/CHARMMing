@@ -18,6 +18,8 @@
 # Django settings for charmming.
 # lesson_config has a list called 'lesson_num_lis'
 # which contains all lessons created
+
+import os
 from lesson_config import * 
 
 DEBUG = True
@@ -45,12 +47,6 @@ DATABASE_USER = 'charmming'         # Not used with sqlite3.
 DATABASE_PASSWORD = 'qwerty'         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
-
-# Local time zone for this installation. Choices can be found here:
-# http://www.postgresql.org/docs/8.1/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
-# although not all variations may be possible on all operating systems.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
 TIME_ZONE = 'EST5EDT'
 
 # Language code for this installation. All choices can be found here:
@@ -72,10 +68,14 @@ MEDIA_ROOT = '/home/schedd'
 # Example: "http://media.lawrence.com"
 MEDIA_URL = '/charmming/schedd/'
 
+# static URL config.
+STATIC_ROOT = os.path.join(os.path.dirname(__file__), 'static/')
+STATIC_URL = '/charmming/static/'
+
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/charmming/admin-media/'
+ADMIN_MEDIA_PREFIX = '/charmming/static/admin/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'f0!9z)dca4v=y#c0-ojs@gzu@hf&x53drd5txbv!rdx=lol#-r'
@@ -84,19 +84,47 @@ AUTH_PROFILE_MODULE = "UserProfile"
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
-     'django.template.loaders.filesystem.Loader',
-     'django.template.loaders.app_directories.Loader',
-#    'django.template.loaders.filesystem.load_template_source',
-#    'django.template.loaders.app_directories.load_template_source',
-#     'django.template.loaders.eggs.load_template_source',
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+#     'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.middleware.doc.XViewMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    # ToDo: add CSRF middleware.
+    #'django.middleware.csrf.CsrfViewMiddleware',
+    # Uncomment the next line for simple clickjacking protection:
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.core.context_processors.tz",
+    "django.contrib.messages.context_processors.messages"
+)
+
+# List of callables that know how to import templates from various sources.
+#TEMPLATE_LOADERS = (
+#     'django.template.loaders.filesystem.Loader',
+#     'django.template.loaders.app_directories.Loader',
+#    'django.template.loaders.filesystem.load_template_source',
+#    'django.template.loaders.app_directories.load_template_source',
+#     'django.template.loaders.eggs.load_template_source',
+#)
+
+#MIDDLEWARE_CLASSES = (
+#    'django.middleware.common.CommonMiddleware',
+#    'django.contrib.sessions.middleware.SessionMiddleware',
+#    'django.contrib.auth.middleware.AuthenticationMiddleware',
+#    'django.middleware.doc.XViewMiddleware',
+#)
 
 ROOT_URLCONF = 'urls'
 
@@ -110,9 +138,11 @@ TEMPLATE_DIRS = (
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.messages',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.admin',
+    'django.contrib.sites',
+    'django.contrib.staticfiles',
     'account',
     'analysis',
     'apbs',

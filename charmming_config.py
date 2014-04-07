@@ -100,7 +100,7 @@ ffld_exe = "/usr/local/charmming/drug_design/ffld_send_3.3/ffld_3.3_gcc4.0_stati
 ffld_param = user_home + "/dd/app_files/ffld/FFLD_param_cgenff"
 
 #path to VMD executable
-vmd_exe = "/usr/local/charmming/drug_design/bin/vmd"
+vmd_exe = "/usr/local/bin/vmd"
 
 # path to the FLEA exeutable and parameter files
 flea_param = user_home + "/dd/app_files/flea/PARM.flea"
