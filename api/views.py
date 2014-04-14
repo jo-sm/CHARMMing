@@ -28,33 +28,26 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.template.loader import get_template
 from django.template import Context
 
-def validateUser(postdata):
+def validateUser(data):
 
     logfp = open('/tmp/validateuser.log','w')
     logfp.write('rewind the octopus!\n')
     logfp.flush()
 
-    if not postdata.has_key('data'):
-        logfp.write('no data\n')
-        logfp.close()
-        return -1, None
-
-    logfp.write('have data = %s\n' % postdata['data'])
-    ddct = json.loads(postdata['data'])
     logfp.write('unserialized OK\n')
-    if not ddct.has_key('user_id'):
-        logfp.write('ddct does not have user_id key\n')
+    if not data.has_key('user_id'):
+        logfp.write('data does not have user_id key\n')
         logfp.close()
         return -2, None
     try:
-        client = APIUser.objects.get(callerName=ddct['user_id'])
+        client = APIUser.objects.get(callerName=data['user_id'])
     except:
-        logfp.write('could not look up user %s\n' % ddct['user_id'])
+        logfp.write('could not look up user %s\n' % data['user_id'])
         logfp.close()
         return -2, None
 
-    if not ddct.has_key('auth'):
-        logfp.write('ddct has no auth key\n')
+    if not data.has_key('auth'):
+        logfp.write('data has no auth key\n')
         logfp.close()
         return -2, None
 
@@ -66,7 +59,7 @@ def validateUser(postdata):
         hstr = client.callerKey + str(i)
         hash = sha.new(hstr)
         logfp.write('try has string: %s hash = %s\n' % (hstr,hash.hexdigest()))
-        if hash.hexdigest() == ddct['auth']:
+        if hash.hexdigest() == data['auth']:
             okc = True
             break
     if not okc:
@@ -76,7 +69,7 @@ def validateUser(postdata):
 
     logfp.write('all square, baby!\n')
     logfp.close()
-    return 0, ddct
+    return 0, data
         
 def badRes(seg,dname):
 
@@ -288,7 +281,21 @@ def energyCall(request):
     logfp.write("Piss on the floor!\n")
     logfp.flush()
 
-    err, req = validateUser(request.POST)
+    if request.method == 'POST':
+        if not request.POST.has_key('data'):
+            logfp.write('no data\n')
+            logfp.close()
+            response['errcode'] = -10
+            s  = json.dumps(response)
+            return HttpResponse(s, content_type='text/plain')
+
+        ddct = json.loads(request.POST['data'])
+        err, req = validateUser(ddct)
+    elif request.method == 'GET':
+        err, req = validateUser(request.GET)
+    else:
+        return HttpResponse('bad request type')
+
     if err < 0:
         logfp.write("validateUser failed...\n")
 
@@ -335,7 +342,20 @@ def energyCall(request):
 def minimizeCall(request):
     response = {}
 
-    err, req = validateUser(request.POST)
+    if request.method == 'POST':
+        if not request.POST.has_key('data'):
+            logfp.write('no data\n')
+            logfp.close()
+            response['errcode'] = -10
+            s  = json.dumps(response)
+            return HttpResponse(s, content_type='text/plain')
+
+        ddct = json.loads(request.POST['data'])
+        err, req = validateUser(ddct)
+    elif request.method == 'GET':
+        err, req = validateUser(request.GET)
+    else:
+        return HttpResponse('bad request type')
     if err < 0:
         response['errcode'] = err
         s = json.dumps(response)
