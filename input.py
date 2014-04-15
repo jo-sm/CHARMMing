@@ -17,7 +17,13 @@ def checkForMaliciousCode(text,request):
 
 #check request data for malicious code
 def checkRequestData(request):
-    for parameter in request.POST:
-        checkForMaliciousCode(request.POST[parameter],request)
-    for parameter in request.GET:
-        checkForMaliciousCode(request.GET[parameter],request)
+    try:
+        for parameter in request.POST:
+            checkForMaliciousCode(request.POST[parameter],request)
+    except AttributeError, e:
+        pass
+    try:
+        for parameter in request.GET:
+            checkForMaliciousCode(request.GET[parameter],request)
+    except AttributeError, e:
+        pass
