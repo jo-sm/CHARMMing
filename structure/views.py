@@ -53,7 +53,7 @@ import subprocess
 # import all created lessons by importing lesson_config
 # also there is a dictionary called 'file_type' in lesson_config.py specififying the file type of files uploaded by the lessons  
 from lesson_config import *
-import os, sys, re, copy, datetime, time, stat, json, openbabel
+import os, sys, re, copy, datetime, time, stat, json, openbabel, shutil
 import mimetypes, string, random, glob, traceback
 import pychm.io, charmming_config, minimization
 import cPickle
@@ -1246,7 +1246,7 @@ def newupload(request, template="html/fileupload.html"):
     # (to keep this code from getting more CRAZY)
     # TODO: Refactor code
     if request.POST.has_key('dna') and request.POST['dna']:
-      process_dna_request(request)
+      struct = process_dna_request(request)
 
     # begin gigantic if test
     elif request.POST.has_key('sequ') and request.POST['sequ']:
@@ -1497,6 +1497,11 @@ def newupload(request, template="html/fileupload.html"):
     lesson_ok, dd_ok = checkPermissions(request)
     return render_to_response('html/fileuploadform.html', {'form': form, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'messages':all_messages} )
 
+# Used to generate random ids
+# Should be moved to another file but here temporarily
+def id_generator(size=8, chars=string.ascii_uppercase + string.digits):
+  return ''.join(random.choice(chars) for _ in range(size))
+
 # Processes b-DNA request
 def process_dna_request(request):
   # Deny blank dna sequence
@@ -1516,7 +1521,9 @@ def process_dna_request(request):
   # i.e. a-DNA, z-DNA
   os.environ['X3DNA'] = charmming_config.x3dna_path
   now = datetime.datetime.today()
-  location = charmming_config.user_home + '/' + request.user.username + '/'
+  dname = id_generator()
+  location = charmming_config.user_home + '/' + request.user.username + '/' + dname + '/'
+  os.mkdir(location, 0755)
   file = location + now.strftime('%d%b%Y%H%M%S') + '.pdb'
   p = Popen([charmming_config.x3dna_path + '/bin/fiber','-seq=',file], stdin=PIPE, env=os.environ)
   p.stdin.write('2\n' + request.POST['dna'] + '\n0\n')
@@ -1526,23 +1533,26 @@ def process_dna_request(request):
   while not os.path.exists(file):
     sleep(0.1)
 
-  pdb = parse_pdb(request, file)
-  if not pdb:
+  struct = parse_pdb(request, file, dname) # passing in dname
+  if not struct:
     messages.error(request, "Error parsing PDB file.")
     return HttpResponseRedirect("/charmming/fileupload/")
-
-  return HttpResponseRedirect('/charmming/buildstruct/')
+  
+  if request.POST.has_key('use_propka'):
+    process_propka(struct)
+  return struct
 
 # Parses PDBs at given filename with a given request
 # With some modification, can be used to refactor current code
-def parse_pdb(request, filename):
+def parse_pdb(request, filename, dname):
   try:
     pdb = pychm.io.pdb.PDBFile(filename)
     mnum = 1
     struct = structure.models.Structure()
-    struct.original_name = 'b-DNA sequence'
+    struct.file_path = filename
+    struct.original_name = dname
     struct.title = 'Custom uploaded b-DNA sequence'
-    struct.location = charmming_config.user_home + '/' + request.user.username + '/'
+    struct.location = charmming_config.user_home + '/' + request.user.username + '/' + dname 
     struct.name = "B-DNA_" + filename.rsplit('/')[-1][:-4]
     struct.owner = request.user
     struct.getHeader(pdb.header)
@@ -1553,7 +1563,7 @@ def parse_pdb(request, filename):
       mnum += 1
     struct.pickle = store_pickle(struct.location, pdb)
     struct.save()
-    return True
+    return struct
 
   except ValueError:
     return False
@@ -1562,11 +1572,44 @@ def parse_pdb(request, filename):
 # Returns the full filename with paths of the pickle file
 def store_pickle(location, pdb):
   pfname = pdb.filename.rsplit('/')[-1][:-4] + '-pickle.dat'
-  fullname = location + pfname
+  fullname = location + '/' + pfname
   pickleFile = open(fullname,'w')
   cPickle.dump(pdb,pickleFile)
   pickleFile.close()
   return fullname
+
+# Used to process pdb through propka
+# Currently only used by 3dna processes, but a little modification
+# to current code will work with all code
+def process_propka(struct):
+# chdir to tmp dir, then move temp pdb to user's directory
+# this keeps the user's directory clean in case of any issues
+  dir = '/tmp/' + id_generator() + '/'
+  os.mkdir(dir)
+  os.chdir(dir)
+  pdb = pychm.io.pdb.PDBFile(struct.file_path)
+  pdb.iter_models().next().write(dir + struct.original_name + "-fix.pdb",outfmt='pdborg')
+  propka_out = open(dir + struct.original_name + "-propka.pdb","w") #we make a new file, because we need to change HSD/HSE/HSP to HIS or PROPKA won't get it
+  pychm_in = open(dir + struct.original_name + "-fix.pdb","r")
+  for line in pychm_in.readlines():
+    if "HSE" in line:
+      new_line = line.replace("HSE","HIS") + "\n"
+    elif "HSP" in line:
+      new_line = line.replace("HSP","HIS") + "\n"
+    elif "HSD" in line:
+      new_line = line.replace("HSD","HIS") + "\n"
+    else:
+      new_line = line + "\n"
+    propka_out.write(new_line)
+  pychm_in.close()
+  propka_out.close()
+  #The above line is a PROBLEM for multiple models that have different connectivity!
+  #TODO: Find out how to fix this for non-model00!!
+  subprocess.call(["propka31",dir + struct.original_name + "-propka.pdb"]) #original_name will hold the filename of the PDB file, which should be there
+  shutil.move(dir + struct.original_name + '-propka.pka', struct.location  + '/' + struct.original_name + '-propka.pka')
+  shutil.rmtree(dir)
+  return True
+
 
 # This function populates the form for building a structure
 def buildstruct(request):
