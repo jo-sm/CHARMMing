@@ -27,9 +27,22 @@
          </tr>
          <tr><td colspan=3><hr></td></tr>
          <tr>
-            <td><p class="fontlarge">Create my own amino acid sequence </p> </td><td><input type="radio" name="submit_structure_option" id="make_pdb" onclick="displayFields('pdb_make');setOptionId(this);"></td>
-            <td><a href="" title="You can define your own sequence by typing in the amino acids you want. Use the three letter abbreviation followed by a space (e.g. ALA GLY TYR).">?</a></td>
-         </tr>
+	   <td>
+	     <p class="fontlarge">Create my own amino acid sequence </p>
+	   </td>
+	   <td>
+	     <input type="radio" name="submit_structure_option" id="make_pdb" onclick="displayFields('pdb_make');setOptionId(this);">
+	   </td>
+	   <td>
+	     <a href="" title="You can define your own sequence by typing in the amino acids you want. Use the three letter abbreviation followed by a space (e.g. ALA GLY TYR).">?</a>
+	   </td>
+	  </tr>
+	  <tr><td colspan="3"><hr></td></tr>
+	  <tr>
+	    <td><p class="fontlarge">Create my own b-DNA sequence</p></td>
+	    <td><input type="radio" name="submit_structure_option" id="make_dna" onclick="displayFields('dna_make');setOptionId(this);"></td>
+	    <td><a href="#" title="Input a GATC sequence and transform into a PDB file.">?</a></td>
+	  </tr>
          <tr><td colspan=3><hr></td></tr>
         <tr>
           <td><p class="fontlarge">Build a custom ligand using JSmol</p> </td><td><input type="radio" name="submit_structure_option" id="make_ligand" onclick="setOptionId(this);send_ligand();"></td>
@@ -50,7 +63,13 @@
             <div class="hidden" id='crd_upload'><p><label for="id_crdupload"> CRD File Uploader </label> {{ form.crdupload }} {{ form.crdupload_file }}</div>
             <div class="hidden" id='psf_upload'><p><label for="id_psfupload"> PSF File Uploader </label> {{ form.psfupload }} {{ form.psfupload_file }}</div>
             <div class="hidden" id='pdb_download'><p><label for="id_pdbid"> PDB.org ID </label> {{ form.pdbid }} {{ form.proto }} </div>
-            <div class="hidden" id='ligand_make'></div> <!-- This div is only here to make the scripts on this page work with the custom ligand builder -->
+	    <div class="hidden" id='ligand_make'></div> <!-- This div is only here to make the scripts on this page work with the custom ligand builder -->
+	    <div class="hidden" id='dna_make'>
+	      <p>
+		<label for="id_dna">b-DNA Sequence</label>
+		{{ form.dna }}
+	      </p>
+	    </div>
             <div class="hidden" id='pdb_make'>
                  <label for="id_sequ">Custom Sequence </label>{{ form.sequ }} 
 	         <br>

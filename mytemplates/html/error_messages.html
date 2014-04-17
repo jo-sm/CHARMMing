@@ -1,6 +1,6 @@
    {% if messages %}
    {% for message in messages %}
-  <p>{{message.tags}}</p>
+   <p>{{message}}</p> <!-- message.tags -->
     <div id="dialog__{{forloop.counter}}" title="Error">
         <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
         {{message}}</p>

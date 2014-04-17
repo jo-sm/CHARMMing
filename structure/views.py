@@ -58,7 +58,8 @@ import mimetypes, string, random, glob, traceback
 import pychm.io, charmming_config, minimization
 import cPickle
 import structure.propka
-
+from subprocess import Popen, PIPE # for running external commands (3dna)
+from time import sleep
 
 # problem during upload
 """
@@ -1240,8 +1241,15 @@ def newupload(request, template="html/fileupload.html"):
         except:
             file_uploaded = 0
 
+    # Check if request is a b-DNA sequence
+    # If it is, pass the request off for processing
+    # (to keep this code from getting more CRAZY)
+    # TODO: Refactor code
+    if request.POST.has_key('dna') and request.POST['dna']:
+      process_dna_request(request)
+
     # begin gigantic if test
-    if request.POST.has_key('sequ') and request.POST['sequ']:
+    elif request.POST.has_key('sequ') and request.POST['sequ']:
         struct = structure.models.Structure()
         struct.owner = request.user
         struct.title = 'Custom amino acid sequence'
@@ -1489,6 +1497,76 @@ def newupload(request, template="html/fileupload.html"):
     lesson_ok, dd_ok = checkPermissions(request)
     return render_to_response('html/fileuploadform.html', {'form': form, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'messages':all_messages} )
 
+# Processes b-DNA request
+def process_dna_request(request):
+  # Deny blank dna sequence
+  # Currently redundant but keep for future use
+  if not request.POST['dna']:
+    messages.error(request,'Please enter a b-DNA sequence.')
+    return HttpResponseRedirect("/charmming/fileupload/")
+
+  # Run sanity checks to ensure that the sequence is only AGTC
+  if not re.match("^[AGTCagtc]*$", request.POST['dna'], re.UNICODE):
+    messages.error(request, "Please enter a valid GATC containing b-DNA sequence")
+    return HttpResponseRedirect("/charmming/fileupload")
+
+  # Process sequence into pdb file using fiber program of 3dna
+  # Uses 3dna's fiber program to create a b-DNA strand. Current
+  # usage can be changed to allow for other types of DNA strands
+  # i.e. a-DNA, z-DNA
+  os.environ['X3DNA'] = charmming_config.x3dna_path
+  now = datetime.datetime.today()
+  location = charmming_config.user_home + '/' + request.user.username + '/'
+  file = location + now.strftime('%d%b%Y%H%M%S') + '.pdb'
+  p = Popen([charmming_config.x3dna_path + '/bin/fiber','-seq=',file], stdin=PIPE, env=os.environ)
+  p.stdin.write('2\n' + request.POST['dna'] + '\n0\n')
+  p.stdin.close()
+  #p.stdin.wait() # Program finishes
+ 
+  while not os.path.exists(file):
+    sleep(0.1)
+
+  pdb = parse_pdb(request, file)
+  if not pdb:
+    messages.error(request, "Error parsing PDB file.")
+    return HttpResponseRedirect("/charmming/fileupload/")
+
+  return HttpResponseRedirect('/charmming/buildstruct/')
+
+# Parses PDBs at given filename with a given request
+# With some modification, can be used to refactor current code
+def parse_pdb(request, filename):
+  try:
+    pdb = pychm.io.pdb.PDBFile(filename)
+    mnum = 1
+    struct = structure.models.Structure()
+    struct.original_name = 'b-DNA sequence'
+    struct.title = 'Custom uploaded b-DNA sequence'
+    struct.location = charmming_config.user_home + '/' + request.user.username + '/'
+    struct.name = "B-DNA_" + filename.rsplit('/')[-1][:-4]
+    struct.owner = request.user
+    struct.getHeader(pdb.header)
+
+    for thisMol in pdb.iter_models():
+      thisMol.parse()
+      if mnum == 1: getSegs(thisMol,struct,auto_append=True) # leave as true
+      mnum += 1
+    struct.pickle = store_pickle(struct.location, pdb)
+    struct.save()
+    return True
+
+  except ValueError:
+    return False
+
+# Creates pickle file for PDB
+# Returns the full filename with paths of the pickle file
+def store_pickle(location, pdb):
+  pfname = pdb.filename.rsplit('/')[-1][:-4] + '-pickle.dat'
+  fullname = location + pfname
+  pickleFile = open(fullname,'w')
+  cPickle.dump(pdb,pickleFile)
+  pickleFile.close()
+  return fullname
 
 # This function populates the form for building a structure
 def buildstruct(request):

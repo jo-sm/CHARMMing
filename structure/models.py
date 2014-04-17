@@ -2142,6 +2142,7 @@ class PDBFileForm(forms.Form):
     crdupload = forms.FileField()
     rtf_file = forms.FileField()
     prm_file = forms.FileField()
+    dna = forms.CharField(widget=forms.widgets.Textarea())
 
     # Go model stuffs
     gm_dm_file = forms.FileField()
