@@ -136,6 +136,7 @@ class tracker:
             sstat2 = "UPDATE job_scheduler SET state=%d WHERE id=%d" % (currstate,j_id)
             crb = dba.cursor()
             crb.execute(sstat2)
+            dba.commit()
 
             if currstate >= 2:
                if currstate == 2:
@@ -144,6 +145,7 @@ class tracker:
                   sstat2 = "UPDATE job_scheduler SET ended='%s' WHERE id=%d" % (MySQLdb.Timestamp(ltime[0],ltime[1],ltime[2],ltime[3],ltime[4],ltime[5]),j_id)
                try:
                   crb.execute(sstat2)
+                  dba.commit()
                   crb.close()
                except:
                   self.logif.write_log(1, "Failed updating job time on '%s'" % sqlstat)
@@ -174,6 +176,7 @@ class tracker:
       dbc.close()
 
       if len(rarr) != 1:
+         self.logif.write_log(1, "Cannot lookup job %d." % jid)
          return None
       if rarr[0][1] == 0:
          sstr = 'submitted'
@@ -243,6 +246,7 @@ class tracker:
          sqlstat = "UPDATE job_scheduler SET state=4 where id=%d" % int(rline[2])
          try:
             crc.execute(sqlstat)
+            dbc.commit()
          except MySQLdb.Error, e:
             self.logif.write_log(1, "Error executing SQL '%s'" % sqlstat)
             self.logif.write_log(1, "Error %s" % (e.args))
@@ -302,6 +306,8 @@ class tracker:
          sqlstat = "INSERT INTO job_scheduler (userid,sched_id,batchid,state,exe,script,queued) VALUES "
          sqlstat += "(%d,'%s','%s',0,'%s','%s','%s')" % (user,schedids[i],batchid,exelist[i],scripts[i],MySQLdb.Timestamp(ltime[0],ltime[1],ltime[2],ltime[3],ltime[4],ltime[5]))
          crc.execute(sqlstat)
+         dbc.commit()
+         self.logif.write_log(1, "startJob: %s" % sqlstat)
          self.logif.write_log(4, "startJob: created %s OK" % scripts[i])
 
       # we only return the ID of the last (significant) job in the batch.
@@ -317,6 +323,7 @@ class tracker:
          if tvar != 0:
             sqlstat = "UPDATE job_scheduler set state=%d where sched_id='%s' AND script='%s'" % (tvar,schedids[i],scripts[i])
             crc.execute(sqlstat)
+            dbc.commit()
          self.logif.write_log(4, "Exiting startJob with job number %d for script %s and state at %d." % (jobid,scripts[i],tvar))
 
       # return ID to user
