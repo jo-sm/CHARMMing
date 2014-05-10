@@ -43,6 +43,9 @@ from tempfile import NamedTemporaryFile
 import openbabel, fcntl, datetime
 import statistics.models
 
+class noNscaleFound(Exception):
+    pass
+
 class Structure(models.Model):
 
     owner = models.ForeignKey(User)
@@ -1409,9 +1412,21 @@ class WorkingStructure(models.Model):
         except:
             logfp.write("No CG working struct here\n")
             cgws = None
-        logfp.close()
 
         if cgws:
+
+            havenscale = False
+            try:
+                logfp.write('Look for %s/lock-%s-go.txt\n' % (self.structure.location,self.identifier))
+                logfp.flush()
+                os.stat('%s/lock-%s-go.txt' % (self.structure.location,self.identifier))
+            except:
+                logfp.write('Got me an exception ayoof!\n')
+                havenscale = True
+
+            if not havenscale:
+                raise noNscaleFound()
+
             tdict['input_pdb'] = cgws.pdbname
             tdict['finalname'] = cgws.cg_type
         else:
@@ -1482,6 +1497,7 @@ class WorkingStructure(models.Model):
         task.save()
 
         self.save()
+        logfp.close()
 
         return task
 
@@ -1842,6 +1858,22 @@ class CGWorkingStructure(WorkingStructure):
             cgm.write_pdb(self.structure.location + '/' + basefname + '.pdb')
             cgm.write_rtf(self.structure.location + '/' + basefname + '.rtf')
             cgm.write_prm(self.structure.location + '/' + basefname + '.prm')
+            if self.cg_type == 'go':
+                if kwargs.has_key('findnscale') and kwargs['findnscale']:
+                    findnscale = True
+                else:
+                    findnscale = False
+
+                if findnscale:
+                    lockfp = open(self.structure.location + '/lock-' + basefname + '.txt', 'w')
+                    lockfp.write('%s\n' % cgm.nScale)
+                    lockfp.close()
+                    cmd = '%s/find_nscale.py %s %s %f %f' % (charmming_config.data_home, \
+                                                             self.structure.location,basefname,cgm.nScale,kwargs['gm_nscale_temp'])
+                    logfp = open('/tmp/findnscale.txt','w')
+                    logfp.write(cmd + '\n')
+                    logfp.close()
+                    os.system(cmd)
 
             # add the topology and parameter to each segment ... since we
             # never want to build CG model segments individually, we just

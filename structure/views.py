@@ -34,7 +34,7 @@ from normalmodes.aux import getNormalModeMovieNum
 from normalmodes.models import nmodeTask
 import dd_infrastructure.models
 from apbs.models import redoxTask
-from structure.models import Task, energyTask
+from structure.models import Task, energyTask, noNscaleFound
 from django.contrib.auth.models import User
 from django.core.mail import mail_admins
 from django.template import *
@@ -874,7 +874,10 @@ def energyform(request):
         et.action = 'energy'
         et.save()
         if ws.isBuilt != 't':
-            pTask = ws.build(et)
+            try:
+                pTask = ws.build(et)
+            except noNscaleFound, e:
+                return HttpResponse('The nScale parameterization process has not yet completed. It may take 1-2 hours.')
             pTaskID = pTask.id
         else:
             pTaskID = int(request.POST['ptask'])
@@ -1558,7 +1561,9 @@ def buildstruct(request):
         os.stat(struct.location + "/" + struct.original_name + "-propka.pka")
         propka_residues,user_decision = structure.propka.calculate_propka_residues(struct)
     except:
-        traceback.print_exc("/tmp/propka-errors.txt") #In case there's actually a problem
+        logfp = open("/tmp/propka-errors.txt","w")
+        traceback.print_exc(file=logfp)
+        logfp.close()
         propka_residues = None
         user_decision = True
     for seg in sl:
@@ -1589,6 +1594,7 @@ def buildstruct(request):
 #        mol.AddHydrogens(False,True,7.4)
 #        obconv.WriteFile(mol, (struct.location + "/" + struct.name + "_with_hydrogens.pdb").encode("utf-8"))
     tdict['structname'] = struct.name
+    tdict['no_propka'] = True if propka_residues == None else False
     tdict['lesson_ok'], tdict['dd_ok'] = checkPermissions(request)
     return render_to_response('html/buildstruct.html', tdict)
 
@@ -1599,6 +1605,7 @@ def modstruct(request):
 
     input.checkRequestData(request)
 
+    nscale_msg = ''
     try:
         struct = structure.models.Structure.objects.filter(owner=request.user,selected='y')[0]
     except:
@@ -1717,7 +1724,6 @@ def modstruct(request):
 
         logfp = open('/tmp/build_go_model.txt', 'w')
         logfp.write('Build Go model.\n')
-        logfp.close()
 
         seglist = []
 
@@ -1735,8 +1741,25 @@ def modstruct(request):
         new_ws.identifier = request.POST['wsidentifier']
         new_ws.modelName = request.POST['basemodel']
         new_ws.cg_type = 'go'
+
+        if request.POST['gm_known_nscale'] == 'false':
+            findnscale = True
+            nscale_msg = 'The nScale parameterization process will take 1-2 hours. Until it is done, you will not be able to run calculations'
+        else:
+            findnscale = False
+
+        logfp.write("findnscale = %s\n" % findnscale)
+        logfp.close()
+
+        try:
+            gm_nscale_temp = float(request.POST['gm_nscale_temp'])
+        except:
+            gm_nscale_temp = 340.0
+
         new_ws.associate(struct,seglist,contactSet=request.POST['gm_contact_type'], nScale=request.POST['gm_nscale'], \
-                         kBond=request.POST['gm_kbond'], kAngle=request.POST['gm_kangle'], contactrad=request.POST['gm_contactrad'])
+                         kBond=request.POST['gm_kbond'], kAngle=request.POST['gm_kangle'], contactrad=request.POST['gm_contactrad'], \
+                         findnscale=findnscale,gm_nscale_temp=gm_nscale_temp)
+
         new_ws.save()
 
     elif request.POST['buildtype'] == 'bln':
@@ -1793,7 +1816,7 @@ def modstruct(request):
     logfp.close()
 
     lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/built.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    return render_to_response('html/built.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'nscale_msg': nscale_msg})
 
 def swap(request):
     if not request.user.is_authenticated():

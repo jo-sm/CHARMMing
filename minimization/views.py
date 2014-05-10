@@ -87,7 +87,10 @@ def minimizeformdisplay(request):
 
         if ws.isBuilt != 't':
             isBuilt = False
-            pTask = ws.build(mp)
+            try:
+                pTask = ws.build(mp)
+            except structure.models.noNscaleFound, e:
+                return output.returnSubmission('Minimization', error='The nScale parameterization process has not yet completed. It may take 1-2 hours.')
             pTaskID = pTask.id
         else:
             isBuilt = True

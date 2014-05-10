@@ -19,7 +19,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template.loader import get_template
 from django.contrib import messages
-from structure.models import Structure, WorkingStructure, WorkingFile, Task
+from structure.models import Structure, WorkingStructure, WorkingFile, Task, noNscaleFound
 from account.views import checkPermissions
 from structure.aux import checkNterPatch
 from dynamics.models import mdTask, ldTask, sgldTask
@@ -87,7 +87,10 @@ def lddisplay(request):
 
         if ws.isBuilt != 't':
             isBuilt = False
-            pTask = ws.build(ldt)
+            try:
+                pTask = ws.build(ldt)
+            except noNscaleFound, e:
+                return output.returnSubmission('Minimization', error='The nScale parameterization process has not yet completed. It may take 1-2 hours.')
             pTaskID = pTask.id
         else:
             isBuilt = True
@@ -146,7 +149,10 @@ def mddisplay(request):
 
         if ws.isBuilt != 't':
             isBuilt = False
-            pTask = ws.build(mdt)
+            try:
+                pTask = ws.build(mdt)
+            except noNscaleFound, e:
+                return output.returnSubmission('Minimization', error='The nScale parameterization process has not yet completed. It may take 1-2 hours.')
             pTaskID = pTask.id
         else:
             isBuilt = True

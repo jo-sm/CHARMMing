@@ -19,7 +19,7 @@ from django import forms
 from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
-from structure.models import Structure
+from structure.models import Structure, noNscaleFound
 from django.contrib import messages
 from structure.qmmm import makeQChem_tpl, makeQchem_val, writeQMheader
 from normalmodes.aux import getNormalModeMovieNum
@@ -115,7 +115,10 @@ def normalmodesformdisplay(request):
 
         if ws.isBuilt != 't':
             isBuilt = False
-            pTask = ws.build(nt)
+            try:
+                pTask = ws.build(nt)
+            except noNscaleFound, e:
+                return output.returnSubmission('Minimization', error='The nScale parameterization process has not yet completed. It may take 1-2 hours.')
             pTaskID = pTask.id
         else:
             isBuilt = True

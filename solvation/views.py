@@ -22,7 +22,7 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.shortcuts import render_to_response
 from django.db.models import Q
-from structure.models import Structure, WorkingStructure, WorkingFile, Task, CGWorkingStructure
+from structure.models import Structure, WorkingStructure, WorkingFile, Task, CGWorkingStructure, noNscaleFound
 from solvation.ionization import neutralize_tpl
 from solvation.models import solvationTask
 from account.views import checkPermissions
@@ -77,7 +77,10 @@ def solvationformdisplay(request):
       
         if ws.isBuilt != 't':
             isBuilt = False
-            pTask = ws.build(st)
+            try:
+                pTask = ws.build(st)
+            except noNscaleFound, e:
+                return output.returnSubmission('Minimization', error='The nScale parameterization process has not yet completed. It may take 1-2 hours.')
             pTaskID = pTask.id
         else:
             isBuilt = True

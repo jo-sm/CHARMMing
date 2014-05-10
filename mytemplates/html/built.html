@@ -8,5 +8,10 @@
 system, you may proceed to run calculations. For example, you may now
 minimize the potential energy of your structure using the CHARMM force
 field or add solvent.</p>
+
+{% if nscale_msg %}
+  {{nscale_msg}}
+{% endif %}
+
 </div>
 {% endblock %}
