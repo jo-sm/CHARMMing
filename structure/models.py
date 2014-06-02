@@ -1868,7 +1868,7 @@ class CGWorkingStructure(WorkingStructure):
                     lockfp = open(self.structure.location + '/lock-' + basefname + '.txt', 'w')
                     lockfp.write('%s\n' % cgm.nScale)
                     lockfp.close()
-                    cmd = '%s/find_nscale.py %s %s %f %f' % (charmming_config.data_home, \
+                    cmd = '%s/find_nscale_async.py %s %s %f %f' % (charmming_config.data_home, \
                                                              self.structure.location,basefname,cgm.nScale,kwargs['gm_nscale_temp'])
                     logfp = open('/tmp/findnscale.txt','w')
                     logfp.write(cmd + '\n')

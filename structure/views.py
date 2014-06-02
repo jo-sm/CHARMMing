@@ -248,6 +248,7 @@ def downloadTarFile(request,mimetype=None):
 #    os.system('cp ' + charmming_config.data_home + '/savegv.py ' + struct.name)
 #    os.system('cp ' + charmming_config.data_home + '/savechrg.py ' + struct.name)
     subprocess.call(["cp",(charmming_config.data_home + '/toppar/top_all36_prot.rtf'),(charmming_config.data_home + '/toppar/par_all36_prot.prm'),struct.name])
+    subprocess.call(["cp",(charmming_config.data_home + '/toppar/toppar_water_ions.str'),(charmming_config.data_home + '/toppar/toppar_water_ions.str'),struct.name])
     subprocess.call(["tar","-czf",tar_filename,struct.name])
 #    os.system('cp ' + charmming_config.data_home + '/toppar/top_all36_prot.rtf ' + charmming_config.data_home + '/toppar/par_all36_prot.prm ' + struct.name)
 #    os.system('tar -czf ' + tar_filename + ' ' + struct.name)
@@ -1089,11 +1090,14 @@ def parseEnergy(workstruct,output_filename,enerobj=None):
     dash_occurance = 0
     energy_lines = ''
 
+    logfp = open('/tmp/parseene.txt','w')
+
     for line in outfp:
         line = line.lstrip()
         if line.startswith('ENER>'):
             enerobj.finale = float(string.splitfields(line)[2])
             enerobj.save()
+            logfp.write('saved enerobj with finale = %10.4f\n' % enerobj.finale)
         if(dash_occurance == 2 or (initiate > 0 and line.strip().startswith('CHARMM>'))):
             if(line.startswith('CHARMM>')):
                 break
@@ -1108,6 +1112,8 @@ def parseEnergy(workstruct,output_filename,enerobj=None):
     writefp = open(workstruct.structure.location + '/' + workstruct.identifier + '-energy.txt','w')
     writefp.write(energy_lines)
     writefp.close()
+
+    logfp.close()
 
     return render_to_response('html/displayenergy.html',{'linelist':energy_lines})
 
@@ -1556,7 +1562,10 @@ def buildstruct(request):
     tdict['disulfide_list'] = struct.getDisulfideList()
     tdict['proto_list'] = []
     tdict['super_user'] = request.user.is_superuser
-    tdict['filepath'] = "/charmming/pdbuploads/" + struct.location.replace(charmming_config.user_home,'') + "/" + struct.original_name + ".pdb" #This assumes we have a PDB file! Please be careful with this.
+    try:
+        tdict['filepath'] = struct.location.replace(charmming_config.user_home,"/charmming/pdbuploads/") + struct.original_name + ".pdb" #This assumes we have a PDB file! Please be careful with this.
+    except:
+        tdict['filepath'] = struct.location.replace(charmming_config.user_home,"/charmming/pdbuploads/") + struct.name + ".pdb" #This assumes we have a PDB file! Please be careful with this.
     try:
         os.stat(struct.location + "/" + struct.original_name + "-propka.pka")
         propka_residues,user_decision = structure.propka.calculate_propka_residues(struct)
@@ -1744,7 +1753,9 @@ def modstruct(request):
 
         if request.POST['gm_known_nscale'] == 'false':
             findnscale = True
-            nscale_msg = 'The nScale parameterization process will take 1-2 hours. Until it is done, you will not be able to run calculations'
+            nscale_msg = 'The nScale parameterization process will take 1-2 hours. Until it is done, you will not be able to run calculations\n'
+            nscale_msg += 'Once you can run a calculation, download a tarball of structure files to see the new nScale\n'
+            nscale_msg += 'This functionality is brand new ... please contact btmiller -at- nhlbi -dot- nih -dot- gov with issues.\n'
         else:
             findnscale = False
 
