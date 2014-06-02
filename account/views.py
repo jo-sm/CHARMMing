@@ -297,18 +297,7 @@ def isUserTrustworthy(user):
 def checkPermissions(request):
     # returns lesson, drug gesign
     if request.user.is_authenticated():
-        if request.user.is_superuser:
-            return True, True
-        groupList = request.user.groups.all()
-
-        lesson = False
-        drugde = False
-        if groupList.filter(name='lesson'):
-            lesson = True
-        if groupList.filter(name='drugdesign'):
-            drugde = True
-
-        return lesson, drugde
+        return True, True
     else:
         return False, False
 
