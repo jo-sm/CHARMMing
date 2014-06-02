@@ -53,7 +53,7 @@ def minimizeformdisplay(request):
         return HttpResponseRedirect("/charmming/fileupload")
 #        return HttpResponse("Please submit a structure first.")
     try:
-       ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+        ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
         messages.error(request, "Please build a working structure before performing any calculations.")
         return HttpResponseRedirect("/charmming/buildstruct")
