@@ -37,6 +37,7 @@ from pychm.io.pdb import PDBFile
 from toppar.models import Residue
 from getTopparFiles import write_toppar_info
 import cPickle
+import traceback
 import openbabel
 
 def clear_struct(request): #To write less repetitive code...
@@ -105,19 +106,6 @@ def build_ligand(request):
         except: #There are no records for residues in the database, or something else went wrong, so make them
             write_toppar_info()
             os.chdir(full_filepath)
-        #Then do name checks...
-        try:
-            residue = Residue.objects.filter(residue_name=tdict['mol_short'])[0]
-            if len(residue.residue_desc) > 0:
-                desc = "(" + residue.residue_desc + ")"
-            else:
-                desc = ""
-            resn = residue.residue_name
-            messages.error(request, "The residue name " + resn + " " + desc + " is a reserved word in CHARMM. Please choose another name for your molecule.")
-            tdict['messages'] = messages.get_messages(request)
-            return render_to_response('html/ligand_design.html', tdict)
-        except: #Not found
-           pass
         #Now write a file...
         if 'attach_check' in postdata.keys():
             tdict['attach_check'] = True
@@ -140,6 +128,19 @@ def build_ligand(request):
         end_data = end_data.replace(" UNK  ", resname.upper())
         tmpfile.write(end_data)
         tmpfile.close()
+        #Then do name checks...if we DON'T write the file first we run into trouble with the user fixing their molecule
+        try:
+            residue = Residue.objects.filter(residue_name=tdict['mol_short'])[0]
+            if len(residue.residue_desc) > 0:
+                desc = "(" + residue.residue_desc + ")"
+            else:
+                desc = ""
+            resn = residue.residue_name
+            messages.error(request, "The residue name " + resn + " " + desc + " is a reserved word in CHARMM. Please choose another name for your molecule.")
+            tdict['messages'] = messages.get_messages(request)
+            return render_to_response('html/ligand_design.html', tdict)
+        except: #Not found
+           pass
         if "URA" in ligname[1:] or "THY" in ligname[1:] or "GUA" in ligname[1:] or "ADE" in ligname[1:] or "CYT" in ligname[1:]: #No worries if it's a prefix though.
             messages.error(request, "CHARMMing does not support ligand names containing nucleotide suffixes (THY, URA, GUA, ADE, CYT).")
             tdict['messages'] = messages.get_messages(request)
@@ -178,8 +179,16 @@ def build_ligand(request):
                 conn.request("GET", reqstring)
                 resp = conn.getresponse()
                 if resp.status == 200:
-                    tdict['sdf_link'] = "www.pdb.org" + reqstring
+                    tdict['sdf_link'] = "http://www.pdb.org" + reqstring
                     return render_to_response('html/ligand_design.html',tdict)
+                else:
+                    conn = HTTPConnection("www.pdb.org")
+                    reqstring = "/pdb/files/%s.pdb" % ligname
+                    conn.request("GET",reqstring)
+                    resp = conn.getresponse()
+                    if resp.status == 200:
+                        tdict['sdf_link'] = "http://www.pdb.org"+reqstring
+                        return render_to_response('html/ligand_design.html',tdict)
             not_custom = postdata['not_custom'] == "true" #Whether it exists on PDB.org
             #If either force_custom is True or it wasn't needed, the code just continues.
             not_custom = postdata['not_custom'] == 'true'
@@ -241,6 +250,7 @@ def build_ligand(request):
                 #    dname = tmpdname + "-" + str(version)
 
                 struct.name = dname
+                struct.original_name = dname 
                 struct.location = location + dname
                 try:
                     os.mkdir(struct.location)
