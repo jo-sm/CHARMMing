@@ -75,11 +75,12 @@ import sys, traceback
 import commands
 import charmming_config
 import settings
-import common
+from dd_substrate import common
+#import common
 import MySQLdb
 import MySQLdb.cursors
 
-@transaction.commit_manually
+#@transaction.commit_manually
 def setLigands(request,ligandset_id,addedids,removedids):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
@@ -105,14 +106,14 @@ def setLigands(request,ligandset_id,addedids,removedids):
                                     ligands_id=ligand.id)
                 set_ligand.save()
                 pclog.write("pc saved:" + str(set_ligand) +'\n')
-            transaction.commit()
+            #transaction.commit()
     
         if (removedids!="") and (removedids!='0'):                      
             pclog.write("removedids: %s\n" % (removedids))
             removedids_list=[int(n) for n in removedids.split(',')]
             pclog.write("removedids_list: %s\n" % (removedids_list))
             ligand_sets_ligands.objects.filter(id__in=removedids_list).delete()
-            transaction.commit()
+            #transaction.commit()
             
          #try:
         lig_set=ligand_sets.objects.get(id=ligandset_id)
@@ -140,13 +141,13 @@ def setLigands(request,ligandset_id,addedids,removedids):
             except:
                 ligand_info.file_id=0
             #for ligandfile in ligandfiles:                                                                                                                                                                              
-            ligand_info.file=ligandfile
+            #ligand_info.file=ligandfile
 
     lesson_ok, dd_ok = checkPermissions(request)
     return render_to_response('html/ddsetligands.html', \
                               {'setligands':ligand_info_list,'ligandcount':len(setligands), 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
-@transaction.commit_manually
+#@transaction.commit_manually
 def updateAvailableSetLigands(request,selected_set_id):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
@@ -1075,8 +1076,8 @@ def RefreshMaybhitLigands(request):
     
         log.write("########################\n")
         count=count+1
-        if count>19:
-            break
+        #if count>19:
+        #    break
 
     return HttpResponse('Done')
 
