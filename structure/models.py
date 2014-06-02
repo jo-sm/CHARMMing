@@ -218,8 +218,8 @@ class Structure(models.Model):
         x = sequence.split()
         seqrdup  = ' '.join(x)
 
-        if len(x) > 50:
-            raise AssertionError('Custom sequence is to long!')
+        if len(x) > 100:
+            raise AssertionError('Custom sequence is too long!')
 
         td = {}
         td['nres'] = len(x)
@@ -1254,11 +1254,11 @@ class WorkingStructure(models.Model):
                 for atom in seg:
                     x, y, z = atom.cart
                     if x > xmax: xmax = x
-                    if y > xmax: ymax = y
-                    if z > xmax: zmax = z
+                    if y > ymax: ymax = y
+                    if z > zmax: zmax = z
                     if x < xmin: xmin = x
-                    if y < xmin: ymin = y
-                    if z < xmin: zmin = z
+                    if y < ymin: ymin = y
+                    if z < zmin: zmin = z
 
         logfp = open('/tmp/dimensions.txt', 'w')
         logfp.write('x = %10.6f %10.6f y = %10.6f %10.6f z = %10.6f %10.6f\n' % (xmin,xmax,ymin,ymax,zmin,zmax))
