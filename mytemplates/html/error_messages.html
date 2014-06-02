@@ -1,6 +1,7 @@
    {% if messages %}
    {% for message in messages %}
-  <p>{{message.tags}}</p>
+{%comment%}This finally works! Too bad I have no idea what to do with it now.  <p>{{message.tags}}</p>
+{%endcomment%}
     <div id="dialog__{{forloop.counter}}" title="Error">
         <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
         {{message}}</p>
@@ -12,7 +13,7 @@
             height:200,
             width:600,
             modal:true,
-            autoOpen:false,
+            autoOpen:true,
             buttons:{
               "OK":function(){
                 $(this).dialog("close");
