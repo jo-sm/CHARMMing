@@ -195,7 +195,10 @@ class mutateTask(Task):
             os.stat("temp-pdb.pdb")
         except:
             logfp.write("Could not find temp-pdb.pdb.\n")
-        os.remove("temp-pdb.pdb")
+        try:
+            os.remove("temp-pdb.pdb")
+        except:
+            pass
         logfp.write("Oldtmp file removed.\n")
         logfp.write(outputstring + "\n")
         self.lpickle = outputstring
