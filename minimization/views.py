@@ -248,6 +248,16 @@ def minimize_tpl(request,mp,pTaskID):
     else:
         mp.usepbc = 'f'
 
+    # handles backbone restraints
+    if request.POST.has_key('restrainbb'):
+        template_dict['restrainbb'] = True
+        try:
+            template_dict['bbforce'] = float(request.POST['bbforce'])
+        except:
+            template_dict['bbforce'] = 100.0
+    else:
+        template_dict['restrainbb'] = False
+
     modelType = ""
     if request.POST.has_key('model_selected'):
         if mp.useqmmm == 'y' and request.POST['model_selected'] not in ["oniom","qmmm"]:

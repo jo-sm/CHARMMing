@@ -29,12 +29,20 @@
         {% include "input_scripts/mscale_oniom.inp" %}
       {%endif%} blankme
     {%endif%} blankme
+  {% else %}
+    {% if restrainbb %}
+      cons rmsd force {{ bbforce }} sele type n .or. type ca .or. type c .or. type o end
+    {% endif %}
   {% endif %} blankme
   !!BTM bar
 
   mini SD nstep {{sdsteps}} 
   mini abnr nstep {{abnr}} nprint 100 tolg {{tolg}}
   coor rms
+
+  {% if restrainbb %}
+    cons rmsd clear
+  {% endif %}
 
   {% include "input_scripts/write_out_struct.inp" %}
 
