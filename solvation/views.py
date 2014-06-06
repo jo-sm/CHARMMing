@@ -111,7 +111,7 @@ def solvate_tpl(request,solvTask,pTaskID):
 
     # set a, b, c, alpha, beta, gamma for run
     if postdata['solvtype'] == 'sphere_solvation':
-        solvTask.spradius = postdata.sphere_radius
+        solvTask.spradius = postdata.spradius
     elif postdata['solvtype'] == 'set_dimensions':
         solvTask.xtl_x = postdata['set_x']
         solvTask.xtl_y = postdata['set_y']
