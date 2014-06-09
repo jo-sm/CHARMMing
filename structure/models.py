@@ -218,7 +218,7 @@ class Structure(models.Model):
         x = sequence.split()
         seqrdup  = ' '.join(x)
 
-        if len(x) > 100:
+        if len(x) > 500:
             raise AssertionError('Custom sequence is too long!')
 
         td = {}
