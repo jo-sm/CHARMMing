@@ -1091,7 +1091,8 @@ function getCheckedAvailableLigandIds()
     $("#availableligandsinsidediv input:checked").each(function() {
         checkedvalues.push($(this).val());
         });
-    return checkedvalues;
+    //alert(checkedvalues;)
+    return checkedvalues.join();
 }
 
 function getCheckedSetLigandIds()
@@ -1101,7 +1102,7 @@ function getCheckedSetLigandIds()
         checkedvalues.push($(this).val());
       }); //This goes through every checked value and puts it into the array.
       //No more heavy forlooping and confusing structure required.
-    return checkedvalues;
+    return checkedvalues.join();
 }
 
 function AddLigands(set_id)
@@ -1113,7 +1114,6 @@ function AddLigands(set_id)
 
 function RemoveLigands(set_id)
 {
-  //alert (getCheckedProjectConformationsIds());
     RefreshSetLigands(set_id,'',getCheckedSetLigandIds());
     //var code = 'ptid=' + $("protein_types").getValue();
     //var myAjax = new Ajax.Updater('availableconformationsdiv', '/charmming/updatemanagesetsgrids/', {method: 'post', parameters: code})
