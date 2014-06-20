@@ -51,9 +51,6 @@ class Lesson1(models.Model):
         self.save()
         return True
 
-    def onEditPDBInfo(self,postdata):
-        return True
-
     def onBuildStructureDone(self,postdata):
         return True
 

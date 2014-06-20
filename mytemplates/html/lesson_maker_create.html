@@ -1,0 +1,93 @@
+{%extends "html/skeleton.html" %}
+{%block extra_scripts%}
+<link rel="stylesheet" type="text/css" href="/charmming/css/lesson_maker.css"/>
+{%endblock%}
+{%block content%}
+<h2>Complete Recorded Lesson</h2>
+<hr class="noshade_hr center_header">
+<form id="submit_lesson" method="post" action="/charmming/lesson_maker_done/">
+  <p><b>Type the name of your lesson below:
+    <br>
+    Lesson_</b>
+  <input type="text" class="lesson_input" name="lesson_name"></input></p>
+  <br>
+  <p class="failed"><b>NOTE</b>: If you choose a lesson name that already exists, the 
+  old lesson data will be overwritten. This is intended behavior.</p>
+  <p><b>Type the title of your lesson below (try to keep it short, e.g. "Intro to simulations"):
+    <br></b>
+  <input type="text" class="lesson_input" name="title"></input></p>
+  <p><b>Add the objectives of your lesson below:</b></p>
+  <p class="objectives">
+  <input type="text" class="objective_boxes lesson_text" name="objective 1"></input><br></p>
+  <button type="button" class="add_objective">Add objective</button>
+  <p><b>Introductory text</b></p>
+  <textarea name="intro_text" class="lesson_text" rows="10" cols="100">
+Write the text that will appear before the user uploads a structure here.
+  </textarea>
+  <hr>
+  {%for step in step_list%}
+    {%comment%}
+    step syntax is:
+    step.0 is CURRENT step (i.e. the last one that was done)
+    step.1 is NEXT step (the one following the last one that was done)
+    each of step.0 step.1 is a tuple containing:
+    .0 - step number
+    .1 - step action (equal to task.action)
+    we check all of these below in order to generate textboxes
+    general logic is to display the structure upload one independently since it's special
+    and you can't run "more calculations", nor can you have workstructure creation "running"
+    so you just let it go in to the next if block
+    once you have confirmed it's not the first in the forloop, you check if there is a step after it
+    if not, then you add "closing remarks" (which is equivalent to "this step being done"),
+    if so, you make a branch depending on whether task is buildstruct or not (because we choose this one
+    to be special, though I don't have much of a reason for it other than buildstructuresubmit behaving in
+    a special way compared to the others)
+    and you write a "done" for your current task, and a "running" for the next one down the line,
+    i.e. step.1. Once you've got all that done, the page is fully generated
+    Hopefully this helps understand all the stuff below.
+    ~VS 6/4/14
+    {%endcomment%}
+    {%if forloop.first %}
+    <p><b>Text upon structure upload - Step {{step.0.0|stringformat:"d"}}</b></p>
+    {%comment%}
+    textarea formatting DOES matter. Go figure.
+    {%endcomment%}
+      <textarea name="{{step.0.1}} {{step.0.0|stringformat:"d"}} done" class="lesson_text" rows="10" cols="100">
+Write the text that will appear after the user uploads a structure here. For example, you can detail the steps that the user will take to build a working structure.
+      </textarea>
+      <hr>
+    {%else%}
+      {%comment%}forloop.first should NEVER be anything other than structure upload. Please inform of
+      any extra textboxes in that case.{%endcomment%}
+      {%comment%}IF step.1.1 is None, then we skip this and just allow "closing remarks"{%endcomment%}
+        {%if step.0.1 == "buildstruct"%}
+          <p><b>Text upon working structure setup - Step {{step.0.0|stringformat:"d"}}</b></p>
+        {%else%} 
+          <p><b>Text for completion of Step {{step.0.0|stringformat:"d"}} - {{step.0.1}}</b></p>
+        {%endif%}
+        <textarea name="{{step.0.1}} {{step.0.0|stringformat:"d"}} done" class="lesson_text" rows="10" cols="100">
+{%if step.0.1 == "buildstruct" %}Write the text that will appear after the user builds a working structure. For example, here you can detail the first calculation they will perform upon the structure.
+{%else%}Write the text that will appear after the user performs {{step.0.1}} successfully. For example, here you can detail the next calculation that they will perform upon the structure or, if this is the final calculation, any concluding remarks you might have.
+          {%endif%}
+        </textarea>
+        <br>  
+      {%if step.1.1%}
+        <p><b>Text to display while {{step.1.1}} is running</p></b>
+        <textarea name="{{step.1.1}} {{step.0.0|stringformat:"d"}} running" rows="10" class="lesson_text" cols="100">
+Write the text that will appear while {{step.1.1}} is running. For example, you can give details of how long the calculation will take, or give the user some basic information on what will happen once the calculation is done, such as the next calculation they will perform on the structure.
+        </textarea>
+        <hr>
+      {%endif%}
+      {%comment%} this one is "if step.1.1", i.e., do we have a step after the one we're looking at?{%endcomment%}
+    {%endif%}
+    {%comment%} this one is "if forloop.first" {%endcomment%}
+  {%endfor%}
+  {%comment%}Now we can finish up the form control and introduce a submit button{%endcomment%}
+  <br>
+      <div id="dialog_spec_char_alert" title="Special characters in name">
+        <p><span class="ui icon ui-icon alert"></span></p>
+      </div>
+  <button class="lesson_submit_button">Submit</button>
+</form>
+<script type="text/javascript" src="/charmming/js/lesson_maker.js"></script>
+{%endblock%}

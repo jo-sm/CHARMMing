@@ -1,13 +1,13 @@
 {% extends "html/skeleton.html" %}
 {% block content %}
 
-<div id="mainpage" style="text-align: left;">
+<div id="mainpage" class="lesson_text">
 
 {% autoescape off %}
-<h1 class="center_header">Lesson 2, Simulating Proteins {% ifequal lesson2.curStep 5 %}: <span style="color:red">Completed</span> {% endifequal %}</h1>
+<h1 class="center_header">Lesson 2, Simulating Proteins {% ifequal lesson2.curStep 5 %}: <span class="done">Completed</span> {% endifequal %}</h1>
 
 <p class="intro">
-  <span style="color:red">Lesson Objectives</span>
+  <span class="failed">Lesson Objectives</span>
   <ul>
     <li>Demonstrate how CHARMM can be used with proteins </li>
     <li>Teach the user how to use custom Topology and Parameter files to extend CHARMM ability to recognize residues </li>
@@ -38,7 +38,7 @@
 {% if lesson2 %}
  {% ifequal html_step_list.0 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 1: Upload Done </span></p>
+   <p class="intro"><span class="failed"> Step 1: Upload Done </span></p>
    <br />
 
    <p class="intro">Congratulations! You successfully uploaded the PDB file along with the custom topology and parameter!</p>
@@ -59,7 +59,7 @@
  
  {% ifequal html_step_list.1 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 2: Energy Running </span></p>
+   <p class="intro"><span class="failed"> Step 2: Energy Running </span></p>
    <br>
 
    <p class="intro">The energy job is still running. Once it's done, please visualize the system</p>
@@ -68,7 +68,7 @@
  
  {% ifequal html_step_list.1 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 2: Energy Done </span></p>
+   <p class="intro"><span class="failed"> Step 2: Energy Done </span></p>
    <br />
 
    <p class="intro">If you look at the <b>Visualize system</b> page, you'll notice that the protein is globular. Because it is a globular protein we should use a cubic 
@@ -90,7 +90,7 @@
 
  {% ifequal html_step_list.2 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 3: Solvation Running </span></p>
+   <p class="intro"><span class="failed"> Step 3: Solvation Running </span></p>
    <br>
 
    <p class="intro">The solvation job is still running but you can read ahead.</p>
@@ -118,7 +118,7 @@
  
  {% ifequal html_step_list.2 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 3: Solvation Done </span></p>
+   <p class="intro"><span class="failed"> Step 3: Solvation Done </span></p>
    <br />
 
    <p class="intro">The next step is to minimize the system. Go to the <b>Minimization</b> page and select the neutralized structure. Like the previous
@@ -140,7 +140,7 @@
 
  {% ifequal html_step_list.3 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 4: Minimization Running </span></p>
+   <p class="intro"><span class="failed"> Step 4: Minimization Running </span></p>
    <br />
 
    <p class="intro">The minimization job is still in progress but you can read ahead to the next step in the lesson.</p>
@@ -165,7 +165,7 @@
 
  {% ifequal html_step_list.3 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 4: Minimization Done </span></p>
+   <p class="intro"><span class="failed"> Step 4: Minimization Done </span></p>
    <br />
 
    <p class="intro">The next step is to run dynamics on the system. Before a production run, the system should be heated to bring it out of its minimized
@@ -186,7 +186,7 @@
 
  {% ifequal html_step_list.4 2 %}
    <br />
-   <p class="intro"><span style="color:red">Step 5: Molecular Dynamics Heating Running</span></p>
+   <p class="intro"><span class="failed">Step 5: Molecular Dynamics Heating Running</span></p>
    <br />
 
    <p class="intro">The MD job is still in progress. Meanwhile, you can read ahead about the next part of the lesson.</p>
@@ -216,7 +216,7 @@
 
  {% ifequal html_step_list.4 1 %}
    <br />
-   <p class="intro"><span style="color:red">Step 5: Molecular Dynamics Heating Done</span></p>
+   <p class="intro"><span class="failed">Step 5: Molecular Dynamics Heating Done</span></p>
    <br />
 
    <p class="intro">The next step after heating is to perform equilibration on the system in order to let it &quot;settle in&quot; at the desired temperature.
@@ -243,7 +243,7 @@
 
  {% ifequal html_step_list.5 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 6: Equilibration Molecular Dynamics Running</span></p>
+   <p class="intro"><span class="failed"> Step 6: Equilibration Molecular Dynamics Running</span></p>
    <br />
 
    <p class="intro">The MD equilibration job is still in progress.</p>
@@ -251,7 +251,7 @@
 
  {% ifequal html_step_list.5 1 %}
    <br />
-   <p class="intro"<<span style="color:red"> Step 6: Equilibration Molecular Dynamics Performed </span></p>
+   <p class="intro"<<span class="failed"> Step 6: Equilibration Molecular Dynamics Performed </span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully run Molecular Dynamics (MD) on the system! If you made a movie of the dynamics, you can
@@ -264,7 +264,7 @@
 
  {% if lessonproblem %}
  <br />
- <p class="intro"><span style="color:red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</span><br>
+ <p class="intro"><span class="failed">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</span><br>
  {{lessonproblem.description}}</p>
  {% endif %}
 

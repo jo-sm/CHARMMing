@@ -1,0 +1,26 @@
+/*CSS needed for the build structure page */
+
+/* So you can visualize protonation states */
+#proton_divs{
+  display:none;
+}
+
+#protonation{
+  width:600px;
+  float:right;
+}
+
+#protonation_jsmol{
+  width:400px;
+  clear:left;
+  position:absolute;
+}
+
+.hidden_options{
+  display:none;
+}
+
+.submit_button{
+  position:relative;
+}
+

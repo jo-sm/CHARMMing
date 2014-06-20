@@ -122,7 +122,7 @@ function off(applet){
 
 // Note: this does not go true/false...it only changes if you click something else.
 function drag(applet){
-  Jmol.script(applet, "set atompicking on;set picking dragminimize");
+  Jmol.script(applet, "set atompicking on;set picking dragatom");
 }
 
 function del(applet){

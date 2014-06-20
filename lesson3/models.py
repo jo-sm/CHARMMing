@@ -265,7 +265,7 @@ class Lesson3(models.Model):
             lessonprob = None
         for i in range(self.nSteps):
             if lessonprob and lessonprob.errorstep == math.floor(self.curStep+1) and math.floor(self.curStep) == i:
-                step_status_list[i] += ("<a class='failed' href='javascript:open_failure()'>Failed</a></td></tr>")
+                step_status_list[i] += ("<a class='failed' onclick='javascript:open_failure();'>Failed</a></td></tr>")
                 continue
             elif (float(self.curStep)-0.5) == i and float(self.curStep) % 1 == 0.5:
                 step_status_list[i] += ("<a class='running'>Running</a></td></tr>")

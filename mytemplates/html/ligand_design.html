@@ -1,11 +1,9 @@
 {% extends 'html/skeleton.html' %}
-{%block extra_scripts %}
-<script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
-<script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
-<script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
-<script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
-<script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
-<script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
+{%block extra_scripts%}
+<link rel="stylesheet" href="/charmming/css/ligand.css" />
+{%endblock%}
+{%block jsmol_scripts %}
+<script type="text/javascript" src="/charmming/js/jsmol/JSmol.min.js"></script>
 {%endblock%}
 {% block content %}
   <div id="top_of_page">
@@ -113,10 +111,12 @@
         var initialscript = 'set antialiasDisplay;set atompicking on;set picking assignatom_C;'
         {% if moldata %}
           initialscript = initialscript + "load {{filepath}}moldata.pdb;";
-        {% endif %}
+{% endif %}
         var jmolApplet;
         jmol_isReady = function(applet) {
+          $("#jmolApplet_appletdiv").css("z-index",0);
           Jmol._getElement(applet, "appletdiv".style.border="1px solid blue");
+          
         }
         var debug_on = {% if super_user %}false {% else %} true {% endif %};
         var Info = {
@@ -124,8 +124,10 @@
           height: 600,
           debug: false, //Only turn this on when something's wrong with JSmol itself
           addSelectionOptions:true,
-          color: 'black',
+          color: 'white',
           use: 'HTML5',
+          zIndexBase: 0,
+          z: 0,
           j2sPath: '/charmming/js/jsmol/j2s/',
           readyFunction: jmol_isReady,
           script: initialscript, //Auto-enables drawing CH3's.

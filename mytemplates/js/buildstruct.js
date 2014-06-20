@@ -95,13 +95,15 @@ function select_residue(resid,segid){
 function click_proto_box(){
   if($('#proto_box').is(':checked')){
     $('#proton_divs').css('display','inline');
-    jmol_height = $("#protonation")[0].scrollHeight - 150;
-    if (jmol_height < 400){
-      jmol_height = 400;
-    }
-    //Since you only get scrollHeight once the element renders and if the right side is too small, adapt to JSmol's normal size of 400x400
-    $("#protonation_jsmol").css("height",jmol_height);
+    $(".submit_button").css("top","470px");
+/*    var jsmol_height = parseInt($("#protonation_jsmol").css("height").replace("px",""));
+    if(jsmol_height > proto_height){
+      $("#protonation").css("height",jsmol_height + "px");
+    }else{
+      $("#protonation_jsmol").css("height",(proto_height-500)+"px"); //this works, but I have no idea why protonation's height varies so much
+    } */
   }else{
+  $(".submit_button").css("top","")
   $('#proton_divs').hide();}
 }
 

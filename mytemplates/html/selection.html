@@ -1,41 +1,17 @@
 {% extends 'html/skeleton.html' %}
 {%block extra_scripts %}
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
-  <script type="text/javascript" src="/charmming/js/selection.js"></script>
-  <script type="text/javascript" src="/charmming/js/visualization.js"></script>
   <link rel="stylesheet" href="/charmming/css/atomselect_visualize.css" />
   {%endblock%}
+{%block jsmol_scripts %}
+<script type="text/javascript" src="/charmming/js/jsmol/JSmol.min.js"></script>
+{%endblock%}
 {% block content %}
 <!-- REMEMBER! Make new menu. Add atom selection buttons. -->
   <h1 class="center_header">Visualization</h1>
   <br />
 <div id="jsmol">
   <div id="jsmol_window">
-  <script type="text/javascript">
-    var jmolApplet;
-    jmol_isReady = function(applet) {
-    Jmol._getElement(applet, "appletdiv".style.border="1px solid blue");
-    }		
-    var debug_on = {% if super_user %} false {% else %} true {% endif %}
-    var Info = {
-	width: "600",
-	height: "600",
-  debug: false,
-  color: "black",
-	use: "HTML5",
-	j2sPath: "/charmming/js/jsmol/j2s",
-	readyFunction: jmol_isReady,
-  script: "set antialiasDisplay;",
-  disableJ2SLoadMonitor: debug_on,
-  disableInitialConsole: debug_on,
-//  console: "jmolApplet_infodiv"
-  //Apparently the DEFAULT setting is to have debug on. Thus the awkwardness.
-}
-    </script>
+    {%include 'html/jsmol_initialize.html' %}
     <script>
       var current_layer = {{starting_layer}};
       var total_layers = {{layers}};
@@ -44,22 +20,11 @@
       var chain_terminators = {{chain_terminators|safe}};
       var segmentlist = {{segmentlist|safe}};
       jmolApplet = Jmol.getApplet("jmolApplet", Info);
-      Jmol.script(jmolApplet,  "load /charmming/pdbuploads/{{filepath}}; cpk 30%;wireframe 55;slab off; spin off; trace off; set ambient 40; set specpower 40;");
+      Jmol.script(jmolApplet,  "load /charmming/pdbuploads/{{filepath}};select all and not [TIP];cartoons on;cpk 0;wireframe 0;color structure;slab off; spin off; trace off; set ambient 40; set specpower 40;");
       Jmol.script(jmolApplet, "select none;selectionhalos on;");
      </script>
      <br />
-     <div class="qm_table normal_border">
-       <h3 class="center_header">Display options</h3>
-      <!-- These buttons are getting pretty complex. I'm considering shoving these into their own function... -->
-      <button onclick="changeDisplay('ballandstick');refresh_select();">Ball and Stick</button>
-      <button onclick="changeDisplay('ribbons');refresh_select();">Ribbons</button>
-      <button onclick="changeDisplay('cartoons');refresh_select();">Cartoons (fast)</button>
-      <button onclick="changeDisplay('fancyCartoons');refresh_select();">Fancy Cartoons (slow)</button>
-      <button onclick="changeDisplay('wireframe');refresh_select();">Wireframe</button>
-      <button onclick="toggleSolvent(true);refresh_select();">Show/Hide Solvent Molecules</button>
-      <br>
-    </div>
-      
+     {%include "html/display_options.html" %} 
   </div>
   <div id="dialog_bad_linkatoms" title="Number of link atoms not an integer">
     <p><span class="ui icon ui-icon-alert" style="float:left;margin 0 auto auto 0;"></span>
@@ -113,12 +78,17 @@
   <div id="atomselect_buttons">
     {%comment%} outermost layer goes first, then the other ones down to 1.{%endcomment%}
     <h2>Select by: </h2>
-    <button class="aaddselectbutton" id="atom" onclick="Jmol.script(jmolApplet, 'set picking atom');return false;">Atom</button> <!-- aaddselectbutton is NOT a typo. This is intentional. -->
-    <button class="atomselectbutton" id="molecule" onclick="Jmol.script(jmolApplet, 'set picking molecule');return false;">Molecule</button>
-    <button class="atomselectbutton" id="element" onclick="Jmol.script(jmolApplet, 'set picking element');return false;">Element</button>
-    <button class="atomselectbutton" id="chain" onclick="Jmol.script(jmolApplet, 'set picking chain');return false;">Chain</button>
-    <button class="atomselectbutton" id="residue" onclick="Jmol.script(jmolApplet, 'set picking group');return false;">Residue</button>
-    <button class="atomselectbutton" id="site" onclick="Jmol.script(jmolApplet, 'set picking site');return false;">Site</button><br> <br>
+    <button class="aaddselectbutton" id="atom">Atom</button> <!-- aaddselectbutton is NOT a typo. This is intentional. -->
+    <button class="atomselectbutton" id="molecule">Molecule</button>
+    <button class="atomselectbutton" id="element" >Element</button>
+    <button class="atomselectbutton" id="residue">Residue</button>
+    {%comment%}
+<!--    <button class="atomselectbutton" id="chain" >Chain</button>
+<button class="atomselectbutton" id="site" >Site</button><br> <br>
+Chain is useless because JSmol doesn't know about a-bad vs a-good etc., and if not then you may as well use "Molecule" or "Residue" to get the whole chain
+I have no idea what site does, it seems to be equivalent to atom. EIther way, these aren't things we want to use.
+-->
+{%endcomment%}
     <hr><br>
     <button class="atomselectbutton layer_update" onclick="submit_atomselect();return false;">Submit Selection</button>
     <button class="addselectbutton layer_update" id="add" onclick="add_atomselect();return false;" style="display:none">Add to Selection</button>
@@ -182,4 +152,5 @@
   <!--  <p class="fontmed"><b>WARNING:</b> Maximizing the JSmol window can lead to very slow selection. We recommend keeping the window at 600x600 or lower for best results.</p> -->
 </form>
   </div>
+<script type="text/javascript" src="/charmming/js/selection.js"></script>
 {% endblock %}

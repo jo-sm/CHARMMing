@@ -1,13 +1,12 @@
 {% extends "html/skeleton.html" %}
-{%block extra_scripts %}
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
+{%block extra_scripts%}
+<link rel="stylesheet" href="/charmming/css/mutate.css" />
+{%endblock%}
+{%block jsmol_scripts %}
+<script type="text/javascript" src="/charmming/js/jsmol/JSmol.min.js"></script>
 {%endblock%}
 {% block content %}
-{% include "html/error_messages.html" %}
+  {% include "html/error_messages.html" %}
   <div id="jsmol">
 	<h1 class="center_header">Point-Mutation for Structure {{ structname }}</h1>
 	<hr />
@@ -56,29 +55,11 @@ segs have iter_res(), so we can easily get a bunch of stuff from there
   </div>
   {% if not no_coords %}
   <div id=jsmol_window style="height:600px">
-  <script type="text/javascript">
-        var filepath = "/charmming/pdbuploads" + "{{filepath}}{{filename}}"; //base filepath. then we need to fetch which  is currently selected...
-        var load_filepath = filepath + "{%if isMutated%}-mutation.pdb{%else%}-build.pdb{%endif%}";
-        var jmolApplet; 
-        jmol_isReady = function(applet) {
-        Jmol._getElement(applet, "appletdiv".style.border="1px solid blue");
-        }		
-        var debug_on = {% if super_user %} false {% else %} true {% endif %}
-        var Info = {
-          width: "600",
-          height: "600",
-          debug: false,
-          color: "black",
-          use: "HTML5",
-          j2sPath: "/charmming/js/jsmol/j2s",
-          readyFunction: jmol_isReady,
-          script: "set antialiasDisplay;",
-          disableJ2SLoadMonitor: false,
-          disableInitialConsole: false,
-    //  console: "jmolApplet_infodiv"
-      //Apparently the DEFAULT setting is to have debug on. Thus the awkwardness.
-        }
+    {%include 'html/jsmol_initialize.html'%}
+    <script type="text/javascript">
     jmolApplet = Jmol.getApplet("jmolApplet", Info);
+    var filepath = "/charmming/pdbuploads" + "{{filepath}}{{filename}}"; //base filepath. then we need to fetch which  is currently selected...
+    var load_filepath = filepath + "{%if isMutated%}-mutation.pdb{%else%}-build.pdb{%endif%}";
     Jmol.script(jmolApplet, "load " + load_filepath + ";slab off; spin off; trace off; set ambient 40; set specpower 40;");
     Jmol.script(jmolApplet, "select none; selectionHalos on;");
     </script>

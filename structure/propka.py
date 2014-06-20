@@ -21,7 +21,9 @@ import charmming_config, input
 import commands, datetime, sys, re, os, glob, shutil
 import pychm.io
 
-#This file exists because of PROPKA. All functions in here are to do with using PROPKA.
+#This file exists because of PROPKA for the Build Structure page ONLY!
+#All functions in here are to do with using PROPKA for that page
+#for the PROPKA page, see charmming/propka/views.py
 
 def calculate_propka_residues(struct):
     #Outline goes as follows:

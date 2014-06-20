@@ -23,13 +23,13 @@ from django.shortcuts import render_to_response
 from account.models import *
 from structure.models import Task
 from django.contrib.auth.models import User
-from django.contrib import messages
+from django.contrib import messages as messages
 from django.template import *
 from django.template import RequestContext
 from account.views import checkPermissions
 from lessons.models import LessonProblem
 from mutation.models import mutateTask
-import output, lesson1, lesson2, lesson3, lesson4, lessonaux
+import output, lesson1, lesson2, lesson3, lesson4, lesson5, lesson6, lessonaux
 import structure.models, input
 from lesson_config import *
 import os, copy, json, mimetypes, string, re
@@ -330,7 +330,6 @@ def selectstructure(request):
         return HttpResponseRedirect("/charmming/energy/")
 #        tdict['no_coords'] = True
 
-    tdict['lesson_ok'], tdict['dd_ok'] = checkPermissions(request)
     return render_to_response('html/mutationselect.html', tdict)
 
 

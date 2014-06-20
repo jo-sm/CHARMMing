@@ -160,10 +160,12 @@ function submit_atomselect(){
     $("#dialog_noatoms_alert").dialog("open");
     return false;
   }
+    //attr("disabled","disabled");
   create_bynum(false, atominfo); //Create bynum without add
 //The logic is a little screwy but it should work.
 //  document.getElementById("atomselection").value = atomsele;
   Jmol.script(jmolApplet, "color cyan;select none;");
+  $(".display, .region").attr("disabled","disabled");
   Jmol.script(jmolApplet, "set picking atom");
   $(".atomselectbutton").hide(); //Hide all atom selection buttons...
   $(".addselectbutton").show();
@@ -319,7 +321,8 @@ function distance(point1, point2){
 function reset_select(default_color, wipe_all_below){
   //default_color means restore to original state. We DON'T want this for layered selections.
   if(default_color){
-    Jmol.script(jmolApplet, "selectionhalos off;select all;color jmol;select none;selectionhalos on;");
+    Jmol.script(jmolApplet, "selectionhalos off;select all and not [TIP];color structure;cartoons on;cpk 0;wireframe 0;\
+        select [TIP];cpk 30%;wireframe 45;display all;select none;selectionhalos on;zoom 0;");
   }
   $(".atomselectbutton").show(); //This way the user can't touch it till JSmol renders
   if(modelType == "oniom"){
@@ -341,6 +344,7 @@ function reset_select(default_color, wipe_all_below){
     $("#linkatom_num").val("");
     $("#linkatom_inputs").html("");
   }
+  $(".display, .region").removeAttr("disabled");
   $(".addselectbutton").hide();
   return "successful";
 }
@@ -457,6 +461,24 @@ function submit_linkatoms(){
     return false;
   }
   }
+
+//onclick events for the buttons
+$(".aaddselectbutton").click(function(){
+    Jmol.script(jmolApplet, "set picking atom;selectionhalos on;");
+  });
+
+$(".atomselectbutton").on("click",function(){
+    if (this.className.indexOf("layer_update") == -1){
+      //those with layer_update we don't care about
+      var script_var = this.id; //The problem with this is that picking by residue is actually "group"
+      if (script_var == "residue"){
+        script_var = "group";
+      }
+      Jmol.script(jmolApplet, "set picking "+script_var+";selectionhalos on");
+  }
+  });
+
+
 
 //Incoming jQueryUI error messages
 

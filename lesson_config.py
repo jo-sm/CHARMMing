@@ -41,3 +41,13 @@ lesson_desc = {
     '5':'Lesson Four shows the user how to build a coarse-grained Go model.',
     '6':'Lesson Six will show the user how to calculate the reduction potential of a [4Fe-4S]-containing protein.',
 }
+
+#Lesson title - used to simplify skeleton templating
+lesson_title = {
+    '1':'Intro to simulations',
+    '2':'Simulating proteins',
+    '3':'SGLD, sequences',
+    '4':'Custom RTF, QM/MM',
+    '5':'Coarse-grain models',
+    '6':'Redox calculation'
+}

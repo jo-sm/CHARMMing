@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<head>
+  <title>{% templatetag openblock %} block title {% templatetag closeblock %} CHARMMing Web interface, developed by the Laboratory of Computational Biology {% templatetag openblock %} endblock {% templatetag closeblock %}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <script type="text/javascript" src="/charmming/js/ajax.js"></script>
+    <script type="text/javascript" src="/charmming/js/sdmenu/sdmenu.js"></script>
+    <script type="text/javascript" src="/charmming/js/custom.js"></script>
+    <script type="text/javascript" src="/charmming/js/emap.js"></script>
+    <script type="text/javascript" src="/charmming/js/jquery-2.0.3.js"></script> 
+    <script type="text/javascript" src="/charmming/js/jqTableKit.js"></script>
+    <script type="text/javascript" src="/charmming/js/jquery.periodicalupdater.js"></script>
+    <script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
+    <script type="text/javascript" src="/charmming/js/status.js"></script>
+
+    {% templatetag openblock %} block extra_scripts {% templatetag closeblock %} {% templatetag openblock %}endblock{% templatetag closeblock %} 
+    
+    <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
+    <link rel="stylesheet" type="text/css" href="/charmming/css/charmming.css" />
+    <link rel="stylesheet" type="text/css" href="/charmming/css/custom.css" />
+    <link rel="stylesheet" type="text/css" href="/charmming/css/tabs.css" />
+    <link rel="stylesheet" type="text/css" href="/charmming/css/sdmenu/sdmenu.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tabs.css" />
+    <link rel="stylesheet" type="text/css" href="/charmming/css/jqTableKit.css"  />
+    <link rel="icon" type="image/x-icon" href="/charmming/images/charmming-css/favicon.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="/charmming/images/charmming-css/favicon.ico" /> 
+    <link rel="stylesheet" type="text/css" href="/charmming/js/jquery-ui/jquery-ui.css" />
+
+    <script type="text/javascript">
+
+    /***********************************************
+    * DHTML Window Widget- © Dynamic Drive (www.dynamicdrive.com)
+    * This notice must stay intact for legal use.
+    * Visit http://www.dynamicdrive.com/ for full source code
+    ***********************************************/
+
+    var myMenu;
+    var jmolCounter = -1;
+    var currperiodicalupdater = null;
+
+    function getDocWidth() {
+       return document.documentElement.clientWidth *.82;
+    }
+    function doOnLoad() {
+       myMenu = new SDMenu("my_menu");
+       myMenu.init();
+       //CHrome doesn't like PeriodicalUpdater sometimes and will fire infinitely many XHR and never load anything; however, if you force a single XHR (as I do here),
+       //Chrome will start loading them right. I have no idea why, and no one else seems to have this issue, so I'm assuming it's a Chrome bug more than anything.
+       $("#statusreport").PeriodicalUpdater('/charmming/status/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
+       $.ajax({
+          url:'/charmming/status/',
+          method:'post',
+          success:function(responseData){
+          $("#statusreport").html(responseData);
+          }
+          });
+
+       $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("lessonreport").innerHTML = remoteData;});
+       $.ajax({
+          url:'/charmming/lessons/lessonstatus/',
+          method:'post',
+          success:function(responseData){
+          $("#statusreport").html(responseData);
+          }
+          });
+    }
+
+    function showLesson(lesson)
+    {
+     if(currperiodicalupdater)
+     {
+      currperiodicalupdater.stop();
+     }
+     if(lesson != "nolesson" && lesson != 'None'){
+       currperiodicalupdater = $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {method: 'post', multiplier:5, minTimeout:100,
+maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
+    //Same Chrome hack as before
+       $.ajax({
+          url:'/charmming/lessons/lessonstatus/',
+          method:'post',
+          success:function(responseData){
+          $("#statusreport").html(responseData);
+          }
+          });
+     }else
+     {
+      document.getElementById('lessonreport').innerHTML = '';
+     }
+    }
+
+    $(document).ready(function (){
+        doOnLoad();
+      });
+    </script>
+</head>
+
+<body>
+  {% templatetag openblock %}  include 'html/error_messages.html' {% templatetag closeblock %} 
+  {% templatetag openblock %}  comment {% templatetag closeblock %} 
+  Including error_messages here allows ANY page working under the CHARMMing skeleton to access it - i.e. basically everything. 
+  This way we both encourage staying on skeleton and also allow fancy error messages everywhere.
+  {% templatetag openblock %}  endcomment {% templatetag closeblock %} 
+  <div id="wholepage">
+
+   <div id="header" style="margin: 0 auto;"></div>
+   
+   <div id="body">
+      <div id="sidebar">
+        <div id="my_menu" class="sdmenu">
+          <div>
+            <span>Basic functions</span>
+            <a title="CHARMMing usage information and credits." href="/charmming/about/">About CHARMMing</a>
+          </div>
+          <div>
+            <span>Structures</span>
+            <a href="/charmming/fileupload/">Submit Structure</a>
+            <a href="/charmming/viewpdbs/">Change/Delete Structures</a>
+            <a href="/charmming/buildstruct/">Build/Select Working Structure</a>
+            <a href="/charmming/ligand_design/">Build Custom Ligand</a>
+            <a href="/charmming/downloadfiles/">Download Files</a>
+            <a href="/charmming/visualize/">Visualize system</a>
+            <a href="/charmming/viewprocessfiles/">View Inputs and Outputs</a>
+      	    <a href="/charmming/mutation/">Modify Structure by Point-Mutation</a>
+          </div>
+          <div class="collapsed">
+            <span>Calculations</span>
+            <a href="/charmming/energy/">Energy</a>
+            <a href="/charmming/minimize/">Minimize</a>
+            <a href="/charmming/solvate/">Solvate</a>
+            <a href="/charmming/normalmodes/">Normal Modes</a>
+            <a href="/charmming/dynamics/md/">Molecular Dynamics</a>
+            <a href="/charmming/dynamics/ld/">Langevin Dynamics</a>
+          </div>
+          <div class="collapsed">
+            <span>Analyses</span>
+            <a href="/charmming/analysis/mdprop/">MD Properties</a>
+            <a href="/charmming/analysis/rmsd/">RMSD calculator</a>
+            <a href="/charmming/analysis/redox/">Redox</a>
+            <a href="/charmming/analysis/natq/">KT-Go native contacts</a>
+            <a href="/charmming/analysis/propka/">PROPKA</a>
+          </div>
+          <div class="collapsed">
+            <span>Docking</span>
+             <a href="/charmming/dd_substrate/ligandfileupload/">Ligand Upload</a>
+             <a href="/charmming/dd_substrate/viewligands/">View Ligands</a>
+             <a href="/charmming/dd_substrate/viewligandsets/">Ligand Sets</a>
+             <a href="/charmming/dd_infrastructure/dsfform/">Launch Docking Job</a>
+             <a href="/charmming/dd_infrastructure/viewjobs/">View Jobs/Results</a>
+          </div>
+	  <div class="collapsed">
+            <span>QSAR</span>
+             <a href="/charmming/qsar/newmodel">Create New Model</a>
+             <a href="/charmming/qsar/viewmodels/">View Models</a>
+             <a href="/charmming/qsar/viewjobs/">View Jobs/Results</a>
+           </div>
+          <div class="collapsed">
+          <span> Lessons </span>
+          <a href="/charmming/lesson_maker/">Complete Recorded Lesson</a>
+            {%for lesson in lessons %}blankme
+              <a href="/charmming/lessons/lesson{{lesson.name}}">{{lesson.name}}. {{lesson.title}}</a>
+            {%endfor%}blankme
+          </div> 
+
+          <div>
+            <span>Account</span>
+            <a title="Change Password" href="/charmming/accounts/changepassword/">Change Password</a>
+            <a title="Logout" href="/charmming/accounts/logout/">Logout</a>
+          </div>
+        </div>
+
+
+        <div id="statuscontainer">
+          <div id="statusreport" class="status"></div>
+        </div>
+
+        <div id="lessoncontainer">
+          &nbsp;
+          <div id="lessonreport" class="status"></div>
+        </div>
+
+      </div>
+
+      <div id="content">
+         {% templatetag openblock %}  block content {% templatetag closeblock %} 
+            {% include "html/intro.html" {% templatetag closeblock %} 
+         {% templatetag openblock %}  endblock {% templatetag closeblock %} 
+      </div>
+
+   </div>
+
+   <div id="chmfooter" style="margin: 0 auto;"></div>
+
+ </div>
+
+</body>
+
+</html>
+

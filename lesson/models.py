@@ -27,9 +27,6 @@ class Lesson(models.Model):
     def onFileUpload(self,postdata):
         return True
 
-    def onEditPDBInfo(self,postdata):
-        return True
-
     def onMinimizeSubmit(self,postdata):
         return True
 

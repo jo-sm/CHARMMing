@@ -31,12 +31,13 @@ from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from lessons.models import LessonProblem
-import input, output, lesson1, lesson2
+import input, output, lesson1, lesson2, lesson3, lesson4, lesson5, lesson6
 import re, os, copy, math
 import lessonaux, charmming_config
 
 #processes form data for minimization
 def solvationformdisplay(request):
+    tdict = {}
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     input.checkRequestData(request)
@@ -74,7 +75,7 @@ def solvationformdisplay(request):
         st.active = 'y'
         st.action = 'solvation'
         st.save()
-      
+
         if ws.isBuilt != 't':
             isBuilt = False
             try:
@@ -89,14 +90,9 @@ def solvationformdisplay(request):
         return solvate_tpl(request,st,pTaskID)
     else:
         # get all completed tasks associated with this struct
-        lesson_ok, dd_ok = checkPermissions(request)
-        tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
-#        for task in tasks:
-#            if task.action == "mutation":
-#                messages.error(request, "Solvation is not currently supported for mutated structures.")
-#                return HttpResponseRedirect("/charmming/buildstruct/")
-#
-        return render_to_response('html/solvationform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+        tdict['tasks'] = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
+        tdict['ws_identifier'] = ws.identifier
+    return render_to_response('html/solvationform.html', tdict)
 
 
 def solvate_tpl(request,solvTask,pTaskID):

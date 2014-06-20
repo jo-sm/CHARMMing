@@ -1,0 +1,18 @@
+{% extends 'html/skeleton.html' %}
+
+{% block content %}
+{%if output_lines%}
+<h2 class="center_header">PROPKA output:</h2>
+  <hr class="noshade-hr">
+  <div class="code_lines">
+    <pre>
+   {% autoescape off %}
+      {%for line in output_lines %}{{line}}{%endfor%}
+   {% endautoescape %}
+    </pre>
+  </div>
+{%else%}
+<h3>No output was produced by PROPKA. Please contact the system administrator, and provide
+all details about your system.</h3>
+{%endif%}
+{% endblock%}

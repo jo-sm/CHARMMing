@@ -38,6 +38,7 @@ import input, output
 import re, copy, os, shutil
 import lessonaux, charmming_config
 import cPickle
+import lesson1, lesson2, lesson3, lesson4, lesson5, lesson6
 
 def normalmodesformdisplay(request):
     """
@@ -143,8 +144,6 @@ def normalmodesformdisplay(request):
         tdict = getAtomSelections(tdict,ws)
         lesson_ok, dd_ok = checkPermissions(request)
         tdict['messages'] = get_messages(request)
-        tdict['lesson_ok'] = lesson_ok
-        tdict['dd_ok'] = dd_ok
         tdict['ws_identifier'] = ws.identifier
         tdict['tasks'] = tasks
         tdict['nmode_lines'] = nmode_lines
@@ -275,6 +274,11 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
         else:
             nmTask.start()
         
+    ## There are no NMA lessons at the moment ... when there are, this needs to be redone correctly
+    #Lesson_maker implements NMA lesson construction. It has been redone.
+    if file.lesson_type:
+        lessonaux.doLessonAct(workstruct.structure,"onNMASubmit",nmTask,None)
+
     workstruct.save()
     return output.returnSubmission('Normal modes')
 
@@ -311,9 +315,6 @@ def makeNmaMovie_tpl(workstruct,postdata,num_trjs,typeoption,nmm,ptask):
     movie_handle.close()
     nmm.scripts += ',' + movie_filename
 
-    ## There are no NMA lessons at the moment ... when there are, this needs to be redone correctly
-    ##if file.lesson_type:
-    ##    lessonaux.doLessonAct(file,"onNMASubmit",postdata,None)
     #nmm.nma_movie_status = "<span style='color:33CC00'>Done</span>"
     nmm.start()
     nmm.save()
@@ -355,7 +356,7 @@ def combineNmaPDBsForMovie(file):
 	    os.remove(file.location +  "new_" + file.stripDotPDB(file.filename) + "-nmapremovie" + `i` + "-" + str(currtrjnum) + ".pdb")
         currtrjnum += 1
 
-    nmm.nma_movie_status = "<span style='color:33CC00'>Done</span>"
+    nmm.nma_movie_status = "<span class='done'>Done</span>" #where do we even use this...?
     nmm.make_nma_movie = False
     nmm.save()
     file.save()

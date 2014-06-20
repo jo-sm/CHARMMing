@@ -29,6 +29,7 @@ from apbs import redox_mod
 from pychm.lib.mol import Mol
 from pychm.io.rtf import RTFFile
 import lessonaux, lessons, lesson1, lesson2, lesson3, lesson4, lesson5, lesson6
+from account.views import checkPermissions
 
 
 def redoxformdisplay(request):
@@ -82,7 +83,9 @@ def redoxformdisplay(request):
         rdxtsk.save()
 
         if ws.isBuilt != 't':
-            return output.returnSubmission("Oxidation/reduction", error='Your working structure must be built before you perform a redox calculation')
+            messages.error(request, "Your working structure must be built before you perform a redox calculation.")
+            return HttpResponseRedirect("/charmming/energy/")
+#            return output.returnSubmission("Oxidation/reduction", error='Your working structure must be built before you perform a redox calculation')
 
         isBuilt = True
         try:
@@ -104,7 +107,9 @@ def redoxformdisplay(request):
             try:
                 myMol = pdb['model00'] #Some things only have model00
             except:
-                return output.returnSubmission("Oxidation/reduction", error='Your working structure must be built before you perform a redox calculation')
+                messages.error(request, "Your working structure must be built before you perform a redox calculation.")
+                return HttpResponseRedirect("/charmming/energy/")
+#                return output.returnSubmission("Oxidation/reduction", error='Your working structure must be built before you perform a redox calculation')
 
 
         pfp = open(struct.pickle, 'r')
@@ -237,7 +242,6 @@ def redoxformdisplay(request):
         rn = {}
         for k in redox_nums.keys():
              rn[k] = range(1,redox_nums[k]+1)
-
 
         return django.shortcuts.render_to_response('html/redox.html', {'redox_segs': redox_segs, 'noredox': noredox, 'print_result': print_result, \
                                                                        'oxipot': oxipot, 'oxipotref': oxipotref, 'modpot': modpot, 'modpotref': modpotref, \

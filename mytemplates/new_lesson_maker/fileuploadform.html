@@ -1,0 +1,113 @@
+{% templatetag openblock %} extends "html/skeleton.html" {% templatetag closeblock %}
+
+{% templatetag openblock %} block content {% templatetag closeblock %}
+<div id="mainpage" class="table_center" style="width:30em">
+   <div class="center_header">
+      <h1>Upload Structure</h1>
+      <hr>
+   <h3>What would you like to do?</h3>
+   </div>
+   <hr>
+   <form id="choose_options">
+      <table style="border-spacing:1em;">
+         <tr>
+            <td><p class="fontlarge">Retrieve a PDB using a PDB ID </p></td> <td><input type="radio" name="submit_structure_option" id="download_pdb" onclick="displayFields('pdb_download');setOptionId(this);"></td>
+            <td><a href="" title="Each PDB in http://www.pdb.org has a alphanumeric code assoicated with it. Type in the code and this interface will automatically retrieve then parse it.">?</a></td>
+         </tr>
+         <tr><td colspan=3><hr></td></tr>
+         <tr>
+            <td><p class="fontlarge">Upload my own PDB file</p></td><td> <input type="radio" name="submit_structure_option" id="upload_pdb" onclick="displayFields('pdb_upload');setOptionId(this);"></td>
+            <td><a href="" title="If you have a custom generated input file,then upload it here and the interface will put it in CHARMM format.">?</a></td>
+         </tr>
+         <tr><td colspan=3><hr></td></tr>
+         <tr>
+            <td><p class="fontlarge">Upload my own CRD/PSF file</p></td><td> <input type="radio" name="submit_structure_option" id="upload_crd" onclick="displayFields('crd_upload');setOptionId(this);"> 
+	    <input type="hidden" name="submit_structure_option" id="upload_psf"></td>
+            <td><a href="" title="CRD files are CHARMM-specific files that have a similar function as PDB files. If you upload a CHARMM CRD file, you must also upload a CHARMM PSF file.">?</a></td>
+         </tr>
+         <tr><td colspan=3><hr></td></tr>
+         <tr>
+            <td><p class="fontlarge">Create my own amino acid sequence </p> </td><td><input type="radio" name="submit_structure_option" id="make_pdb" onclick="displayFields('pdb_make');setOptionId(this);"></td>
+            <td><a href="" title="You can define your own sequence by typing in the amino acids you want. Use the three letter abbreviation followed by a space (e.g. ALA GLY TYR).">?</a></td>
+         </tr>
+         <tr><td colspan=3><hr></td></tr>
+        <tr>
+          <td><p class="fontlarge">Build a custom ligand using JSmol</p> </td><td><input type="radio" name="submit_structure_option" id="make_ligand" onclick="setOptionId(this);send_ligand();"></td>
+          <td><a href="" title="You can define your own ligand by clicking atoms and bonds on a 3D canvas.">?</a></td>
+        </tr>
+        <tr><td colspan=3><hr></td></tr> 
+      </table>
+   </form>
+
+   {% templatetag openblock %} ifequal lessonvalue 1 {% templatetag closeblock %}
+     <form id='submit_structure' enctype="multipart/form-data" method="post" action="/charmming/fileupload/" onsubmit="window.parent.showLesson(getLessonValue());">
+   {% templatetag openblock %} else {% templatetag closeblock %}
+     <form id='submit_structure' enctype="multipart/form-data" method="post" action="/charmming/fileupload/">
+   {% templatetag openblock %} endifequal {% templatetag closeblock %}
+      <fieldset class="structure">
+         <legend class="login">Submit Structure</legend>
+            <div class="hidden" id='pdb_upload'><p><label for="id_pdbupload"> PDB File Uploader </label> {{ form.pdbupload }} {{ form.pdbupload_file }}</div>
+            <div class="hidden" id='crd_upload'><p><label for="id_crdupload"> CRD File Uploader </label> {{ form.crdupload }} {{ form.crdupload_file }}</div>
+            <div class="hidden" id='psf_upload'><p><label for="id_psfupload"> PSF File Uploader </label> {{ form.psfupload }} {{ form.psfupload_file }}</div>
+            <div class="hidden" id='pdb_download'><p><label for="id_pdbid"> PDB.org ID </label> {{ form.pdbid }} {{ form.proto }} </div>
+            <div class="hidden" id='ligand_make'></div> <!-- This div is only here to make the scripts on this page work with the custom ligand builder -->
+            <div class="hidden" id='pdb_make'>
+                 <label for="id_sequ">Custom Sequence </label>{{ form.sequ }} 
+	         <br>
+	         <br>
+                 <fieldset class="custom_sequ">
+                 <legend class="custom_sequ">Click residue to create sequence</legend>
+	           <div class="colwrapper">
+	             <div class="col1">
+	               Acidic:<br>
+	               <a href="javascript:addResidue('ASP');">ASP-Aspartic Acid </a><br>
+	               <a href="javascript:addResidue('ASPP');">ASPP-Aspartic Acid* </a><br>
+	               <a href="javascript:addResidue('GLU');">GLU-Glutamic Acid </a><br>
+	               <a href="javascript:addResidue('GLUP');">GLUP-Glutamic Acid* </a><br>
+	               <a href="javascript:addResidue('HSP');">Delta+Epsilon-Histidine*</a><br>
+	               Basic:<br>
+	               <a href="javascript:addResidue('ARG');">ARG-Arginine </a><br>
+	               <a href="javascript:addResidue('LYS');">LYS-Lysine </a><br>
+	               Neutral:<br>
+	               <a href="javascript:addResidue('ALA');">ALA-Alanine</a><br>
+	               <a href="javascript:addResidue('ASN');">ASN-Asparagine</a><br>
+	               <a href="javascript:addResidue('CYS');">CYS-Cysteine </a><br>
+	               <a href="javascript:addResidue('GLN');">GLN-Glutamine </a><br>
+	               <a href="javascript:addResidue('GLY');">GLY-Glycine </a><br>
+                     </div>
+	             <div style="position: relative; left: 250px;">
+	               <a href="javascript:addResidue('HSD');">Delta-Histidine*</a><br>
+	               <a href="javascript:addResidue('HSE');">Epsilon-Histidine*</a><br>
+	               <a href="javascript:addResidue('ILE');">ILE-Isoleucine </a><br>
+	               <a href="javascript:addResidue('LEU');">LEU-Leucine </a><br>
+                 <a href="javascript:addResidue('LSN');">LSN-Lysine* </a><br>
+	               <a href="javascript:addResidue('MET');">MET-Methionine </a><br>
+	               <a href="javascript:addResidue('PHE');">PHE-Phenylalanine </a><br>
+	               <a href="javascript:addResidue('PRO');">PRO-Proline </a><br>
+	               <a href="javascript:addResidue('SER');">SER-Serine </a><br>
+	               <a href="javascript:addResidue('THR');">THR-Threonine </a><br>
+	               <a href="javascript:addResidue('TRP');">TRP-Tryptophan </a><br>
+	               <a href="javascript:addResidue('TYR');">TYR-Tyrosine </a><br>
+	               <a href="javascript:addResidue('VAL');">VAL-Valine </a><br>
+                       <p>* = alternate protonation state</p>
+                     </div>
+     	           </div>
+                 </fieldset>
+            </div>
+      </fieldset>
+      <br />
+      <div class="center_header">
+        What Lesson is this structure associated with?<br><br>
+        <select name="lesson" id="lesson">
+         <option value="nolesson" selected> No Lesson </option>
+          {%include 'new_lesson_maker/lesson_options.html%}
+       </select><br>
+       {% templatetag openblock %}if lessonmaker_allowed {% templatetag closeblock %}
+      <p><input type="checkbox" name="start_lessonmaker" value="y" />Start Lesson Recording</p>
+       {% templatetag openblock %} endif {% templatetag closeblock %}
+       <p><input type="checkbox" name="use_propka" value="y" />Use PROPKA 3.1 to automatically assign protonation states (this may take over a minute)</p>
+      <input class="big_break" type="submit" value="Submit Structure"/>
+    </div>
+    </form>
+</div>
+{% templatetag openblock %} endblock {% templatetag closeblock %}

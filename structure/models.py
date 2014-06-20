@@ -42,6 +42,7 @@ from pychm.io.mol2 import MOL2File
 from tempfile import NamedTemporaryFile
 import openbabel, fcntl, datetime
 import statistics.models
+import lesson_maker
 
 class noNscaleFound(Exception):
     pass
@@ -65,6 +66,14 @@ class Structure(models.Model):
     journal = models.CharField(max_length=250)
     pub_date = models.DateTimeField(default=datetime.datetime.now)
     domains = models.CharField(max_length=250,default='')
+
+    lessonmaker_active = models.BooleanField(default=False)
+    #lessonmaker_active is required for lessonmaker stuff
+    #adding more fields isn't always good, but our issue here is that
+    #whenever we try to run a job, we do a query on structure to check if we have anything
+    #to work with, and then work. Thus, adding lessonmaker_active into here
+    #is essentially like getting a "global variable" whenever you run something
+    #that you can then check to see if we are currently recording stuff
 
     #Returns a list of files not specifically associated with the structure
     def getNonStructureFiles(self):
@@ -1653,24 +1662,25 @@ class WorkingStructure(models.Model):
 
         tasks = Task.objects.filter(workstruct=self,active='y',finished='n')
         #YP lesson stuff 
-        logfp = open('/tmp/lessonobj.txt','a+')
+        #logfp = open('/tmp/lessonobj.txt','a+')
         try:
             lnum=self.structure.lesson_type
             lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
         except:
             lesson_obj=None
 
-        logfp.write('I found lesson object %s\n' % lesson_obj)
-        logfp.close()
+        #logfp.write('I found lesson object %s\n' % lesson_obj)
+        #logfp.close()
         #YP
-
+        #the above log was growing past 20MB. We might want to just wipe it.
+        if self.structure.lessonmaker_active:
+            lessonmaker_obj = lesson_maker.models.Lesson.objects.filter(structure=self.structure)[0] #there's no reason why this should fail
         for t in tasks:
             t.query()
 
             if t.status == 'C' or t.status == 'F':
                 if t.action != "redox":
                     self.lock() 
-
                 if t.action == 'minimization':
                     t2 = minimization.models.minimizeTask.objects.get(id=t.id)
                     if lesson_obj: lessonaux.doLessonAct(self.structure,"onMinimizeDone",t)
@@ -1691,6 +1701,7 @@ class WorkingStructure(models.Model):
                     if lesson_obj:lessonaux.doLessonAct(self.structure,"onEnergyDone",t2)
                 elif t.action == 'nmode':
                     t2 = normalmodes.models.nmodeTask.objects.get(id=t.id)
+                    if lesson_obj:lessonaux.doLessonAct(self.structure,"onNMADone",t2)
                 elif t.action == 'redox':
                     t2 = apbs.models.redoxTask.objects.get(id=t.id)
                     if lesson_obj:lessonaux.doLessonAct(self.structure,"onRedoxDone",t)
@@ -1698,7 +1709,14 @@ class WorkingStructure(models.Model):
                     t2 = mutation.models.mutateTask.objects.get(id=t.id)
                 else:
                     t2 = t
-
+                lmlog = open("/tmp/lessonmaker_record_fail.txt","w")
+                try:
+                    if lessonmaker_obj: lessonmaker_obj.onTaskDone(t2) #t2 means less queries to render the templates
+                except:
+                    traceback.print_exc(file=lmlog)
+                lmlog.close()
+                #lessonmaker only needs Task, not the specific subclass you're using at the moment
+                #maybe we should save lessonmaker_obj?? it saves in onTaskDone...
                 t.finished  = 'y'
                 t.save()
                 t2.finished = 'y'

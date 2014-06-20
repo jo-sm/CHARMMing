@@ -1,16 +1,16 @@
 {% extends "html/skeleton.html" %}
 
 {% block content %}
-<div id="mainpage" style="text-align: left;">
+<div id="mainpage" class="lesson_text">
 
 {% autoescape off %}
 <br />
 <center>
-<h1>Lesson 6: Reduction Potential Calculations {% ifequal lesson6.curStep 4 %}: <span style="color:red">Completed</span> {% endifequal %}</h1>
+<h1>Lesson 6: Reduction Potential Calculations {% ifequal lesson6.curStep 4 %}: <span class="done">Completed</span> {% endifequal %}</h1>
 </center>
 
 <p class="intro">
-  <span style="color:red">Lesson Objectives</span>
+  <span class="failed">Lesson Objectives</span>
   <ul>
     <li> Submit a structure to the redox module. </li>
     <li> Calculate the environmental contribution to the reduction potential (&#916<i>G</i><sub>out</sub>). </li>
@@ -95,7 +95,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
 
  <!-- Step 1 -->
  {% ifequal html_step_list.0 2 %}
-   <p class="intro"><span style="color:red"> Step 1A: Upload a [4Fe-4S]-containing protein: Running </span></p>
+   <p class="intro"><span class="failed"> Step 1A: Upload a [4Fe-4S]-containing protein: Running </span></p>
    <br />
 
    <p class="intro">The redox site is categorized as a 'bad' segment type since redox site parmeters are not 
@@ -104,7 +104,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
        <u>'Use only for REDOX calculations'</u></span> from the drop-down list in the a-bad row. Select submit to 
        build the working structure.</p>
    <br />
-   <p class="intro"><span style="color:red"> Step 1B: Build the structure and calculate the energy: Running </span></p>
+   <p class="intro"><span class="failed"> Step 1B: Build the structure and calculate the energy: Running </span></p>
    <br />
 
    <p class="intro">Your structure is currently being built. If you have not done so, perform and energy caclulation
@@ -118,7 +118,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
 
  {% endifequal %}
  {% ifequal html_step_list.0 1 %}
-   <p class="intro"><span style="color:red"> Step 1A: Upload a [4Fe-4S]-containing protein: Done </span></p>
+   <p class="intro"><span class="failed"> Step 1A: Upload a [4Fe-4S]-containing protein: Done </span></p>
    <br />
 
    <p class="intro">Congratulations! You successfully uploaded the PDB file! This file contains the atomic 
@@ -143,7 +143,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
        <u>'Use only for REDOX calculations'</u></span> from the drop-down list in the a-bad row. Select submit to 
        build the working structure.</p>
    <br />
-   <p class="intro"><span style="color:red"> Step 1B: Build the structure and calculate the energy: Done </span></p>
+   <p class="intro"><span class="failed"> Step 1B: Build the structure and calculate the energy: Done </span></p>
    <br />
 
    <p class="intro">Good job! Now that you have calculated the energy, go to the &quot;Redox&quot; page under 
@@ -166,7 +166,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
  <!-- Step 2 -->
  {% ifequal html_step_list.1 2 %}
    <br /> 
-   <p class="intro"><span style="color:red"> Step 2: Perform a redox calculation: Running </span></p>
+   <p class="intro"><span class="failed"> Step 2: Perform a redox calculation: Running </span></p>
    <br />
 
    <p class="intro">Please wait until the redox calculation is complete.</p>
@@ -175,7 +175,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
 
  {% ifequal html_step_list.1 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 2: Perform a redox calculation: Done</span></p>
+   <p class="intro"><span class="failed"> Step 2: Perform a redox calculation: Done</span></p>
    <br />
 
    <p class="intro">Congratulations, you have successfully calculated the reduction potential of <i>Cv</i> HiPIP.</p>
@@ -195,7 +195,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
  <!-- Step 3 -->
  {% ifequal html_step_list.2 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 3: Calculate <i>E</i>&#176 with charged histidine.</span></p>
+   <p class="intro"><span class="failed"> Step 3: Calculate <i>E</i>&#176 with charged histidine.</span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully calculated the reduction potential!</p>
@@ -203,7 +203,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
  {% endifequal %}
  {% ifequal html_step_list.2 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 3: Calculate <i>E</i>&#176 with charged histidine.</span></p>
+   <p class="intro"><span class="failed"> Step 3: Calculate <i>E</i>&#176 with charged histidine.</span></p>
    <br />
    <p class="intro">Congratulations! You have successfully calculated <i>E</i>&#176 for <i>Cv</i> HiPIP with a charged histidine.</p>
    <br />
@@ -229,7 +229,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
  <!-- Step 4 -->
  {% ifequal html_step_list.3 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 4: Identify a Residue that Modifies <i>E</i>&#176 Using Charge-Knockout: Running</span></p>
+   <p class="intro"><span class="failed"> Step 4: Identify a Residue that Modifies <i>E</i>&#176 Using Charge-Knockout: Running</span></p>
    <br />
 
    <p class="intro">The <i>E</i>&#176 for <i>Cv</i> HiPIP with a charge knock-out is currently running. Please check back after the calculation completes.</p>
@@ -237,7 +237,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
  {% endifequal %}
  {% ifequal html_step_list.3 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 4: Identify a Residue that Modifies <i>E</i>&#176 Using Charge-Knockout: Done</span></p>
+   <p class="intro"><span class="failed"> Step 4: Identify a Residue that Modifies <i>E</i>&#176 Using Charge-Knockout: Done</span></p>
    <br />
    <p class="intro">Congratulations! You have successfully calculated the <i>E</i>&#176 for <i>Cv</i> HiPIP with His42 partial charges turned off.</p>
    <br />
@@ -258,7 +258,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
  <!-- Step 5 -->
  {% ifequal html_step_list.4 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 5: Predict <i>E</i>&#176 for <i>Cv</i> HiPIP with a Point Mutation: Running</span></p>
+   <p class="intro"><span class="failed"> Step 5: Predict <i>E</i>&#176 for <i>Cv</i> HiPIP with a Point Mutation: Running</span></p>
    <br />
 
    <p class="intro">The <i>E</i>&#176 for the mutated <i>Cv</i> HiPIP is currently running. Please check back after the calculation completes.</p>
@@ -266,7 +266,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
  {% endifequal %}
  {% ifequal html_step_list.4 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 5: Predict <i>E</i>&#176 for <i>Cv</i> HiPIP with a Point Mutation: Done</span></p>
+   <p class="intro"><span class="failed"> Step 5: Predict <i>E</i>&#176 for <i>Cv</i> HiPIP with a Point Mutation: Done</span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully calculated the <i>E</i>&#176 for a mutated redox protein</p>
@@ -285,7 +285,7 @@ Iron-sulfur proteins serve as a good example of redox proteins. We'll use them a
 
  {% for problem in lessonproblems %}
   <br />
-  <p class="intro"><span style="color:red">LESSON ERROR: STEP - {{problem.errorstep}}, SEVERITY - {{problem.severity}}</span></p> <br>
+  <p class="intro"><span class="failed">LESSON ERROR: STEP - {{problem.errorstep}}, SEVERITY - {{problem.severity}}</span></p> <br>
   {{problem.description}}
   <br />
   <br />

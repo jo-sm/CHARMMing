@@ -28,9 +28,8 @@ from django.contrib.auth.models import User
 from django.template import *
 from account.views import checkPermissions
 from lessons.models import LessonProblem
-import output, lesson1, lesson2, lesson3, lesson4, lessonaux
+import output
 import structure.models, structure.views, input
-from lesson_config import *
 import os, copy, json, mimetypes, string, re
 import charmming_config
 from pychm.io.pdb import PDBFile
@@ -111,7 +110,7 @@ def build_ligand(request):
             tdict['attach_check'] = True
         else:
             tdict['attach_check'] = False
-        lines = moldata[moldata.index("HETATM"):moldata.index("]")]
+        lines = moldata[moldata.index("HETATM"):moldata.index("\\n\\n")]
 #        logfp.write(str(lines) + "\n\t")
         lines = lines.split("\\n")
 #        logfp.write(str(lines) + "\n\t")
@@ -250,7 +249,7 @@ def build_ligand(request):
                 #    dname = tmpdname + "-" + str(version)
 
                 struct.name = dname
-                struct.original_name = dname 
+                struct.original_name = dname
                 struct.location = location + dname
                 try:
                     os.mkdir(struct.location)

@@ -1,13 +1,13 @@
 {% extends "html/skeleton.html" %}
 
 {% block content %}
-<div id="mainpage" style="text-align: left;">
+<div id="mainpage" class="lesson_text">
 
 {% autoescape off %}
-<h1 class="center_header">Lesson 3, SGLD and custom sequences{% ifequal lesson3.curStep 4 %}: <span style="color:red">Completed</span> {% endifequal %}</h1>
+<h1 class="center_header">Lesson 3, SGLD and custom sequences{% ifequal lesson3.curStep 4 %}: <span class="done">Completed</span> {% endifequal %}</h1>
 
 <p class="intro">
-  <span style="color:red">Lesson Objectives</span><br />
+  <span class="failed">Lesson Objectives</span><br />
   <ul>
     <li> Demonstrate how CHARMM can be used with protein folding </li>
     <li> Teach the user how to create their own custom sequence </li>
@@ -36,7 +36,7 @@
 
 {% if lesson3 %}
   {% ifequal html_step_list.0 1 %}
-    <p class="intro"><span style="color:red"> Step 1: Upload Done </span></p>
+    <p class="intro"><span class="failed"> Step 1: Upload Done </span></p>
     <br />
 
     <p class="intro">Congratulations! You successfully input your own amino acid sequence!</p>
@@ -57,7 +57,7 @@
 
   {% ifequal html_step_list.1 2 %}
     <br />
-    <p class="intro"><span style="color:red"> Step 2: Minimization Running </span></p>
+    <p class="intro"><span class="failed"> Step 2: Minimization Running </span></p>
     <br />
 
     <p class="intro">The next step is to run Self Guided Langevin Dynamics (SGLD). SGLD, like regular Langevin Dynamics, will run dynamics with a frictional force applied as
@@ -82,7 +82,7 @@
 
   {% ifequal html_step_list.1 1 %}
     <br />
-    <p class="intro"><span style="color:red"> Step 2: Minimization Done </span></p>
+    <p class="intro"><span class="failed"> Step 2: Minimization Done </span></p>
     <br />
 
     <p class="intro">The next step is to run Self Guided Langevin Dynamics (SGLD). SGLD, like regular Langevin Dynamics, will run dynamics with a frictional force applied as 
@@ -103,7 +103,7 @@
 
   {% ifequal html_step_list.2 2 %}
     <br />
-    <p class="intro"><span style="color:red"> Step 3: SGLD Running </span></p>
+    <p class="intro"><span class="failed"> Step 3: SGLD Running </span></p>
     <br />
 
     <p class="intro">While SGLD is running, you can read about the next and final step of this lesson.</p>
@@ -125,7 +125,7 @@
 
   {% ifequal html_step_list.2 1 %}
     <br />
-    <p class="intro"><span style="color:red"> Step 3: SGLD Done </span></p>
+    <p class="intro"><span class="failed"> Step 3: SGLD Done </span></p>
     <br />
 
     <p class="intro">One of the standard ways of comparing two conformations of a protein is to examine their root mean square deviation (RMSD), which is given by the
@@ -145,7 +145,7 @@
 
   {% ifequal html_step_list.3 1 %}
     <br />
-    <p class="intro"><span style="color:red">Step 4: Comparison Done</span></p>
+    <p class="intro"><span class="failed">Step 4: Comparison Done</span></p>
     <br />
 
     <p class="intro">You have now finished this lesson on protein folding with Langevin dynamics. For extra credit, download the PDB file of the final structure (the -sgld.pdb
@@ -155,7 +155,7 @@
 
   {% if lessonproblem %}
    <br />
-   <p class="intro"><span style="color:red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</span><br />
+   <p class="intro"><span class="failed">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</span><br />
    {{lessonproblem.description}}</p>
   {% endif %}
 

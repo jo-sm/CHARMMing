@@ -3,29 +3,29 @@
     <title>{% block title %} CHARMMing Web interface, developed by the Laboratory of Computational Biology {% endblock %}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-    <script src="/charmming/js/ajax.js" type="text/javascript"></script>
-    <script src="/charmming/js/sdmenu/sdmenu.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/charmming/js/ajax.js"></script>
+    <script type="text/javascript" src="/charmming/js/sdmenu/sdmenu.js"></script>
     <script type="text/javascript" src="/charmming/js/custom.js"></script>
     <script type="text/javascript" src="/charmming/js/emap.js"></script>
-    <script src="/charmming/js/jquery-2.0.3.js" type="text/javascript"></script> <!-- jQuery 2.0! We're in the future now. Or at least the present. -->
-    <script src="/charmming/js/jqTableKit.js" type="text/javascript"></script>
-    <script src="/charmming/js/jquery.periodicalupdater.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/charmming/js/jquery-2.0.3.js"></script> 
+    {%block jsmol_scripts%}{%endblock%}
+    <script type="text/javascript" src="/charmming/js/jqTableKit.js"></script>
+    <script type="text/javascript" src="/charmming/js/jquery.periodicalupdater.js"></script>
     <script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
     <script type="text/javascript" src="/charmming/js/status.js"></script>
 
     {%block extra_scripts %} {%endblock%}
     
     <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
-    <link href="/charmming/css/charmming.css" rel="stylesheet" type="text/css" />
-    <link href="/charmming/css/custom.css" rel="stylesheet" type="text/css" />
-    <link href="/charmming/css/tabs.css" rel="stylesheet" type="text/css" />
-    <link href="/charmming/css/sdmenu/sdmenu.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tabs.css">
-    <link rel="stylesheet" href="/charmming/css/jqTableKit.css" type="text/css" />
-    <link rel="icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="/charmming/images/charmming-css/favicon.ico" type="image/x-icon"> 
-    <link rel="stylesheet" href="/charmming/js/jquery-ui/jquery-ui.css" />
-    <link rel="stylesheet" href="/charmming/css/mutate.css" />
+    <link rel="stylesheet" type="text/css" href="/charmming/css/charmming.css" />
+    <link rel="stylesheet" type="text/css" href="/charmming/css/custom.css" />
+    <link rel="stylesheet" type="text/css" href="/charmming/css/tabs.css" />
+    <link rel="stylesheet" type="text/css" href="/charmming/css/sdmenu/sdmenu.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tabs.css" />
+    <link rel="stylesheet" type="text/css" href="/charmming/css/jqTableKit.css"  />
+    <link rel="icon" type="image/x-icon" href="/charmming/images/charmming-css/favicon.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="/charmming/images/charmming-css/favicon.ico" /> 
+    <link rel="stylesheet" type="text/css" href="/charmming/js/jquery-ui/jquery-ui.css" />
 
     <script type="text/javascript">
 
@@ -138,6 +138,7 @@ maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").i
             <a href="/charmming/analysis/rmsd/">RMSD calculator</a>
             <a href="/charmming/analysis/redox/">Redox</a>
             <a href="/charmming/analysis/natq/">KT-Go native contacts</a>
+            <a href="/charmming/analysis/propka/">PROPKA</a>
           </div>
           <div class="collapsed">
             <span>Docking</span>
@@ -152,9 +153,10 @@ maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").i
              <a href="/charmming/qsar/newmodel">Create New Model</a>
              <a href="/charmming/qsar/viewmodels/">View Models</a>
              <a href="/charmming/qsar/viewjobs/">View Jobs/Results</a>
-          </div>
+           </div>
           <div class="collapsed">
-	    <span> Lessons </span>
+          <span> Lessons </span>
+          <a href="/charmming/lesson_maker/">Complete Recorded Lesson</a>
               <a href="/charmming/lessons/lesson1/">1. Intro to Simulations</a>
               <a href="/charmming/lessons/lesson2/">2. Simulating proteins</a>
               <a href="/charmming/lessons/lesson3/">3. SGLD, sequences</a>

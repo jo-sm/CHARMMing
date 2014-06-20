@@ -96,18 +96,14 @@
             </div>
       </fieldset>
       <br />
-      {% if lesson_ok %}
       <div class="center_header">
         What Lesson is this structure associated with?<br><br>
         <select name="lesson" id="lesson"> 
-         <option value="nolesson" selected> No Lesson </option>
-         <option value="lesson1"> Lesson 1 </option>
-         <option value="lesson2"> Lesson 2 </option>
-         <option value="lesson3"> Lesson 3 </option>
-         <option value="lesson4"> Lesson 4 </option>
-         <option value="lesson5"> Lesson 5 </option>
-         <option value="lesson6"> Lesson 6 </option>
+          <option value="nolesson" selected> No Lesson </option>
+          {%include 'html/lesson_options.html' %}
        </select><br>
+       {%if lessonmaker_allowed%}
+      <p><input type="checkbox" name="start_lessonmaker" value="y" />Start Lesson Recording</p>
        {% endif %}
        <p><input type="checkbox" name="use_propka" value="y" />Use PROPKA 3.1 to automatically assign protonation states (this may take over a minute)</p>
       <input class="big_break" type="submit" value="Submit Structure"/>

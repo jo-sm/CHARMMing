@@ -475,7 +475,6 @@ def viewJobsDiv(request):
 
     log.close()
     lesson_ok, dd_ok = checkPermissions(request)
-
     return render_to_response('qsar/viewjobsdiv.html', {'jobs': jobs,'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
 
 def viewModels(request,message=""):

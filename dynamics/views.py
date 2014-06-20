@@ -108,9 +108,7 @@ def lddisplay(request):
     else:
         # get all workingFiles associated with this struct
         tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
-
-        lesson_ok, dd_ok = checkPermissions(request)
-        return render_to_response('html/ldform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+        return render_to_response('html/ldform.html', {'ws_identifier': ws.identifier,'tasks': tasks})
 
 #processes form data for md simulations
 def mddisplay(request):
@@ -171,8 +169,7 @@ def mddisplay(request):
         # get all workingFiles associated with this struct
         tasks = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
 
-        lesson_ok, dd_ok = checkPermissions(request)
-        return render_to_response('html/mdform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'canrestart': canrestart, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+        return render_to_response('html/mdform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'canrestart': canrestart})
 
 def applyld_tpl(request,ldt,pTaskID):
     postdata = request.POST
@@ -217,7 +214,7 @@ def applyld_tpl(request,ldt,pTaskID):
     try:
         impsolv = postdata['solvate_implicitly']
         if impsolv == 'scpism':
-	    ldt.scpism = True
+            ldt.scpism = True
     except:
         impsolv = 'none'
     template_dict['impsolv'] = impsolv

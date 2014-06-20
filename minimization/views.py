@@ -117,8 +117,6 @@ def minimizeformdisplay(request):
         tdict = getAtomSelections(tdict,ws)
         lesson_ok, dd_ok = checkPermissions(request)
         tdict['messages'] = get_messages(request)
-        tdict['lesson_ok'] = lesson_ok
-        tdict['dd_ok'] = dd_ok
         return render_to_response('html/minimizeform.html', tdict)
 
 def minimize_tpl(request,mp,pTaskID):

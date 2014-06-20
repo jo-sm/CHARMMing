@@ -7,6 +7,20 @@ a:active {color: #0000ff; text-decoration: underline; }
 a:visited {color: #590576; text-decoration: underline; }
 a:hover {color: #FF0F00; text-decoration: none; }
 
+/*this is for all "code"-style groups of lines, like on the energy page*/
+.code_lines{
+  font:12px,Courier,fixed;
+  position:relative;
+  left:25%;
+  top:00px;
+  width:90%;
+}
+
+/* all lessons are text-align:left so why not make them a class */
+.lesson_text{
+  text-align:left;
+}
+  
 /* we align so many headers I couldn't resist */
 .center_header{
   text-align:center;
@@ -53,24 +67,15 @@ a:hover {color: #FF0F00; text-decoration: none; }
   color:red;
 }
 
-/* So you can visualize protonation states */
-#proton_divs{
-  display:none;
+/*this one came up because of taskfiles.html. Gotta genericize!*/
+.task_table{
+  width:20%;
+  margin-left:auto;
+  margin-right:auto;
+  text-align:center;
+  margin-bottom:10px;
 }
 
-#protonation{
-  width:600px;
-  float:right;
-}
-
-#protonation_jsmol{
-  width:400px;
-  clear:left;
-}
-
-.hidden_options{
-  display:none;
-}
 /* this was initially only going to be used for QM/MM param table
  * but it is very useful for any of our tables that aren't really tables,
  * or things that are 600px wide with auto margins*/
@@ -79,6 +84,11 @@ a:hover {color: #FF0F00; text-decoration: none; }
   margin-right:auto;
   width:600px;
 }
+
+tr.padding_under > td{
+  padding-bottom:5px;
+}
+
 /* We can have up to 1000 of these at once, so we need to speed up parsing */
 .ligand_checkbox{
   width:10px;
@@ -164,13 +174,19 @@ a:hover {color: #FF0F00; text-decoration: none; }
 }
 
 /*If you need to hide elements for display purposes, this is it. 
- * If you need to group show/hide, make it into its own class with display:none. */
+ * If you need to group show/hide, make it into its own class with display:none. 
+ * NOTE: JQuery's show() and hide() supersede this!*/
 .hidden{
   display:none;
 }
 /* This is the equivalent of two <br>*/
 .big_break{
   margin-bottom:10px;
+}
+
+/*for when you really need a split*/
+.huge_break{
+  margin-bottom:25px;
 }
 
 /*For buttons on ligand_design.html*/

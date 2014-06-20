@@ -1,0 +1,71 @@
+{% templatetag openblock %} extends "html/skeleton.html" {% templatetag closeblock %}
+
+{% templatetag openblock %} block content {% templatetag closeblock %}
+<div id="mainpage" style="text-align: left;">
+
+<h1 class="center_header">Lesson {{lesson.name}}: {{lesson.title}}{% templatetag openblock %} ifequal lesson{{lesson.name}}.curStep {{stepcount}} {% templatetag closeblock %}: <span class="done">Completed</span> {% templatetag openblock %} endifequal {% templatetag closeblock %}</h1>
+
+<p class="intro">
+  <span class="failed">Lesson Objectives</span><br />
+  <ul>
+    {%for objective in objectives%}blankme
+    <li> {{objective}} </li>
+    {%endfor%}blankme
+  </ul>
+</p>
+
+<p class="intro">
+  {{lesson.intro_text}}
+</p>
+<br>
+{% templatetag openblock %} if lesson{{lesson.name}} {% templatetag closeblock %}
+
+{%for step in steps %}blankme
+{%comment%}step has the following format:
+step.step : step number
+step.type : step action
+step.running_text : step running text
+step.done_text : step done text
+remember to run capitalize on step.type before putting it in here!
+also make sure step.step is an INT...float probably won't help us much but it's good to have when
+converting to lesson format I guess? I think it was just a lazy decision but there's
+no real reason to shift it
+first we do the "running" one, then we do the Done one. simple, straightforward
+{%endcomment%}
+  {% if not forloop.first and (not step.type == "buildstruct") %}blankme
+    {% templatetag openblock %} ifequal html_step_list.{{step.step|add:"-1"}} 2 {% templatetag closeblock %}
+    {%comment%} 2 in this case means "Running", and neither Upload nor Buildstruct have "running" stages. {%endcomment%}
+      <p class="intro"><span class="failed"> Step {{step.step|stringformat:"d"}}: {{step.type}} Running </span></p>
+      <br>
+
+      <p class="intro">
+      {{step.running_text}}
+      </p>
+      <br>
+    {% templatetag openblock %} endifequal {% templatetag closeblock %}
+  {%endif%}blankme
+
+  {% templatetag openblock %} ifequal html_step_list.{{step.step|add:"-1"}} 1 {% templatetag closeblock %}
+    {%comment%} gotta do -1 because otherwise we mess with array indexes...the 1 afterwards means "done"{%endcomment%}
+    <p class="intro"><span class="failed"> Step {{step.step|stringformat:"d"}}: {%ifequal step.type "fileupload"%}
+      Upload{%else%}{%ifequal step.type "buildstruct" %}Working Structure Build{%endifequal%}{{step.type}}{%endifequal%} Done </span></p>
+      <br>
+
+      <p class="intro">
+        {{step.done_text}} 
+      </p>
+      <br>
+    {% templatetag openblock %} endifequal {% templatetag closeblock %}
+  {%endif%}blankme
+{%endfor%}blankme
+  {% templatetag openblock %} if lessonproblem {% templatetag closeblock %}
+   <br />
+   <p class="intro"><span class="failed">LESSON ERROR: STEP - {% templatetag openvariable %}lessonproblem.errorstep{% templatetag closevariable %}, SEVERITY - {% templatetag openvariable %}lessonproblem.severity{% templatetag closevariable %}</span><br />
+   {% templatetag openvariable %}lessonproblem.description{% templatetag closevariable %}</p>
+  {% templatetag openblock %} endif {% templatetag closeblock %}
+{% templatetag openblock %} endif {% templatetag closeblock %}
+{%comment%} Normally I'd include autoescape off, but we need to be sure because django may not know to include &gt; &lt; stuff otherwise and we shouldn't risk XSS attacks from this stuff, even if it's only for trusted users.{%endcomment%}
+
+</div>
+
+{% templatetag openblock %} endblock {% templatetag closeblock %}

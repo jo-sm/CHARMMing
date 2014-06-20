@@ -2,14 +2,14 @@
 
 {% block content %}
 
-<div id="mainpage" style="text-align: left;">
+<div id="mainpage" class="lesson_text">
 
 {% autoescape off %}
 <br />
-  <h1 class="center_header"> Lesson 5: Building a Coarse Grained Model</h1>
+<h1 class="center_header"> Lesson 5: Building a Coarse Grained Model {%ifequal lesson5.curStep 5} <span class="done">Completed</span> {%endifequal %}</h1>
 
 <p class="intro">
-  <span style="color:red">Lesson Objectives</span>
+  <span class="failed">Lesson Objectives</span>
   <ul>
     <li>Introduce the user to the concept of coarse-grained models</li>
     <li>Show the user how to build a coarse-grained Go model using CHARMMing</li>
@@ -54,7 +54,7 @@ bottom of the page to associate the protein with this lesson.</p>
 
  {% ifequal html_step_list.0 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 1: Upload Done </span></p>
+   <p class="intro"><span class="failed"> Step 1: Upload Done </span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully loaded 1PRB into CHARMMing!</p>
@@ -87,7 +87,7 @@ bottom of the page to associate the protein with this lesson.</p>
 
  {% ifequal html_step_list.1 1 %}
     <br />
-    <p class="intro"><span style="color:red"> Step 2: Working structure built</span></p>
+    <p class="intro"><span class="failed"> Step 2: Working structure built</span></p>
     <br />
 
     <p class="intro">Congratulations! You have successfully built a coarse-grained working structure of 1PRB. Although Go models
@@ -99,7 +99,7 @@ bottom of the page to associate the protein with this lesson.</p>
 
  {% ifequal html_step_list.2 2 %}
     <br />
-    <p class="intro"><span style="color:red"> Step 3: Minimization submitted</span></p>
+    <p class="intro"><span class="failed"> Step 3: Minimization submitted</span></p>
     <br />
 
    <p class="intro">Minimization is still ongoing, but you can read ahead. The next step will be to submit a langevin
@@ -117,7 +117,7 @@ bottom of the page to associate the protein with this lesson.</p>
 
  {% ifequal html_step_list.2 1 %}
     <br />
-    <p class="intro"><span style="color:red"> Step 3: Minimization done</span></p>
+    <p class="intro"><span class="failed"> Step 3: Minimization done</span></p>
     <br />
 
    <p class="intro">Once the structure is minimized, we can run molecular dynamics on it. This will run extremely quickly, since
@@ -136,7 +136,7 @@ bottom of the page to associate the protein with this lesson.</p>
 
  {% ifequal html_step_list.3 2 %}
     <br />
-    <p class="intro"><span style="color:red"> Step 4: Molecular dynamics in progress</span></p>
+    <p class="intro"><span class="failed"> Step 4: Molecular dynamics in progress</span></p>
     <br />
 
     <p class="intro">Langevin dynamics is still running. Once it finishes, we want to calculate how the fraction
@@ -152,7 +152,7 @@ bottom of the page to associate the protein with this lesson.</p>
 
  {% ifequal html_step_list.3 1 %}
     <br />
-    <p class="intro"><span style="color:red"> Step 4: Molecular dynamics done</span></p>
+    <p class="intro"><span class="failed"> Step 4: Molecular dynamics done</span></p>
     <br />
 
     <p class="intro">Now that Langevin dynamics is finished, we want to calculate how the fraction
@@ -174,7 +174,7 @@ bottom of the page to associate the protein with this lesson.</p>
 
  {% ifequal html_step_list.4 2 %}
     <br />
-    <p class="intro"><span style="color:red"> Step 5: NATQ submitted</span></p>
+    <p class="intro"><span class="failed"> Step 5: NATQ submitted</span></p>
     <br />
 
     <p class="intro">This lesson is almost finished.</p>
@@ -182,7 +182,7 @@ bottom of the page to associate the protein with this lesson.</p>
 
  {% ifequal html_step_list.4 1 %}
     <br />
-    <p class="intro"><span style="color:red"> Step 5: NATQ finished</span></p>
+    <p class="intro"><span class="failed"> Step 5: NATQ finished</span></p>
     <br />
 
     <p class="intro">The native contacts have been calculated and this lesson is over.</p>
@@ -194,7 +194,7 @@ bottom of the page to associate the protein with this lesson.</p>
 <br>
 {% for problem in lessonproblems %}
   <br />
-  <p class="intro"><span style="color:red">LESSON ERROR: STEP - {{problem.errorstep}}, SEVERITY - {{problem.severity}}</span></p> <br>
+  <p class="intro"><span class="failed">LESSON ERROR: STEP - {{problem.errorstep}}, SEVERITY - {{problem.severity}}</span></p> <br>
   {{problem.description}}
   <br />
   <br />

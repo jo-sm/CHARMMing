@@ -1,14 +1,14 @@
 {% extends "html/skeleton.html" %}
 
 {% block content %}
-<div id="mainpage" style="text-align: left;">
+<div id="mainpage" class="lesson_text">
 
 {% autoescape off %}
-<h1 class="center_header">Lesson 4{% ifequal lesson4.curStep 4 %}: <span style="color:red">Completed</span> {% endifequal %}</h1>
+<h1 class="center_header">Lesson 4{% ifequal lesson4.curStep 4 %}: <span class="done">Completed</span> {% endifequal %}</h1>
 
 
 <p class="intro">
-  <span style="color:red">Lesson Objectives</span><br />
+  <span class="failed">Lesson Objectives</span><br />
   <ul>
     <li>Demonstrate how to create a custom residue topology file (RTF) - this data structure is described <a target="_blank" href="http://charmmtutorial.org/index.php/Basic_CHARMM_Scripting#Data_Structures">on charmmtutorial.org</a>.</li>
     <li>Teach the user to perform a single point energy evaluation.</li>
@@ -161,7 +161,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 {% if lesson4 %}
 
 {% ifequal html_step_list.0 1 %}
-  <p class="intro"><span style="color:red"> Step 1: Upload Done </span></p>
+  <p class="intro"><span class="failed"> Step 1: Upload Done </span></p>
   <br />
 
   <p class="intro">With the upload complete, it is now time to see if your RTF file is correct. Please go to the <b>Energy</b> page to perform a single point
@@ -183,7 +183,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 {% ifequal html_step_list.1 2 %}
   <!-- NB: this shouldn't ever get called as the users should not navigate away from the energy page. -->
   <br />
-  <p class="intro"><span style="color:red"> Step 2: Energy Running</span></p>
+  <p class="intro"><span class="failed"> Step 2: Energy Running</span></p>
   <br />
 
   <p class="intro">The energy calculation should not take very long. Please check the energy page to see when it finishes.</p>
@@ -191,7 +191,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% ifequal html_step_list.1 1 %}
   <br />
-  <p class="intro"><span style="color:red"> Step 2: Energy Done</span></p>
+  <p class="intro"><span class="failed"> Step 2: Energy Done</span></p>
   <br />
 
  <p class="intro">You have successfully calculated the energy of Butane. This indicates that the RTF file you made is correct. For the next step of this
@@ -227,7 +227,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% ifequal html_step_list.2 1 %}
   <br />
-  <p class="intro"><span style="color:red"> Step 3: QM/MM Energy Done</span></p>
+  <p class="intro"><span class="failed"> Step 3: QM/MM Energy Done</span></p>
   <br />
 
   <p class="intro">Now that you have evaulated the energy both classically and quantum mechanically, the final part of this lesson is to
@@ -247,7 +247,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% ifequal html_step_list.3 2 %}
   <br />
-  <p class="intro"><span style="color:red"> Step 4: QM/MM minimization Running </span></p>
+  <p class="intro"><span class="failed"> Step 4: QM/MM minimization Running </span></p>
   <br />
 
   <p class="intro">Congratulations! You have almost completed the lesson!</p>
@@ -255,7 +255,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% ifequal html_step_list.3 1 %}
   <br />
-  <p class="intro"><span style="color:red"> Step 4: QM/MM Minimization Done </span></p>
+  <p class="intro"><span class="failed"> Step 4: QM/MM Minimization Done </span></p>
   <br />
 
   <p class="intro">Congratulations! You have completed the lesson!</p>
@@ -263,7 +263,7 @@ ic  c2  c4  *c3 h32 0.00  0.00 -120.0  0.00 0.00
 
 {% if lessonproblem %}
  <br />
- <p class="intro"><span style="color:red">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</span><br />
+ <p class="intro"><span class="failed">LESSON ERROR: STEP - {{lessonproblem.errorstep}}, SEVERITY - {{lessonproblem.severity}}</span><br />
  {{lessonproblem.description}}</p>
 {% endif %}
 

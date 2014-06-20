@@ -134,7 +134,7 @@ def trajanalformdisplay(request):
     return django.shortcuts.render_to_response('html/trajanalform.html', {'form': form, 'filename_list': filename_list, 'seg_list':seg_list,'file':file, 'min_pdb': min_pdb, 'solv_pdb':solv_pdb, \
       'neu_pdb': neu_pdb, 'md_pdb': md_pdb, 'ld_pdb': ld_pdb, 'sgld_pdb': sgld_pdb, 'het_list': het_list, 'tip_list':tip_list, 'protein_list':protein_list, \
       'trusted': trusted, 'disulfide_list': disulfide_list, 'propatch_list': propatch_list, 'nucleic_list': nucleic_list, 'nucpatch_list': nucpatch_list, 'seg_list': seg_list, \
-      'userup_list': userup_list, 'go_list': go_list})
+      'userup_list': userup_list, 'go_list': go_list,})
 
 def trajanal_tpl(request,file,scriptlist):
     logfp = open('/tmp/trajanal.log', 'w')

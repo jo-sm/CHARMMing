@@ -1,12 +1,6 @@
 {% extends 'html/skeleton.html' %}
-{%block extra_scripts %}
-  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmolCore.js"></script>
-  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmolApplet.js"></script>
-  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmolApi.js"></script>
-  <script type="text/javascript" src="/charmming/js/new-jsmol/js/j2sjmol.js"></script>
-  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmol.js"></script>
-  <script type="text/javascript" src="/charmming/js/visualization.js"></script>
-  <script type="text/javascript" src="/charmming/js/new-jsmol/js/JSmoljQueryExt.js"></script>
+{%block jsmol_scripts %}
+  <script type="text/javascript" src="/charmming/js/jsmol/JSmol.min.js"></script>
   <link rel="icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
   <link rel="shortcut icon" type="image/xicon" href="/charmming/images/charmming-css/favicon.ico" />
 {%endblock%}
@@ -16,27 +10,7 @@
   <hr class="noshade_hr">
   <br />
   <div id="jsmol" class="qm_table">
-  <script type="text/javascript">
-    var jmolApplet;
-    jmol_isReady = function(applet) {
-    Jmol._getElement(applet, "appletdiv".style.border="1px solid blue");
-    }		
-    var debug_on = {% if super_user %} false {% else %} true {% endif %}
-    var Info = {
-	width: "600",
-	height: "600",
-	debug: false,
-	color: "black",
-	use: "HTML5",
-	j2sPath: "/charmming/js/new-jsmol/j2s",
-	readyFunction: jmol_isReady,
-  script: "set antialiasDisplay;",
-  disableJ2SLoadMonitor: debug_on,
-  disableInitialConsole: debug_on,
-//  console: "jmolApplet_infodiv"
-  //Apparently the DEFAULT setting is to have debug on. Thus the awkwardness.
-}
-    </script>
+    {%include "html/jsmol_initialize.html" %}
   <script>
       jmolApplet = Jmol.getApplet("jmolApplet", Info);
     {% if segid == "NA" and isProtein and not cg_model%}
@@ -46,21 +20,11 @@
        Jmol.script(jmolApplet, "load /charmming/pdbuploads{{filepath}};anim mode palindrome 2 2; anim on; {{resid}}; cpk 30%; wireframe 55; select {{resid}} and ( _O or _N ); label %a, %n");
        {% endif %}
         Jmol.script(jmolApplet, "load /charmming/pdbuploads{{filepath}};anim mode palindrome 2 2; anim on; cpk 30%; wireframe 55;");
-       {% endif %}
+        {% endif %}
+       var displayDict = new Object();
        displayDict['ribbons'] = {% if isProtein and not cg_model%}true{%else%}false{%endif%};
        displayDict['ballandstick'] = {%if isProtein and not cg_model%}false{%else%}true{%endif%};
      </script>
      <br />
-    <div class="qm_table">
-      <h3 class="center_header">Display options</h3>
-      <hr>
-      <button onclick="changeDisplay('ballandstick');">Ball and Stick</button>
-      <button onclick="changeDisplay('ribbons');">Ribbons</button>
-      <button onclick="changeDisplay('cartoons');">Cartoons (fast)</button>
-      <button onclick="changeDisplay('fancyCartoons');">Fancy Cartoons (slow)</button>
-      <button onclick="changeDisplay('wireframe');">Wireframe</button>
-      <button onclick="toggleSolvent(true);">Show/Hide Solvent Molecules</button>
-      <br>
-    </div>
-    <br>
+    {%include "html/display_options.html" %}
 {% endblock %}

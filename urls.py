@@ -32,6 +32,8 @@ urlpatterns = patterns('',
      (r'^charmming/solvate/', include('solvation.urls')),
      (r'^charmming/dynamics/', include('dynamics.urls')),
      (r'^charmming/lessons/', include('lessons.urls')),
+     (r'^charmming/lesson_maker/', 'lesson_maker.views.lessonmaker_display'),
+     (r'^charmming/lesson_maker_done/', 'lesson_maker.views.lessonmaker_done'),
      (r'^charmming/normalmodes/', include('normalmodes.urls')),
      (r'^charmming/images/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '%s/mytemplates/images/' % charmming_config.charmming_root}),
      (r'^charmming/tabpage/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '%s/mytemplates/tabs/' % charmming_config.charmming_root}),
@@ -93,6 +95,11 @@ urlpatterns = patterns('',
      (r'^charmming/analysis/trajanal/$', 'trajanal.views.trajanalformdisplay'),
      (r'^charmming/analysis/updatetrajanal/$', 'trajanal.views.updatetrajanal'),
      (r'^charmming/analysis/redox/$', 'apbs.views.redoxformdisplay'),
+
+    #propka stuff
+     (r'^charmming/analysis/propka/$', 'propka.views.propka_form'),
+     (r'^charmming/analysis/propka/display/(?P<filename>.*)$', 'propka.views.display'),
+     (r'^charmming/analysis/propka/download/(?P<filename>.*)$', 'propka.views.download'),
 
      # job killing
      (r'^charmming/killjob/(?P<taskid>.*)/$', 'structure.views.killTask'),

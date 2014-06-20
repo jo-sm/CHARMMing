@@ -79,6 +79,7 @@ from dd_substrate import common
 #import common
 import MySQLdb
 import MySQLdb.cursors
+from subprocess import call
 
 #@transaction.commit_manually
 def setLigands(request,ligandset_id,addedids,removedids):
@@ -580,6 +581,9 @@ def newLigandUpload(request, template="html/ddligandfileupload.html"):
         #    transaction.commit()
         ####### Atomtyping check
         tempname='dd_user_ligand'
+        tempname2='dd_user_ligdan2'
+        top_name = charmming_config.default_cgenff_top
+        par_name = charmming_config.default_cgenff_prm
         os.system("rm /tmp/%s.mol2" % (tempname))
         destination = open("/tmp/%s.mol2" % (tempname),'w')
         for fchunk in request.FILES['ligand_file'].chunks():
@@ -597,19 +601,61 @@ def newLigandUpload(request, template="html/ddligandfileupload.html"):
                 elif tpmeth == 'antechamber':
                     rval = -1#common.makeAntechamber(tempname)
                 elif tpmeth == 'cgenff':
-                    rval = common.makeCGenFF(ws,tempname)
+                    ####rval = common.makeCGenFF(ws,tempname)
+                    rval=0
+                    uploadligandlog.write("if ligand typing is successful, move on to frags\n")
                     if rval ==0:
                         os.system("cp %s/build_%s.inp /tmp" % (charmming_config.dd_scripts_home,tempname))
+                        os.system("cp %s/%s /tmp" % (charmming_config.charmm_files,top_name))
+                        os.system("cp %s/%s /tmp" % (charmming_config.charmm_files,par_name))
                         os.chdir("/tmp")
-                        os.system("%s < build_%s.inp > build_%s.out" % (charmming_config.charmm_exe,tempname,tempname))
-                        if "NORMAL TERMINATION BY NORMAL STOP" in open("/tmp/build_%s.out" % (tempname)).read():
-                            rval=0
-                        else:
-                            rval=-1
+                        #os.system("%s < build_%s.inp > build_%s.out" % (charmming_config.charmm_exe,tempname,tempname))
+                        #if "NORMAL TERMINATION BY NORMAL STOP" in open("/tmp/build_%s.out" % (tempname)).read():
+                        #    rval=0
+                        #else:
+                        #    rval=-1
+                        
+                        ##### fragment generation and atomtyping
+                        rval==0
+                        if rval == 0:
+                            
+                            os.system("cd /tmp")
+                            os.chdir("/tmp")
+                            os.system("cp /usr/local/charmming/drug_design/DAIM/param/daim.param .")
+                            os.system("cp /usr/local/charmming/drug_design/DAIM/param/daim.prop .")
+                            os.system("cp /usr/local/charmming/drug_design/DAIM/param/daim.weight . ")
+                            os.system("cp %s.mol2 %s.mol2" % (tempname,tempname2))
+                            os.system("echo '%s.mol2' > ligand_list" % tempname2)
+                            #os.system("cp %s /tmp" % (charmming_config.daim_param))
+                            os.system("ls -lrt  > lslist")
+                            uploadligandlog.write("env &> wwwdataenv\n")#./daim -c 0 &> daimout5\n")# % (charmming_config.daim_exe))
+                            #os.system("%s -c 1 dd_user_ligand.mol2 > daimout2" % (charmming_config.daim_exe))
+                            os.system("env &> wwwdataenv")#./daim -c 0 &> daimout5")# % (charmming_config.daim_exe))
+                            os.system("ls -lrt /tmp/Inputs > inputslist")
+                            os.system("cp /tmp/Inputs/%s_frag*.mol2 /tmp" % (tempname))
+                            #os.system("rm -r /tmp/Inputs")
+                            #os.system("rm -r INFO")
+                            for frag_file in glob.glob('/tmp/%s_frag*.mol2' % (tempname)):
+                                uploadligandlog.write("typing fragment %s\n" % (frag_file))
+                                if tpmeth == 'genrtf':
+                                    rval = -1#self.makeGenRTF(bhResList)
+                                elif tpmeth == 'antechamber':
+                                    rval = -1#common.makeAntechamber(tempname)
+                                elif tpmeth == 'cgenff':
+                                    frag_name=os.path.basename(frag_file).replace(".mol2","")
+                                    rval = common.makeCGenFF(ws,frag_name)
+                                    if rval==-1:
+                                        uploadligandlog.write("failed frag typing\n")
+                                        break
+
+                        ##### end fragment generation and atomtyping
+
                 elif tpmeth == 'match':
                     rval = common.makeMatch(tempname)
                     if rval ==0:
                         os.system("cp %s/build_%s.inp /tmp" % (charmming_config.dd_scripts_home,tempname))
+                        os.system("cp %s/%s /tmp" % (charmming_config.charmm_files,top_name))
+                        os.system("cp %s/%s /tmp" % (charmming_config.charmm_files,par_name))
                         os.chdir("/tmp")
                         os.system("%s < build_%s.inp > build_%s.out" % (charmming_config.charmm_exe,tempname,tempname))
                         if "NORMAL TERMINATION BY NORMAL STOP" in open("/tmp/build_%s.out" % (tempname)).read():
@@ -658,9 +704,15 @@ def newLigandUpload(request, template="html/ddligandfileupload.html"):
             uploadligandlog.write("mkdir " + location)
             os.system("mkdir " + location) 
             destination = open(location + filename,'w')
+            #### copy fragments to user ligand directory
+            for lig_file in glob.glob('/tmp/%s_frag_*' % (tempname)):
+                uploadligandlog.write("cp %s %s%s\n" % (lig_file,location,lig_file.replace(tempname,'ligand_' + str(newligand.ligand_owner_index) + '_1')))
+                os.system("cp %s %s%s" % (lig_file,location,lig_file.replace(tempname,'ligand_' + str(newligand.ligand_owner_index) + '_1')))
+            #### end copy fragments            
             for fchunk in request.FILES['ligand_file'].chunks():
                destination.write(fchunk)
             destination.close()
+            
             newfile=files()
             newfile.owner=u
             newfile.file_name=filename
@@ -682,7 +734,7 @@ def newLigandUpload(request, template="html/ddligandfileupload.html"):
             uploadligandlog.write("saving new file object: %s\n" % (newfileobject.object_table_name + " " + str(newfileobject.object_id)))
 
             psffilename='ligand_' + str(newligand.ligand_owner_index) + '_1.psf'
-            os.system("cp /tmp/dd_user_ligand.psf %s%s" % (location,psffilename))
+            os.system("cp /tmp/%s.psf %s%s" % (tempname,location,psffilename))
             newpsffile=files()
             newpsffile.owner=u
             newpsffile.file_name=psffilename
@@ -703,8 +755,8 @@ def newLigandUpload(request, template="html/ddligandfileupload.html"):
             uploadligandlog.write("saving new file object: %s\n" % (newpsffileobject.object_table_name + " " + str(newpsffileobject.object_id)))
 
             strfilename='ligand_' + str(newligand.ligand_owner_index) + '_1.str'
-            os.system("cp /tmp/dd_user_ligand.str %s%s"% (location,strfilename))
-            os.system("cp /tmp/dd_user_ligand.rtf %s%s"% (location,strfilename.replace("str","rtf")))
+            os.system("cp /tmp/%s.str %s%s"% (tempname,location,strfilename))
+            os.system("cp /tmp/%s.rtf %s%s"% (tempname,location,strfilename.replace("str","rtf")))
             
             newstrfile=files()
             newstrfile.owner=u
@@ -758,6 +810,7 @@ def newLigandUpload(request, template="html/ddligandfileupload.html"):
             newfileposeobject.save()
             uploadligandlog.write("saving new file pose object: %s\n" % (newfileposeobject.file.file_name + " " + str(newfileposeobject.object_id)))
             
+            #####os.system("rm *%s*" % (tempname))
             #transaction.commit()
         #except:
         #    transaction.rollback()

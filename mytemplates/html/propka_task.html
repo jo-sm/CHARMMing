@@ -1,0 +1,36 @@
+{% extends "html/skeleton.html" %}
+{%block extra_scripts %}
+  <script type="text/javascript" src="/charmming/js/propka.js"></script>
+{%endblock%}
+{% block content %}
+  <h1 class="center_header">Calculate pKa values for residues</h1>
+  <div id="mainpage">
+    {%if propka_files%}
+    <div id="propka_download_files">
+      <form id="propka_download_form" method="post" action=".">
+        <table class="qm_table huge_break">
+          {%for file in propka_files%} 
+          <tr class="padding_under"><td>PROPKA from {{file.0}}</td>
+            <td><a href="/charmming/analysis/propka/display/{{file.1}}">Display</a></td>
+            <td><a href="/charmming/analysis/propka/download/{{file.1}}">Download</a></td>
+          </tr>
+        {%endfor%}
+        </table>
+      </form>
+    </div>
+  {%endif%}
+  <hr class="noshade_hr">
+  <div class="center_header">
+  <form id="propka_form" method="post"  action=".">
+    <h2>Working structure: {{ ws_identifier }}</h2>
+
+      {% include "html/taskfiles.html" %}
+      <br />
+
+       <input type="hidden" name="form_submit" value="1" />
+       <input type="submit" value="Calculate pKa values for residues" />
+  </form>
+  </div>
+</div>
+</div>
+{% endblock %}

@@ -50,8 +50,7 @@ import structure.models, input
 import selection.models
 import structure.mscale
 import subprocess
-# import all created lessons by importing lesson_config
-# also there is a dictionary called 'file_type' in lesson_config.py specififying the file type of files uploaded by the lessons  
+import lesson_maker
 from lesson_config import *
 import os, sys, re, copy, datetime, time, stat, json, openbabel
 import mimetypes, string, random, glob, traceback
@@ -59,6 +58,8 @@ import pychm.io, charmming_config, minimization
 import cPickle
 import structure.propka
 
+# import all created lessons by importing lesson_config
+# also there is a dictionary called 'file_type' in lesson_config.py specififying the file type of files uploaded by the lessons  
 
 # problem during upload
 """
@@ -159,8 +160,7 @@ def viewFiles(request,filename, mimetype = None):
     fcontent = fp.read()
     fp.close()
 
-    lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/viewfile.html', {'fcontent': fcontent, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    return render_to_response('html/viewfile.html', {'fcontent': fcontent})
 
 #Wraps all files associated with the PDB into a tar and deletes it
 def downloadFilesPage(request,mimetype=None):
@@ -412,8 +412,7 @@ def viewProcessFiles(request):
             ds = wf.description
             file_list.append((task.action,bn,ds))
 
-    lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/viewprocessfiles.html', {'headers': header_list, 'files': file_list, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'messages':get_messages(request)})
+    return render_to_response('html/viewprocessfiles.html', {'headers': header_list, 'files': file_list, 'messages':get_messages(request)})
 
 def visualize(request,filename):
     """
@@ -465,8 +464,7 @@ def visualize(request,filename):
             s = wfile.canonPath.split('/')[-1]
             filelst.append((s, wfile.description))
 
-    lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/visualize.html', {'filelst': filelst,'lesson_ok':lesson_ok,'dd_ok':dd_ok})
+    return render_to_response('html/visualize.html', {'filelst': filelst,})
 
 """
 ChemDoodle is very problematic and incomplete. Even years of development won't fix the fact
@@ -543,7 +541,6 @@ def jmol(request,filename):
         return HttpResponseRedirect("/charmming/visualize/")
     filename = struct.location.replace(charmming_config.user_home,'') + '/' + filename
     filename_end = filename.rsplit('/',1)[1] #i.e., "a-pro-5.pdb", etc.
-    lesson_ok, dd_ok = checkPermissions(request)
     super_user = request.user.is_superuser
     structname = filename_end.split('.',1)[0] #a-pro-5
     try:
@@ -553,7 +550,7 @@ def jmol(request,filename):
         return HttpResponseRedirect("/charmming/visualize/")
     #Assume everything that isn't a good/bad hetatm segment to be a protein for the purposes of rendering, that way we deal with mutations
     #Also assume anything that has 3 letters followed by a dash at the start to be a ligand file.
-    return render_to_response('html/jmol.html', {'structname':structname, 'filepath': filename, 'segid':'NA', 'resid':'NA','lesson_ok':lesson_ok,'dd_ok':dd_ok, 'isProtein':isProtein, 'super_user':super_user, 'cg_model':cg_model})
+    return render_to_response('html/jmol.html', {'structname':structname, 'filepath': filename, 'segid':'NA', 'resid':'NA','isProtein':isProtein, 'super_user':super_user, 'cg_model':cg_model})
 
 #I haven't the foggiest idea where this function is called, but I assume it works fine with JSmol. ~VS
 def jmolHL(request,filename,segid,resid):
@@ -785,8 +782,7 @@ def viewpdbs(request):
         return render_to_response('html/loggedout.html')
     user_pdbs = structure.models.Structure.objects.filter(owner=request.user)
 
-    lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/viewpdbs.html', {'user_pdbs': user_pdbs, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    return render_to_response('html/viewpdbs.html', {'user_pdbs': user_pdbs})
 
 #This is for changing the currently selected PDB
 #on the SELECT/EDIT PDBs page
@@ -811,14 +807,14 @@ def switchpdbs(request,switch_id):
     newfile.selected = 'y'
     newfile.save()
 
-    lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/switchpdb.html',{'oldfile':oldfile,'newfile':newfile,'lesson_ok':lesson_ok,'dd_ok':dd_ok})
+    return render_to_response('html/switchpdb.html',{'oldfile':oldfile,'newfile':newfile})
 
 #This calculates the energy
 def energyform(request):
     if not request.user.is_authenticated():
         return render_to_response('html/loggedout.html')
     input.checkRequestData(request)
+
 
     #chooses the file based on if it is selected or not
     try:
@@ -895,8 +891,6 @@ def energyform(request):
         tdict = getAtomSelections(tdict,ws) #Gets the atom selections by putting new keys in the dictionary, then returns it and puts it into tdict
         lesson_ok, dd_ok = checkPermissions(request)
         tdict['messages'] = get_messages(request)
-        tdict['lesson_ok'] = lesson_ok
-        tdict['dd_ok'] = dd_ok
         return render_to_response('html/energyform.html', tdict)
 
 #Why do we need workstruct as an arg if eobj has it attached to itself?
@@ -1200,6 +1194,8 @@ def newupload(request, template="html/fileupload.html"):
     makeGoModel = False
     makeBLNModel = False
 
+    tdict = {} #for the template for the page
+
     username = request.user.username
     u = User.objects.get(username=username)
     location = charmming_config.user_home + '/' + request.user.username + '/'
@@ -1212,7 +1208,7 @@ def newupload(request, template="html/fileupload.html"):
     
     # check and see if this post is meant to be part of a lesson.
     #NOTE: Because Django is having issues with class inheritance, each file
-    #Will have a lesson type (lesson1, lesson2, etc.) and a primary key id.
+    #Will have a lesson type and a primary key id.
     #It's not a fun hack but until Django is changed it will have to be like this
     #YP
     #Upon Django upgrade we should see if this is possible 
@@ -1325,6 +1321,14 @@ def newupload(request, template="html/fileupload.html"):
             os.unlink(struct.original_name + "-fix.pdb") #this file is trash now
             propka_out.close()
             subprocess.call(["propka31",struct.original_name + "-propka.pdb"]) #original_name will hold the filename of the PDB file, which should be there
+        if request.POST.has_key('start_lessonmaker') and charmming_config.lessonmaker_enabled:
+            new_lesson = lesson_maker.models.Lesson()
+            new_lesson.structure = struct
+            new_lesson.finished = False
+            new_lesson.filename = fullpath.split("/")[-1] #this is very important - otherwise we can't keep track of file upload issues at the lesson level
+            #I'm not using filename straight up because I need the extension specifically
+            new_lesson.save()
+            new_lesson.onFileUpload() #Hopefully this works out ok, I think we only ever do the file upload checks here since they don't go through the scheduler
         return HttpResponseRedirect('/charmming/buildstruct/')
 
     elif file_uploaded or request.POST.has_key('pdbid'):
@@ -1489,14 +1493,26 @@ def newupload(request, template="html/fileupload.html"):
             #The above line is a PROBLEM for multiple models that have different connectivity!
             #TODO: Find out how to fix this for non-model00!!
             subprocess.call(["propka31",struct.original_name + "-propka.pdb"]) #original_name will hold the filename of the PDB file, which should be there
+            #Maybe make PROPKA non-interactive? There's no way though really.
+        if request.POST.has_key('start_lessonmaker') and charmming_config.lessonmaker_enabled:
+            new_lesson = lesson_maker.models.Lesson()
+            new_lesson.structure = struct
+            new_lesson.finished = False
+            new_lesson.filename = fullpath.split("/")[-1] #this is very important - otherwise we can't keep track of file upload issues at the lesson level
+            #I'm not using filename straight up because I need the extension specifically
+            new_lesson.save()
+            new_lesson.onFileUpload() #Hopefully this works out ok, I think we only ever do the file upload checks here since they don't go through the scheduler
         return HttpResponseRedirect('/charmming/buildstruct/')
 
     # end of ye gigantic if test
-
-    form = structure.models.PDBFileForm()
-
-    lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/fileuploadform.html', {'form': form, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'messages':all_messages} )
+    tdict['messages'] = all_messages
+    tdict['form'] = structure.models.PDBFileForm()
+    lessonmaker_allowed = False
+    if request.user.is_superuser:
+        lessonmaker_allowed = True
+    tdict['lessonmaker_allowed'] = lessonmaker_allowed
+    tdict['lesson_num_lis'] = lesson_num_lis
+    return render_to_response('html/fileuploadform.html', tdict )
 
 
 # This function populates the form for building a structure
@@ -1604,7 +1620,6 @@ def buildstruct(request):
 #        obconv.WriteFile(mol, (struct.location + "/" + struct.name + "_with_hydrogens.pdb").encode("utf-8"))
     tdict['structname'] = struct.name
     tdict['no_propka'] = True if propka_residues == None else False
-    tdict['lesson_ok'], tdict['dd_ok'] = checkPermissions(request)
     return render_to_response('html/buildstruct.html', tdict)
 
 
@@ -1826,8 +1841,12 @@ def modstruct(request):
         lessonaux.doLessonAct(new_ws.structure,"onBuildStructureSubmit",request.POST)
     logfp.close()
 
-    lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/built.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'nscale_msg': nscale_msg})
+    if struct.lessonmaker_active and charmming_config.lessonmaker_enabled:
+        lmaker = lesson_maker.models.Lesson.objects.filter(structure=struct)[0]
+        lmaker.onBuildStructureSubmit()
+        lmaker.save()
+
+    return render_to_response('html/built.html', {'nscale_msg': nscale_msg})
 
 def swap(request):
     if not request.user.is_authenticated():
@@ -1860,8 +1879,7 @@ def swap(request):
         new_ws.selected = 'y'
         new_ws.save()
 
-    lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/swapped.html', {'wsname': new_ws.identifier, 'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    return render_to_response('html/swapped.html', {'wsname': new_ws.identifier})
 
 #Why is this here?
 def protonate(file):

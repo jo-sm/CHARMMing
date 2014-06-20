@@ -73,7 +73,7 @@ stream {{data_home}}/renumber.str
 !---------- Needed to define Q-Chem env. vars. ----------
 envi qchemcnt  "{{qchemin}}"
 envi qcheminp  "{{qcheminp}}"
-envi qchemexe  "qchem"
+envi qchemexe  "qchem.tim"
 envi qchemout  "{{qchemout}}"
 !--------------------------------------------------------
 

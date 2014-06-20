@@ -1,14 +1,13 @@
 {% extends "html/skeleton.html" %}
 
 {% block content %}
-<div id="mainpage" style="text-align: left;">
+<div id="mainpage" class="lesson_text">
 
-{% autoescape off %}
 <br />
-<h1 class="center_header">Lesson 1, Introduction to Simulations {% ifequal lesson1.curStep 4 %}: <span style="color:red">Completed</span> {% endifequal %}</h1>
+<h1 class="center_header">Lesson 1, Introduction to Simulations {% ifequal lesson1.curStep 4 %}: <span class="done">Completed</span> {% endifequal %}</h1>
 
 <p class="intro">
-  <span style="color:red">Lesson Objectives</span>
+  <span class="failed">Lesson Objectives</span>
   <ul>
     <li> Introduce user to CHARMM </li>
     <li> Explain basic concepts behind computational chemistry methods </li>
@@ -70,7 +69,7 @@
 {% if lesson1 %}
  
  {% ifequal html_step_list.0 1 %}
-   <p class="intro"><span style="color:red"> Step 1: Upload Done </span></p>
+   <p class="intro"><span class="failed"> Step 1: Upload Done </span></p>
    <br />
 
    <p class="intro">Congratulations! You successfully uploaded both the CRD and PSF files! These files describe the structure of a single water molecule. We will
@@ -100,7 +99,7 @@
  
  {% ifequal html_step_list.1 2 %}
    <br /> 
-   <p class="intro"><span style="color:red"> Step 2: Solvation Running </span></p>
+   <p class="intro"><span class="failed"> Step 2: Solvation Running </span></p>
    <br />
 
    <p class="intro">The solvation job is still in progress but you can read ahead.</p>
@@ -132,7 +131,7 @@
  {% endifequal %}
  {% ifequal html_step_list.1 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 2: Solvation Performed </span></p>
+   <p class="intro"><span class="failed"> Step 2: Solvation Performed </span></p>
    <br />
 
    <p class="intro">Congratulations! You have sccuessfully solvated a water molecule! The end result is a rhombic dodecahedronal water box.</p>
@@ -162,7 +161,7 @@
 
  {% ifequal html_step_list.2 2 %}
    <br /> 
-   <p class="intro"><span style="color:red"> Step 3: Minimization Running </span></p>
+   <p class="intro"><span class="failed"> Step 3: Minimization Running </span></p>
    <br />
 
    <p class="intro">Minimization is currently running. Until it is finished you can read ahead.</p>
@@ -192,7 +191,7 @@
 
  {% ifequal html_step_list.2 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 3: Minimization Performed </span></p>
+   <p class="intro"><span class="failed"> Step 3: Minimization Performed </span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully minimized the system!</p>
@@ -219,7 +218,7 @@
 
  {% ifequal html_step_list.3 2 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 4: Molecular Dynamics Running</span></p>
+   <p class="intro"><span class="failed"> Step 4: Molecular Dynamics Running</span></p>
    <br />
 
    <p class="intro">The MD job is still in progress.</p>
@@ -228,7 +227,7 @@
 
  {% ifequal html_step_list.3 1 %}
    <br />
-   <p class="intro"><span style="color:red"> Step 4: Molecular Dynamics Performed </span></p>
+   <p class="intro"><span class="failed"> Step 4: Molecular Dynamics Performed </span></p>
    <br />
 
    <p class="intro">Congratulations! You have successfully run Molecular Dynamics (MD) on the system!</p>
@@ -239,12 +238,11 @@
 
  {% for problem in lessonproblems %}
   <br />
-  <p class="intro"><span style="color:red">LESSON ERROR: STEP - {{problem.errorstep}}, SEVERITY - {{problem.severity}}</span></p> <br>
+  <p class="intro"><span class="failed">LESSON ERROR: STEP - {{problem.errorstep}}, SEVERITY - {{problem.severity}}</span></p> <br>
   {{problem.description}}</p>
  {% endfor %}
 
 {% endif %}
-{% endautoescape %}
 <br>
 </div>
 {% endblock %}

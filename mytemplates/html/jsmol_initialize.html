@@ -1,0 +1,22 @@
+  <script type="text/javascript">
+    var jmolApplet;
+    jmol_isReady = function(applet) {
+    $("#jmolApplet_appletdiv").css("z-index",0);
+    Jmol._getElement(applet, "appletdiv".style.border="1px solid blue");
+    }		
+    var debug_on = {% if super_user %} false {% else %} true {% endif %}
+    var Info = {
+	width: "600",
+	height: "600",
+  debug: false,
+  color: "white",
+	use: "HTML5",
+	j2sPath: "/charmming/js/jsmol/j2s",
+	readyFunction: jmol_isReady,
+  script: "set antialiasDisplay;",
+  disableJ2SLoadMonitor: debug_on,
+  disableInitialConsole: debug_on,
+//  console: "jmolApplet_infodiv"
+  //Apparently the DEFAULT setting is to have debug on. Thus the awkwardness.
+}
+    </script>

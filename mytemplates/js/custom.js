@@ -1089,9 +1089,8 @@ function getCheckedAvailableLigandIds()
 {
     var checkedvalues= new Array();
     $("#availableligandsinsidediv input:checked").each(function() {
-        checkedvalues.push($(this).val());
+            checkedvalues.push($(this).val());
         });
-    //alert(checkedvalues;)
     return checkedvalues.join();
 }
 
@@ -1099,10 +1098,10 @@ function getCheckedSetLigandIds()
 {
     var checkedvalues = new Array();
     $("#setligandsinsidediv input:checked").each(function() {
-        checkedvalues.push($(this).val());
+            checkedvalues.push($(this).val());
       }); //This goes through every checked value and puts it into the array.
       //No more heavy forlooping and confusing structure required.
-    return checkedvalues.join();
+      return checkedvalues.join();
 }
 
 function AddLigands(set_id)

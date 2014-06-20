@@ -332,7 +332,7 @@ def skeleton(request):
     else:
         lessonuser = 0
         #If they are only a student load the below page
-    return render_to_response("html/skeleton.html",{'lessontype':lessontype, 'trusted': trusted, 'lessonuser': lessonuser})
+    return render_to_response("html/skeleton.html",{'lessontype':lessontype, 'trusted': trusted, 'lessonuser': lessonuser,})
 
 def logout(request):
     auth.logout(request)
@@ -344,10 +344,9 @@ def loadFrontPage(request):
     if(request.user.is_authenticated()):
         return HttpResponseRedirect('/charmming/accounts/profile/')
 
-    lesson_ok, dd_ok = checkPermissions(request)
-    return render_to_response('html/frontpage.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+    messages = get_messages(request)
+    return render_to_response('html/frontpage.html', {'messages':messages})
 
 def loadAboutPage(request):
-    lesson_ok, dd_ok = checkPermissions(request)
     messages = get_messages(request)
-    return render_to_response('html/about.html', {'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'messages': messages})
+    return render_to_response('html/about.html', {'messages': messages})

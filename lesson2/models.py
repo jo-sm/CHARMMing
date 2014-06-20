@@ -61,7 +61,7 @@ class Lesson2(models.Model):
         #except:
         #    lessonprob = LessonProblem(lesson_type='lesson2',lesson_id=self.id,errorstep=1,severity=9,description='The PDB you submitted did not upload properly. Check to make sure the PDB.org ID was valid.')
         #    lessonprob.save()
-            return False
+        #    return False
         self.curStep = '1'
         self.save()
         return True
@@ -291,10 +291,10 @@ class Lesson2(models.Model):
             lessonprob = LessonProblem.objects.filter(lesson_type='lesson2',lesson_id=self.id)[0]
         except:
             lessonprob = None
-        #mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
-        #fail = re.compile('Failed')
         if lessonprob:
             return False
+        #mdp = mdTask.objects.filter(pdb=file,selected='y')[0]
+        #fail = re.compile('Failed')
         #if fail.search(mdp.statusHTML):
         if  mdp.status == 'F':
             if float(self.curStep) == 4.5:

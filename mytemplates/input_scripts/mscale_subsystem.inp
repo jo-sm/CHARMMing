@@ -24,7 +24,7 @@
   !Set up environment vars for Q-Chem.
   ENVI qchemcnt "level-{{sub.level_of_theory}}.in"
   ENVI qcheminp "{{sub.name}}.inp"
-  ENVI qchemexe "qchem"
+  ENVI qchemexe "qchem.tim"
   ENVI qchemout "{{sub.name}}.out"
 
 
