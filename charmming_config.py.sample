@@ -26,6 +26,9 @@ haveqchem = 1
 # root of the CHARMMing install
 charmming_root = "/var/www/charmming"
 
+# path to the 3dna installation
+x3dna_path = "/usr/local/bin/x3dna"
+
 # place where user directories are...
 user_home = "/home/schedd"
 

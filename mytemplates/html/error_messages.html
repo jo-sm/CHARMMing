@@ -1,13 +1,11 @@
    {% if messages %}
    {% for message in messages %}
-{%comment%}This finally works! Too bad I have no idea what to do with it now.  <p>{{message.tags}}</p>
-{%endcomment%}
     <div id="dialog__{{forloop.counter}}" title="Error">
         <p><span class="ui-icon ui-icon-alert" style="float:left;margin: 0 auto auto 0;"></span>
         {{message}}</p>
       </div>
       <script type="text/javascript">
-        $(function($){
+        $(function(){
             $("#dialog__{{forloop.counter}}").dialog({
             resizable:false,
             height:200,
@@ -15,7 +13,7 @@
             modal:true,
             autoOpen:true,
             buttons:{
-              "OK":function(){
+              "Ok":function(){
                 $(this).dialog("close");
               }
             }

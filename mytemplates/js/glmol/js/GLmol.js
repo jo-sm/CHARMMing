@@ -1103,7 +1103,7 @@ GLmol.prototype.drawStrandNucleicAcid = function(group, atomlist, num, div, fill
       if ((atom.atom == 'O3\'' || atom.atom == 'OP2') && !atom.hetflag) {
          if (atom.atom == 'O3\'') { // to connect 3' end. FIXME: better way to do?
             if (currentChain != atom.chain || currentResi + 1 != atom.resi) {               
-               if (currentO3) {
+               if (currentO3 && prevOO) {
                   for (var j = 0; j < num; j++) {
                      var delta = -1 + 2 / (num - 1) * j;
                      points[j].push(new TV3(currentO3.x + prevOO.x * delta, 
@@ -1139,7 +1139,7 @@ GLmol.prototype.drawStrandNucleicAcid = function(group, atomlist, num, div, fill
          }
       }
    }
-   if (currentO3) {
+   if (currentO3 && prevOO) {
       for (var j = 0; j < num; j++) {
          var delta = -1 + 2 / (num - 1) * j;
          points[j].push(new TV3(currentO3.x + prevOO.x * delta, 

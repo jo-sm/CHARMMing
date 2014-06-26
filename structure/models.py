@@ -58,6 +58,7 @@ class Structure(models.Model):
     name   = models.CharField(max_length=100)
     original_name = models.CharField(max_length=100,null=True,default=None)
     pickle = models.CharField(max_length=100)
+    file_path = models.CharField(max_length=100)
 
     pdb_disul = models.CharField(max_length=1000)
     location = models.CharField(max_length=200) 
@@ -2192,6 +2193,7 @@ class PDBFileForm(forms.Form):
     crdupload = forms.FileField()
     rtf_file = forms.FileField()
     prm_file = forms.FileField()
+    dna = forms.CharField(widget=forms.widgets.Textarea())
 
     # Go model stuffs
     gm_dm_file = forms.FileField()
