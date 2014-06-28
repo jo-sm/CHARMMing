@@ -1,0 +1,4 @@
+*.pyc
+charmming_config.py
+settings.py
+*.sqlite
