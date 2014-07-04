@@ -1,0 +1,17 @@
+{% extends "html/layout.html" %}
+
+{% block title %} New Structure {% endblock %}
+
+{% block content %}
+<div class="hero">
+  <span class="title">New Structure</span>
+</div>
+
+<form action="/structure" method="post" class="structure-upload">
+  <input type="radio" name="type" id="upload_pdb" value="upload_pdb">
+  <label for="upload_pdb">Upload a PDB</label>
+
+  <input type="radio" name="type" id="request_pdb" value="request_pdb">
+  <label for="request_pdb">Retrieve a PDB by ID</label>
+</form>
+{% endblock %}

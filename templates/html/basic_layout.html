@@ -1,0 +1,28 @@
+{% load gears %}
+<!doctype html>
+<html>
+  <head>
+    <title>CHARMMing :: {% block title %} CHARMM interface and graphics {% endblock %}</title>
+    <link href="http://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css" rel="stylesheet">
+    {% css_asset_tag "css/application.css" %}
+    {% js_asset_tag "js/application.js" %}
+  </head>
+  <body>
+      {% if not current_user %}
+      <nav class="top-bar">
+        <ul class="title-area">
+          <li class="name">
+            <h1><a href="/">CHARMMing: CHARMM Interface and Graphics</a></h1>
+          </li>
+        </ul>
+      </nav>
+      {% else %}
+        {% block side_nav %}{% endblock %}        
+      {% endif %}
+
+    <div class="content {% if current_user %} with-menu{%endif%}">
+      {% block content %}{% endblock %}
+    </div>
+
+  </body>
+</html>

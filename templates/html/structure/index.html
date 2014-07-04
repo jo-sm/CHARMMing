@@ -1,0 +1,20 @@
+{% extends "html/layout.html" %}
+
+{% block title %} View All Structures {% endblock %}
+
+{% block content %}
+  <div class="hero">
+    <span class="title">My Structures</span>
+    <span class="right"><a href="/structure/new" class="button upload">Create Structure</a>
+  </div>
+  <div class="structures">
+{% if structures %}
+  
+{% else %}
+  <div class="big text-center">
+    <i class="whoa yellow ion-lightbulb break"></i>
+    Your structures would show up here, but you don't have any! Why don't you create a new one?
+  </div>
+{% endif %}
+</div>
+{% endblock %}

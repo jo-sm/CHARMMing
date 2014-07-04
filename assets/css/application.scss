@@ -1,0 +1,201 @@
+@import 'bourbon/bourbon',
+'foundation/normalize',
+'foundation/foundation';
+.structure-upload {
+  input[type=radio] {
+    &:checked + label{
+      background-color: darken(#2980b9, 10%);
+    }
+    display: none;
+    + label {
+      @include transition (background-color 0.5s ease);
+      text-align: center;
+      display: inline block;
+      width: 150px;
+      height: 50px;
+      background-color: #2980B9;
+      color: #fff;
+      line-height: 50px;
+    }
+  }
+}
+.content {
+  padding: 20px;
+}
+.hero {
+  margin-bottom: 15px;
+}
+.title {
+  font-size: 3em;
+}
+
+.small {
+  font-size: 0.7em;
+}
+
+.teeny {
+  font-size: 0.5em;
+}
+
+.yellow {
+  color: #F1C40F;
+}
+
+.green {
+
+}
+
+.break {
+  display: block;
+  clear: both;
+}
+
+.red {
+
+}
+
+.blue {
+
+}
+
+.big {
+  font-size: 1.2em;
+}
+
+.really-big {
+  font-size: 1.5em;
+}
+
+.whoa {
+  font-size: 2em;
+}
+
+.structures {
+  width: 100%;
+  border: 2px solid #ddd;
+  border-radius: 3px;
+  padding: 15px;
+  font-size: 1.2em;
+}
+
+/* Make it work for smaller screens using media queries */
+.with-menu {
+  margin-left: 250px;
+}
+.new-structure {
+  margin-left: 5px;
+  color: green;
+  &:hover {
+    color: blue;
+  }
+}
+.menu {
+  .hero {
+    background-color: #34495E;
+    color: #fff;
+    li {
+      height: 50px;
+      line-height: 50px;
+      a {
+        color: #fff;
+        &:hover {
+          color: darken(#fff, 5%);
+        }
+      }
+    }
+  }
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 250px;
+  background-color: #ECF0F1;
+  overflow: hidden;
+  ul {
+    list-style: none;
+    display: block;
+    margin: 0;
+    list-style-position: outside;
+    li {
+      text-align: center;
+      height: 50px;
+      line-height: 50px;
+      font-size: 1.3rem;
+      a {
+        color: #95A5A6;
+        &:hover {
+          color: darken(#95A5A6, 15%);
+        }
+        i {
+          padding-right: 10px;
+        }
+      }
+    }
+    .title {
+      width: 250px;
+      line-height: 50px;
+      height: 50px;
+      text-align: center;
+      font-size: 1.35em;
+    }
+    padding: 0;
+  }
+}
+
+.settings, .logout, .messages, .jobs {
+  display: block;
+  float: left;
+  width: 125px;
+  margin: 0;
+  padding: 0;
+  height: 50px;
+  line-height: 50px;
+}
+
+.settings {
+  background-color: #E74C3C;
+  &:hover {
+    background-color: darken(#e74c3c, 10%);
+  }
+}
+
+.logout {
+  background-color: #F39C12;
+  &:hover {
+    background-color: darken(#f39c12, 10%);
+  }
+}
+
+.messages {
+  background-color: #27AE60;
+  &:hover {
+    background-color: darken(#27ae60, 10%);
+  }
+}
+
+.jobs {
+  background-color: #2980B9;
+  &:hover {
+    background-color: darken(#2980b9, 10%);
+  }
+}
+
+.notifications {
+  &.alert {
+    a {
+      @include animation(alert 2s infinite);
+    }
+  }
+}
+
+@include keyframes(alert) {
+  0% {
+    color: #fff;
+  }
+  33% {
+    color: #f00;
+  }
+  100% {
+    color: #fff;
+  }
+}

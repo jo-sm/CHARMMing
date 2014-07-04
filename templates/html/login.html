@@ -1,0 +1,43 @@
+{% extends "html/basic_layout.html" %}
+
+{% block content %}
+<div class="row">
+  <div class="large-12 columns">
+    <h1 class="text-center">Welcome! Please login to continue</h1>
+  </div>
+</div>
+<div class="row">
+  <form action='/' method='post'>
+    <div class="row">
+      <div class="large-6 columns">
+        <input name="username" type="text" placeholder="Username">
+      </div>
+      <div class="large-6 columns">
+        <div class="row">
+          <div class="small-10 columns">
+            <input type="password" name="password" placeholder="Password">
+          </div>
+          <div class="small-2 columns">
+            <input type="submit" class="button secondary postfix" value="Login">
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+<div class="row">
+  <div class="large-6 columns">
+    <div class="panel">
+      <h2>About CHARMMing</h2>
+      CHARMMing, which stands for CHARMM interface and graphics, is an intergrated set of tools that performs chemical structure calculations and analysis. It incorpoates freely available tools such as <a href="http://sourceforge.net/projects/jsmol/">JSmol</a> and GENREF, an automatic residue topology file generator that generates information not supported with CHARMM force fields.
+    </div>
+  </div>
+  <div class="large-6 columns">
+
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type='text/javascript' src='/js/charmming/login.js'></script>
+{% endblock %}

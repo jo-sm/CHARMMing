@@ -16,13 +16,30 @@
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
 from django.template import Context, loader
-from django.contrib.auth.views import login, logout
+#from django.contrib.auth.views import login, logout
 from django.conf.urls.defaults import *
-from django.contrib import admin
-import charmming_config
+#from django.contrib import admin
+#import charmming_config
 
+from django.conf import settings
+from views import DashboardView, LoginView, LogoutView
+from views.structure import StructureIndexView, StructureNewView
+from views.admin import AdminIndexView
+from django_gears.urls import gears_urlpatterns
 ##admin.autodiscover()
 
+urlpatterns = patterns('', 
+  url(r'^$', DashboardView.as_view()),
+  url(r'^login$', LoginView.as_view()),
+  url(r'^logout$', LogoutView.as_view()),
+  url(r'^structure$', StructureIndexView.as_view()),
+  url(r'^structure/new$', StructureNewView.as_view()),
+  url(r'^admin$', AdminIndexView.as_view()),
+)
+
+urlpatterns += gears_urlpatterns()
+
+"""
 urlpatterns = patterns('',
      (r'^charmming/$', 'account.views.loadFrontPage'),
      (r'^charmming/about/$', 'account.views.loadAboutPage'),
@@ -161,3 +178,4 @@ urlpatterns = patterns('',
      (r'^charmming/admin/', include(admin.site.urls)),
      ##(r'^charmming/admin-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/usr/share/pyshared/django/contrib/admin/media'}),
 )
+"""

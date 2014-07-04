@@ -1,0 +1,41 @@
+{% extends "html/basic_layout.html" %}
+
+{% block title %} Dashboard {% endblock %}
+{% block side_nav %}
+<div class="menu">
+  <ul>
+    <div class="hero">
+    <li class="title">
+      CHARMMing
+    </li>
+      <li>
+        <a class="button settings">Settings</a>
+        <a href="/logout" class="button primary logout">Logout</a>
+      </li>
+      <li>
+        <a href="/messages" class="button messages">0 Messages</a>
+        <a href="/jobs" class="button jobs has-tip" title="<span class='yellow'>0 Running Jobs</span><br>0 Queued Jobs" data-tooltip>0 Jobs</a>
+      </li>
+    </div>
+    {% if current_user.is_admin %}
+      <li>
+        <a href="/admin"><i class="ion-cube"></i>Administration</a>
+      </li>
+    {% endif %}
+    <li>
+      <a href="/structure"><i class="ion-code"></i>Structures</a>
+    </li>
+    <li>
+      <a href="/calculation"><i class="ion-calculator"></i>Calculations</a>
+    </li>
+    <li>
+      <a href="/analysis"><i class="ion-stats-bars"></i>Analysis</a>
+    </li>
+    <li>
+      <a href="/drug_design"><i class="ion-wand"></i>Drug Design</a>
+    </li>
+  </ul>  
+</div>
+{% endblock %}
+{% block content %}
+{% endblock %}
