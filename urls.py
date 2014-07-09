@@ -155,4 +155,6 @@ urlpatterns = patterns('',
      #(r'^charmming/qsar/viewjobs/$', 'qsar.views.viewJobs'),
      (r'^charmming/qsar/', include('qsar.urls')),
      #(r'^charmming/qsar/$', 'qsar.views.upload'),
+     
+     (r'^charmming/assays/', include('assays.urls')),
 )
