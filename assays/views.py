@@ -10,8 +10,18 @@ import mimetypes
 import fnmatch
 import urllib, urllib2
 import unicodedata
+import random
+import charmming_config
+from django.contrib.auth.models import User
 from assays.forms import SearchForm, AssayForm
 from assays.rest import get_sd_file
+
+def get_dir(request):
+  username = request.user.username
+  u = User.objects.get(username=username)
+  location = charmming_config.user_home + '/' + request.user.username + '/qsar/'
+  return str(location)
+
 
 def search(request):
   if not request.user.is_authenticated():
@@ -42,8 +52,9 @@ def assays(request,query=None):
       step = request.POST['step']
       total = request.POST['total']
       form = AssayForm(request.POST,choices=choices,step=step,total=total)
-      (fh,filename) = mkstemp()
-      os.close(fh);
+      work_dir = get_dir(request)
+      (fh,filename) = mkstemp(dir=work_dir,prefix="pubchem",suffix=".sdf")      
+      os.close(fh)
       remove_inconclusive = False
       if 'remove' in request.POST:
         remove_inconclusive = True
