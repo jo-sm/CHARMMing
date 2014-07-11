@@ -93,8 +93,8 @@ def newModel(request):
 def property(request,filename=None,qsar_model_id=None,message=""):
   if not request.user.is_authenticated():
     return render_to_response('html/loggedout.html')
-
   log=open("/tmp/qsar.log","w")
+  log.write("file: %s" % (filename) )
   log.write("model:%s" % (qsar_model_id))
   if request.method == 'POST':
     if 'filename' in request.POST:
@@ -114,12 +114,11 @@ def property(request,filename=None,qsar_model_id=None,message=""):
         #common.AssignObjectAttribute(request.user.id,qsar_model_id,"qsar_qsar_models","Activity Property",activity_property)
         #model_type=model_types.objects.get(id=qsar_model.model_type_id)
         return train(request,filename,activity_property,qsar_model_id)
-  else:
-    model_type=model_types.objects.get(id=qsar_model.model_type_id)
-    form = SelectProperty(filename=filename,qsar_model_id=qsar_model_id)
-  activity_property_choice_length = 0;
-  if filename is not None:
+  elif filename is not None and qsar_model_id is not None:
+    work_dir = str(get_dir(request))
+    filename = work_dir+'/'+filename
     qsar_model=qsar_models.objects.get(id=qsar_model_id)
+    form = SelectProperty(filename=filename,qsar_model_id=qsar_model_id)
     model_type=model_types.objects.get(id=qsar_model.model_type_id)
     activity_property_choice_length = len(get_sd_properties(filename));
     #if notactivity_property_choice_length

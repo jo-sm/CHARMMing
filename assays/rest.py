@@ -80,14 +80,20 @@ def get_description(aid):
      descfh = urllib.urlopen("http://pubchem.ncbi.nlm.nih.gov/rest/pug/assay/aid/"+aid+"/summary/JSON")
      jsonstr = descfh.read();
      jsonobj = json.loads(jsonstr)
-     return jsonobj["AssaySummaries"]["AssaySummary"][0]["Name"]
+     name = jsonobj["AssaySummaries"]["AssaySummary"][0]["Name"]
+     num = jsonobj["AssaySummaries"]["AssaySummary"][0]["CIDCountAll"]
+     return (name,num)
 
 def get_list_aids(query, start=0):
     if query is None:
         choices = []
         return choices
     (step,total,aids) = get_aids(query,start)
-    choices = [(aid,get_description(aid)) for aid in aids]
+    choices = []
+    for aid in aids:
+        (name,num) = get_description(aid)
+        name += " ("+str(num)+")"
+        choices.append((aid,name))
     return (step,total,choices)
 
 def get_url_base():

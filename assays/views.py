@@ -98,5 +98,6 @@ def cont(request):
             newmodel.model_name=request.POST['model_name']
             newmodel.model_type=model_types.objects.get(id=request.POST['model_type'])
             newmodel.save()
+            filename = os.path.basename(name)
             log.write("newmodel:%s" % (newmodel.id))
-            return HttpResponseRedirect(reverse('property', args=[name,newmodel.id]))
+            return HttpResponseRedirect(reverse('property', kwargs={'filename':filename,'qsar_model_id':newmodel.id}))
