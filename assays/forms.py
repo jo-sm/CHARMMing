@@ -8,7 +8,22 @@ from django.utils.encoding import force_text, python_2_unicode_compatible
 from django.utils.safestring import mark_safe
 from django.conf import settings
 from assays.rest import get_list_aids, get_url_base
+from qsar.models import model_types
 
+
+class TrainingSubmitForm(forms.Form):
+  def __init__(self, *args, **kwargs):
+    filename = ""
+    if 'filename' in kwargs:
+      filename = kwargs['filename']
+      del kwargs['filename'] 
+    super(TrainingSubmitForm, self).__init__(*args, **kwargs)                                          
+    model_choices = [(obj.id, obj.model_type_name) for obj in model_types.objects.all()]
+    self.fields['model_type'] = forms.ChoiceField(label="Select Model Type",choices=model_choices)
+    self.fields['model_name'] = forms.CharField(max_length=100,required=True)
+    filename_widget = forms.HiddenInput(attrs={'value' : filename})
+    self.fields['filename'] = forms.CharField(widget=filename_widget, required = True);
+                                    
 class SearchForm(forms.Form):
   query = forms.CharField(max_length=200,required=True)
 
@@ -44,6 +59,7 @@ class AssayForm(forms.Form):
       aids = []
       step = 0
       total = 0
+      query = ""
       if 'choices' in kwargs:
         aids = kwargs['choices']
         del kwargs['choices']
@@ -57,6 +73,9 @@ class AssayForm(forms.Form):
       if 'total' in kwargs:
         total = kwargs['total']
         del kwargs['total']
+      if 'query' in kwargs:  
+        query = kwargs['query']
+        del kwargs['query']
       
       current = ""
       for a in aids:
@@ -74,3 +93,7 @@ class AssayForm(forms.Form):
       self.fields['step'] = forms.CharField(widget=step_widget, required = False);
       total_widget = forms.HiddenInput(attrs={'value' : total})
       self.fields['total'] = forms.CharField(widget=total_widget, required = False);
+      query_widget = forms.HiddenInput(attrs={'value' : query})
+      self.fields['query'] = forms.CharField(widget=query_widget, required = False);
+
+      

@@ -13,8 +13,9 @@ import unicodedata
 import random
 import charmming_config
 from django.contrib.auth.models import User
-from assays.forms import SearchForm, AssayForm
+from assays.forms import SearchForm, AssayForm, TrainingSubmitForm
 from assays.rest import get_sd_file
+from qsar.models import qsar_models, model_types
 
 def get_dir(request):
   username = request.user.username
@@ -26,7 +27,6 @@ def get_dir(request):
 def search(request):
   if not request.user.is_authenticated():
     return render_to_response('html/loggedout.html')
-                
   if request.method == 'POST':
     form = SearchForm(request.POST)
     if form.is_valid():
@@ -41,16 +41,16 @@ def search(request):
 def assays(request,query=None):
   if not request.user.is_authenticated():
     return render_to_response('html/loggedout.html')
-                  
   if request.method == 'POST':
     form = AssayForm(request.POST)
     if 'back' in request.POST:
       return HttpResponseRedirect(reverse('search', args=()))
-    elif 'download' in request.POST:
+    elif 'download' in request.POST or 'continue' in request.POST:
       aids_packed = request.POST['current']
       choices = [x.split(":",1) for x in aids_packed.split("|")]
       step = request.POST['step']
       total = request.POST['total']
+      query = request.POST['query']
       form = AssayForm(request.POST,choices=choices,step=step,total=total)
       work_dir = get_dir(request)
       (fh,filename) = mkstemp(dir=work_dir,prefix="pubchem",suffix=".sdf")      
@@ -63,15 +63,40 @@ def assays(request,query=None):
       if not num_records:
         err_message = "Empty file returned"
         return render_to_response('assays/assays.html', {'form': form, 'message' : err_message}, context_instance=RequestContext(request)  )
-      new_name = "pubchem-assays.sdf"
-      mimetype,encoding = mimetypes.guess_type(filename)
-      response = HttpResponse(mimetype=mimetype)
-      response['Content-Disposition'] = 'attachment; filename=%s' % new_name
-      response.write(file(filename, "rb").read())
-      return response
+      if 'download' in request.POST:
+        new_name = "pubchem-assays.sdf"
+        mimetype,encoding = mimetypes.guess_type(filename)
+        response = HttpResponse(mimetype=mimetype)
+        response['Content-Disposition'] = 'attachment; filename=%s' % new_name
+        response.write(file(filename, "rb").read())
+        return response
+      else:
+        form = TrainingSubmitForm(filename=filename) 
+        return render_to_response('assays/continue.html', {'form': form, 'query': query, 'num_mols': num_records}, context_instance=RequestContext(request)  )
   form = AssayForm(request.POST,query=query)
   return render_to_response('assays/assays.html', {'form': form}, context_instance=RequestContext(request)  )
 
-# paging
-# insert into charmming/qsar
-
+def cont(request):
+    if not request.user.is_authenticated():
+            return render_to_response('html/loggedout.html')
+    log=open("/tmp/cont.log", "w")
+    err_message=""
+    if request.method == 'POST':
+        form = TrainingSubmitForm(request.POST)
+        log.write("model type:%s\n" % (request.POST['model_type']))
+        if form.is_valid():
+            name = request.POST['filename']
+            activity_property_choice_length = 1
+            #activity_property_choice_length = len(get_sd_properties(name));
+            #if not activity_property_choice_length:
+            #    err_message="Not an SD file or no SD properties found. Please upload an SD file with Activity Property"
+            #    return render_to_response('qsar/newmodel.html', {'form': form, 'message':err_message}, context_instance=RequestContext(request)  )
+            u = User.objects.get(username=request.user.username)
+            newmodel=qsar_models()
+            newmodel.model_owner=request.user
+            newmodel.model_owner_index=newmodel.getNewModelOwnerIndex(u)
+            newmodel.model_name=request.POST['model_name']
+            newmodel.model_type=model_types.objects.get(id=request.POST['model_type'])
+            newmodel.save()
+            log.write("newmodel:%s" % (newmodel.id))
+            return HttpResponseRedirect(reverse('property', args=[name,newmodel.id]))
