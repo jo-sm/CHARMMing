@@ -81,7 +81,8 @@ def newModel(request):
             newmodel.model_type=model_types.objects.get(id=request.POST['model_type'])
             newmodel.save()
             log.write("newmodel:%s" % (newmodel.id))
-            return property(request,name,newmodel.id)
+            filename = os.path.basename(name)
+            return property(request,filename,newmodel.id)
         else:
             return render_to_response('qsar/newmodel.html', {'form': form}, context_instance=RequestContext(request)  )
     else:
@@ -94,15 +95,17 @@ def property(request,filename=None,qsar_model_id=None,message=""):
   if not request.user.is_authenticated():
     return render_to_response('html/loggedout.html')
   log=open("/tmp/qsar.log","w")
-  log.write("file: %s" % (filename) )
-  log.write("model:%s" % (qsar_model_id))
+  log.write("file: %s\n" % (filename) )
+  log.write("model:%s\n" % (qsar_model_id))
   if request.method == 'POST':
     if 'filename' in request.POST:
       filename = request.POST['filename']
       #model_type=model_types.objects.get(id=qsar_model.model_type_id)
       qsar_model_id=request.POST['qsar_model_id']
       log.write("model set\n")
-    form = SelectProperty(request.POST,filename=filename,qsar_model_id=qsar_model_id)
+    work_dir = str(get_dir(request))
+    fullfilename = work_dir+'/'+filename    
+    form = SelectProperty(request.POST,filename=filename,qsar_model_id=qsar_model_id,fullfilename=fullfilename)
     if 'back' in request.POST:
       return HttpResponseRedirect(reverse('newModel', args=()))
       log.write("back\n")
@@ -114,25 +117,31 @@ def property(request,filename=None,qsar_model_id=None,message=""):
         #common.AssignObjectAttribute(request.user.id,qsar_model_id,"qsar_qsar_models","Activity Property",activity_property)
         #model_type=model_types.objects.get(id=qsar_model.model_type_id)
         return train(request,filename,activity_property,qsar_model_id)
-  elif filename is not None and qsar_model_id is not None:
+  if filename is not None and qsar_model_id is not None:
+    log.write("select property page generator\n");
     work_dir = str(get_dir(request))
-    filename = work_dir+'/'+filename
+    fullfilename = work_dir+'/'+filename
     qsar_model=qsar_models.objects.get(id=qsar_model_id)
-    form = SelectProperty(filename=filename,qsar_model_id=qsar_model_id)
+    form = SelectProperty(filename=filename,qsar_model_id=qsar_model_id,fullfilename=fullfilename)
     model_type=model_types.objects.get(id=qsar_model.model_type_id)
-    activity_property_choice_length = len(get_sd_properties(filename));
+    activity_property_choice_length = len(get_sd_properties(fullfilename));
     #if notactivity_property_choice_length
-  return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type}, context_instance=RequestContext(request))
-
+    return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type}, context_instance=RequestContext(request))
+  else:
+      log.write("should not get here\n");
+      return HttpResponse('<h4> Internal Error <h4>')
+      
 def train(request,filename=None,activity_property=None,qsar_model_id=None):
   if not request.user.is_authenticated():
     return render_to_response('html/loggedout.html')
   
         
   if filename is not None and activity_property is not None:
+    work_dir = str(get_dir(request))
+    fullfilename = work_dir+'/'+filename
     count = 0
     ms = []
-    for x in Chem.SDMolSupplier(str(filename)):
+    for x in Chem.SDMolSupplier(str(fullfilename)):
         if x is not None:
           ms.append(x)
           count += 1
@@ -161,9 +170,9 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
 
     if err_message !="":
         model_type=model_types.objects.get(id=qsar_model.model_type_id)
-        form = SelectProperty(filename=filename,qsar_model_id=qsar_model.id)
+        form = SelectProperty(filename=filename,qsar_model_id=qsar_model.id,fullfilename=fullfilename)
         activity_property_choice_length = 0;
-        activity_property_choice_length = len(get_sd_properties(filename))
+        activity_property_choice_length = len(get_sd_properties(fullfilename))
         return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type, 'message':err_message}, context_instance=RequestContext(request))
 
 
@@ -214,7 +223,7 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
     log.write("mkdir %s\n" % (model_folder))
     model_file=model_folder + "/model"
     training_output=model_folder + "/training_output"
-    os.system("chmod g+rw %s" % (filename))
+    os.system("chmod g+rw %s" % (fullfilename))
     os.system("chmod g+rw %s" % (model_file))
     os.system("chmod g+rw %s" % (training_output))
     train_submitscript = open(job_folder + "/train_submitscript.inp", 'w')
@@ -225,9 +234,9 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
     log.write("model type: %s\n" % (qsar_model.model_type.model_type_name))
     subtype,categorization = categorization_regression(qsar_model.model_type.model_type_name)
     if categorization:
-        train_submitscript.write("python /var/www/charmming/qsar/create_model.py %s %s %s %s %s %s %s %s\n" % (filename, model_file, activity_property, active, training_output, str(qsar_model.id), str(u.id), subtype))
+        train_submitscript.write("python /var/www/charmming/qsar/create_model.py %s %s %s %s %s %s %s %s\n" % (fullfilename, model_file, activity_property, active, training_output, str(qsar_model.id), str(u.id), subtype))
     else:
-        train_submitscript.write("python /var/www/charmming/qsar/create_model_regression.py %s %s %s %s %s %s %s\n" % (filename, model_file, activity_property, training_output, str(qsar_model.id), str(u.id), subtype))
+        train_submitscript.write("python /var/www/charmming/qsar/create_model_regression.py %s %s %s %s %s %s %s\n" % (fullfilename, model_file, activity_property, training_output, str(qsar_model.id), str(u.id), subtype))
     
     train_submitscript.write("echo 'NORMAL TERMINATION'\n")
     train_submitscript.close()

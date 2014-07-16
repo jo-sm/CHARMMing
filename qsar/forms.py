@@ -23,14 +23,16 @@ class SelectProperty(forms.Form):
   def __init__(self, *args, **kwargs):
     name = kwargs['filename']
     model_id=kwargs['qsar_model_id']
+    fullfilename = kwargs['fullfilename']
     del kwargs['filename']
     del kwargs['qsar_model_id']
+    del kwargs['fullfilename']
     super(SelectProperty, self).__init__(*args, **kwargs)
     filewidget = forms.HiddenInput(attrs={'value' : name})
     modelwidget = forms.HiddenInput(attrs={'value' : model_id})
     self.fields['filename'] = forms.CharField(widget=filewidget, required=True)
     self.fields['qsar_model_id'] = forms.CharField(widget=modelwidget, required=True)
-    self.fields['activity_property'] = forms.ChoiceField(choices=get_sd_properties(name),
+    self.fields['activity_property'] = forms.ChoiceField(choices=get_sd_properties(fullfilename),
                                                          label='Select property which contains activity')
 
 class TestUploadForm(forms.Form):

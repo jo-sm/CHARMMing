@@ -6,18 +6,31 @@ import shutil
 import tempfile
 from rdkit import Chem
 import xml.etree.ElementTree as ET
-
-
+from concurrent.futures import ThreadPoolExecutor
+from concurrent import futures
 
 def get_sd_file(aids, sdname,remove_inconclusive):
-    cid_to_act = dict()
+    with ThreadPoolExecutor(len(aids)) as executor:
+        mols = set(executor.submit(get_sd_for_aid,aid,remove_inconclusive) for aid in aids)
     seen = set()
     count = 0
     writer = Chem.SDWriter(sdname)
-    for aid in aids:
+    for future in futures.as_completed(mols):
+        for m in future.result():
+            cid =  m.GetProp("PUBCHEM_COMPOUND_CID")
+            if cid in seen:
+                continue
+            seen.add(cid)
+            writer.write(m)
+            count += 1
+    return count
+
+def get_sd_for_aid(aid,remove_inconclusive):
+        result = []
+        cid_to_act = dict()
         aid = aid.strip()
         if not aid:
-            continue
+            return result
         csvfh = urllib.urlopen("http://pubchem.ncbi.nlm.nih.gov/rest/pug/assay/aid/"+aid+"/CSV")
         header_line = csvfh.readline()
         if header_line.startswith("PUBCHEM_SID,PUBCHEM_CID,PUBCHEM_ACTIVITY_OUTCOME"):
@@ -38,15 +51,15 @@ def get_sd_file(aids, sdname,remove_inconclusive):
         listkeyfh.close()
         listkey = json.loads(jsonlistkey)
         if not listkey.has_key("IdentifierList"):
-            continue
+            return result
         if not listkey["IdentifierList"].has_key("ListKey"):
-            continue    
+            return result
         key = listkey["IdentifierList"]["ListKey"]
         if not key:
-            continue
+            return result
         sdffh = urllib.urlopen("http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/listkey/"+key+"/SDF")
         if sdffh.getcode() != 200:
-            continue
+            return result
         tmpsdf = tempfile.NamedTemporaryFile()
         shutil.copyfileobj(sdffh,tmpsdf)
         sdffh.close()
@@ -55,16 +68,12 @@ def get_sd_file(aids, sdname,remove_inconclusive):
                 cid =  m.GetProp("PUBCHEM_COMPOUND_CID")
                 if remove_inconclusive and cid_to_act[cid]["PUBCHEM_ACTIVITY_OUTCOME"] != "Active" and cid_to_act[cid]["PUBCHEM_ACTIVITY_OUTCOME"] != "Inactive":
                     continue
-                if cid in seen:
-                    continue
-                seen.add(cid)
                 m.SetProp("PUBCHEM_AID",str(aid))
                 for k,v in cid_to_act[cid].items():
-                    m.SetProp(k,v)
-                writer.write(m)            
-                count += 1
+                    m.SetProp(str(k),str(v))
+                result.append(m)            
         tmpsdf.close()
-    return count
+        return result
 
 
 def get_aids(term,start=0):
@@ -82,32 +91,36 @@ def get_description(aid):
      jsonobj = json.loads(jsonstr)
      name = jsonobj["AssaySummaries"]["AssaySummary"][0]["Name"]
      num = jsonobj["AssaySummaries"]["AssaySummary"][0]["CIDCountAll"]
-     return (name,num)
+     return (name,num,aid)
 
 def get_list_aids(query, start=0):
     if query is None:
-        choices = []
+        choices = [] 
         return choices
     (step,total,aids) = get_aids(query,start)
     choices = []
-    for aid in aids:
-        (name,num) = get_description(aid)
+    with ThreadPoolExecutor(len(aids)) as executor:
+        future_choices = set(executor.submit(get_description,aid) for aid in aids)
+    for future in futures.as_completed(future_choices):
+        (name,num,aid) = future.result()
         name += " ("+str(num)+")"
         choices.append((aid,name))
-    return (step,total,choices)
+    return (step,total,choices)   
 
 def get_url_base():
     return "http://pubchem.ncbi.nlm.nih.gov/assay/assay.cgi?aid="
 
+def print_aid(aid):
+    print aid, get_description(aid)
 
 if __name__ == '__main__':
-    id = sys.argv[1]
+    query = sys.argv[1]
     sdname = sys.argv[2]
     remove_inconclusive = True
 
-    aids = get_aids(id)
-    for aid in aids:
-        print aid, get_description(aid)
-    #get_sd_file(aids,sdname,remove_inconclusive)
-
-
+    (step,total,choices) = get_list_aids(query)
+    # 20 2
+    aids = [c[0] for c in choices]
+    num_mols = get_sd_file(aids,sdname,remove_inconclusive)
+    # 52s
+    # 6s
