@@ -96,16 +96,16 @@ class AssayForm(forms.Form):
         current += a[0]+":"+a[1]
           
       super(AssayForm, self).__init__(*args, **kwargs)
-      self.fields['assays'] = forms.MultipleChoiceField(choices=aids, label="assays",required=False,
+      self.fields['assays'] = forms.MultipleChoiceField(choices=aids, label="assays",required=True,
                               widget = CheckboxSelectMultipleWithUrl())
       self.fields['remove'] = forms.BooleanField(label="remove",required=False)
       current_widget = forms.HiddenInput(attrs={'value' : current})
-      self.fields['current'] = forms.CharField(widget=current_widget, required = True); 
+      self.fields['current'] = forms.CharField(widget=current_widget, required = False); 
       step_widget = forms.HiddenInput(attrs={'value' : step})
       self.fields['step'] = forms.CharField(widget=step_widget, required = False);
       total_widget = forms.HiddenInput(attrs={'value' : total})
       self.fields['total'] = forms.CharField(widget=total_widget, required = False);
       query_widget = forms.HiddenInput(attrs={'value' : query})
       self.fields['query'] = forms.CharField(widget=query_widget, required = False);
-
+      self.len_aids = len(aids)
       

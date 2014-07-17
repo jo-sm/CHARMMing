@@ -74,7 +74,10 @@ def assays(request,query=None):
         form = TrainingSubmitForm(filename=filename,query=query,num_mols=num_records) 
         return render_to_response('assays/continue.html', {'form': form, 'query': query, 'num_mols': num_records}, context_instance=RequestContext(request)  )
   form = AssayForm(request.POST,query=query)
-  return render_to_response('assays/assays.html', {'form': form}, context_instance=RequestContext(request)  )
+  if form.len_aids > 0 :
+    return render_to_response('assays/assays.html', {'form': form}, context_instance=RequestContext(request)  )
+  else:
+    return HttpResponseRedirect(reverse('search', args=()))
 
 def cont(request,filename="",query="",num_mols=0):
     if not request.user.is_authenticated():
