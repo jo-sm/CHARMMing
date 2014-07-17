@@ -16,7 +16,10 @@
 			  </table>
 			  <p> Pubchem Assay Download query: {{ query }}  </p>
 		          <p> Number of selected molecules: {{ num_mols }} </p>
-			<p><input type="submit" value="Next" /></p>
+		          <p>
+		           <input type="submit" name="back" value="Back" />
+			   <input type="submit" value="Next" />
+			  </p>
 		</form>
 		
 {% endblock %}

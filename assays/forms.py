@@ -17,12 +17,24 @@ class TrainingSubmitForm(forms.Form):
     if 'filename' in kwargs:
       filename = kwargs['filename']
       del kwargs['filename'] 
+    query = ""
+    if 'query' in kwargs:
+      query = kwargs['query']
+      del kwargs['query']
+    num_mols = 0
+    if 'num_mols' in kwargs:
+      num_mols = kwargs['num_mols']
+      del kwargs['num_mols']
     super(TrainingSubmitForm, self).__init__(*args, **kwargs)                                          
     model_choices = [(obj.id, obj.model_type_name) for obj in model_types.objects.all()]
     self.fields['model_type'] = forms.ChoiceField(label="Select Model Type",choices=model_choices)
     self.fields['model_name'] = forms.CharField(max_length=100,required=True)
     filename_widget = forms.HiddenInput(attrs={'value' : filename})
     self.fields['filename'] = forms.CharField(widget=filename_widget, required = True);
+    query_widget = forms.HiddenInput(attrs={'value' : query})
+    self.fields['query'] = forms.CharField(widget=query_widget, required = True);
+    num_mols_widget = forms.HiddenInput(attrs={'value' : num_mols})   
+    self.fields['num_mols'] = forms.CharField(widget=num_mols_widget, required = True);
                                     
 class SearchForm(forms.Form):
   query = forms.CharField(max_length=200,required=True)

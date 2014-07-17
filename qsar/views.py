@@ -46,7 +46,6 @@ def upload(request):
             (fh,name) = mkstemp(dir=get_dir(request))
             os.close(fh);        
             handle_uploaded_file(request.FILES['trainfile'],name)
-            #return HttpResponseRedirect(reverse('property', args=[name]))
             return property(request,name)
     else:
         form = TrainingUploadForm() # A empty, unbound form
@@ -69,10 +68,6 @@ def newModel(request):
             if not activity_property_choice_length:
                 err_message="Not an SD file or no SD properties found. Please upload an SD file with Activity Property"
                 return render_to_response('qsar/newmodel.html', {'form': form, 'message':err_message}, context_instance=RequestContext(request)  )
-            #if not is_valid_sd(name):
-            #    err_message="No structures found. Please upload an SD file with at least one structure"
-            #    return render_to_response('qsar/newmodel.html', {'form': form, 'message':err_message}, context_instance=RequestContext(request)  )
-            #return HttpResponseRedirect(reverse('property', args=[name]))
             u = User.objects.get(username=request.user.username)
             newmodel=qsar_models()
             newmodel.model_owner=request.user
@@ -91,51 +86,52 @@ def newModel(request):
     return render_to_response('qsar/newmodel.html', {'form': form}, context_instance=RequestContext(request)  )
 
 
-def property(request,filename=None,qsar_model_id=None,message=""):
+def property(request,filename=None,qsar_model_id=None,message="",query="",num_mols=0):
   if not request.user.is_authenticated():
     return render_to_response('html/loggedout.html')
   log=open("/tmp/qsar.log","w")
   log.write("file: %s\n" % (filename) )
   log.write("model:%s\n" % (qsar_model_id))
+  log.write("query: %s\n" %(query))
+              
   if request.method == 'POST':
     if 'filename' in request.POST:
       filename = request.POST['filename']
-      #model_type=model_types.objects.get(id=qsar_model.model_type_id)
       qsar_model_id=request.POST['qsar_model_id']
       log.write("model set\n")
     work_dir = str(get_dir(request))
     fullfilename = work_dir+'/'+filename    
-    form = SelectProperty(request.POST,filename=filename,qsar_model_id=qsar_model_id,fullfilename=fullfilename)
+    if 'query' in request.POST:
+        query = request.POST['query']
+    if 'num_mols' in request.POST:
+        num_mols = request.POST['num_mols']
     if 'back' in request.POST:
+      if query != "":
+          return HttpResponseRedirect(reverse('cont', kwargs={'filename': filename, 'query' : query, 'num_mols' : num_mols}))
       return HttpResponseRedirect(reverse('newModel', args=()))
       log.write("back\n")
     elif 'next' in request.POST:
-      if form.is_valid():
-        log.write("next\n")
-        activity_property = request.POST["activity_property"]
-        #qsar_model_id=request.POST['qsar_model_id']
-        #common.AssignObjectAttribute(request.user.id,qsar_model_id,"qsar_qsar_models","Activity Property",activity_property)
-        #model_type=model_types.objects.get(id=qsar_model.model_type_id)
-        return train(request,filename,activity_property,qsar_model_id)
+      log.write("next\n")
+      activity_property = request.POST["activity_property"]
+      return train(request,filename,activity_property,qsar_model_id,query,num_mols)
   if filename is not None and qsar_model_id is not None:
     log.write("select property page generator\n");
     work_dir = str(get_dir(request))
     fullfilename = work_dir+'/'+filename
     qsar_model=qsar_models.objects.get(id=qsar_model_id)
-    form = SelectProperty(filename=filename,qsar_model_id=qsar_model_id,fullfilename=fullfilename)
+    form = SelectProperty(filename=filename,qsar_model_id=qsar_model_id,fullfilename=fullfilename,query=query,num_mols=num_mols)
     model_type=model_types.objects.get(id=qsar_model.model_type_id)
     activity_property_choice_length = len(get_sd_properties(fullfilename));
-    #if notactivity_property_choice_length
-    return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type}, context_instance=RequestContext(request))
+    return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type, 'query' : query}, context_instance=RequestContext(request))
   else:
       log.write("should not get here\n");
       return HttpResponse('<h4> Internal Error <h4>')
       
-def train(request,filename=None,activity_property=None,qsar_model_id=None):
+def train(request,filename=None,activity_property=None,qsar_model_id=None,query="",num_mols=0):
   if not request.user.is_authenticated():
     return render_to_response('html/loggedout.html')
   
-        
+  err_message=""      
   if filename is not None and activity_property is not None:
     work_dir = str(get_dir(request))
     fullfilename = work_dir+'/'+filename
@@ -149,12 +145,11 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
             break
                     
     if count < 100:
-      return HttpResponse('<h4> The training file should contain at least 100 structures<h4>')
+      err_message = "The training file should contain at least 100 structures"
     if count > 10000:
-      return HttpResponse('<h4> Training file is too big <h4>')
+      err_message = "Training file is too big"
     
     qsar_model=qsar_models.objects.get(id=qsar_model_id)
-    err_message=""
     
     subtype,categorization = categorization_regression(qsar_model.model_type.model_type_name)
     if categorization:
@@ -170,10 +165,10 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
 
     if err_message !="":
         model_type=model_types.objects.get(id=qsar_model.model_type_id)
-        form = SelectProperty(filename=filename,qsar_model_id=qsar_model.id,fullfilename=fullfilename)
+        form = SelectProperty(filename=filename,qsar_model_id=qsar_model.id,fullfilename=fullfilename,query=query,num_mols=num_mols)
         activity_property_choice_length = 0;
         activity_property_choice_length = len(get_sd_properties(fullfilename))
-        return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type, 'message':err_message}, context_instance=RequestContext(request))
+        return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type, 'message':err_message, 'query' : query}, context_instance=RequestContext(request))
 
 
     common.AssignObjectAttribute(request.user.id,qsar_model_id,"qsar_qsar_models","Activity Property",activity_property)
@@ -594,10 +589,6 @@ def viewModels(request,message=""):
             NewJob.save()
             log.write("redirecting to submit_predict\n")
             return viewJobs(request)
-            #return render_to_response ('qsar/submit_predict.html', {'job_owner_index' : NewJob.job_owner_index})
-            #return HttpResponse("Predict Job %s was successfully submitted." % (NewJob.job_owner_index))
-          #except:
-          #  continue
         if orig_name=="":
                 err_message="No prediction file specified. Please upload an SD file with at least one structure"
                 return viewModels(request,err_message)

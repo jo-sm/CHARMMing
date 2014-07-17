@@ -71,17 +71,21 @@ def assays(request,query=None):
         response.write(file(filename, "rb").read())
         return response
       else:
-        form = TrainingSubmitForm(filename=filename) 
+        form = TrainingSubmitForm(filename=filename,query=query,num_mols=num_records) 
         return render_to_response('assays/continue.html', {'form': form, 'query': query, 'num_mols': num_records}, context_instance=RequestContext(request)  )
   form = AssayForm(request.POST,query=query)
   return render_to_response('assays/assays.html', {'form': form}, context_instance=RequestContext(request)  )
 
-def cont(request):
+def cont(request,filename="",query="",num_mols=0):
     if not request.user.is_authenticated():
             return render_to_response('html/loggedout.html')
     log=open("/tmp/cont.log", "w")
     err_message=""
     if request.method == 'POST':
+        if 'back' in request.POST:
+            query = request.POST['query']
+            form = AssayForm(request.POST,query=query)
+            return render_to_response('assays/assays.html', {'form': form},context_instance=RequestContext(request)  ) 
         form = TrainingSubmitForm(request.POST)
         log.write("model type:%s\n" % (request.POST['model_type']))
         if form.is_valid():
@@ -100,4 +104,10 @@ def cont(request):
             newmodel.save()
             filename = os.path.basename(name)
             log.write("newmodel:%s" % (newmodel.id))
-            return HttpResponseRedirect(reverse('property', kwargs={'filename':filename,'qsar_model_id':newmodel.id}))
+            query = request.POST['query']
+            num_mols = request.POST['num_mols']
+            return HttpResponseRedirect(reverse('property', kwargs={'filename':filename,'qsar_model_id':newmodel.id,'query':query,'num_mols' : num_mols}))
+    else:
+      form = TrainingSubmitForm(filename=filename,query=query,num_mols=num_mols)
+      return render_to_response('assays/continue.html', {'form': form, 'query': query, 'num_mols': num_mols}, context_instance=RequestContext(request))
+      

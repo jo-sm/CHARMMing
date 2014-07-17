@@ -105,6 +105,7 @@ def get_list_aids(query, start=0):
         (name,num,aid) = future.result()
         name += " ("+str(num)+")"
         choices.append((aid,name))
+    choices.sort()
     return (step,total,choices)   
 
 def get_url_base():

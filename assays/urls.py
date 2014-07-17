@@ -6,6 +6,7 @@ urlpatterns = patterns('',
     url(r'^$', views.search, name='search'),
     url(r'^search/$', views.search, name='search'),
     url(r'^assays/$', views.assays, name='assays'),
-    url(r'^cont/$', views.cont, name='cont')
+    url(r'^cont/$', views.cont, name='cont'),
+    url(r'^(?P<filename>[\w\.\-\_]+)/(?P<query>[\w\s\-\_\.]+)/(?P<num_mols>\d+)/cont/$', views.cont, name='cont')
     )
     

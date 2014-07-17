@@ -27,13 +27,25 @@ class SelectProperty(forms.Form):
     del kwargs['filename']
     del kwargs['qsar_model_id']
     del kwargs['fullfilename']
+    query = ""
+    if 'query' in kwargs:
+     query = kwargs['query']
+     del kwargs['query']
+    num_mols = 0
+    if 'num_mols' in kwargs:
+     num_mols = kwargs['num_mols']
+     del kwargs['num_mols']
     super(SelectProperty, self).__init__(*args, **kwargs)
     filewidget = forms.HiddenInput(attrs={'value' : name})
     modelwidget = forms.HiddenInput(attrs={'value' : model_id})
     self.fields['filename'] = forms.CharField(widget=filewidget, required=True)
     self.fields['qsar_model_id'] = forms.CharField(widget=modelwidget, required=True)
-    self.fields['activity_property'] = forms.ChoiceField(choices=get_sd_properties(fullfilename),
-                                                         label='Select property which contains activity')
+    self.fields['activity_property'] = forms.ChoiceField(choices=get_sd_properties(fullfilename), label='Select property which contains activity')
+    query_widget = forms.HiddenInput(attrs={'value' : query})
+    self.fields['query'] = forms.CharField(widget=query_widget, required = True);
+    num_mols_widget = forms.HiddenInput(attrs={'value' : num_mols})   
+    self.fields['num_mols'] = forms.CharField(widget=num_mols_widget, required = True);
+                
 
 class TestUploadForm(forms.Form):
   def __init__(self, *args, **kwargs):
