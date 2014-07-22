@@ -10,7 +10,7 @@
                 lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='SCPISM Implicit Solvent was not set to {{task.0.scpism}}')
                 lessonprob.save()
                 return False
-            {%if task.0.make_movie}}blankme
+            {%if task.0.make_movie%}blankme
             {%comment%}blankme
             we only check if we want to make a movie, if not
             it doesn't hurt to make one

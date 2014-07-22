@@ -28,8 +28,9 @@ from apbs.models import redoxTask
 from apbs import redox_mod
 from pychm.lib.mol import Mol
 from pychm.io.rtf import RTFFile
-import lessonaux, lessons, lesson1, lesson2, lesson3, lesson4, lesson5, lesson6
+import lessonaux, lessons
 from account.views import checkPermissions
+from lesson_config import *
 
 
 def redoxformdisplay(request):

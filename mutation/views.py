@@ -29,13 +29,15 @@ from django.template import RequestContext
 from account.views import checkPermissions
 from lessons.models import LessonProblem
 from mutation.models import mutateTask
-import output, lesson1, lesson2, lesson3, lesson4, lesson5, lesson6, lessonaux
+import output
+import lessonaux
 import structure.models, input
 from lesson_config import *
 import os, copy, json, mimetypes, string, re
 import pychm.io, charmming_config
 from pychm.const.bio import aaAlphabet
 import cPickle
+from lesson_config import *
 
 def mutestructure(request):
     if not request.user.is_authenticated():
@@ -83,7 +85,7 @@ def mutestructure(request):
     modstruct.finalTopology = copy.deepcopy(ws.finalTopology)
     modstruct.finalParameter = copy.deepcopy(ws.finalParameter)
     modstruct.topparStream = copy.deepcopy(ws.topparStream)
-    modstruct.localpickle = ws.structure.location + "/" + MutFile + "-pickle.dat"
+    modstruct.localpickle = "%s/%s.dat"%(ws.structure.location,MutFile)
     modstruct.lesson = None #No association - I don't think we should keep track of this unless there's a lesson for mutation?
     modstruct.extraStreams = copy.deepcopy(ws.extraStreams)
     modstruct.identifier = MutFile #Can we do this? I need to do it to make sure the filename percolates up correctly
@@ -155,6 +157,13 @@ def mutate_task_process(request,mt,oldws):
     else:
         isBuilt = True
         pTaskID = int(request.POST['ptask']) #THis comes from the previous form...
+        ptask_path = "%s/%s-%s.psf"%(struct.location,ws.identifier,pTask.action)
+        try:
+            os.stat(ptask_path)
+        except: #probably a qchem thing, so copy the build PSF
+            shutil.copyfile("%s/%s-build.psf"%(struct.location,ws.identifier),ptask_path) #TODO: warn user?
+            shutil.copyfile("%s/%s-build.crd"%(struct.location,ws.identifier),ptask_path.replace(".psf",".crd")) #TODO: warn user?
+            #crd doesn't change for qchem stuff...
     pTask = Task.objects.filter(id=pTaskID)[0]
     action = pTask.action
     template_dict['input_file'] = oldws.identifier + "-" + action
@@ -180,6 +189,7 @@ def mutate_task_process(request,mt,oldws):
     inp_out = open(mutate_filename, 'w')
     inp_out.write(charmm_inp)
     inp_out.close()
+#    mt.add_script("charmm",mutate_filename,charmming_config.default_charmm_nprocs)
     mt.scripts += ',%s' % mutate_filename
     mt.start()
     mt.save()
@@ -200,7 +210,8 @@ def selectstructure(request):
         messages.error(request, "Please build a structure first.") #There should only ever be one message but we'll generalize.
         return HttpResponseRedirect('/charmming/fileupload/')
 
-    proposedname = struct.name
+    testname = struct.name
+    proposedname = testname
     existingWorkStructs = structure.models.WorkingStructure.objects.filter(structure=struct)
     if existingWorkStructs:
         usedNameList = [ews.identifier for ews in existingWorkStructs]
@@ -208,9 +219,8 @@ def selectstructure(request):
         while proposedname in usedNameList:
            m = re.search("([^-\s]+)-mt([0-9]+)$", proposedname)
            if m:
-               basename = m.group(1)
                numbah   = int(m.group(2))
-               proposedname = basename + "-mt" + str(numbah+1)
+               proposedname = testname + "-mt" + str(numbah+1)
            else:
                proposedname += "-mt1"
     else:

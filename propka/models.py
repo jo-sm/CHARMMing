@@ -15,5 +15,38 @@
 #  Government disclaim all warranties, express or implied, including
 #  warranties of performance, merchantability or fitness for any
 #  particular purpose.
+from django.db import models
+from pychm.io import pdb
+from structure.models import Task, WorkingFile, CGWorkingStructure
+import os, copy, re
+import traceback
+from lib import Atom
 
-# nothing here now...
+class propkaTask(Task):
+    #doesn't actually have any fields, but we include it so we can get
+    # a finish method and classification
+
+    def finish(self):
+        """test if the job suceeded, create entries for output"""
+
+        loc = self.workstruct.structure.location
+        bnm = self.workstruct.identifier
+        basepath = loc + '/' + bnm + "-" + self.action
+        #first see if we could write propka_input
+        try:
+            os.stat(basepath + ".propka_input")
+        except:
+            self.status = 'F'
+            self.save()
+        #might happen that the .pka isn't present. Unlikely, but possible.
+        try:
+            os.stat(basepath + '.pka')
+        except:
+            self.status = 'F'
+            self.save()
+            return
+        if self.status == 'F':
+            return
+        self.status = 'C'
+        self.createStatistics() #This only fails when the task succeeds, so we shouldn't worry.
+        return

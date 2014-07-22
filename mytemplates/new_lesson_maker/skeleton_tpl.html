@@ -7,13 +7,13 @@
     <script type="text/javascript" src="/charmming/js/sdmenu/sdmenu.js"></script>
     <script type="text/javascript" src="/charmming/js/custom.js"></script>
     <script type="text/javascript" src="/charmming/js/emap.js"></script>
-    <script type="text/javascript" src="/charmming/js/jquery-2.0.3.js"></script> 
+    <script type="text/javascript" src="/charmming/js/jquery-2.0.3.js"></script>
+    {% templatetag openblock %} block jsmol_scripts {%templatetag closeblock %} {%templatetag openblock %}endblock{% templatetag closeblock %}
     <script type="text/javascript" src="/charmming/js/jqTableKit.js"></script>
     <script type="text/javascript" src="/charmming/js/jquery.periodicalupdater.js"></script>
     <script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
     <script type="text/javascript" src="/charmming/js/status.js"></script>
 
-    {% templatetag openblock %} block extra_scripts {% templatetag closeblock %} {% templatetag openblock %}endblock{% templatetag closeblock %} 
     
     <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
     <link rel="stylesheet" type="text/css" href="/charmming/css/charmming.css" />
@@ -25,73 +25,6 @@
     <link rel="icon" type="image/x-icon" href="/charmming/images/charmming-css/favicon.ico" />
     <link rel="shortcut icon" type="image/x-icon" href="/charmming/images/charmming-css/favicon.ico" /> 
     <link rel="stylesheet" type="text/css" href="/charmming/js/jquery-ui/jquery-ui.css" />
-
-    <script type="text/javascript">
-
-    /***********************************************
-    * DHTML Window Widget- © Dynamic Drive (www.dynamicdrive.com)
-    * This notice must stay intact for legal use.
-    * Visit http://www.dynamicdrive.com/ for full source code
-    ***********************************************/
-
-    var myMenu;
-    var jmolCounter = -1;
-    var currperiodicalupdater = null;
-
-    function getDocWidth() {
-       return document.documentElement.clientWidth *.82;
-    }
-    function doOnLoad() {
-       myMenu = new SDMenu("my_menu");
-       myMenu.init();
-       //CHrome doesn't like PeriodicalUpdater sometimes and will fire infinitely many XHR and never load anything; however, if you force a single XHR (as I do here),
-       //Chrome will start loading them right. I have no idea why, and no one else seems to have this issue, so I'm assuming it's a Chrome bug more than anything.
-       $("#statusreport").PeriodicalUpdater('/charmming/status/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
-       $.ajax({
-          url:'/charmming/status/',
-          method:'post',
-          success:function(responseData){
-          $("#statusreport").html(responseData);
-          }
-          });
-
-       $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("lessonreport").innerHTML = remoteData;});
-       $.ajax({
-          url:'/charmming/lessons/lessonstatus/',
-          method:'post',
-          success:function(responseData){
-          $("#statusreport").html(responseData);
-          }
-          });
-    }
-
-    function showLesson(lesson)
-    {
-     if(currperiodicalupdater)
-     {
-      currperiodicalupdater.stop();
-     }
-     if(lesson != "nolesson" && lesson != 'None'){
-       currperiodicalupdater = $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {method: 'post', multiplier:5, minTimeout:100,
-maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
-    //Same Chrome hack as before
-       $.ajax({
-          url:'/charmming/lessons/lessonstatus/',
-          method:'post',
-          success:function(responseData){
-          $("#statusreport").html(responseData);
-          }
-          });
-     }else
-     {
-      document.getElementById('lessonreport').innerHTML = '';
-     }
-    }
-
-    $(document).ready(function (){
-        doOnLoad();
-      });
-    </script>
 </head>
 
 <body>
@@ -117,6 +50,7 @@ maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").i
             <a href="/charmming/viewpdbs/">Change/Delete Structures</a>
             <a href="/charmming/buildstruct/">Build/Select Working Structure</a>
             <a href="/charmming/ligand_design/">Build Custom Ligand</a>
+            <a href="/charmming/download/">Download (new)</a>
             <a href="/charmming/downloadfiles/">Download Files</a>
             <a href="/charmming/visualize/">Visualize system</a>
             <a href="/charmming/viewprocessfiles/">View Inputs and Outputs</a>
@@ -182,7 +116,7 @@ maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").i
 
       <div id="content">
          {% templatetag openblock %}  block content {% templatetag closeblock %} 
-            {% include "html/intro.html" {% templatetag closeblock %} 
+           {% templatetag openblock %} include "html/intro.html" {% templatetag closeblock %} 
          {% templatetag openblock %}  endblock {% templatetag closeblock %} 
       </div>
 
@@ -192,6 +126,8 @@ maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").i
 
  </div>
 
+    {% templatetag openblock %} block extra_scripts {% templatetag closeblock %} {% templatetag openblock %}endblock{% templatetag closeblock %} 
+<script type="text/javascript" src="/charmming/js/skeleton.js"></script>
 </body>
 
 </html>

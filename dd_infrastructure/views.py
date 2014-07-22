@@ -35,7 +35,7 @@ from django.shortcuts import render_to_response
 #from normalmodes.models import nmodeParams
 #from apbs.models import redoxParams
 #from pdbinfo.qmmm import makeQChem_tpl, handleLinkAtoms, writeQMheader
-
+from django.contrib.messages import get_messages
 from structure.models import Structure, WorkingStructure, WorkingFile, Task, Segment
 from django.contrib.auth.models import User
 from django.core import validators 
@@ -51,6 +51,7 @@ from account.views import checkPermissions
 #dd stuff
 from dd_infrastructure.models import projects,files,files_objects, jobs, job_types, sources, dsfdockingtask
 from dd_target.models import proteins, protein_conformations, projects_protein_conformations
+from dd_target.models import binding_sites
 from dd_substrate.models import ligands
 from dd_substrate.models import poses
 from dd_target import common as target_common
@@ -60,10 +61,6 @@ from dd_analysis.models import attributes, object_attributes
 import common
 ###
 import output
-import lesson1
-import lesson2
-import lesson3
-import lesson4
 import lessonaux
 # import all created lessons by importing lesson_config
 # also there is a dictionary called 'file_type' in lesson_config.py specififying the file type of files uploaded by the lessons  
@@ -1138,12 +1135,16 @@ def DSFFormDisplay(request):
             #abadfile.tag=nativefilename[nativefilename.index("a-native-")+len("a-native-"):nativefilename.index(".pdb",nativefilename.index("a-native-")+len("a-native-"))]
             dsflog.write("adding native ligand: %s\n" % abadfile.tag)
             abadfiles.append(abadfile)
-            
+        #TODO: Below add logic for fetching binding sites (user-defined) for this WS
         try:
             dsflog.write("native ligands: %s\n" % str(abadfiles[0].name))
-        except:
-            messages.error(request, "Your structure does not have any native ligands. CHARMMing does not currently support docking into structures without native ligands.")
-            return HttpResponseRedirect("/charmming/buildstruct/")
+        except: #probably the best is to do another except so we can do control flow
+            try:
+                binding_sites = binding_sites_workstruct.filter(workstruct=ws)
+#                for site in binding_sites
+            except:
+                messages.error(request, "Your structure does not have any defined binding sites. Please define your own binding site for this working structure, or upload a structure with a native ligand.")
+                return HttpResponseRedirect("/charmming/buildstruct/")
         #except:
         #    return HttpResponse("No native ligands found in the structure. Cannot identify binding site")
 
@@ -1256,6 +1257,7 @@ def DSFFormDisplay(request):
                                                      object_id__in=user_ligand_ids)
         dsflog.write("ligand file objects: %s\n" % user_ligand_file_objects)                                             
         job_ligand_file_ids=[]                                      
+        lesson_lig_filename = ""
         for user_ligand_file_object in user_ligand_file_objects:
             try:
                 dsflog.write("dbligandfile: %s\n" % str(user_ligand_file_object.file_id))
@@ -1291,6 +1293,10 @@ def DSFFormDisplay(request):
                        
 
                     ligandcount=ligandcount+1
+                    if ligandcount > 1:
+                        lesson_lig_filename = ""
+                    else:
+                        lesson_lig_filename = "%s/%s_%s" %(job_folder,ligand_file.owner_id,ligand_file.file_name)
                     ligandfile_list.append(str(ligand_file.owner_id)+"_"+ligand_file.file_name)
                     daim_ligands_list_file.write(str(ligand_file.owner_id)+"_"+ligand_file.file_name + '\n')
                     # """
@@ -1609,6 +1615,23 @@ def DSFFormDisplay(request):
     
     dsflog.close()
 
+    loglog = open("/tmp/lesson7docking.txt","w")
+    loglog.write("In ligand upload...\n")
+    loglog.close()
+    loglog = open("/tmp/lesson7docking.txt","a+")
+    try:
+        lnum = struct.lesson_type
+        lesson_obj = eval(lnum+".models."+lnum.capitalize()+"()")
+        loglog.write("Found lesson!\n")
+    except:
+        lesson_obj = None
+        loglog.write("NO lesson.\n")
+    if lesson_obj:
+        loglog.write("Running onDockingSubmit...\n")
+        try:
+           lessonaux.doLessonAct(struct,"onDockingSubmit",filename=lesson_lig_filename,task=dsftask)
+        except:
+            traceback.print_exc(file=loglog)
     lesson_ok, dd_ok = checkPermissions(request)    
     return render_to_response('html/dddsfform.html',{'conformations':conformation_info_list, 'message':message, 'message_color':message_color,'lesson_ok': lesson_ok, 'dd_ok': dd_ok, 'tarfiles':tar_files})
 
@@ -2525,3 +2548,106 @@ def updateDSFLigandsChemSpider(request,selected_set_id):
 
     lesson_ok, dd_ok = checkPermissions(request)        
     return render_to_response('html/dddsfligandschemspi.html', {'ligands':compounds,'count':count,'lesson_ok': lesson_ok, 'dd_ok': dd_ok})
+
+def displayBindingForm(request):
+    #this form displays the binding site builder
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+    pass
+
+    try:
+        struct = Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        messages.error(request, "Please submit a structure first.")
+        return HttpResponseRedirect("/charmming/fileupload/")
+    try:
+        ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        messages.error(request, "Please build a working structure before performing any calculations.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+
+    if ws.isBuilt != 't':
+        messages.error(request, "Please perform a calculation on your working structure before defining a new binding site.")
+        return HttpResponseRedirect("/charmming/energy/")
+
+    cg_model = False
+
+    try:
+        cgws = CGWorkingStructure.objects.get(workingstructure_ptr=ws.id)
+        cg_model = True
+        messages.error(request, "You cannot define docking sites on coarse-grained structures. Please build a non-coarse-grained working structure first.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+    except:
+        #if there's more than one this could get problematic, too, so we just kick them out and have some other part of the site deal with it 
+        #either way I think we shouldn't allow these?
+        pass
+    #this should not be made into a task, since it is just saving a DB object based on certain properties of the structure
+    #we might need to do some sgment parsing for the chain terminators, but for now let's just render the page
+    tdict = {}
+    tdict['messages']= get_messages(request)
+    tdict['filepath'] = "%s/%s/%s-build.pdb"%(request.user.username,struct.name,ws.identifier) #TODO: THIS IS TEMPORARY; REPLACE IT
+    return render_to_response("html/ddbindingsite.html",tdict)
+
+def submitBindingForm(request):
+    #this form submits the binding site form, only if there was  POST request to this page
+    if not request.user.is_authenticated():
+        return render_to_response('html/loggedout.html')
+    if not request.POST:
+        messages.error(request,"You have not submitted any data for creating a new binding site. Please do so before accessing this page.")
+        return HttpResponseRedirect("/charmming/dd_infrastructure/bindingsite/")
+
+    if request.POST and len(request.POST['binding_name']) > 120:
+        messages.error(request, "Binding site names are limited to 120 characters.")
+        return HttpResponseRedirect("/charmming/dd_infrastructure/bindingsite/")
+
+    #first get the binding sites from the request
+    res_select = request.POST['residue_selection']
+    test_numeric = re.match("^([0-9]*( ){0,1})+$",res_select)
+    if test_numeric: #whoops, letters in the selection...
+        messages.error(request, "You cannot use non-numeric characters (other than spaces) for defining your binding site selection. Please use numeric residue IDs.")
+        return HttpResponseRedirect("/charmming/dd_infrastructure/bindingsite/")
+    residues = res_select.split() #space-separated
+    res_print = "\n".join(residues) #residues are strings so it's ok
+    #TODO: Take all this boilerplate code out somewhere so we always have these vars...
+    try:
+        struct = Structure.objects.filter(owner=request.user,selected='y')[0]
+    except:
+        messages.error(request, "Please submit a structure first.")
+        return HttpResponseRedirect("/charmming/fileupload/")
+    try:
+        ws = WorkingStructure.objects.filter(structure=struct,selected='y')[0]
+    except:
+        messages.error(request, "Please build a working structure before performing any calculations.")
+        return HttpResponseRedirect("/charmming/buildstruct/")
+
+    bs_filename = "%s/%s-%s.bs"%(struct.location,ws.identifier,request.POST['binding_name'])
+    bs_file = open(bs_filename,"w")
+    bs_file.write(res_print)
+    bs_file.close()
+
+    bs_data = binding_sites() #this one holds actual data - name and description
+    bs_data.binding_site_name = request.POST['binding_name']
+    bs_data.description = "User uploaded binding site %s"%request.POST['binding_name'] #TODO: Replace this with a proper desc field
+    bs_data.save()
+
+    bs_filedata = files() #this one holds teh file itself
+    bs_filedata.owner = request.user
+    bs_filedata.file_name = bs_filename.split("/")[-1]
+    bs_filedata.file_location = "".join(bs_filename.split("/")[:-1])
+    bs_filedata.description = "User uploaded binding site %s"%bs_data.description #hopefully django's object does the job here
+    bs_filedata.save()
+
+    bs_fileobj = files_objects() #this one associates file with other DD stuff
+    bs_fileobj.owner = request.user
+    bs_fileobj.file = bs_filedata
+    bs_fileobj.object_table_name = "binding_sites"
+    bs_fileobj.object_id = bs_data.id
+    bs_fileobj.save()
+
+    bs_associate = binding_sites_workstruct() #this one links bs file with ws to avoid 
+    #display of extraneous bs on the docking page
+    bs_associate.binding_site = bs_data
+    bs_associate.workstruct = ws
+    bs_associate.save()
+
+    return output.returnSubmission("Binding site")

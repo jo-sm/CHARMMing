@@ -31,9 +31,10 @@ from django.template import *
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from lessons.models import LessonProblem
-import input, output, lesson1, lesson2, lesson3, lesson4, lesson5, lesson6
+import input, output
 import re, os, copy, math
 import lessonaux, charmming_config
+from lesson_config import *
 
 #processes form data for minimization
 def solvationformdisplay(request):
@@ -81,13 +82,21 @@ def solvationformdisplay(request):
             try:
                 pTask = ws.build(st)
             except noNscaleFound, e:
-                return output.returnSubmission('Minimization', error='The nScale parameterization process has not yet completed. It may take 1-2 hours.')
+                return output.returnSubmission('Solvation', error='The nScale parameterization process has not yet completed. It may take 1-2 hours.')
             pTaskID = pTask.id
         else:
             isBuilt = True
             pTaskID = int(request.POST['ptask'])
+            pTask = Task.objects.get(id=pTaskID)
+            ptask_path = "%s/%s-%s.psf"%(struct.location,ws.identifier,pTask.action)
+            try:
+                os.stat(ptask_path)
+            except: #probably a qchem thing, so copy the build PSF
+                shutil.copyfile("%s/%s-build.psf"%(struct.location,ws.identifier),ptask_path) #TODO: warn user?
+                shutil.copyfile("%s/%s-build.crd"%(struct.location,ws.identifier),ptask_path.replace(".psf",".crd")) #TODO: warn user?
+                #crd doesn't change for qchem stuff...
 
-        return solvate_tpl(request,st,pTaskID)
+        return solvate_tpl(request,st,pTask)
     else:
         # get all completed tasks associated with this struct
         tdict['tasks'] = Task.objects.filter(workstruct=ws,status='C',active='y',modifies_coordinates=True)
@@ -95,7 +104,7 @@ def solvationformdisplay(request):
     return render_to_response('html/solvationform.html', tdict)
 
 
-def solvate_tpl(request,solvTask,pTaskID):
+def solvate_tpl(request,solvTask,pTask):
     postdata = request.POST
 
     workingstruct = solvTask.workstruct
@@ -145,7 +154,7 @@ def solvate_tpl(request,solvTask,pTaskID):
     template_dict['topology_list'], template_dict['parameter_list'] = workingstruct.getTopparList()
     template_dict['solvation_structure'] = solvTask.solvation_structure
 
-    pTask = Task.objects.get(id=pTaskID)
+#    pTask = Task.objects.get(id=pTaskID)
     template_dict['input_file'] = solvTask.workstruct.identifier + '-' + pTask.action
     template_dict['output_name'] = solvTask.workstruct.identifier + '-solvation'
     solvTask.parent = pTask
@@ -183,10 +192,9 @@ def solvate_tpl(request,solvTask,pTaskID):
     inp_out = open(solvate_input_filename,'w')
     inp_out.write(charmm_inp)
     inp_out.close()
-    
-
+    solvTask.add_script("charmm",solvate_input_filename,charmming_config.default_charmm_nprocs)
     #change the status of the file regarding solvation
-    solvTask.scripts += ',%s' % solvate_input_filename
+#    solvTask.scripts += ',%s' % solvate_input_filename
     solvTask.save()
 
     doneut = postdata.has_key('salt') and postdata['salt'] != 'none'

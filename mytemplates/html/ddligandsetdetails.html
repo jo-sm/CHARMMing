@@ -1,10 +1,6 @@
 {% extends "html/skeleton.html" %}
 {%block extra_scripts%}
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolCore.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApplet.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmolApi.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/j2sjmol.js"></script>
-  <script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.js"></script>
+<script type="text/javascript" src="/charmming/js/jsmol/js/JSmol.min.js"></script>
 {%endblock%}
 {% block content %}
 <div id="mainpage">
@@ -84,7 +80,7 @@
 </div>
 
 <script>
-  $("#jmolApplet_appletinfotablediv").attr("title","JSmol modal test");
+  $("#jmolApplet_appletinfotablediv").attr("title","JSmol modal window");
   $(function($){
     $("#jmolApplet_appletinfotablediv").dialog({
       resizable:true,

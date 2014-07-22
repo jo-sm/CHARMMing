@@ -2,6 +2,17 @@ var selection = false; //This keeps track of if you have made a selection, so we
 var show_hydrogens = true;
 var show_all_protein = false; //This is when it's selected...important for showing hydrogens
 
+//This is for badhet selection on the build structure page
+function showUploads(segdiv){
+    var segname = segdiv.split("_");
+    segname = segname[segname.length - 1]; //Get the last part...
+    if ($("#"+segdiv).val() == "upload"){
+      $("#toppar_upload_"+segname).css("display","inline");
+    }else{
+      $("#toppar_upload_"+segname).css("display","none");
+    }
+}
+
 function change_proto_state(newresbox, oldresid, segid){
   if(show_hydrogens){ //If show_hydrogens is false, why should we go through all this work?
     var segment_number = segmentlist.indexOf(segid);
@@ -152,3 +163,8 @@ if(!(show_hydrogens)){ //Here you already have something selected and want to ki
   show_hydrogens = false;
 }
 }
+
+$(".submit_button").click(function(event){
+  event.preventDefault();
+  $("#config_form").submit();
+});

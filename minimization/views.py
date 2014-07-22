@@ -34,11 +34,11 @@ from solvation.models import solvationTask
 from atomselection_aux import getAtomSelections, saveAtomSelections
 import structure.mscale
 import selection.models
-import charmming_config, input, output, lessonaux, lessons, lesson1, lesson2, lesson3, lesson4
-import lesson5, lesson6
+import charmming_config, input, output, lessonaux, lessons
 import re, copy
 import os, shutil
 import commands, traceback
+from lesson_config import *
 
 #processes form data for minimization
 def minimizeformdisplay(request):
@@ -96,6 +96,13 @@ def minimizeformdisplay(request):
             isBuilt = True
             pTaskID = int(request.POST['ptask'])
             pTask = Task.objects.get(id=pTaskID)
+            ptask_path = "%s/%s-%s.psf"%(struct.location,ws.identifier,pTask.action)
+            try:
+                os.stat(ptask_path)
+            except: #probably a qchem thing, so copy the build PSF
+                shutil.copyfile("%s/%s-build.psf"%(struct.location,ws.identifier),ptask_path) #TODO: warn user?
+                shutil.copyfile("%s/%s-build.crd"%(struct.location,ws.identifier),ptask_path.replace(".psf",".crd")) #TODO: warn user?
+                #crd doesn't change for qchem stuff...
         if request.POST.has_key('useqmmm'):
             saveAtomSelections(request,ws,pTask)
         return minimize_tpl(request,mp,pTaskID)
@@ -115,7 +122,6 @@ def minimizeformdisplay(request):
         tdict['seg_list'] = sorted(seg_list)
 
         tdict = getAtomSelections(tdict,ws)
-        lesson_ok, dd_ok = checkPermissions(request)
         tdict['messages'] = get_messages(request)
         return render_to_response('html/minimizeform.html', tdict)
 
@@ -288,8 +294,12 @@ def minimize_tpl(request,mp,pTaskID):
     minimize_filename = mp.workstruct.structure.location + "/" + mp.workstruct.identifier + "-minimization.inp"
     inp_out = open(minimize_filename ,'w')
     inp_out.write(charmm_inp)
-    inp_out.close()	
-    mp.scripts += ',%s' % minimize_filename
+    inp_out.close()
+    if mp.useqmmm == 'y' and modelType == 'oniom':
+        mp.add_script("charmm-mscale",minimize_filename,charmming_config.default_mscale_nprocs)
+    else:
+        mp.add_script("charmm",minimize_filename,1)
+#    mp.scripts += ',%s' % minimize_filename
     if mp.useqmmm == 'y' and modelType == "oniom":
         mp.start(mscale_job=True)
     else:
@@ -297,12 +307,17 @@ def minimize_tpl(request,mp,pTaskID):
     mp.save()
 
     #YP lessons status update
+    arf = open("/tmp/lessonlog.txt","w")
     try:
         lnum=mp.workstruct.structure.lesson_type
         lesson_obj = eval(lnum+'.models.'+lnum.capitalize()+'()')
     except:
+        traceback.print_exc(file=arf)
         lesson_obj = None
 
+    arf.write("workstruct id:%s\n"%mp.workstruct.id)
+    arf.write(str(lesson_obj))
+    arf.close()
     if lesson_obj:
         lessonaux.doLessonAct(mp.workstruct.structure,"onMinimizeSubmit",mp,"")
     #YP

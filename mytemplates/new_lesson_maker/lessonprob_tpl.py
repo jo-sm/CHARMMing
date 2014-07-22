@@ -3,6 +3,6 @@
         except:
             lessonprob = None
         if lessonprob:
-            self.curStep = '{{task.1}}'
+            self.curStep = str(float(self.curStep - self.curStep % 1))
             self.save()
             return False

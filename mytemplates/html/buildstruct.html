@@ -145,7 +145,7 @@
                 <hr>
                <div id="protonation">  
                <table class="sortable" style="border-spacing:1em">
-                 <tr><td>SEGID</td><td>Residue Number</td><td>Protonation State</td><td>Requires user decision</td></tr>
+                 <tr><th>SEGID</th><th>Residue Number</th><th>Protonation State</th><th class="sortfirstdesc">Requires user decision</th></tr>
                {% for pproto in proto_list %}
                <tr><td>{{ pproto.0 }}</td><td><a href="javascript:select_residue('{{pproto.3}}','{{pproto.0}}')">{{ pproto.1 }}</a></td>
                    <td>

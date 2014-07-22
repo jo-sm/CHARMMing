@@ -37,7 +37,7 @@ class jobScheduler:
          if self.debugMode:
             self.logfd.write("line> %s\n" % line)
             self.logfd.flush()
-         if line.startswith(pbs_id + ".myhost"):
+         if line.startswith(pbs_id + ".ctb7"):
             self.logfd.write("OK found it\n")
             larr = string.splitfields(line)
             if larr[4] == 'R' or larr[4] == 'E' or larr[4] == 'H':
@@ -106,7 +106,14 @@ class jobScheduler:
 #            if nprlist[i] == 1:
     #we can't rely on the number of processors being reliable. We make this check BEFOREHAND and use the right exec before passing it into here.
     #TODO: Update logic further.
-            tf.write("%s < %s >& %s\n" % (exelist[i], scripts[i], scripts[i].replace("inp","out")))
+            if exelist[i] == charmming_config.apps['charmm'] or exelist[i] == charmming_config.apps['charmm-mscale'] or exelist[i] == charmming_config.apps['charmm-apbs']:
+                tf.write("%s < %s >& %s\n" % (exelist[i], scripts[i], scripts[i].replace("inp","out")))
+            elif exelist[i] == charmming_config.apps['qchem']:
+                tf.write("%s %s > %s\n" % (exelist[i], scripts[i], scripts[i].replace("inp","out")))
+            elif exelist[i] == charmming_config.apps['propka']:
+                tf.write("%s %s" %(exelist[i],scripts[i])) #in this case the "script' is really just a PDB file.
+            else:
+                tf.write("%s < %s >& %s\n" % (exelist[i], scripts[i], scripts[i].replace("inp","out")))
 #            elif nprlist[i] > 1:
 #               tf.write("%s %s < %s >& %s\n" % (charmming_config.mpirun_exe, exelist[i], scripts[i], scripts[i].replace("inp","out")))
             tf.close()

@@ -19,7 +19,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template.loader import get_template
 from django.contrib import messages
-from structure.models import Structure, WorkingStructure, WorkingFile, Task, noNscaleFound
+from structure.models import Structure, WorkingStructure, WorkingFile, Task, noNscaleFound, Script
 from account.views import checkPermissions
 from structure.aux import checkNterPatch
 from dynamics.models import mdTask, ldTask, sgldTask
@@ -30,7 +30,8 @@ from scheduler.statsDisplay import statsDisplay
 from solvation.models import solvationTask
 import django.forms
 import copy, shutil, os, re
-import lessonaux, input, output, charmming_config, lessons, lesson1, lesson2, lesson3, lesson4, lesson5
+import lessonaux, input, output, charmming_config,lessons
+from lesson_config import *
 
 #processes form data for ld simulations
 def lddisplay(request):
@@ -96,14 +97,22 @@ def lddisplay(request):
             isBuilt = True
             try:
                 pTaskID = int(request.POST['ptask'])
+                pTask = Task.objects.get(id=pTaskID)
             except Exception as ex: #This somehow goes wrong every now and then and I haven't a clue why.
                 logfp = open("/tmp/badptask-dynamics.txt","w")
                 logfp.write(str(ex))
                 logfp.close()
                 messages.error(request, "Parent task is invalid. Please verify your working structure has been built, and that you have chosen a set of coordinates to draw from on the dynamics page.")
                 return HttpResponseRedirect("/charmming/buildstruct/")
+            ptask_path = "%s/%s-%s.psf"%(struct.location,ws.identifier,pTask.action)
+            try:
+                os.stat(ptask_path)
+            except: #probably a qchem thing, so copy the build PSF
+                shutil.copyfile("%s/%s-build.psf"%(struct.location,ws.identifier),ptask_path) #TODO: warn user?
+                shutil.copyfile("%s/%s-build.crd"%(struct.location,ws.identifier),ptask_path.replace(".psf",".crd")) #TODO: warn user?
+                #crd doesn't change for qchem stuff...
 
-        return applyld_tpl(request,ldt,pTaskID)
+        return applyld_tpl(request,ldt,pTask)
   
     else:
         # get all workingFiles associated with this struct
@@ -155,8 +164,16 @@ def mddisplay(request):
         else:
             isBuilt = True
             pTaskID = int(request.POST['ptask'])
+            pTask = Task.objects.get(id=pTaskID)
+            ptask_path = "%s/%s-%s.psf"%(struct.location,ws.identifier,pTask.action)
+            try:
+                os.stat(ptask_path)
+            except: #probably a qchem thing, so copy the build PSF
+                shutil.copyfile("%s/%s-build.psf"%(struct.location,ws.identifier),ptask_path) #TODO: warn user?
+                shutil.copyfile("%s/%s-build.crd"%(struct.location,ws.identifier),ptask_path.replace(".psf",".crd")) #TODO: warn user?
+                #crd doesn't change for qchem stuff...
 
-        return applymd_tpl(request,mdt,pTaskID)
+        return applymd_tpl(request,mdt,pTask)
 
     else:
         # decide whether or not this run is restartable (check for non-empty restart file)
@@ -171,7 +188,7 @@ def mddisplay(request):
 
         return render_to_response('html/mdform.html', {'ws_identifier': ws.identifier,'tasks': tasks, 'canrestart': canrestart})
 
-def applyld_tpl(request,ldt,pTaskID):
+def applyld_tpl(request,ldt,pTask):
     postdata = request.POST
 
     # template dictionary passes the needed variables to the template
@@ -193,7 +210,7 @@ def applyld_tpl(request,ldt,pTaskID):
     ldt.fbeta = template_dict['fbeta']
     ldt.nstep = template_dict['nstep']
 
-    pTask = Task.objects.get(id=pTaskID)
+#    pTask = Task.objects.get(id=pTaskID)
     ldt.parent = pTask
     template_dict['input_file'] = ldt.workstruct.identifier + '-' + pTask.action
     template_dict['useqmmm'] = ''
@@ -280,8 +297,14 @@ def applyld_tpl(request,ldt,pTaskID):
 
     inp_out = open(ld_filename, 'w')
     inp_out.write(charmm_inp)
-    inp_out.close()  
-    ldt.scripts += ',%s' % ld_filename
+    inp_out.close()
+    ldt.add_script("charmm",ld_filename,charmming_config.default_charmm_nprocs)
+#    if ldt.useqmmm == 'y' and modelType == 'oniom': #TODO: implement QM/MM MD
+#        new_script.executable = charmming_config.apps['charmm-mscale']
+#        new_script.processors = charmming_config.default_mscale_nprocs
+#    else:
+    ldt.save()
+#    ldt.scripts += ',%s' % ld_filename
 
     #YP lessons status update
     try:
@@ -309,7 +332,7 @@ def applyld_tpl(request,ldt,pTaskID):
     return output.returnSubmission('Langevin dynamics')
 
 #Generates MD script and runs it
-def applymd_tpl(request,mdt,pTaskID):
+def applymd_tpl(request,mdt,pTask):
     postdata = request.POST
 
     template_dict = {}     
@@ -337,7 +360,7 @@ def applymd_tpl(request,mdt,pTaskID):
         template_dict['tpstream'] = []
 
 
-    pTask = Task.objects.get(id=pTaskID)
+#    pTask = Task.objects.get(id=pTaskID)
     template_dict['input_file'] = mdt.workstruct.identifier + '-' + pTask.action
     template_dict['impsolv'] = impsolv
     mdt.parent = pTask
@@ -445,8 +468,13 @@ def applymd_tpl(request,mdt,pTaskID):
     inp_out.write(charmm_inp)
     inp_out.close()  
 
-    mdt.scripts += ',%s' % md_filename
+    mdt.add_script("charmm",md_filename,charmming_config.default_charmm_nprocs)
+#    if mdt.useqmmm == 'y' and modelType == 'oniom': #TODO: implement QM/MM MD
+#        new_script.executable = charmming_config.apps['charmm-mscale']
+#        new_script.processors = charmming_config.default_mscale_nprocs
+#    else:
     mdt.save()
+#    mdt.scripts += ',%s' % md_filename
 
     #YP lessons status update
     try:
@@ -507,10 +535,17 @@ stop"""
         movie_filename = task.workstruct.identifier + '-ldmovie.inp'
     elif(type == 'sgld'):
         movie_filename = task.workstruct.identifier + '-sgldmovie.inp'
-    movie_handle = open(task.workstruct.structure.location + '/' + movie_filename,'w')
+    mov_path = "%s/%s"%(task.workstruct.structure.location, movie_filename)
+    movie_handle = open(mov_path,'w')
     movie_handle.write(charmm_inp)
     movie_handle.close()
-    task.scripts += ",%s/%s" % (task.workstruct.structure.location,movie_filename)
+    task.add_script("charmm",mov_path,charmming_config.default_charmm_nprocs)
+#    if task.useqmmm == 'y' and modelType == 'oniom': #TODO: implement QM/MM MD
+#        new_script.executable = charmming_config.apps['charmm-mscale']
+#        new_script.processors = charmming_config.default_mscale_nprocs
+#    else:
+    task.save()
+#    task.scripts += ",%s/%s" % (task.workstruct.structure.location,movie_filename)
 
     task.start()
     task.save()

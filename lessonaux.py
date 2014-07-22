@@ -9,14 +9,6 @@
 #  reproduction.
 #
 
-import lesson1
-import lesson2
-import lesson3
-import lesson4
-import lesson5
-import lesson6
-#import lesson96
-# by importing lesson_config to import all lessons created
 from lesson_config import *
 import sys, traceback
 
@@ -34,6 +26,12 @@ def doLessonAct(file,function,task=None,filename=None,finale=None):
         return True
     elif function == 'onBuildStructureSubmit':
         lesson_obj.onBuildStructureSubmit(task)
+        return True
+    elif function == "onDockingSubmit":
+        lesson_obj.onDockingSubmit(filename,task)
+        return True
+    elif function == "onDockingDone":
+        lesson_obj.onDockingDone(task)
         return True
     elif function == 'onBuildStructureDone':
         lesson_obj.onBuildStructureDone(task)

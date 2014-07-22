@@ -7,23 +7,20 @@
   <div class="status">
 
     <form method="post" action=".">
-    <table class="sortable resizable table_center full_table normal_border">
-       <tr><th>Name</th><th>Title</th><th>Date</th><th>Select this PDB</th><th>Delete <br> <a href="" onclick="send_delete_form('all_files');">All Files</a></th></tr>
+    <table id="viewpdbtable" class="sortable resizable table_center full_table normal_border">
+       <tr><th>Name</th><th>Title</th><th>Date</th><th>Select this PDB</th><th>Delete <br> <a class="killAllPDB" href="">All Files</a></th></tr>
        {% for PDBFile in user_pdbs %}
-          {% ifequal PDBFile.selected "y" %}
             <tr>
               <td> {{PDBFile.name}} </td><td> {{ PDBFile.title }} </td> 
               <td> {{ PDBFile.pub_date }} </td>
-              <td> <input type="radio" name="viewpdbs" id={{ PDBFile.name }} onclick="send_select_form(this);parent.showLesson('{{PDBFile.lesson_type}}');" checked></td>
-              <td> <a href="" onclick="send_delete_form('{{PDBFile.name}}')">X</a></td></tr>
-          {% else %}
-            <tr><td> {{PDBFile.name}} </td><td>{{ PDBFile.title }} </td> <td>  {{ PDBFile.pub_date }} </td><td>
-              <input type="radio" name="viewpdbs" id={{ PDBFile.name }} onclick="send_select_form(this);parent.showLesson('{{PDBFile.lesson_type}}');"></td>
-              <td><a href="" onclick="send_delete_form('{{PDBFile.name}}')">X</a></td></tr>
-          {% endifequal %}
+          <td> <input type="radio" name="viewpdbs" class="select_pdb" id="{{ PDBFile.name }}" {%ifequal PDBFile.selected "y" %}checked{%endifequal%}></td>
+          <td> <a href="" id="{{PDBFile.name}}" class="killPDB">X</a></td></tr>
        {% endfor %}
     </table>
     </form>
   </div>
 </div>
 {% endblock %}
+{%block extra_scripts%}
+<script type="text/javascript" src="/charmming/js/viewpdbs.js"></script>
+{%endblock%}

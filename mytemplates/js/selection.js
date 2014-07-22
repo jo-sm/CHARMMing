@@ -3,110 +3,7 @@ var cyan = '[x00ffff]';
 var magenta = '[xc800c8]';
 var green = '[x008000]';
 
-function writeLinkAtomLines(seg_ids,modelType,num_linkatoms,current_div_id)
-{
- var seg_list = new Array();
- seg_list = seg_ids.split(' ');
- //the last index of the array will be a blank space, so splice it!
- seg_list.splice(seg_list.length-1,1);
- num_patches = num_linkatoms;
- var model_string = "";
- var layer_num = "";
- var real_div_id = "linkatom_lines"
- if (modelType == "oniom"){
-  layer_num = current_div_id.split("_"); //e.g. layer_2 turns into [layer, 2]
-  model_string = "_layer_" + layer_num[layer_num.length -1];
-  real_div_id = real_div_id + model_string;
-  }
- var text = '<table class="qmmm_table" style="margin-left:auto;margin-right:auto;">';
- optionvalues = "";
- for(var b =0; b < seg_list.length; b++)
- {
-  optionvalues = optionvalues + '<option value="' + seg_list[b] + '">' + seg_list[b] + '</option>';
- }
- for(var i = 0; i < num_patches; i++)
- {
-  tempi = i+1;
-  text = text + '<tr><td>QMHost '+tempi+'.</td><td> QM SEGID:';
-  text = text + '<select size="1" name="linkqmsegid' + model_string +"_"+ i +'">';
-text = text + optionvalues + '</select><td> QM RESID:<input type="text" id="linkqm'+model_string+"_"+i+'" name="linkqm'+model_string+"_"+i+'" size=4></td> <td> QM Atom Type: <input type="text" id="qmatomtype'+model_string+"_"+i+'" name="qmatomtype' +model_string+"_"+i + '" size=5> </td></tr><tr><td>MMHost '+tempi+'.</td><td> MM SEGID: <select size="1" name="linkmmsegid'+model_string+"_"+i +'">' + optionvalues + '</select> </td><td>MM RESID:<input type="text" id="linkmm'+model_string+"_"+i+'" name="linkmm'+model_string+"_"+i+'" size=4></td><td> MM Atom Type: <input type="text" id="mmatomtype'+model_string+"_"+i+'" name="mmatomtype'+model_string+"_"+i + '" size=5> </td></tr>';
- }
-  text= text + '</table>';
-  document.getElementById(real_div_id).innerHTML = text;
-}
 
-function showHideQM(){
-    if($("#useqmmm").is(":checked")){
-      //      $(".qmmm_params").show();
-      $(".model_selection").show();
-      if ($("#usepbc").length > 0){
-        $("#usepbc").attr("disabled",true);
-        $("#usepbc").attr("checked",false); //just in case
-      }
-    }else{
-    //      $(".qmmm_params").hide();
-      $(".qmmm_params").remove(); //If this is a 0-length, then it doesn't matter, it won't except
-      $(".oniom_params").remove();
-      $(".model_selection").hide();
-      if($("#usepbc").length > 0){
-        $("#usepbc").attr("disabled",false);
-      }
-    }
-  }
-
-//For atom selection (QM/MM)
-function goto_atomselect(){
-  var inputs = document.getElementsByName("ptask");
-  var form = null;
-  if (inputs.length > 0){
-    for(i=0;i<inputs.length;i++){
-      if(inputs[i].checked){
-        document.getElementById("task_id").value = inputs[i].value;
-        break;
-      }
-    }
-    var action = document.URL.split("/");
-    var source = action[action.length -2];
-    document.getElementById("source").value = source;
-    if(source == "energy"){
-      form = document.getElementById("ener_form");
-    }
-    if(source == "minimize"){
-      form = document.getElementById("min_form");
-    }if(source == "normalmodes"){
-      form = document.getElementById("nma_form");
-    }
-//Note: Update here to create more QM/MM boxen in other pages
-    form.action="/charmming/selection/";
-    form.onsubmit= function(event){return true;};
-    form.submit();
-  }else{
-    $("#dialog_coords_alert").dialog("open");
-//    alert("No coordinates present. Please run at least one calculation on the full atom set before performing any QM/MM operations.")
-  }
-}
-
-function hideQMBoxes(qmbox_number){
-  var number_to_check = 0;
-  if (typeof qmbox_number == "number"){
-    number_to_check = qmbox_number;
-  }else{
-    var foo = qmbox_number.split("_");
-    number_to_check = parseInt(foo[foo.length - 1]);
-  }
-  //We can make this recursive, but it's not useful.
-  //We use the "layers" global included in the qmmm_params page.
-  var current_layer = number_to_check;
-  while(current_layer <= layers){
-    $("#qmmm_params_layer_"+current_layer.toString()).hide();
-    $("#mm_box_layer_"+current_layer.toString() + " input").attr("checked",true);
-    current_layer = current_layer + 1;
-  }
-  $("#highest_qm_layer").val(number_to_check - 1);
-  return true;
-}
-    
-  
 
 function create_bynum(add, atominfo){ //Universal bynum creation to make things easier
   var atomsele = "bynum " + atominfo[0].atomno;
@@ -481,37 +378,6 @@ $(".atomselectbutton").on("click",function(){
 
 
 //Incoming jQueryUI error messages
-
-
-  $(function($){
-    $("#dialog_bad_params").dialog({
-          resizable:false,
-          height:200,
-          width:600,
-          modal:true,
-          autoOpen:false,
-          buttons:{
-          "OK":function(){
-          $(this).dialog("close");
-          }
-        }
-      });
-    });
-      
-  $(function($){
-        $( "#dialog_coords_alert").dialog({
-          resizable:false,
-          height:200,
-          width:600,
-          modal:true,
-          autoOpen:false,
-          buttons:{
-          "OK":function(){
-          $(this).dialog("close");
-          }
-        }
-      });
-    });
 
 $(function($){
     $("#dialog_long_link").dialog({

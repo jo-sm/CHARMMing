@@ -38,7 +38,7 @@ import input, output
 import re, copy, os, shutil
 import lessonaux, charmming_config
 import cPickle
-import lesson1, lesson2, lesson3, lesson4, lesson5, lesson6
+from lesson_config import *
 
 def normalmodesformdisplay(request):
     """
@@ -125,8 +125,17 @@ def normalmodesformdisplay(request):
             isBuilt = True
             pTaskID = int(request.POST['ptask'])
             pTask = Task.objects.get(id=pTaskID)
+            ptask_path = "%s/%s-%s.psf"%(struct.location,ws.identifier,pTask.action)
+            try:
+                os.stat(ptask_path)
+            except: #probably a qchem thing, so copy the build PSF
+                shutil.copyfile("%s/%s-build.psf"%(struct.location,ws.identifier),ptask_path) #TODO: warn user?
+                shutil.copyfile("%s/%s-build.crd"%(struct.location,ws.identifier),ptask_path.replace(".psf",".crd")) #TODO: warn user?
+                #crd doesn't change for qchem stuff...
 
         if request.POST.has_key('useqmmm'):
+            nt.useqmmm = 'y'
+            nt.save()
             saveAtomSelections(request, ws, pTask)
 
         return applynma_tpl(request,ws,pTaskID,nt)
@@ -156,7 +165,8 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
     """
 
     # try to decide how many atoms this structure has
-    pfp = open(workstruct.structure.pickle, 'r')
+    pfile = workstruct.localpickle if workstruct.localpickle else workstruct.structure.pickle
+    pfp = open(pfile, 'r')
     pdb = cPickle.load(pfp)
     pfp.close()
 
@@ -221,7 +231,7 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
         nmTask.modelType = modelType
         if modelType == "qmmm":
             atomselection = selection.models.AtomSelection.objects.get(workstruct=workstruct)
-            qmparams = makeQchem_val(modelType,atomselection)
+            qmparams = makeQchem_val("qmmm",atomselection)
             qmparams['jobtype'] = 'freq'
             template_dict = makeQChem_tpl(template_dict,qmparams,False,nmTask)
         elif modelType == "oniom":
@@ -256,7 +266,11 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
     charmm_inp = output.tidyInp(t.render(Context(template_dict)))    
 
     nma_filename = workstruct.structure.location + '/' + workstruct.identifier + "-nmode.inp"
-    nmTask.scripts += ',%s' % nma_filename
+    if nmTask.useqmmm == 'y' and modelType == "oniom":
+        nmTask.add_script('charmm-mscale',nma_filename,charmming_config.default_mscale_nprocs)
+    else:
+        nmTask.add_script('charmm',nma_filename,charmming_config.default_charmm_nprocs)
+#    nmTask.scripts += ',%s' % nma_filename
     nmTask.save()
 
     inp_out = open(nma_filename,'w')
@@ -269,14 +283,11 @@ def applynma_tpl(request,workstruct,pTaskID,nmTask):
         nmTask.save()
         return makeNmaMovie_tpl(workstruct,request.POST,int(request.POST['num_trjs']),template_dict['nma'],nmTask,pTask) #I have no idea if pTask is stored in nmTask, so let's be safe
     else:
-        if template_dict['useqmmm'] and modelType == "oniom":
-            nmTask.start(mscale_job=True)
-        else:
-            nmTask.start()
-        
+        nmTask.start()
+
     ## There are no NMA lessons at the moment ... when there are, this needs to be redone correctly
     #Lesson_maker implements NMA lesson construction. It has been redone.
-    if file.lesson_type:
+    if workstruct.structure.lesson_type:
         lessonaux.doLessonAct(workstruct.structure,"onNMASubmit",nmTask,None)
 
     workstruct.save()
@@ -313,7 +324,11 @@ def makeNmaMovie_tpl(workstruct,postdata,num_trjs,typeoption,nmm,ptask):
     movie_handle = open(movie_filename,'w')
     movie_handle.write(charmm_inp)
     movie_handle.close()
-    nmm.scripts += ',' + movie_filename
+    if nmm.useqmmm == 'y' and nmm.modelType == "oniom":
+        nmm.add_script("charmm-mscale",movie_filename,charmming_config.default_mscale_nprocs)
+    else:
+        nmm.add_script('charmm',movie_filename,charmming_config.default_charmm_nprocs)
+#    nmm.scripts += ',' + movie_filename
 
     #nmm.nma_movie_status = "<span style='color:33CC00'>Done</span>"
     nmm.start()
@@ -333,14 +348,13 @@ def combineNmaPDBsForMovie(file):
     #mini movie is the PDBs which each time step sepearated into a new PDB
     trj_num = 0
     continueit = True
-    
     while(continueit):
         try:
             pdbno = trj_num + 1
             os.stat(file.location + 'new_' + file.stripDotPDB(file.filename) + '-mtraj_' + str(pdbno) + '.trj')
             trj_num += 1 
         except:
-	    continueit = False
+            continueit = False
     currtrjnum = 1
     while currtrjnum < (trj_num+1):
         movie_handle = open(file.location + 'new_' + file.stripDotPDB(file.filename) + "-nma-mainmovie-" + str(currtrjnum) + ".pdb",'a')
@@ -353,7 +367,7 @@ def combineNmaPDBsForMovie(file):
                     movie_handle.write(line)
             movie_handle.write('ENDMDL\n')
             minimovie_handle.close()
-	    os.remove(file.location +  "new_" + file.stripDotPDB(file.filename) + "-nmapremovie" + `i` + "-" + str(currtrjnum) + ".pdb")
+            os.remove(file.location +  "new_" + file.stripDotPDB(file.filename) + "-nmapremovie" + `i` + "-" + str(currtrjnum) + ".pdb")
         currtrjnum += 1
 
     nmm.nma_movie_status = "<span class='done'>Done</span>" #where do we even use this...?

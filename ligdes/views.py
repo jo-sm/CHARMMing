@@ -38,6 +38,7 @@ from getTopparFiles import write_toppar_info
 import cPickle
 import traceback
 import openbabel
+from lesson_config import *
 
 def clear_struct(request): #To write less repetitive code...
     return (None, charmming_config.user_home + "/" + request.user.username + "/")
@@ -101,10 +102,10 @@ def build_ligand(request):
             test_query = len(Residue.objects.all())
             if test_query < 1:
                 write_toppar_info()
-                os.chdir(full_filepath)
+                os.chdir(tdict['filepath'])
         except: #There are no records for residues in the database, or something else went wrong, so make them
             write_toppar_info()
-            os.chdir(full_filepath)
+            os.chdir(tdict['filepath'])
         #Now write a file...
         if 'attach_check' in postdata.keys():
             tdict['attach_check'] = True

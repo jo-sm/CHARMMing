@@ -1,8 +1,6 @@
 {% extends 'html/skeleton.html' %}
-{%block extra_scripts %}
-  <link rel="stylesheet" href="/charmming/css/atomselect_visualize.css" />
-  {%endblock%}
 {%block jsmol_scripts %}
+  <link rel="stylesheet" href="/charmming/css/atomselect_visualize.css" />
 <script type="text/javascript" src="/charmming/js/jsmol/JSmol.min.js"></script>
 {%endblock%}
 {% block content %}
@@ -89,11 +87,10 @@ Chain is useless because JSmol doesn't know about a-bad vs a-good etc., and if n
 I have no idea what site does, it seems to be equivalent to atom. EIther way, these aren't things we want to use.
 -->
 {%endcomment%}
-    <hr><br>
+    <hr>
     <button class="atomselectbutton layer_update" onclick="submit_atomselect();return false;">Submit Selection</button>
     <button class="addselectbutton layer_update" id="add" onclick="add_atomselect();return false;" style="display:none">Add to Selection</button>
     <button class="resetbutton layer_update" id="reset" onclick="reset_select(true);return false;">Reset Selection</button>
-    <br /><br />
   </div>
     <form id="atomselect_form" method="post" action="/charmming/selection/" onsubmit="return false;" enctype="multipart/form-data"> <!-- change the return false later -->
       <div id="atom_selection_inputs{%if layers > 1%}_layer_{{starting_layer}}{%endif%}">

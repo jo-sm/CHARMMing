@@ -3,6 +3,7 @@
 
 import numpy,math,string
 import Etc
+from pychm.tools import lowerKeys
 
 class AtomError(Exception):
     """Exception to raise when errors occur involving the Atom class."""
@@ -192,7 +193,7 @@ class Atom(object):
             taco = '%5i%5i %-4s %-4s%10.5f%10.5f%10.5f %-4s %-4i%10.5f\n' % \
                 (self.atomNumber,self.resIndex,self.resName,self.atomType,self.cart[0],self.cart[1],self.cart[2],self.segid,self.resid,self.weight)
         elif format in ['xcrd','xcor','xcard']:
-            taco = '%10i%10i  %-4s      %-4s    %20.10f%20.10f%20.10f  %-5s    %-4i    %20.10f\n' % \
+            taco = '%10i%10i  %-4s     %-4s    %20.10f%20.10f%20.10f  %-5s    %-4i    %20.10f\n' % \
                 (self.atomNumber,self.resIndex,self.resName,self.atomType,self.cart[0],self.cart[1],self.cart[2],self.segid,self.resid,self.weight)
         elif format in ['cgcrd','cgcor','cgcard']:
             taco = '%5i%5i %-4s %-4s%10.5f%10.5f%10.5f %-4s %-4i%10.5f\n' % \
@@ -200,6 +201,9 @@ class Atom(object):
         elif format == 'cgcharmm':
             taco = '%-6s%5i %4s %4s %4i    %8.3f%8.3f%8.3f%6.2f%6.2f      %-4s\n' % \
                 (self.tag,self.atomNumber,self.atomType,self.segid[0]+str(self.resid),self.resid,self.cart[0],self.cart[1],self.cart[2],self.weight,self.bFactor,self.segid)
+        elif format in ['xyz','xyz-qchem']: #xyz-qchem is the same as xyz, just without extra lines. Left in here for consistency with pychm
+            taco = '%-2s  %14.5f %14.5f %14.5f' % \
+                    (self.element, self.cart[0], self.cart[1], self.cart[2])
         else:
             raise AtomError('Print: unknown format == %s'%format)
         return taco
@@ -265,3 +269,22 @@ class Atom(object):
         elif units in ['rad','au']:
             return sign * math.acos( numpy.dot(Nijk,Njkl) )
 
+    def set_coordsFromLine(self,line,**kwargs):
+        """
+        Updates the coordinates of this atom by replacing them with the coords
+        in another file. Currently, only xyz is supported.
+
+        **kwargs:**
+            | ``informat`` - ['xyz']
+        """
+        kwargs = lowerKeys(kwargs)
+        inFormat = kwargs.get('informat')
+
+        if inFormat == 'xyz':
+            elem = line[0:2].strip()
+            if self.element != elem:
+                raise AtomError("Element %s in line does not match this atom's element, %s"%(elem,self.element))
+            else:
+                coords = numpy.array([float(line[2:17].strip()),float(line[18:29].strip()),float(line[30:41].strip())])
+                self.cart = coords
+        return

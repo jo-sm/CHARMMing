@@ -128,11 +128,11 @@ function zoomRegion(zoomlevel){
   //and make the solvent in that area wireframe instead of ball-and-stick
   //TODO: Modify this script so we include Ions, and make sure that those come out as balls rather than wireframe!
   Jmol.script(jmolApplet, 'save selection oldselect;\
-      selectionhalos off;select selected or within(1,GROUP,within(' + zoomlevel + ',selected));cpk 20%;wireframe 35;\
-      ribbons off;cartoons off;color jmol;zoomto 1 (selected) 250;\
+      selectionhalos off;select selected or within(GROUP,within(' + zoomlevel + ',selected));cpk 20%;wireframe 35;\
+      ribbons off;cartoons off;color jmol;zoomto 0.1 (selected) 250;\
       select not selected and not [TIP];cpk off;wireframe off;ribbons on;color translucent structure;select connected(elemno=7 or elemno=8) and hydrogen;\
       display selected or (not hydrogen);display displayed and not [TIP];restore selection oldselect;\
-      select within(' + zoomlevel + ',within(1,GROUP,within(' + zoomlevel + ',selected))) and [TIP];cpk 0;wireframe 35;display displayed or selected;\
+      select within(' + zoomlevel + ',within(GROUP,within(' + zoomlevel + ',selected))) and [TIP];cpk 0;wireframe 35;display displayed or selected;\
       restore selection oldselect;selectionhalos on;');
 }
 

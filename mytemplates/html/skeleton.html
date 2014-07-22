@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <head>
-    <title>{% block title %} CHARMMing Web interface, developed by the Laboratory of Computational Biology {% endblock %}</title>
+  <title>{% block title %} CHARMMing Web interface, developed by the Laboratory of Computational Biology {% endblock %}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
     <script type="text/javascript" src="/charmming/js/ajax.js"></script>
     <script type="text/javascript" src="/charmming/js/sdmenu/sdmenu.js"></script>
     <script type="text/javascript" src="/charmming/js/custom.js"></script>
     <script type="text/javascript" src="/charmming/js/emap.js"></script>
-    <script type="text/javascript" src="/charmming/js/jquery-2.0.3.js"></script> 
-    {%block jsmol_scripts%}{%endblock%}
+    <script type="text/javascript" src="/charmming/js/jquery-2.0.3.js"></script>
+    {% block jsmol_scripts %} {%endblock%}
     <script type="text/javascript" src="/charmming/js/jqTableKit.js"></script>
     <script type="text/javascript" src="/charmming/js/jquery.periodicalupdater.js"></script>
     <script type="text/javascript" src="/charmming/js/jquery-ui/jquery-ui.js"></script>
     <script type="text/javascript" src="/charmming/js/status.js"></script>
 
-    {%block extra_scripts %} {%endblock%}
     
     <link rel="stylesheet" type="text/css" media="all" href="/charmming/css/tablekit/tablestyle.css" />
     <link rel="stylesheet" type="text/css" href="/charmming/css/charmming.css" />
@@ -27,80 +26,14 @@
     <link rel="shortcut icon" type="image/x-icon" href="/charmming/images/charmming-css/favicon.ico" /> 
     <link rel="stylesheet" type="text/css" href="/charmming/js/jquery-ui/jquery-ui.css" />
 
-    <script type="text/javascript">
-
-    /***********************************************
-    * DHTML Window Widget- © Dynamic Drive (www.dynamicdrive.com)
-    * This notice must stay intact for legal use.
-    * Visit http://www.dynamicdrive.com/ for full source code
-    ***********************************************/
-
-    var myMenu;
-    var jmolCounter = -1;
-    var currperiodicalupdater = null;
-
-    function getDocWidth() {
-       return document.documentElement.clientWidth *.82;
-    }
-    function doOnLoad() {
-       myMenu = new SDMenu("my_menu");
-       myMenu.init();
-       //CHrome doesn't like PeriodicalUpdater sometimes and will fire infinitely many XHR and never load anything; however, if you force a single XHR (as I do here),
-       //Chrome will start loading them right. I have no idea why, and no one else seems to have this issue, so I'm assuming it's a Chrome bug more than anything.
-       $("#statusreport").PeriodicalUpdater('/charmming/status/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
-       $.ajax({
-          url:'/charmming/status/',
-          method:'post',
-          success:function(responseData){
-          $("#statusreport").html(responseData);
-          }
-          });
-
-       $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {async:true,method: 'post', multiplier:5, minTimeout:100, maxTimeout:2000}, function(remoteData){document.getElementById("lessonreport").innerHTML = remoteData;});
-       $.ajax({
-          url:'/charmming/lessons/lessonstatus/',
-          method:'post',
-          success:function(responseData){
-          $("#statusreport").html(responseData);
-          }
-          });
-    }
-
-    function showLesson(lesson)
-    {
-     if(currperiodicalupdater)
-     {
-      currperiodicalupdater.stop();
-     }
-     if(lesson != "nolesson" && lesson != 'None'){
-       currperiodicalupdater = $("#lessonreport").PeriodicalUpdater('/charmming/lessons/lessonstatus/', {method: 'post', multiplier:5, minTimeout:100,
-maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").innerHTML = remoteData;});
-    //Same Chrome hack as before
-       $.ajax({
-          url:'/charmming/lessons/lessonstatus/',
-          method:'post',
-          success:function(responseData){
-          $("#statusreport").html(responseData);
-          }
-          });
-     }else
-     {
-      document.getElementById('lessonreport').innerHTML = '';
-     }
-    }
-
-    $(document).ready(function (){
-        doOnLoad();
-      });
-    </script>
 </head>
 
 <body>
-  {% include 'html/error_messages.html' %}
-  {% comment %}
+  {%  include 'html/error_messages.html' %} 
+  {%  comment %} 
   Including error_messages here allows ANY page working under the CHARMMing skeleton to access it - i.e. basically everything. 
   This way we both encourage staying on skeleton and also allow fancy error messages everywhere.
-  {% endcomment %}
+  {%  endcomment %} 
   <div id="wholepage">
 
    <div id="header" style="margin: 0 auto;"></div>
@@ -118,6 +51,7 @@ maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").i
             <a href="/charmming/viewpdbs/">Change/Delete Structures</a>
             <a href="/charmming/buildstruct/">Build/Select Working Structure</a>
             <a href="/charmming/ligand_design/">Build Custom Ligand</a>
+            <a href="/charmming/download/">Download (new)</a>
             <a href="/charmming/downloadfiles/">Download Files</a>
             <a href="/charmming/visualize/">Visualize system</a>
             <a href="/charmming/viewprocessfiles/">View Inputs and Outputs</a>
@@ -131,6 +65,7 @@ maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").i
             <a href="/charmming/normalmodes/">Normal Modes</a>
             <a href="/charmming/dynamics/md/">Molecular Dynamics</a>
             <a href="/charmming/dynamics/ld/">Langevin Dynamics</a>
+            <a href="/charmming/qchem/">Q-Chem</a>
           </div>
           <div class="collapsed">
             <span>Analyses</span>
@@ -145,6 +80,7 @@ maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").i
              <a href="/charmming/dd_substrate/ligandfileupload/">Ligand Upload</a>
              <a href="/charmming/dd_substrate/viewligands/">View Ligands</a>
              <a href="/charmming/dd_substrate/viewligandsets/">Ligand Sets</a>
+             <a href="/charmming/dd_infrastructure/bindingsite/">Create New Binding Site</a>
              <a href="/charmming/dd_infrastructure/dsfform/">Launch Docking Job</a>
              <a href="/charmming/dd_infrastructure/viewjobs/">View Jobs/Results</a>
           </div>
@@ -157,12 +93,13 @@ maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").i
           <div class="collapsed">
           <span> Lessons </span>
           <a href="/charmming/lesson_maker/">Complete Recorded Lesson</a>
-              <a href="/charmming/lessons/lesson1/">1. Intro to Simulations</a>
-              <a href="/charmming/lessons/lesson2/">2. Simulating proteins</a>
-              <a href="/charmming/lessons/lesson3/">3. SGLD, sequences</a>
-              <a href="/charmming/lessons/lesson4/">4. Custom RTF, QM/MM</a>
-              <a href="/charmming/lessons/lesson5/">5. Coarse-grain models</a>
-              <a href="/charmming/lessons/lesson6/">6. Redox Calculation</a>
+              <a href="/charmming/lessons/lesson1">1. Intro to simulations</a>
+              <a href="/charmming/lessons/lesson2">2. Simulating proteins</a>
+              <a href="/charmming/lessons/lesson3">3. SGLD, sequences</a>
+              <a href="/charmming/lessons/lesson4">4. Custom RTF, QM/MM</a>
+              <a href="/charmming/lessons/lesson5">5. Coarse-grain models</a>
+              <a href="/charmming/lessons/lesson6">6. Redox calculation</a>
+              <a href="/charmming/lessons/lesson7">7. Docking</a>
           </div> 
 
           <div>
@@ -185,9 +122,9 @@ maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").i
       </div>
 
       <div id="content">
-         {% block content %}
-            {% include "html/intro.html" %}
-         {% endblock %}
+         {%  block content %} 
+           {% include "html/intro.html" %} 
+         {%  endblock %} 
       </div>
 
    </div>
@@ -195,8 +132,10 @@ maxTimeout:1000}, function(remoteData){document.getElementById("statusreport").i
    <div id="chmfooter" style="margin: 0 auto;"></div>
 
  </div>
-
+ {% block extra_scripts %} {%endblock%}
+<script type="text/javascript" src="/charmming/js/skeleton.js"></script>
 </body>
 
 </html>
+
 

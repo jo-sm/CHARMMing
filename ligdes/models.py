@@ -21,7 +21,7 @@ from django.template.loader import get_template
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from account.models import *
-from structure.models import Task 
+from structure.models import Task
 from django.contrib.auth.models import User
 from django.template import *
 from account.views import checkPermissions

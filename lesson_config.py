@@ -7,9 +7,9 @@ import lesson3
 import lesson4
 import lesson5
 import lesson6
-
+import lesson7
 # Lesson number list
-lesson_num_lis = ['1','2','3','4','5','6']
+lesson_num_lis = ['1','2','3','4','5','6','7']
 #lesson_num_lis = ['1','2','3','4','5']
 
 # The file type lessons need to upload
@@ -20,6 +20,7 @@ file_type = {
     '4':'CRD',
     '5':'CRD',
     '6':'PDB',
+    '7':'PDB'
 }
 
 # Text-format lesson number
@@ -30,6 +31,7 @@ lesson_txt = {
     '4':'Lesson Four',
     '5':'Lesson Five',
     '6':'Lesson Six',
+    '7':'Lesson Seven'
 }
 
 # Lesson description
@@ -40,6 +42,7 @@ lesson_desc = {
     '4':'Lesson Four introduces custom RTFs and QM/MM.',
     '5':'Lesson Four shows the user how to build a coarse-grained Go model.',
     '6':'Lesson Six will show the user how to calculate the reduction potential of a [4Fe-4S]-containing protein.',
+    '7':'Lesson Seven will show the user how to perform a self-dock procedure.'
 }
 
 #Lesson title - used to simplify skeleton templating
@@ -49,5 +52,6 @@ lesson_title = {
     '3':'SGLD, sequences',
     '4':'Custom RTF, QM/MM',
     '5':'Coarse-grain models',
-    '6':'Redox calculation'
+    '6':'Redox calculation',
+    '7':'Docking'
 }

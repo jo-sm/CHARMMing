@@ -72,6 +72,9 @@ def lessonmaker_display(request):
         #uh oh
         messages.error(request, "Your lesson has less than one step. This should not happen. Please report this bug to your system administrator, and try to build your structure for recording lessons again.")
         return HttpResponseRedirect("/charmming/fileupload/")
+    elif len(step_list) < 3:
+        messages.error(request, "Your lesson does not perform any calculations. Please perform some calculation on your structure for a proper lesson.")
+        return HttpResponseRedirect("/charmming/")
     new_step_list = [] #we need to hold references to previous and next, because the template can't read them
     for i in range(0,len(step_list)):
         if i < len(step_list) - 2:

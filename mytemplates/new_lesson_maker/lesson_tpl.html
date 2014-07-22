@@ -9,7 +9,7 @@
   <span class="failed">Lesson Objectives</span><br />
   <ul>
     {%for objective in objectives%}blankme
-    <li> {{objective}} </li>
+    <li> {{objective.obj_text}} </li>
     {%endfor%}blankme
   </ul>
 </p>
@@ -32,7 +32,7 @@ converting to lesson format I guess? I think it was just a lazy decision but the
 no real reason to shift it
 first we do the "running" one, then we do the Done one. simple, straightforward
 {%endcomment%}
-  {% if not forloop.first and (not step.type == "buildstruct") %}blankme
+  {% if not forloop.first and not step.type == "buildstruct" %}blankme
     {% templatetag openblock %} ifequal html_step_list.{{step.step|add:"-1"}} 2 {% templatetag closeblock %}
     {%comment%} 2 in this case means "Running", and neither Upload nor Buildstruct have "running" stages. {%endcomment%}
       <p class="intro"><span class="failed"> Step {{step.step|stringformat:"d"}}: {{step.type}} Running </span></p>
@@ -48,7 +48,7 @@ first we do the "running" one, then we do the Done one. simple, straightforward
   {% templatetag openblock %} ifequal html_step_list.{{step.step|add:"-1"}} 1 {% templatetag closeblock %}
     {%comment%} gotta do -1 because otherwise we mess with array indexes...the 1 afterwards means "done"{%endcomment%}
     <p class="intro"><span class="failed"> Step {{step.step|stringformat:"d"}}: {%ifequal step.type "fileupload"%}
-      Upload{%else%}{%ifequal step.type "buildstruct" %}Working Structure Build{%endifequal%}{{step.type}}{%endifequal%} Done </span></p>
+      Upload{%else%}{%ifequal step.type "buildstruct" %}Working Structure Build{%else%}{{step.type|capfirst}}{%endifequal%}{%endifequal%} Done </span></p>
       <br>
 
       <p class="intro">
@@ -56,12 +56,13 @@ first we do the "running" one, then we do the Done one. simple, straightforward
       </p>
       <br>
     {% templatetag openblock %} endifequal {% templatetag closeblock %}
-  {%endif%}blankme
 {%endfor%}blankme
-  {% templatetag openblock %} if lessonproblem {% templatetag closeblock %}
+  {% templatetag openblock %} if lessonproblems {% templatetag closeblock %}
+  {% templatetag openblock %} for lessonproblem in lessonproblems {%templatetag closeblock%}
    <br />
    <p class="intro"><span class="failed">LESSON ERROR: STEP - {% templatetag openvariable %}lessonproblem.errorstep{% templatetag closevariable %}, SEVERITY - {% templatetag openvariable %}lessonproblem.severity{% templatetag closevariable %}</span><br />
    {% templatetag openvariable %}lessonproblem.description{% templatetag closevariable %}</p>
+  {% templatetag openblock %} endfor {% templatetag closeblock %}
   {% templatetag openblock %} endif {% templatetag closeblock %}
 {% templatetag openblock %} endif {% templatetag closeblock %}
 {%comment%} Normally I'd include autoescape off, but we need to be sure because django may not know to include &gt; &lt; stuff otherwise and we shouldn't risk XSS attacks from this stuff, even if it's only for trusted users.{%endcomment%}

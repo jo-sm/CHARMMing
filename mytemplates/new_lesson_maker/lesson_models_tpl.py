@@ -3,15 +3,17 @@ from django.db import models
 from django.contrib.auth.models import User
 from lessons.models import LessonProblem
 from solvation.models import solvationTask
-from minimization.models import minimizationTask
+from minimization.models import minimizeTask
 from dynamics.models import mdTask, ldTask, sgldTask
 from normalmodes.models import nmodeTask
 import os
+import math
 import structure
 import lessonaux
 import re
 from django.template import Context, loader
 from django.template.loader import get_template
+import charmming_config
 {%comment%}blankme
 #Formatting notes:
 #    lesson.name is just an int with the lesson number
@@ -27,15 +29,13 @@ from django.template.loader import get_template
 
 {%endcomment%}blankme
 class Lesson{{lesson.name}}(models.Model):
-    class Admin:
-        pass
     user = models.ForeignKey(User)
     nSteps = models.PositiveIntegerField(default={{stepcount}})
     curStep = models.DecimalField(default=0,decimal_places=1,max_digits=3)
     
-    def onFileUpload(self,postdata):
+    def onFileUpload(self):
 {%include 'new_lesson_maker/lessonprob_delete_tpl.py' %}
-        file = structure.models.Structure.objects.get(selected='y',owner=self,user,lesson_id=self.id)
+        file = structure.models.Structure.objects.get(selected='y',owner=self.user,lesson_id=self.id)
         #this should never return more than 1...if it does we've got some serious DB trouble
         try:
             filename1 = '%s/mytemplates/lessons/lesson{{lesson.name}}/{{lesson.filename}}' % charmming_config.charmming_root
@@ -55,57 +55,69 @@ class Lesson{{lesson.name}}(models.Model):
         self.save()
         return True
 
-    def onminimizationSubmit(self,mp,filename):
+    def onBuildStructureSubmit(self,task):
+        self.curStep = '2' {%comment%}Same deal as in file upload.{%endcomment%}
+        self.save()
+        return True
+
+    def onBuildStructureDone(self,task):
+        return True
+
+    def onMinimizeSubmit(self,mp,filename):
 {%comment%}In order to make this truly generic, we'll check for multiple steps even if there aren't any{%endcomment%}
 {%comment%}blankme
 #task_dict.minimization_tasks just sends a bunch of minimizationTask objects into here, so you can check each of those
 #for the parameters we care about. However, that's slot 0. Slot 1 carries the step number, so we
 #don't lose track of that stuff.
+#Because Django is silly, slot 2 carries slot 1, with 0.5 added to it, to make Django's filters 
+#not crash.
 {%endcomment%}blankme
     {%if task_dict.minimization_tasks%}blankme
 {%include 'new_lesson_maker/lessonprob_delete_tpl.py' %}
     {%for minimization_task in task_dict.minimization_tasks%}blankme
-        if float(self.curStep) == float({{minimization_task.1}}):
+        if float(self.curStep) == float({{minimization_task.1|add:"1"}}):
+            {% if minimization_task.0.parent.action %}blankme
             parent_task_action = mp.parent.action
             if parent_task_action != '{{minimization_task.0.parent.action}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1}},severity=2,description='Please run {{minimization_task.0.action}} on the coordinates from {{minimization_task.parent.action}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1|add:"1"}},severity=2,description='Please run {{minimization_task.0.action}} on the coordinates from {{minimization_task.parent.action}}.')
                 lessonprob.save()
                 return False
-            if mp.sdsteps != {{minimization_task.0.sdsteps}}:
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1}},severity=2,description='SD steps were not set to {{minimization_task.0.sdsteps}}.')
+            {%endif%}blankme
+            if mp.sdsteps != {{minimization_task.0.sdsteps}}
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1|add:"1"}},severity=2,description='SD steps were not set to {{minimization_task.0.sdsteps}}.')
                 lessonprob.save()
                 return False
             if mp.abnrsteps != {{minimization_task.0.abnrsteps}}:
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1}},severity=2,description='ABNR steps were not set to {{minimization_task.0.abnrsteps}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1|add:"1"}},severity=2,description='ABNR steps were not set to {{minimization_task.0.abnrsteps}}.')
                 lessonprob.save()
                 return False
             if float(mp.tolg) != float({{minimization_task.0.tolg}}):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1}},severity=2,description='TOLG was not set to {{minimization_task.0.tolg}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1|add:"1"}},severity=2,description='TOLG was not set to {{minimization_task.0.tolg}}.')
                 lessonprob.save()
                 return False
             if mp.usepbc != '{{minimization_task.0.usepbc}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1}},severity=2,description='PBC use was not set to {{minimization_task.0.usepbc}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1|add:"1"}},severity=2,description='PBC use was not set to {{minimization_task.0.usepbc}}.')
                 lessonprob.save()
                 return False
             if mp.useqmmm != '{{minimization_task.0.useqmmm}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1}},severity=2,description='QM/MM use was not set to {{minimization_task.0.useqmmm}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{minimization_task.1|add:"1"}},severity=2,description='QM/MM use was not set to {{minimization_task.0.useqmmm}}.')
                 lessonprob.save()
                 return False
 
-            self.curStep = '{{minimization_task.1}}.5'
+            self.curStep = '{{minimization_task.2}}'
             self.save()
             return True
     {%endfor%}blankme
     {%endif%}blankme
         return True
 
-    def onminimizationDone(self,mdp):
+    def onMinimizeDone(self,mdp):
     {%if task_dict.minimization_tasks %}blankme
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         if mdp.status == 'F':
             {%for task in task_dict.minimization_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{_task.1}},severity=9,description='The job did not complete correctly.')
+            if float(self.curStep) == float('{{task.2}}'):
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=9,description='The job did not complete correctly.')
                 lessonprob.save()
                 self.curStep = '{{task.1}}'
                 self.save()
@@ -113,8 +125,8 @@ class Lesson{{lesson.name}}(models.Model):
             {%endfor%}blankme
         else:
             {%for task in task_dict.minimization_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                self.curStep = '{{task.1|add="1"}}'
+            if float(self.curStep) == float('{{task.2}}'):
+                self.curStep = '{{task.1|add:"1"}}'
                 self.save()
                 return True
             {%endfor%}blankme
@@ -125,35 +137,37 @@ class Lesson{{lesson.name}}(models.Model):
     {%if task_dict.solvation_tasks%}blankme
 {%include 'new_lesson_maker/lessonprob_delete_tpl.py' %}
     {%for solvation_task in task_dict.solvation_tasks%}blankme
-        if float(self.curStep) == float({{solvation_task.1}}):
+        if float(self.curStep) == float({{solvation_task.1|add:"1"}}):
+            {% if solvation_task.0.parent %}blankme
             parent_task_action = sp.parent.action
             if parent_task_action != '{{solvation_task.0.parent.action}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1}},severity=2,description='Please run {{solvation_task.0.action}} on the coordinates from {{solvation_task.parent.action}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1|add:"1"}},severity=2,description='Please run {{solvation_task.0.action}} on the coordinates from {{solvation_task.parent.action}}.')
                 lessonprob.save()
                 return False
+            {%endif%}blankme
             if sp.solvation_structure != '{{solvation_task.0.solvation_structure}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1}},severity=2,description='Solvation Structure was not set to {{solvation_task.0.solvation_structure}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1|add:"1"}},severity=2,description='Solvation Structure was not set to {{solvation_task.0.solvation_structure}}.')
                 lessonprob.save()
                 return False
             #I'm using +/- 2 because I don't really know what this value means, but also Django can't multiply.
             if (float(sp.xtl_x)<float({{solvation_task.0.xtl_x}} - 2) or float(sp.xtl_x) > float({{solvation_task.0.xtl_x}} + 2)) or (float(sp.xtl_y)<float({{solvation_task.0.xtl_y}}-2) or float(sp.xtl_y)>float({{solvation_task.0.xtl_y}}+2)) or (float(sp.xtl_z)<float({{solvation_task.0.xtl_z}}-2) or float(sp.xtl_z)>float({{solvation_task.0.xtl_z}}+2)):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1}},severity=2,description'The wrong radius size was set. Use a value of {{solvation_task.0.sp_radius}} instead.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1|add:"1"}},severity=2,description'The wrong radius size was set. Use a value of {{solvation_task.0.sp_radius}} instead.')
                 lessonprob.save()
                 return False
             if sp.salt != '{{solvation_task.0.salt}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1}},severity=2,description='The wrong salt was used.') #Modify this line for your salt...
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1|add:"1"}},severity=2,description='The wrong salt was used.') #Modify this line for your salt...
                 lessonprob.save()
                 return False
             if float(sp.concentration) != {{solvation_task.0.concentration}}:
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1}},severity=2,description='PBC use was not set to {{solvation_task.0.usepbc}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1|add:"1"}},severity=2,description='PBC use was not set to {{solvation_task.0.usepbc}}.')
                 lessonprob.save()
                 return False
             if float(sp.ntrials) != {{solvation_task.0.ntrials}}:
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1}},severity=2,description='QM/MM use was not set to {{solvation_task.0.useqmmm}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{solvation_task.1|add:"1"}},severity=2,description='QM/MM use was not set to {{solvation_task.0.useqmmm}}.')
                 lessonprob.save()
                 return False
 
-            self.curStep = '{{solvation_task.1}}.5'
+            self.curStep = '{{solvation_task.2}}'
             self.save()
             return True
     {%endfor%}blankme
@@ -165,8 +179,8 @@ class Lesson{{lesson.name}}(models.Model):
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         if sp.status == 'F':
             {%for task in task_dict.solvation_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{_task.1}},severity=9,description='The job did not complete correctly.')
+            if float(self.curStep) == float('{{task.2}}'):
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=9,description='The job did not complete correctly.')
                 lessonprob.save()
                 self.curStep = '{{task.1}}'
                 self.save()
@@ -174,8 +188,8 @@ class Lesson{{lesson.name}}(models.Model):
             {%endfor%}blankme
         else:
             {%for task in task_dict.solvation_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                self.curStep = '{{task.1|add="1"}}'
+            if float(self.curStep) == float('{{task.2}}'):
+                self.curStep = '{{task.1|add:"1"}}'
                 self.save()
                 return True
             {%endfor%}blankme
@@ -187,25 +201,23 @@ class Lesson{{lesson.name}}(models.Model):
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         #there's a couple things we can verify here
     {%for energy_task in task_dict.energy_tasks%}blankme
-        if float(self.curStep) == float({{energy_task.1}}):
+        if float(self.curStep) == float({{energy_task.1|add:"1"}}):
+            {% if energy_task.0.parent %}blankme
             parent_task_action = et.parent.action
             if parent_task_action != '{{energy_task.0.parent.action}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{energy_task.1}},severity=2,description='Please run {{energy_task.0.action}} on the coordinates from {{energy_task.parent.action}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{energy_task.1|add:"1"}},severity=2,description='Please run {{energy_task.0.action}} on the coordinates from {{energy_task.parent.action}}.')
                 lessonprob.save()
                 return False
+            {%endif%}blankme
             if et.useqmmm != '{{energy_task.0.useqmmm}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{energy_task.1}},severity=2,description='You {%ifequal energy_task.0.useqmmm 'n'%}used{%else%}did not use{%endifequal%} QM/MM methods in your energy calculation.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{energy_task.1|add:"1"}},severity=2,description='You {%ifequal energy_task.0.useqmmm 'n'%}used{%else%}did not use{%endifequal%} QM/MM methods in your energy calculation.')
                 lessonprob.save()
                 return False
             if et.usepbc != '{{energy_task.0.usepbc}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{energy_task.1}},severity=2,description='You {%ifequal energy_task.0.useqmmm 'n'%}used{%else%}did not use{%endifequal%} Periodic Boundary Conditions (PBC) in your energy calculation.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{energy_task.1|add:"1"}},severity=2,description='You {%ifequal energy_task.0.useqmmm 'n'%}used{%else%}did not use{%endifequal%} Periodic Boundary Conditions (PBC) in your energy calculation.')
                 lessonprob.save()
                 return False
-            if float(et.finale) < float({{energy_task.0.finale}} - 5) or float(et.finale) > float({{energy_task.0.finale}} + 5):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{energy_task.1}},severity=2,description='Your calculated energy did not match. Make sure you are using the correct parameter and topology files for this lesson.')
-                lessonprob.save()
-                return False
-            self.curStep = '{{energy_task.1}}.5'
+            self.curStep = '{{energy_task.2}}'
             self.save()
             return True
     {%endfor%}blankme
@@ -217,8 +229,8 @@ class Lesson{{lesson.name}}(models.Model):
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         if et.status == 'F':
             {%for task in task_dict.energy_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{_task.1}},severity=9,description='The job did not complete correctly.')
+            if float(self.curStep) == float('{{task.2}}'):
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=9,description='The job did not complete correctly.')
                 lessonprob.save()
                 self.curStep = '{{task.1}}'
                 self.save()
@@ -226,11 +238,18 @@ class Lesson{{lesson.name}}(models.Model):
             {%endfor%}blankme
         else:
             {%for task in task_dict.energy_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                self.curStep = '{{task.1|add="1"}}'
+            if float(self.curStep) == float('{{task.2}}'):
+                if float(et.finale) < (float({{energy_task.0.finale}}) - 5.0) or float(et.finale) > (float({{energy_task.0.finale}}) + 5.0):
+                    lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{energy_task.1|add:"1"}},severity=2,description='Your calculated energy did not match. Make sure you are using the correct parameter and topology files for this lesson.')
+                    lessonprob.save()
+                    self.curStep = '{{task.1|add:"1"}}'
+                    self.save()
+                    return False
+                self.curStep = '{{task.1|add:"1"}}'
                 self.save()
                 return True
             {%endfor%}blankme
+        {%endif%}blankme
         return True
 
     def onNMASubmit(self,nmt):
@@ -238,14 +257,16 @@ class Lesson{{lesson.name}}(models.Model):
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         #there's a couple things we can verify here
     {%for nmode_task in task_dict.nmode_tasks%}blankme
-        if float(self.curStep) == float({{nmode_task.1}}):
+        if float(self.curStep) == float({{nmode_task.1|add:"1"}}):
+            {%if nmode_task.0.parent%}blankme
             parent_task_action = nmt.parent.action
             if parent_task_action != '{{nmode_task.0.parent.action}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1}},severity=2,description='Please run {{nmode_task.0.action}} on the coordinates from {{nmode_task.parent.action}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1|add:"1"}},severity=2,description='Please run {{nmode_task.0.action}} on the coordinates from {{nmode_task.parent.action}}.')
                 lessonprob.save()
                 return False
+            {%endif%}blankme
             if nmt.useqmmm != '{{nmode_task.0.useqmmm}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1}},severity=2,description='You {%ifequal nmode_task.0.useqmmm 'n'%}used{%else%}did not use{%endifequal%} QM/MM methods in your nmode calculation.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1|add:"1"}},severity=2,description='You {%ifequal nmode_task.0.useqmmm 'n'%}used{%else%}did not use{%endifequal%} QM/MM methods in your nmode calculation.')
                 lessonprob.save()
                 return False
             {% if nmode_task.0.make_nma_movie %}blankme
@@ -256,40 +277,40 @@ class Lesson{{lesson.name}}(models.Model):
             exception
             {%endcomment%}blankme
             if not nmt.make_nma_movie:
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1}},severity=2,description='You did not make a movie of your normal mode calculation.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1|add:"1"}},severity=2,description='You did not make a movie of your normal mode calculation.')
                 lessonprob.save()
                 return False
             {%endif%}blankme
             if nmt.useenm != '{{nmode_task.0.useenm}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1}},severity=2,description='You {%ifequal nmode_task.0.useenm 'n'%}used{%else%}did not use{%endifequal%} an Elastic Network Model (ENM) in your nmode calculation.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1|add:"1"}},severity=2,description='You {%ifequal nmode_task.0.useenm 'n'%}used{%else%}did not use{%endifequal%} an Elastic Network Model (ENM) in your nmode calculation.')
                 lessonprob.save()
                 return False
             if nmt.nmodes != {{nmode_task.0.nmodes}}:
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1}},severity=2,description='Number of normal modes was not set to {{nmode_task.0.nmodes}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1|add:"1"}},severity=2,description='Number of normal modes was not set to {{nmode_task.0.nmodes}}.')
                 lessonprob.save()
                 return False
             if nmt.num_trjs != {{nmode_task.0.num_trjs}}:
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1}},severity=2,description='Number of trajectories to be generated was not set to {{nmode_task.0.num_trjs}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1|add:"1"}},severity=2,description='Number of trajectories to be generated was not set to {{nmode_task.0.num_trjs}}.')
                 lessonprob.save()
                 return False
             {% if nmode_task.0.useenm == "y" %}blankme
             if float(nmt.rcut) != float({{nmode_task.0.rcut}}):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1}},severity=2,description='RCUT was not set to {{nmode_task.0.rcut}}')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1|add:"1"}},severity=2,description='RCUT was not set to {{nmode_task.0.rcut}}')
                 lessonprob.save()
                 return False
             if float(nmt.kshort) != float({{nmode_task.0.kshort}}):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1}},severity=2,description='KSHORT was not set to {{nmode_task.0.kshort}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1|add:"1"}},severity=2,description='KSHORT was not set to {{nmode_task.0.kshort}}.')
                 lessonprob.save()
                 return False
             if float(nmt.klong) != float({{nmode_task.0.klong}}):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1}},severity=2,description='KLONG was not set to {{nmode_task.0.klong}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{nmode_task.1|add:"1"}},severity=2,description='KLONG was not set to {{nmode_task.0.klong}}.')
                 lessonprob.save()
                 return False
             {%endif%}blankme
             {%comment%}blankme
             vibran doesn't need extra params so we stop here, finally
             {%endcomment%}blankme
-            self.curStep = '{{nmode_task.1}}.5'
+            self.curStep = '{{nmode_task.2}}'
             self.save()
             return True
     {%endfor%}blankme
@@ -301,8 +322,8 @@ class Lesson{{lesson.name}}(models.Model):
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         if nmt.status == 'F':
             {%for task in task_dict.nmode_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{_task.1}},severity=9,description='The job did not complete correctly.')
+            if float(self.curStep) == float('{{task.2}}'):
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=9,description='The job did not complete correctly.')
                 lessonprob.save()
                 self.curStep = '{{task.1}}'
                 self.save()
@@ -310,11 +331,12 @@ class Lesson{{lesson.name}}(models.Model):
             {%endfor%}blankme
         else:
             {%for task in task_dict.nmode_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                self.curStep = '{{task.1|add="1"}}'
+            if float(self.curStep) == float('{{task.2}}'):
+                self.curStep = '{{task.1|add:"1"}}'
                 self.save()
                 return True
             {%endfor%}blankme
+        {%endif%}blankme
         return True
 
     def onMDSubmit(self,mdt):
@@ -322,36 +344,38 @@ class Lesson{{lesson.name}}(models.Model):
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         #there's a couple things we can verify here
     {%for task in task_dict.md_tasks%}blankme
-        if float(self.curStep) == float({{task.1}}):
+        if float(self.curStep) == float({{task.1|add:"1"}}):
+            {%if task.0.parent %}blankme
             parent_task_action = mdt.parent.action
             if parent_task_action != '{{task.0.parent.action}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='Please run {{task.0.action}} on the coordinates from {{task.parent.action}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='Please run {{task.0.action}} on the coordinates from {{task.parent.action}}.')
                 lessonprob.save()
                 return False
+            {%endif%}blankme
 {%include 'new_lesson_maker/lessonprob_md.py'%}
             if mdt.ensemble != '{{task.0.ensemble}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='{{task.0.ensemble}} dynamics were not selected.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='{{task.0.ensemble}} dynamics were not selected.')
                 lessonprob.save()
                 return False
             {%if task.0.ensemble == "heat"%}blankme
             if mdt.firstt != '{{task.0.firstt}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='FIRSTT was not set to {{task.0.firstt}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='FIRSTT was not set to {{task.0.firstt}}.')
                 lessonprob.save()
                 return False
             if mdt.finalt != '{{task.0.finalt}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='FINALT was not set to {{task.0.finalt}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='FINALT was not set to {{task.0.finalt}}.')
                 lessonprob.save()
                 return False
             if mdt.teminc != '{{task.0.teminc}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='teminc was not set to {{task.0.teminc}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='teminc was not set to {{task.0.teminc}}.')
                 lessonprob.save()
                 return False
             if mdt.ihtfrq != '{{task.0.ihtfrq}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='ihtfrq was not set to {{task.0.ihtfrq}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='ihtfrq was not set to {{task.0.ihtfrq}}.')
                 lessonprob.save()
                 return False
             if mdt.tbath != '{{task.0.tbath}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='tbath was not set to {{task.0.tbath}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='tbath was not set to {{task.0.tbath}}.')
                 lessonprob.save()
                 return False
             {%endif%}blankme
@@ -370,17 +394,17 @@ class Lesson{{lesson.name}}(models.Model):
             {%endif%}blankme
             {%if task.0.ensemble == "nvt" %}blankme
             if mdt.temp != '{{task.0.temp}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='temp was not set to {{task.0.temp}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='temp was not set to {{task.0.temp}}.')
                 lessonprob.save()
                 return False
             {%endif%}blankme
             {%if task.0.ensemble == "npt" %}blankme
             if mdt.temp != '{{task.0.temp}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='temp was not set to {{task.0.temp}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='temp was not set to {{task.0.temp}}.')
                 lessonprob.save()
                 return False
            {%endif%}blankme
-            self.curStep = '{{task.1}}.5'
+           self.curStep = '{{task.2}}'
             self.save()
             return True
     {%endfor%}blankme
@@ -392,8 +416,8 @@ class Lesson{{lesson.name}}(models.Model):
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         if mdt.status == 'F':
             {%for task in task_dict.md_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{_task.1}},severity=9,description='The job did not complete correctly.')
+            if float(self.curStep) == float('{{task.2}}'):
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=9,description='The job did not complete correctly.')
                 lessonprob.save()
                 self.curStep = '{{task.1}}'
                 self.save()
@@ -401,30 +425,33 @@ class Lesson{{lesson.name}}(models.Model):
             {%endfor%}blankme
         else:
             {%for task in task_dict.md_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                self.curStep = '{{task.1|add="1"}}'
+            if float(self.curStep) == float('{{task.2}}'):
+                self.curStep = '{{task.1|add:"1"}}'
                 self.save()
                 return True
             {%endfor%}blankme
+        {%endif%}blankme
         return True
 
     def onLDSubmit(self,mdt):
-        {%iftask_dict.ld_tasks%}blankme
+        {%if task_dict.ld_tasks%}blankme
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         #there's a couple things we can verify here
-    {%for task intask_dict.ld_tasks%}blankme
-        if float(self.curStep) == float({{task.1}}):
+    {%for task in task_dict.ld_tasks%}blankme
+        if float(self.curStep) == float({{task.1|add:"1"}}):
+            {%if task.0.parent%}blankme
             parent_task_action = mdt.parent.action
             if parent_task_action != '{{task.0.parent.action}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='Please run {{task.0.action}} on the coordinates from {{task.parent.action}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='Please run {{task.0.action}} on the coordinates from {{task.parent.action}}.')
                 lessonprob.save()
                 return False
+            {%endif%}blankme
 {%include 'new_lesson_maker/lessonprob_md.py'%}
             if float(mdt.fbeta) != float({{task.0.fbeta}}):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='FBETA was not set to {{task.0.fbeta}}')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='FBETA was not set to {{task.0.fbeta}}')
                 lessonprob.save()
                 return False
-            self.curStep = '{{task.1}}.5'
+            self.curStep = '{{task.2}}'
             self.save()
             return True
     {%endfor%}blankme
@@ -432,24 +459,25 @@ class Lesson{{lesson.name}}(models.Model):
         return True
 
     def onLDDone(self,ldt):
-    {%iftask_dict.ld_tasks %}blankme
+    {%if task_dict.ld_tasks %}blankme
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         if ldt.status == 'F':
-            {%for task intask_dict.ld_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{_task.1}},severity=9,description='The job did not complete correctly.')
+            {%for task in task_dict.ld_tasks %}blankme
+            if float(self.curStep) == float('{{task.2}}'):
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=9,description='The job did not complete correctly.')
                 lessonprob.save()
                 self.curStep = '{{task.1}}'
                 self.save()
                 return False
             {%endfor%}blankme
         else:
-            {%for task intask_dict.ld_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                self.curStep = '{{task.1|add="1"}}'
+            {%for task in task_dict.ld_tasks %}blankme
+            if float(self.curStep) == float('{{task.2}}'):
+                self.curStep = '{{task.1|add:"1"}}'
                 self.save()
                 return True
             {%endfor%}blankme
+            {%endif%}blankme
         return True
 
     def onSGLDSubmit(self,mdt):
@@ -457,22 +485,24 @@ class Lesson{{lesson.name}}(models.Model):
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         #there's a couple things we can verify here
     {%for task in task_dict.sgld_tasks%}blankme
-        if float(self.curStep) == float({{task.1}}):
+        if float(self.curStep) == float({{task.1|add:"1"}}):
+            {%if task.0.parent%}blankme
             parent_task_action = mdt.parent.action
             if parent_task_action != '{{task.0.parent.action}}':
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='Please run {{task.0.action}} on the coordinates from {{task.parent.action}}.')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='Please run {{task.0.action}} on the coordinates from {{task.parent.action}}.')
                 lessonprob.save()
                 return False
+            {%endif%}blankme
 {%include 'new_lesson_maker/lessonprob_md.py'%}
             if float(mdt.tsgavg) != float({{task.0.tsgavg}}):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='TSGAVG was not set to {{task.0.tsgavg}}')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='TSGAVG was not set to {{task.0.tsgavg}}')
                 lessonprob.save()
                 return False
             if float(mdt.tempsg) != float({{task.0.tempsg}}):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1}},severity=2,description='TEMPSG was not set to {{task.0.tempsg}}')
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=2,description='TEMPSG was not set to {{task.0.tempsg}}')
                 lessonprob.save()
                 return False
-            self.curStep = '{{task.1}}.5'
+            self.curStep = '{{task.2}}'
             self.save()
             return True
     {%endfor%}blankme
@@ -484,8 +514,8 @@ class Lesson{{lesson.name}}(models.Model):
 {%include 'new_lesson_maker/lessonprob_tpl.py' %}
         if sgldt.status == 'F':
             {%for task in task_dict.sgld_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{_task.1}},severity=9,description='The job did not complete correctly.')
+            if float(self.curStep) == float('{{task.2}}'):
+                lessonprob = LessonProblem(lesson_type='lesson{{lesson.name}}',lesson_id=self.id,errorstep={{task.1|add:"1"}},severity=9,description='The job did not complete correctly.')
                 lessonprob.save()
                 self.curStep = '{{task.1}}'
                 self.save()
@@ -493,11 +523,12 @@ class Lesson{{lesson.name}}(models.Model):
             {%endfor%}blankme
         else:
             {%for task in task_dict.sgld_tasks %}blankme
-            if float(self.curStep) == float('{{task.1}}.5'):
-                self.curStep = '{{task.1|add="1"}}'
+            if float(self.curStep) == float('{{task.2}}'):
+                self.curStep = '{{task.1|add:"1"}}'
                 self.save()
                 return True
             {%endfor%}blankme
+            {%endif%}blankme
         return True
 
     #An integer means the job is complete , for example 1 means step 1 was complete, 2 means step 2 was complete
@@ -506,7 +537,11 @@ class Lesson{{lesson.name}}(models.Model):
     #user error in following the lessons and so the lesson step has failed
     #The below code can be used as an example
     def generateStatusHtml(self,file):
-        # a template dictionary passing information needed by the template 'generateStatus_Html' 
+        # a template dictionary passing information needed by the template 'generateStatus_Html'
+        step_status_list = []
+        {%for step in steps %}blankme
+        step_status_list.append("<tr class='status'><td class='status'>"+str(int({{step.step}}))+" {%if step.type == "fileupload"%}File Uploaded"{%elif step.type == "buildstruct"%}Working Structure Built"{%else%}"+"{{step.type}}".capitalize(){%endif%}+": ")
+        {%endfor%}blankme
         template_dict = {}
         template_dict['status_list'] = []
 	#Check to see if a lessonproblem exists, and if so store it into lessonprob
@@ -514,50 +549,20 @@ class Lesson{{lesson.name}}(models.Model):
             lessonprob = LessonProblem.objects.filter(lesson_type='lesson{{lesson.name}}',lesson_id=self.id)[0]
         except:
             lessonprob = None
-	#Go through the steps and see which are done,failed, still running. You can leave the code below this
-	#comment untouched. Only edit it if you know what you are doing.
         for i in range(self.nSteps):
-            # a dictionary to pass the values of function, color and status
-            dict = {'num':i+1, 'fun':"function %i" % (i+1), 'color':"", 'status':""}
-            # Spesify what functions you want your lesson to do with dict['fun']
-            # for example first step "File Uploaded", sencond step "Solvation" and so on
-            # if there are more than 4 steps, add lines such as
-            # elif i == 5:
-            #     dict['fun'] = "xxxx" # and go on 
-            # Here you specify your own functions
-            #if i == 1:
-            #    dict['fun'] = "File Uploaded"
-            #elif i == 2:
-            #    dict['fun'] = "Solvation"
-            #elif i == 3:
-            #    dict['fun'] = "Minimization"
-            #elif i == 4:
-            #    dict['fun'] = "MD"
-
-            if lessonprob and lessonprob.errorstep == (self.curStep+1) and self.curStep == i:
-                dict['color'] = 'red'
-                dict['status'] = 'Failed'
-                template_dict['status_list'].append(dict)
+            if lessonprob and lessonprob.errorstep == math.floor(self.curStep+1) and math.floor(self.curStep) == i:
+                step_status_list[i] += ("<a class='failed' onclick='javascript:open_failure();'>Failed</a></td></tr>")
                 continue
-            elif (self.curStep-.5) == i and self.curStep%1 == 0.5:
-                dict['color'] = 'blue'
-                dict['status'] = 'Running
-                template_dict['status_list'].append(dict)
+            elif (float(self.curStep)-0.5) == i and float(self.curStep) % 1 == 0.5:
+                step_status_list[i] += ("<a class='running'>Running</a></td></tr>")
                 continue
-            elif i < self.curStep: # or len(step_status_list)+1 == self.curStep:
-                dict['color'] = 'green'
-                dict['status'] = 'Done'
-                template_dict['status_list'].append(dict)
+            elif i < float(self.curStep):
+                step_status_list[i] += ("<a class='done'>Done</a></td></tr>")
                 continue
-            elif i+1 > self.curStep :
-                dict['color'] = 'grey'
-                dict['status'] = 'N/A'
-                template_dict['status_list'].append(dict)
+            elif i >= float(self.curStep):
+                step_status_list[i] += ("<a class='inactive'>N/A</a></td></tr>")
                 continue
-            template_dict['status_list'].append(dict)
-        t = get_template('%s/mytemplates/lesson_maker/generateStatus_Html' % charmming_config.charmming_root)
-        return t.render(Context(template_dict))
-
+        return step_status_list
     #This is used to display the lesson page. It tells the template to display which set of directions
     #for the next step
     #Each step is represented as an index in an array. The corresponding value tells the template
@@ -575,6 +580,10 @@ class Lesson{{lesson.name}}(models.Model):
         {%comment%}blankme
         steps_zero is just the steps, zero-indexed. A simple but efficient way of getting around django restrictions.
         {%endcomment%}blankme
+        {%if forloop.first%}blankme
+        if self.curStep > 0:
+            htmlcode_list[0] = 1
+        {%else%}blankme
         if self.curStep > {{step}}:
             {%if not forloop.first%}blankme
             if self.curStep == {{step}}.5:
@@ -583,6 +592,7 @@ class Lesson{{lesson.name}}(models.Model):
                 htmlcode_list[{{step}}] = 1
             {%else%}blankme
             htmlcode_list[step] = 1
+        {%endif%}blankme
             {%endif%}blankme
         {%endfor%}blankme
         try:
@@ -591,4 +601,3 @@ class Lesson{{lesson.name}}(models.Model):
         except:
             lessonprob = None
         return htmlcode_list
-

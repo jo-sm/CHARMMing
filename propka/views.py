@@ -22,17 +22,20 @@ from django.contrib.messages import get_messages
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 from django.http import HttpResponse
-from structure.models import Structure, WorkingStructure, CGWorkingStructure, WorkingFile, Task
+from structure.models import Structure, WorkingStructure, CGWorkingStructure, WorkingFile, Task, Script
 from scheduler.schedInterface import schedInterface
 from scheduler.statsDisplay import statsDisplay
 from django.template import *
-import output, charmming_config, lessonaux, input, lessons, lesson1, lesson2, lesson3, lesson4, lesson5
+import output, charmming_config, lessonaux, input, lessons
 from account.views import checkPermissions
+from propka.models import propkaTask
 import structure.models
 import os
 import traceback
 import subprocess
 import mimetypes #for download page
+import output
+from lesson_config import *
 
 def propka_form(request):
     if not request.user.is_authenticated():
@@ -43,13 +46,16 @@ def propka_form(request):
     except:
         messages.error(request, "Please submit a structure.")
         return HttpResponseRedirect("/charmming/fileupload/")
-#        return HttpResponse("Please submit a structure first.")
     try:
          ws = structure.models.WorkingStructure.objects.filter(structure=struct,selected='y')[0]
     except:
         messages.error(request, "You need a working structure to get to this page. If you have reached this page in error, please inform the system administrator.")
         return HttpResponseRedirect("/charmming/buildstruct/")
-#        return HttpResponse("Please visit the &quot;Build Structure&quot; page to build your structure before attempting an propka calculation")
+
+    if ws.isBuilt != 't':
+        #can't let you do that 
+        messages.error(request, "You need to build your working structure before using PROPKA. Please perform a calculation first.")
+        return HttpResponseRedirect("/charmming/energy")
 
     cg_model = False
     try:
@@ -93,46 +99,14 @@ def propka_form(request):
 #    tdict['propka_lines'] = propka_lines
 
     if request.POST.has_key('form_submit'):
-        #We do not in fact need a Task object. WHile it would be nice in the sense of attaching
-        #a file to our propka task, the problem is that we don't have input/output CHARMM stuff for this
-        #PROPKA is totally CHARMM-independent, so sending a task is kind of pointless
-        #by way of the task's "start()" routine
-        #we'd need to do some major overriding of standard methods to get this to work
-        #and it's probably better to get the page running first, and then worry about the
-        #job scheduling stuff, given it's nonstandard
-#        try:
-#            oldtsk = propkaTask.objects.filter(workstruct=ws,active='y')[0]
-#            oldtsk.active = 'n'
-#            oldtsk.save()
-#        except:
-#            pass
-#
-#        et = propkaTask()
-#        et.setup(ws)
-#        et.active = 'y'
-#        et.action = 'propka'
-#        et.save()
-#        if ws.isBuilt != 't':
-#            try:
-#                pTask = ws.build(et)
-#            except noNscaleFound, e:
-#                return HttpResponse('The nScale parameterization process has not yet completed. It may take 1-2 hours.')
-#            pTaskID = pTask.id
-#        else:
-    #if we don't have a Task, how can we do lessons based on PROPKA?:
+        #we're using task stuff for this. The job scheduler has been modified.
         pTaskID = int(request.POST['ptask'])
         pTask = Task.objects.get(id=pTaskID)
-#        if request.POST.has_key('useqmmm'):
-#            saveAtomSelections(request, ws, pTask)
         return calcpropka(request,ws,pTask)
     else:
-        # get all workingFiles associated with this struct
         tdict['tasks'] = tasks #tasks was assigned before
         #we do need these tasks so we can get the right coordinates
-        lesson_ok, dd_ok = checkPermissions(request)
         tdict['messages'] = get_messages(request)
-        tdict['lesson_ok'] = lesson_ok
-        tdict['dd_ok'] = dd_ok
         return render_to_response('html/propka_task.html', tdict)
 
 def calcpropka(request, ws, pTask):
@@ -144,27 +118,21 @@ def calcpropka(request, ws, pTask):
     inp_file_location = "%s-%s.pdb" % (ws.identifier,pTask.action)
     out_file_location = inp_file_location.replace(".pdb",".pka")
     logfp = open("/tmp/propka-error.txt","w")
-    try:
-        subprocess.check_call(["propka31",inp_file_location],stderr=logfp)
-        #PROPKA thankfully has normal exit calls
-    except:
-#        traceback.print_exc(file=logfp)
-        messages.error(request, "PROPKA failed to process your structure. Please check your output for problems.")
-    logfp.close()
-    output_lines = []
-    try:
-        propka_file = open(out_file_location,"r")
-        for line in propka_file:
-            output_lines.append(line)
-        propka_file.close()
-        tdict['output_lines'] = output_lines
-    except:
-        pass
-    lesson_ok, dd_ok = checkPermissions(request)
-    tdict['messages'] = get_messages(request)
-    tdict['lesson_ok'] = lesson_ok
-    tdict['dd_ok'] = dd_ok
-    return render_to_response("html/propka_finished.html",tdict) #I would redirect but we need output_lines
+    protask = propkaTask()
+    protask.setup(ws)
+    protask.active = 'y'
+    protask.action = 'propka'
+    protask.parent = pTask
+    protask.modifies_coordinates = False
+    protask.save()
+
+    arf = open("/tmp/parent-test.txt","w")
+    arf.write(protask.parent.action)
+    arf.close()
+    protask.add_script("propka",inp_file_location,1)
+    protask.start()
+    protask.save()
+    return output.returnSubmission("PROPKA")
 
 def display(request,filename):
     #displays PROPKA result, allows display without download of output from page

@@ -24,6 +24,7 @@ import subprocess
 from subprocess import Popen
 import cPickle
 import charmming_config
+import traceback
 
 class mutateTask(Task):
     MutResi = models.PositiveIntegerField(default=0)
@@ -37,12 +38,15 @@ class mutateTask(Task):
         logfp = open("/tmp/logmut.txt","w")
         #overrides basic finish, tests if the job succeeded
         loc = self.workstruct.structure.location
-        bnm = self.workstruct.identifier
-        basepath = loc + "/" + bnm + "-" + self.action
-
+        bnm = self.MutFile
+        basepath = "%s/%s" % (loc,bnm)
         #create WorkingFile for the input file...
-        path = basepath + ".inp"
-        wfinp = WorkingFile()
+        try:
+            path = basepath + ".inp"
+            wfinp = WorkingFile()
+        except:
+            traceback.print_exc(file=logfp)
+            logfp.close()
         try:
             wftest = WorkingFile.objects.get(task=self,path=path)
         except:
@@ -57,13 +61,17 @@ class mutateTask(Task):
         # a WorkingFile for it.
         path = basepath + ".out"
         try:
+            logfp.write("Arf\n")
+        except:
+            logfp.close()
+        try:
             os.stat(path)
         except:
             self.status = 'F'
-            logfp.write("Could not create inp/out files.\n")
+            traceback.print_exc(file=logfp)
+            logfp.close()
             return
         logfp.write("Created inp/out files.\n")
-
         wfout = WorkingFile()
         try:
             wftest = WorkingFile.objects.get(task=self,path=path)
@@ -136,70 +144,76 @@ class mutateTask(Task):
         #OR at least attempt to.
         #This is where this diverges from normal task finishes
         #We need to reprocess the PDBFile object, create a new pickle...
-        pdbloc = bnm + "-mutation.pdb"
-        logfp.write(pdbloc + "\n")
-        try:
-            os.chdir(loc) #We use Popen because we need to use > and we don't want to use shell=True (prevents need for input sanitization)
-            f = open("tmp.tmp","w")
-            p = Popen(["stride","-o",pdbloc],stdout=f) #Identifier (bnm) assumed to already be "1vom-mt1" for example.
-            f.close()
-#            os.system("stride -o " + pdbloc + " > tmp.tmp")
-            logfp.write("STRIDE ran successfully.\n")
-            f = open("tmp.ss","w")
-            p = Popen([charmming_config.data_home + "/stride2pdb","tmp.tmp"],stdout=f)
-            f.close()
-#            os.system("stride2pdb tmp.tmp > tmp.ss")
-            logfp.write("stride2pdb conversion complete.\n")
-            f = open("temp-pdb.pdb","w")
-            p = Popen(["cat","tmp.ss",pdbloc],stdout=f)
-            f.close()
-#            os.system("cat tmp.ss " + pdbloc + " > temp-pdb.pdb")
-            logfp.write("PDB/SS concatenation complete.\n")
-            os.remove("tmp.ss")
-            os.remove("tmp.tmp")
-            logfp.write("temp files cleared.\n")
-            self.save()
-        except Exception as ex:
-            logfp.write(str(ex) + "\n")
-            self.status = "F"
-            self.save()
-            return
+        #I know we need this for GLmol, but it may be best to just ignore it for now, since most of our normal
+        #PDBs don't have SS records anyway.
+#        os.chdir(loc)
+#        pdbloc = bnm + ".pdb"
+#        try:
+#            f = open("tmp.tmp","w")
+#            p = Popen(["stride","-o",pdbloc],stdout=f) #pdbloc should be something like "1yjp-mt1-mutation.pdb"
+#            f.close()
+##            os.system("stride -o " + pdbloc + " > tmp.tmp")
+#            logfp.write("STRIDE ran successfully.\n")
+#            f = open("tmp.ss","w")
+#            p = Popen([charmming_config.data_home + "/stride2pdb","tmp.tmp"],stdout=f)
+#            f.close()
+##            os.system("stride2pdb tmp.tmp > tmp.ss")
+#            logfp.write("stride2pdb conversion complete.\n")
+#            f = open("temp-pdb.pdb","w")
+#            p = Popen(["cat","tmp.ss",pdbloc],stdout=f)
+#            f.close()
+##            os.system("cat tmp.ss " + pdbloc + " > temp-pdb.pdb")
+#            logfp.write("PDB/SS concatenation complete.\n")
+#            os.remove("tmp.ss")
+#            os.remove("tmp.tmp")
+#            logfp.write("temp files cleared.\n")
+#            self.save()
+#        except Exception as ex:
+#            logfp.write(str(ex) + "\n")
+#            self.status = "F"
+#            self.save()
+#            return
         try:
             oldpickle = open(self.lpickle,'r')
+            logfp.write("Opened localpickle already made.\n")
         except:
             oldpickle = open(self.workstruct.structure.pickle,'r')
-        pdb = cPickle.load(oldpickle)
-        metadata = pdb.get_metaData() #This is where things get fun
-        #Now the PDB file has all the atoms stored in it, what we need now is to use the tmp PDB with the HELIX/SHEET info
-        #take the old metadata and write it in, create a PDBFile object to store the new metadata, create the new pickle,
-        #then wipe that PDB file since we only use the one that has only atoms.
-        #TODO: Add SEQRES update function
-        #TODO: Add CONECT update function
-        #the metadata's REMARK lines and stuff might remain the same, the issue comes in SEQRES, HELIX, SHEET and a few others.
-        newPDB = open("temp-pdb.pdb","a+")    #Write them at the end because PDBFile doesn't care where they end up.
-        for key in metadata.keys():
-            if key not in (['helix', 'sheet', 'seqres']):
-                #Write them to your new PDB file...
-                linelength = len(metadata[key][0]) #This way we can even out the spacing
-                for item in metadata[key]:
-                    newPDB.write(key.upper() + (((linelength - len(item)) + 4) * " ") + item + "\n") #4 spaces or less depending on length of the record
-        ##TODO: Ask Frank about which of these keys are dangerous for mutation
-        newPDB.close()
-        logfp.write("PDB updated.\n")
-        newPDBFile = PDBFile("temp-pdb.pdb")
-        outputstring = self.workstruct.structure.location + "/" + bnm + "-pickle.dat"
-        newpickle = open(outputstring,"w") #we're still os.chdir'd to loc
-        cPickle.dump(newPDBFile, newpickle)
-        logfp.write("New pickle file created.\n")
+            logfp.write("Opened oldpickle.\n")
         try:
-            os.stat("temp-pdb.pdb")
+        #    pdb = cPickle.load(oldpickle)
+        #    metadata = pdb.get_metaData() #This is where things get fun
+        #    #Now the PDB file has all the atoms stored in it, what we need now is to use the tmp PDB with the HELIX/SHEET info
+        #    #take the old metadata and write it in, create a PDBFile object to store the new metadata, create the new pickle,
+        #    #then wipe that PDB file since we only use the one that has only atoms.
+        #    #TODO: Add SEQRES update function
+        #    #TODO: Add CONECT update function
+        #    #the metadata's REMARK lines and stuff might remain the same, the issue comes in SEQRES, HELIX, SHEET and a few others.
+        #    newPDB = open("%s.pdb"%basepath,"a+")    #Write them at the end because PDBFile doesn't care where they end up.
+        #    for key in metadata.keys():
+        #        if key not in (['helix', 'sheet', 'seqres']):
+        #            #Write them to your new PDB file...
+        #            linelength = len(metadata[key][0]) #This way we can even out the spacing
+        #            for item in metadata[key]:
+        #                newPDB.write(key.upper() + (((linelength - len(item)) + 4) * " ") + item + "\n") #4 spaces or less depending on length of the record
+        #    newPDB.close()
+        #    logfp.write("PDB updated.\n")
+            newPDBFile = PDBFile("%s.pdb"%basepath)
+            outputstring = "%s.dat" %basepath
+            newpickle = open(outputstring,"w") #we're still os.chdir'd to loc
+            cPickle.dump(newPDBFile, newpickle)
+            logfp.write("New pickle file created.\n")
         except:
-            logfp.write("Could not find temp-pdb.pdb.\n")
-        try:
-            os.remove("temp-pdb.pdb")
-        except:
-            pass
-        logfp.write("Oldtmp file removed.\n")
+            traceback.print_exc(file=logfp)
+            logfp.close()
+#        try:
+#            os.stat("%s)
+#        except:
+#            logfp.write("Could not find temp-pdb.pdb.\n")
+#        try:
+#            os.remove("temp-pdb.pdb")
+#        except:
+#            pass
+#        logfp.write("Oldtmp file removed.\n")
         logfp.write(outputstring + "\n")
         self.lpickle = outputstring
         self.workstruct.isBuilt = 't'

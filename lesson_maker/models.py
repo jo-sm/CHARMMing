@@ -5,7 +5,7 @@ from django.db import models
 #from minimization.models import minimizeTask
 #from dynamics.models import mdTask
 #we don't know which of these we need yet.
-import structure
+import structure.models
 
 class Lesson(models.Model):
     # data for lessons (should not be overridden by subclasses)
@@ -13,7 +13,7 @@ class Lesson(models.Model):
     # but makes it easier to look up all lessons being done by a particular user.
     #presumably you could calculate this out from the count of Steps it currently has, but it doesn't allow for deletio
     finished = models.BooleanField(default=False,null=False) #update this field at the end
-    structure = models.ForeignKey(structure.models.Structure,null=False) #set this at the start...
+    structure = models.ForeignKey(structure.models.Structure,null=False) #set this at the start..
     filename = models.CharField(max_length=25,null=True) #this keeps track of the filename of the thing the user uploaded
     name = models.CharField(max_length=25,null=True) #this keeps track of the name, it's for the create script
     intro_text = models.TextField(null=True) #this tracks the intro text. TextField cause this can get huge.

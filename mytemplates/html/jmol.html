@@ -13,17 +13,14 @@
     {%include "html/jsmol_initialize.html" %}
   <script>
       jmolApplet = Jmol.getApplet("jmolApplet", Info);
-    {% if segid == "NA" and isProtein and not cg_model%}
-       Jmol.script(jmolApplet,  "load /charmming/pdbuploads{{filepath}};anim mode palindrome 2 2; anim on; slab off; spin off; wireframe off; spacefill off; trace off; set ambient 40; set specpower 40; ribbons on; color structure;select [TIP];cpk 30%;wireframe 55;color jmol;");
-    {% else %}
        {% if not cg_model %}  
-       Jmol.script(jmolApplet, "load /charmming/pdbuploads{{filepath}};anim mode palindrome 2 2; anim on; {{resid}}; cpk 30%; wireframe 55; select {{resid}} and ( _O or _N ); label %a, %n");
-       {% endif %}
-        Jmol.script(jmolApplet, "load /charmming/pdbuploads{{filepath}};anim mode palindrome 2 2; anim on; cpk 30%; wireframe 55;");
-        {% endif %}
+       Jmol.script(jmolApplet, "load /charmming/pdbuploads{{filepath}};anim mode palindrome 2 2; anim on;select amino or [HSD] or [HSE] or [HSP] or [LSN];cpk off;wireframe off;ribbons on;color structure;");
+       {% else %}
+       Jmol.script(jmolApplet, "load /charmming/pdbuploads{{filepath}};anim mode palindrome 2 2; anim on; cpk 30%; wireframe 55;");
+      {%endif%}
        var displayDict = new Object();
-       displayDict['ribbons'] = {% if isProtein and not cg_model%}true{%else%}false{%endif%};
-       displayDict['ballandstick'] = {%if isProtein and not cg_model%}false{%else%}true{%endif%};
+       displayDict['ribbons'] = {%if not cg_model%}true{%else%}false{%endif%};
+       displayDict['ballandstick'] = {%if not cg_model%}false{%else%}true{%endif%};
      </script>
      <br />
     {%include "html/display_options.html" %}

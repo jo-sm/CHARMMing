@@ -9,7 +9,7 @@ import lesson{{lesson.name}}
 {%endfor%} blankme
 
 # Lesson number list
-name_list = [
+lesson_num_lis = [
 {%for lesson in lessons%}blankme
 '{{lesson.name}}'{%if not forloop.last%},{%endif%}
 {%endfor%}blankme
@@ -23,7 +23,7 @@ then update them.
 {%endcomment%}blankme
 file_type = {
 {%for lesson in lessons%}blankme
-    '{{lesson.name}}':'{{lesson.file_type}}{%if not forloop.last%},{%endif%}
+    '{{lesson.name}}':'{{lesson.file_type}}'{%if not forloop.last%},{%endif%}
 {%endfor%}blankme
 }
 
@@ -55,7 +55,7 @@ lesson_desc = {
 {%comment%}blankme
 We do actually need this one. It genericizes skeleton.html.
 {%endcomment%}blankme
-title = {
+lesson_title = {
 {%for lesson in lessons%}blankme
     '{{lesson.name}}':'{{lesson.title}}'{%if not forloop.last%},{%endif%}
 {%endfor%}blankme
