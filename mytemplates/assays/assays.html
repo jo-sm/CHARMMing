@@ -13,9 +13,6 @@
 			  {{ form.remove }}
 			  Remove Inconclusive Assay Results
 			</p>
-{% if message %}
-			<script>alert("{{ message }}");</script>
-{% endif %}
         <p>
 	{% if form.has_prev %}
 	<input type="submit" name="prev" value="<<<" />
@@ -35,5 +32,7 @@
         <input type="submit" name="continue" value="Continue to QSAR">
         </p>
 	</form>
-		
+	{% if message %}
+	                        <script>alert("{{ message }}");</script>
+	{% endif %}
 {% endblock %}
