@@ -59,7 +59,6 @@ lib_path = ''
 # path to the single threaded CHARMM executable
 #charmm_exe = "/usr/local/charmming/c37b2-prelease.exe"
 #charmm_apbs_exe = "/usr/local/charmming/c37b2-prelease.exe"
-
 charmm_exe = "/usr/local/charmming/c37b2-qc-apbs.one"
 charmm_apbs_exe = "/usr/local/charmming/c37b2-qc-apbs.one"
 charmm_mscale_exe = "/usr/local/charmming/c37b2-qc-mscale.ompi"

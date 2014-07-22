@@ -56,16 +56,16 @@ def AssignObjectAttribute(user_id, object_id, object_table, attribute_name, attr
 
 def GetObjectAttributeValue(user_id, object_id, object_table, attribute_name):
     #try:
-    qsar_attribute=attributes.objects.get(attribute_short_name=attribute_name,attribute_owner=user_id)
-    object_attribute=object_attributes.objects.get(object_attribute_owner=user_id,object_id=object_id, \
-                     attribute=qsar_attribute,object_table_name=object_table)
+    qsar_attribute=attributes.objects.get(attribute_short_name=attribute_name,attribute_owner_id=user_id)
+    object_attribute=object_attributes.objects.get(object_attribute_owner_id=user_id,object_id=object_id, 
+                     attribute_id=qsar_attribute.id, object_table_name=object_table)
     return object_attribute.value
 
 def RemoveObjectAttributeValue(user_id, object_id, object_table, attribute_name):
     #try:                                                                                                 
     qsar_attribute=attributes.objects.get(attribute_short_name=attribute_name,attribute_owner_id=user_id)
-    object_attribute=object_attributes.objects.get(object_attribute_owner=user_id,object_id=object_id, \
-                     attribute=qsar_attribute,object_table_name=object_table)
+    object_attribute=object_attributes.objects.get(object_attribute_owner_id=user_id,object_id=object_id,
+                     attribute_id=qsar_attribute.id, object_table_name=object_table)
     object_attribute.delete()
     #return object_attribute.value
 

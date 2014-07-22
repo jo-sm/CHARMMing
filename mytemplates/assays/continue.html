@@ -1,0 +1,25 @@
+{% extends 'html/skeleton.html' %}
+{% block content %}
+
+		<!-- Upload form. Note enctype attribute! -->
+		<form action="{% url cont %}" method="post">
+			{% csrf_token %}
+			{% for hidden in form.hidden_fields %}
+			{{ hidden }}
+			{% endfor %}
+			<table>
+	                  <tr><td>{{ form.model_type.label_tag  }}</td>
+		          <td>{{ form.model_type  }}</td>
+			  </tr>
+			  <tr><td><label    for="model_name">  Model  Name  </label></td>
+			  <td>{{  form.model_name    }}</td></tr>
+			  </table>
+			  <p> Pubchem Assay Download query: {{ query }}  </p>
+		          <p> Number of selected molecules: {{ num_mols }} </p>
+		          <p>
+		           <input type="submit" name="back" value="Back" />
+			   <input type="submit" value="Next" />
+			  </p>
+		</form>
+		
+{% endblock %}

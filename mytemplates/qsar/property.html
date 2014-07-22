@@ -17,6 +17,9 @@
 
 	{% if activity_property_choice_length %}
 	{{form.activity_property.label_tag}}
+	{% ifnotequal query "" %}
+	<p>  PUBCHEM_ACTIVITY_OUTCOME recommended for categorical (SAR)  models </p>
+        {% endifnotequal %}	                
 	<p>{{form.activity_property}}</p>
 	{% else %}
 	Not an SD file or no SD properties found. Please upload an SD file with Activity Property.

@@ -82,7 +82,8 @@ def newModel(request):
             newmodel.model_type=model_types.objects.get(id=request.POST['model_type'])
             newmodel.save()
             log.write("newmodel:%s" % (newmodel.id))
-            return property(request,name,newmodel.id)
+            filename = os.path.basename(name)
+            return property(request,filename,newmodel.id)
         else:
             return render_to_response('qsar/newmodel.html', {'form': form}, context_instance=RequestContext(request)  )
     else:
@@ -91,50 +92,58 @@ def newModel(request):
     return render_to_response('qsar/newmodel.html', {'form': form}, context_instance=RequestContext(request)  )
 
 
-def property(request,filename=None,qsar_model_id=None,message=""):
+def property(request,filename=None,qsar_model_id=None,message="",query="",num_mols=0):
   if not request.user.is_authenticated():
     return render_to_response('html/loggedout.html')
-
   log=open("/tmp/qsar.log","w")
-  log.write("model:%s" % (qsar_model_id))
+  log.write("file: %s\n" % (filename) )
+  log.write("model:%s\n" % (qsar_model_id))
+  log.write("query: %s\n" %(query))
+              
   if request.method == 'POST':
     if 'filename' in request.POST:
       filename = request.POST['filename']
-      #model_type=model_types.objects.get(id=qsar_model.model_type_id)
       qsar_model_id=request.POST['qsar_model_id']
       log.write("model set\n")
-    form = SelectProperty(request.POST,filename=filename,qsar_model_id=qsar_model_id)
+    work_dir = str(get_dir(request))
+    fullfilename = work_dir+'/'+filename    
+    if 'query' in request.POST:
+        query = request.POST['query']
+    if 'num_mols' in request.POST:
+        num_mols = request.POST['num_mols']
     if 'back' in request.POST:
+      if query != "":
+          return HttpResponseRedirect(reverse('cont', kwargs={'filename': filename, 'query' : query, 'num_mols' : num_mols}))
       return HttpResponseRedirect(reverse('newModel', args=()))
       log.write("back\n")
     elif 'next' in request.POST:
-      if form.is_valid():
-        log.write("next\n")
-        activity_property = request.POST["activity_property"]
-        #qsar_model_id=request.POST['qsar_model_id']
-        #common.AssignObjectAttribute(request.user,qsar_model_id,"qsar_qsar_models","Activity Property",activity_property)
-        #model_type=model_types.objects.get(id=qsar_model.model_type_id)
-        return train(request,filename,activity_property,qsar_model_id)
-  else:
-    model_type=model_types.objects.get(id=qsar_model.model_type_id)
-    form = SelectProperty(filename=filename,qsar_model_id=qsar_model_id)
-  activity_property_choice_length = 0;
-  if filename is not None:
+      log.write("next\n")
+      activity_property = request.POST["activity_property"]
+      return train(request,filename,activity_property,qsar_model_id,query,num_mols)
+  if filename is not None and qsar_model_id is not None:
+    log.write("select property page generator\n");
+    work_dir = str(get_dir(request))
+    fullfilename = work_dir+'/'+filename
     qsar_model=qsar_models.objects.get(id=qsar_model_id)
+    form = SelectProperty(filename=filename,qsar_model_id=qsar_model_id,fullfilename=fullfilename,query=query,num_mols=num_mols)
     model_type=model_types.objects.get(id=qsar_model.model_type_id)
-    activity_property_choice_length = len(get_sd_properties(filename));
-    #if notactivity_property_choice_length
-  return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type}, context_instance=RequestContext(request))
-
-def train(request,filename=None,activity_property=None,qsar_model_id=None):
+    activity_property_choice_length = len(get_sd_properties(fullfilename));
+    return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type, 'query' : query}, context_instance=RequestContext(request))
+  else:
+      log.write("should not get here\n");
+      return HttpResponse('<h4> Internal Error <h4>')
+      
+def train(request,filename=None,activity_property=None,qsar_model_id=None,query="",num_mols=0):
   if not request.user.is_authenticated():
     return render_to_response('html/loggedout.html')
   
-        
+  err_message=""      
   if filename is not None and activity_property is not None:
+    work_dir = str(get_dir(request))
+    fullfilename = work_dir+'/'+filename
     count = 0
     ms = []
-    for x in Chem.SDMolSupplier(str(filename)):
+    for x in Chem.SDMolSupplier(str(fullfilename)):
         if x is not None:
           ms.append(x)
           count += 1
@@ -142,12 +151,11 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
             break
                     
     if count < 100:
-      return HttpResponse('<h4> The training file should contain at least 100 structures<h4>')
+      err_message = "The training file should contain at least 100 structures"
     if count > 10000:
-      return HttpResponse('<h4> Training file is too big <h4>')
+      err_message = "Training file is too big"
     
     qsar_model=qsar_models.objects.get(id=qsar_model_id)
-    err_message=""
     
     subtype,categorization = categorization_regression(qsar_model.model_type.model_type_name)
     if categorization:
@@ -163,10 +171,10 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
 
     if err_message !="":
         model_type=model_types.objects.get(id=qsar_model.model_type_id)
-        form = SelectProperty(filename=filename,qsar_model_id=qsar_model.id)
+        form = SelectProperty(filename=filename,qsar_model_id=qsar_model.id,fullfilename=fullfilename,query=query,num_mols=num_mols)
         activity_property_choice_length = 0;
-        activity_property_choice_length = len(get_sd_properties(filename))
-        return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type, 'message':err_message}, context_instance=RequestContext(request))
+        activity_property_choice_length = len(get_sd_properties(fullfilename))
+        return render_to_response('qsar/property.html', {'form': form,'filename':filename,'activity_property_choice_length':activity_property_choice_length, 'qsar_model':qsar_model, 'model_type':model_type, 'message':err_message, 'query' : query}, context_instance=RequestContext(request))
 
 
     common.AssignObjectAttribute(request.user.id,qsar_model_id,"qsar_qsar_models","Activity Property",activity_property)
@@ -223,7 +231,7 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
     log.write("mkdir %s\n" % (model_folder))
     model_file=model_folder + "/model"
     training_output=model_folder + "/training_output"
-    os.system("chmod g+rw %s" % (filename))
+    os.system("chmod g+rw %s" % (fullfilename))
     os.system("chmod g+rw %s" % (model_file))
     os.system("chmod g+rw %s" % (training_output))
     train_submitscript = open(job_folder + "/train_submitscript.inp", 'w')
@@ -234,9 +242,9 @@ def train(request,filename=None,activity_property=None,qsar_model_id=None):
     log.write("model type: %s\n" % (qsar_model.model_type.model_type_name))
     subtype,categorization = categorization_regression(qsar_model.model_type.model_type_name)
     if categorization:
-        train_submitscript.write("python /var/www/charmming/qsar/create_model.py %s %s %s %s %s %s %s %s\n" % (filename, model_file, activity_property, active, training_output, str(qsar_model.id), str(u.id), subtype))
+        train_submitscript.write("python /var/www/charmming/qsar/create_model.py %s %s %s %s %s %s %s %s\n" % (fullfilename, model_file, activity_property, active, training_output, str(qsar_model.id), str(u.id), subtype))
     else:
-        train_submitscript.write("python /var/www/charmming/qsar/create_model_regression.py %s %s %s %s %s %s %s\n" % (filename, model_file, activity_property, training_output, str(qsar_model.id), str(u.id), subtype))
+        train_submitscript.write("python /var/www/charmming/qsar/create_model_regression.py %s %s %s %s %s %s %s\n" % (fullfilename, model_file, activity_property, training_output, str(qsar_model.id), str(u.id), subtype))
     
     train_submitscript.write("echo 'NORMAL TERMINATION'\n")
     train_submitscript.close()
@@ -398,7 +406,7 @@ def viewJobsDiv(request):
 
     #try:
     dba = MySQLdb.connect("localhost", user=settings.DATABASE_USER, passwd=settings.DATABASE_PASSWORD, \
-                             db=settings.DATABASE_NAME, compress=1)
+                             db="charmming2", compress=1)
     #except:
     #    pass
 
@@ -465,8 +473,8 @@ def viewJobsDiv(request):
         job.output_data=output_data
         log.write("job output data: %s\n" % (job.output_data))
         try:
-            log.write("owner_id: %s, job_id: %s\n" % (request.user, job.id))
-            qsar_job_model=jobs_models.objects.get(owner=request.user, job = job.id)
+            log.write("owner_id: %s, job_id: %s\n" % (request.user.id, job.id))
+            qsar_job_model=jobs_models.objects.get(owner_id=request.user.id, job_id = job.id)
             job.model_id=qsar_job_model.qsar_model_id
         except:
             job.model_id=0
@@ -489,7 +497,7 @@ def viewModels(request,message=""):
     #cursor = dba.cursor(MySQLdb.cursors.DictCursor)
     
     #modelssql "select qm.*, qmt.model_type_name from qsar_qsar_models qm left join qsar_model_types qmt on " \
-    #          " qm.model_type_id=qmt.id where model_owner_id=%s" % (request.user)
+    #          " qm.model_type_id=qmt.id where model_owner_id=%s" % (request.user.id)
 
     #cursor.execute(sql)
     #rows = cursor.fetchall()
@@ -499,7 +507,7 @@ def viewModels(request,message=""):
     username=request.user.username
     log=open("/tmp/predictjob.log","w")
     if request.method == 'POST' and message=="":
-        models_list = qsar_models.objects.select_related().filter(model_owner=request.user)
+        models_list = qsar_models.objects.select_related().filter(model_owner_id=request.user.id)
         for qsar_model in models_list:
             try:  
                 if request.FILES['predict_file_' + str(qsar_model.id)]:
@@ -544,24 +552,24 @@ def viewModels(request,message=""):
             predict_submitscript.write("cd %s\n" % (job_folder))
             predict_submitscript.write("export PYTHONPATH=$PYTHONPATH:%s/\n" % ("/var/www/charmming")) #job_folder))
             predict_submitscript.write("export DJANGO_SETTINGS_MODULE=settings\n")
-            #threshold=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
-            #activity_property=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Activity Property")
-            #active=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Active")
-            #inactive=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Inactive")
+            #threshold=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
+            #activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+            #active=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Active")
+            #inactive=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Inactive")
             #subprocess.call(["python","/var/www/charmming/qsar/run_model.py",saved_model,str(name),str(threshold),active,inactive,activity_property,str(out),output_txt])
             log.write("model type: %s" % (qsar_model.model_type.model_type_name))
             subtype,categorization = categorization_regression(qsar_model.model_type.model_type_name)
             if categorization:
-                threshold=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
-                activity_property=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Activity Property")
-                active=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Active")
-                inactive=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Inactive")
+                threshold=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
+                activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+                active=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Active")
+                inactive=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Inactive")
 
                 predict_submitscript.write("python /var/www/charmming/qsar/run_model.py %s %s %s %s %s %s %s %s %s\n" %  
                                       (qsar_model.model_file, predict_input_file, threshold, active, inactive, activity_property, predict_results_file, predict_output_file, subtype))
             else:
                 log.write("regression model executing\n")
-                activity_property=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Activity Property")
+                activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
                 #common.AssignObjectAttribute(user_id, model_id, "qsar_qsar_models", "Self R2", str(self_r2))
                 #common.AssignObjectAttribute(user_id, model_id, "qsar_qsar_models", "Y-randomization", str(r2_rand))
                 #common.AssignObjectAttribute(user_id, model_id, "qsar_qsar_models", "5-fold cross-validation", str(cross_r2))
@@ -603,7 +611,7 @@ def viewModels(request,message=""):
                 err_message="No prediction file specified. Please upload an SD file with at least one structure"
                 return viewModels(request,err_message)
     else:
-        models_list = qsar_models.objects.select_related().filter(model_owner=request.user).order_by("-model_owner_index")
+        models_list = qsar_models.objects.select_related().filter(model_owner_id=request.user.id).order_by("-model_owner_index")
         models_with_attributes_list=[]
         for qsar_model in models_list:
         
@@ -639,7 +647,7 @@ def viewModelDetails(request,qsar_model_id,message=""):
 
     u = User.objects.get(username=username)
 
-    qsar_model = qsar_models.objects.get(id=qsar_model_id,model_owner=request.user)
+    qsar_model = qsar_models.objects.get(id=qsar_model_id,model_owner_id=request.user.id)
     log=open("/tmp/modeldetails.log","w")
     if request.method == 'POST' and message=="":
         
@@ -687,23 +695,23 @@ def viewModelDetails(request,qsar_model_id,message=""):
         predict_submitscript.write("cd %s\n" % (job_folder))
         predict_submitscript.write("export PYTHONPATH=$PYTHONPATH:%s/\n" % ("/var/www/charmming")) #job_folder))                                                                                     
         predict_submitscript.write("export DJANGO_SETTINGS_MODULE=settings\n")
-        #threshold=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
-        #activity_property=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Activity Property")
-        #active=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Active")
-        #inactive=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Inactive")
+        #threshold=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
+        #activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+        #active=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Active")
+        #inactive=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Inactive")
         #subprocess.call(["python","/var/www/charmming/qsar/run_model.py",saved_model,str(name),str(threshold),active,inactive,activity_property,str(out),output_txt])                               
         #predict_submitscript.write("python /var/www/charmming/qsar/run_model.py %s %s %s %s %s %s %s %s\n" %
         #                          (qsar_model.model_file, predict_input_file, threshold, active, inactive, activity_property, predict_results_file, predict_output_file))
         subtype,categorization = categorization_regression(qsar_model.model_type.model_type_name)
         if categorization:
-            threshold=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
-            activity_property=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Activity Property")
-            active=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Active")
-            inactive=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Inactive")
+            threshold=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Recommended threshold")
+            activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
+            active=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Active")
+            inactive=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Inactive")
             predict_submitscript.write("python /var/www/charmming/qsar/run_model.py %s %s %s %s %s %s %s %s %s\n" %
                                       (qsar_model.model_file, predict_input_file, threshold, active, inactive, activity_property, predict_results_file, predict_output_file, subtype))
         else:
-            activity_property=common.GetObjectAttributeValue(request.user, qsar_model.id, "qsar_qsar_models", "Activity Property")
+            activity_property=common.GetObjectAttributeValue(request.user.id, qsar_model.id, "qsar_qsar_models", "Activity Property")
             predict_submitscript.write("python /var/www/charmming/qsar/run_model_regression.py %s %s %s %s %s\n" %
                                   (qsar_model.model_file, predict_input_file, activity_property, predict_results_file, predict_output_file))
 
