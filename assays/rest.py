@@ -17,6 +17,8 @@ def get_sd_file(aids, sdname,remove_inconclusive):
     writer = Chem.SDWriter(sdname)
     for future in futures.as_completed(mols):
         for m in future.result():
+            if not m.HasProp("PUBCHEM_COMPOUND_CID"):
+              continue
             cid =  m.GetProp("PUBCHEM_COMPOUND_CID")
             if cid in seen:
                 continue
@@ -65,6 +67,8 @@ def get_sd_for_aid(aid,remove_inconclusive):
         sdffh.close()
         for m in Chem.SDMolSupplier(tmpsdf.name):
             if m is not None:
+                if not m.HasProp("PUBCHEM_COMPOUND_CID"):
+                  continue
                 cid =  m.GetProp("PUBCHEM_COMPOUND_CID")
                 if remove_inconclusive and cid_to_act[cid]["PUBCHEM_ACTIVITY_OUTCOME"] != "Active" and cid_to_act[cid]["PUBCHEM_ACTIVITY_OUTCOME"] != "Inactive":
                     continue
