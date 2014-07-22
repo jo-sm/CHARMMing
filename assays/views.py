@@ -41,25 +41,51 @@ def search(request):
 def assays(request,query=None):
   if not request.user.is_authenticated():
     return render_to_response('html/loggedout.html')
+  start = 0
+  total = 0
+  step = 0
+  selected = dict()
   if request.method == 'POST':
     form = AssayForm(request.POST)
+    aids = []
+    if 'start_form' in request.POST: 
+        start = int(request.POST['start_form'])
+    if 'assays' in request.POST:
+        aids = request.POST.getlist('assays')
+    if 'selected' in request.POST:
+        selected_packed = request.POST['selected']
+        for x in selected_packed.split("|"):
+            p =  x.split(":",1)
+            if len(p) == 2:
+                selected[p[0]] = p[1].split(",")
+        selected[str(start)] = aids
+    if 'step' in request.POST:
+        step = int(request.POST['step'])
+    if 'query' in request.POST:
+        query = request.POST['query']                                               
+    if 'total' in request.POST:
+        total = request.POST['total']
+        
     if 'back' in request.POST:
       return HttpResponseRedirect(reverse('search', args=()))
+    elif 'next' in request.POST:
+        start += step
+    elif 'prev' in request.POST:
+        start -= step
     elif 'download' in request.POST or 'continue' in request.POST:
       aids_packed = request.POST['current']
       choices = [x.split(":",1) for x in aids_packed.split("|")]
-      step = request.POST['step']
-      total = request.POST['total']
-      query = request.POST['query']
-      form = AssayForm(request.POST,choices=choices,step=step,total=total)
+      form = AssayForm(request.POST,choices=choices,step=step,total=total,selected=selected)
       work_dir = get_dir(request)
       (fh,filename) = mkstemp(dir=work_dir,prefix="pubchem",suffix=".sdf")      
       os.close(fh)
       remove_inconclusive = False
       if 'remove' in request.POST:
         remove_inconclusive = True
-      aids = request.POST.getlist('assays')
-      num_records = get_sd_file(aids,filename,remove_inconclusive)
+      all_aids = []
+      for s in selected:
+          all_aids += selected[s]
+      num_records = get_sd_file(all_aids,filename,remove_inconclusive)
       if not num_records:
         err_message = "Empty file returned"
         return render_to_response('assays/assays.html', {'form': form, 'message' : err_message}, context_instance=RequestContext(request)  )
@@ -73,7 +99,7 @@ def assays(request,query=None):
       else:
         form = TrainingSubmitForm(filename=filename,query=query,num_mols=num_records) 
         return render_to_response('assays/continue.html', {'form': form, 'query': query, 'num_mols': num_records}, context_instance=RequestContext(request)  )
-  form = AssayForm(request.POST,query=query)
+  form = AssayForm(query=query, start = start, selected=selected)
   if form.len_aids > 0 :
     return render_to_response('assays/assays.html', {'form': form}, context_instance=RequestContext(request)  )
   else:

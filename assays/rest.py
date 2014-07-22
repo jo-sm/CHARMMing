@@ -86,12 +86,15 @@ def get_aids(term,start=0):
     return step,total,aids
 
 def get_description(aid):
-     descfh = urllib.urlopen("http://pubchem.ncbi.nlm.nih.gov/rest/pug/assay/aid/"+aid+"/summary/JSON")
-     jsonstr = descfh.read();
-     jsonobj = json.loads(jsonstr)
-     name = jsonobj["AssaySummaries"]["AssaySummary"][0]["Name"]
-     num = jsonobj["AssaySummaries"]["AssaySummary"][0]["CIDCountAll"]
-     return (name,num,aid)
+ try:
+  descfh = urllib.urlopen("http://pubchem.ncbi.nlm.nih.gov/rest/pug/assay/aid/"+aid+"/summary/JSON")
+  jsonstr = descfh.read();
+  jsonobj = json.loads(jsonstr)
+  name = jsonobj["AssaySummaries"]["AssaySummary"][0]["Name"]
+  num = jsonobj["AssaySummaries"]["AssaySummary"][0]["CIDCountAll"]
+ except KeyError:
+  return None
+ return (name,num,aid)
 
 def get_list_aids(query, start=0):
     if query is None:
@@ -102,6 +105,7 @@ def get_list_aids(query, start=0):
     with ThreadPoolExecutor(len(aids)) as executor:
         future_choices = set(executor.submit(get_description,aid) for aid in aids)
     for future in futures.as_completed(future_choices):
+     if future.result() is not None:
         (name,num,aid) = future.result()
         name += " ("+str(num)+")"
         choices.append((aid,name))

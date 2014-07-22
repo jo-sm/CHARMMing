@@ -17,11 +17,23 @@
 			<script>alert("{{ message }}");</script>
 {% endif %}
         <p>
+	{% if form.has_prev %}
+	<input type="submit" name="prev" value="<<<" />
+	{% else %}
+	<input type="submit" name="prev" value="<<<" disabled />
+	{% endif %}
+	{{ form.begin }} to {{ form.end }} of {{ form.display_total }}
+	{% if form.has_next %}
+        <input type="submit" name="next" value=">>>" /> 
+        {% else %}
+        <input type="submit" name="next" value=">>>" disabled />
+        {% endif %}
+        </p>
+        <p>
         <input type="submit" name="back" value="Back" />
         <input type="submit" name="download" value="Download" />
         <input type="submit" name="continue" value="Continue to QSAR">
         </p>
-
-		</form>
+	</form>
 		
 {% endblock %}

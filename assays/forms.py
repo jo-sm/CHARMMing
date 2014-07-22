@@ -71,33 +71,64 @@ class AssayForm(forms.Form):
       aids = []
       step = 0
       total = 0
+      start = 0
       query = ""
-      if 'choices' in kwargs:
-        aids = kwargs['choices']
-        del kwargs['choices']
-      elif 'query' in kwargs:
-        query = kwargs['query']
-        del kwargs['query']
-        (step,total,aids) = get_list_aids(query)
+      selected_values = dict()
       if 'step' in kwargs:
         step = kwargs['step']
         del kwargs['step']
       if 'total' in kwargs:
         total = kwargs['total']
         del kwargs['total']
-      if 'query' in kwargs:  
-        query = kwargs['query']
-        del kwargs['query']
+      if 'start' in kwargs:   
+        start = kwargs['start']
+        del kwargs['start']
+      if 'selected' in kwargs:
+        selected_values = kwargs['selected']
+        del kwargs['selected']
       
+      if 'choices' in kwargs:
+        aids = kwargs['choices']
+        del kwargs['choices']   
+      elif 'query' in kwargs:   
+        query = kwargs['query'] 
+        del kwargs['query']
+        (step,total,aids) = get_list_aids(query,start)
+
       current = ""
       for a in aids:
         if current:
           current += "|"
         current += a[0]+":"+a[1]
+        
+      selected_text = ""
+      for k in selected_values:
+        a = ",".join(selected_values[k])
+        if a:
+          if selected_text:
+            selected_text += "|"
+          selected_text += k+":"+a
           
       super(AssayForm, self).__init__(*args, **kwargs)
-      self.fields['assays'] = forms.MultipleChoiceField(choices=aids, label="assays",required=True,
+      
+      self.len_aids = len(aids)
+      self.has_prev = False
+      if int(start) > 0:   
+        self.has_prev = True
+      self.has_next = True  
+      if int(start)+int(step) >= int(total):
+        self.has_next = False
+      self.begin = int(start)+1
+      self.end = int(start)+int(step)
+      self.display_total = int(total)
+
+      init_aids = []
+      if str(start) in selected_values:
+        init_aids = selected_values[str(start)]      
+
+      self.fields['assays'] = forms.MultipleChoiceField(choices=aids, label="assays",required=True, 
                               widget = CheckboxSelectMultipleWithUrl())
+      self.initial['assays'] =  init_aids
       self.fields['remove'] = forms.BooleanField(label="remove",required=False)
       current_widget = forms.HiddenInput(attrs={'value' : current})
       self.fields['current'] = forms.CharField(widget=current_widget, required = False); 
@@ -107,5 +138,8 @@ class AssayForm(forms.Form):
       self.fields['total'] = forms.CharField(widget=total_widget, required = False);
       query_widget = forms.HiddenInput(attrs={'value' : query})
       self.fields['query'] = forms.CharField(widget=query_widget, required = False);
-      self.len_aids = len(aids)
+      start_widget = forms.HiddenInput(attrs={'value': start})
+      self.fields['start_form'] = forms.CharField(widget=start_widget, required = True);
+      selected_widget = forms.HiddenInput(attrs={'value': selected_text})  
+      self.fields['selected'] = forms.CharField(widget=selected_widget,required = False);
       
