@@ -1,0 +1,450 @@
+@import 'bourbon/bourbon', 'foundation/normalize', 'foundation/foundation', 'charmming/structure/new';
+
+.delete {
+  color: #f74c3c;
+} 
+
+.add-parameter {
+  height: 50px;
+  width: 200px;
+  background-color: #007295;
+  color: #fff;
+  text-align: center;
+  line-height: 50px;
+  @include transition(all 0.3s);
+  &:hover {
+    background-color: #007ba0;
+  }
+}
+
+#parameters {
+ul {
+  line-height: 50px;
+  li {
+    height: 50px;
+    overflow: hidden;
+    a {
+      margin: 0;
+      padding: 0;
+      height: 50px;
+      text-align: center;
+    }
+  }
+  width: 200px;
+  max-height: 200px;
+  overflow: scroll;
+}
+#new {
+  float: left;
+  margin-right: 10px;
+  height: 250px;
+}
+}
+
+.hide {
+  display: none;
+}
+
+label.left {
+  float: left;
+}
+
+.row {
+  width: 100%;
+  max-width: 100%;
+  padding-bottom: 10px;
+}
+
+.columns {
+  padding: 0 10px;
+}
+
+input[type=file] {
+  width: auto;
+}
+
+.upload-toppar {
+  display: none;
+}
+
+label {
+  display: inline;
+}
+
+.info {
+  border: 1px solid #d3d3d3;
+  border-radius: 3px;
+  padding: 10px;
+  margin-bottom: 5px;
+  background-color: #d9edf7;
+}
+
+table {
+  width: 100%;
+}
+
+select {
+  width: auto;
+  padding-right: 25px;
+  margin: 0;
+}
+
+.structures > table {
+width: 100%;
+}
+
+.dropdown-menu {
+  border: 1px solid darken(#fff, 10%);
+  border-radius: 10px;
+  list-style: none;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  li {
+    a {
+      color: #000;
+    }
+    background-color: #fff;
+    padding: 3px;
+    &.active, &:hover {
+      background-color: #2980B9;
+      a {
+        color: #fff !important;
+      }
+    }
+    margin-bottom: 1px;
+  }
+}
+
+.noscript {
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 50px;
+  background-color: #E67E22;
+  color: #fff;
+  display: block;
+  font-size: 1.3em;
+  line-height: 50px;
+  text-align: center;
+}
+
+.structure-upload {
+  border: 1px solid #dedcd0;
+  border-radius: 5px;
+  padding: 10px;
+  .upload-options {
+    margin: 10px 0;
+  }
+  
+  div.submit {
+    margin-top: 10px;
+  }
+  .upload-options.active > div.submit {
+    display: block;
+  }
+  .upload-options > div.selected {
+    display: block;
+  }
+  .upload-options > div {
+    display: none;
+  }
+  input[type=radio] {
+    &:checked + label{
+      background-color: darken(#2980b9, 10%);
+    }
+    display: none;
+    + label {
+      @include transition (background-color 0.5s ease);
+      text-align: center;
+      display: inline block;
+      min-height: 40px;
+      background-color: #2980B9;
+      color: #fff;
+      line-height: 40px;
+      padding: 0 10px;
+      margin: 0;
+      margin-bottom: 5px;
+    }
+  }
+
+  input[type=submit] {
+    @include transition (background-color 0.5s ease);
+    display: inline block;
+    height: 40px;
+    min-height: 40px;
+    background-color: #2980b9;
+    color: #fff;
+    line-height: 40px;
+    border: 0;
+    padding: 0 10px;
+    &:hover {
+      background-color: darken(#2980b9, 10%);
+    }
+  }
+}
+
+.clear {
+  clear: both;
+}
+
+.footer {
+  clear: both;
+  height: 1px;
+}
+
+.active {
+  &.with-submenu {
+    background-color: darken(#fff, 22%);
+  }
+  background-color: #fff;
+}
+.page-content {
+  position: absolute;
+  left: 0;
+  top: 40px;
+  right: 0;
+  bottom: 0;
+  background-color: #fff;
+  padding: 20px;
+}
+.hero {
+  margin-bottom: 15px;
+}
+.title {
+  font-size: 3em;
+  margin-bottom: 20px;
+}
+
+.small {
+  font-size: 0.7em;
+}
+
+.teeny {
+  font-size: 0.5em;
+}
+
+.yellow {
+  color: #F1C40F;
+}
+
+.green {
+
+}
+
+.break {
+  display: block;
+  clear: both;
+}
+
+.red {
+
+}
+
+.blue {
+
+}
+
+.big {
+  font-size: 1.2em;
+}
+
+.really-big {
+  font-size: 1.5em;
+}
+
+.whoa {
+  font-size: 2em;
+}
+
+div.structures {
+  width: 100%;
+  border: 2px solid #ddd;
+  border-radius: 3px;
+  padding: 15px;
+  font-size: 1.2em;
+}
+
+/* Make it work for smaller screens using media queries */
+.with-menu {
+  margin-left: 250px;
+}
+.new-structure {
+  margin-left: 5px;
+  color: green;
+  &:hover {
+    color: blue;
+  }
+}
+
+
+
+.title-area.logged_in {
+  width: 250px;
+  text-align: center;
+  border-right: 1px solid #fff;
+}
+
+.menu {
+  float: left;
+  background-color: #ECF0F1;
+  position: absolute;
+  top: 40px;
+  left: 0;
+  bottom: 0;
+  .expand-menu {
+    li {
+      &.active {
+        //background-color: darken(#7F8C8D, 10%);
+        background-color: #fff;
+        a {
+          //color: #fff !important;
+          color: #617374 !important;
+        }
+      }
+      a {
+        color: darken(#fff, 10%) !important;
+        &:hover {
+          color: #fff !important; 
+        }
+      }
+      height: 30px;
+      line-height: 30px;
+      background-color: #7F8C8D;
+      font-size: 0.9em;
+    }
+  }
+  width: 250px;
+  ul {
+    list-style: none;
+    display: block;
+    margin: 0;
+    list-style-position: outside;
+    li.expanded {
+      height: auto;
+    }
+    li {
+      overflow: hidden;
+      text-align: center;
+      height: 40px;
+      line-height: 40px;
+      font-size: 1.3rem;
+      i {
+        @include transition(all 0.3s ease);
+      }
+      span.expand {
+        float: right;
+        width: 25px;
+        margin: 0;
+        padding: 0;
+        font-size: 0.75em;
+        color: darken(#95a5a6, 5%);
+      }
+      a {
+        display: inline-block;
+        padding: 0;
+        width: 225px;
+        height: 40px;
+        @include transition(all 0.3s ease);
+        color: #95A5A6;
+        &:hover {
+          color: darken(#95A5A6, 15%);
+        }
+        i {
+          padding-right: 10px;
+        }
+      }
+    }
+    padding: 0;
+  }
+}
+
+li.administration {
+  &.active, a:hover {
+    i {
+      color: #f74c3c;
+    }
+  }
+}
+
+li.active a {
+  margin: 0;
+    color: darken(#95a5a6, 20%) !important;
+    &:hover {
+      color: darken(#95a5a6, 20%) !important;
+    }
+  }
+
+li.structures {
+  &.active, a:hover {
+    i {
+      color: #2980B9;
+    }
+  }
+}
+
+li.calculations {
+  &.active, a:hover {
+    i {
+      color: #F1C40F;
+    }
+  }
+}
+
+li.analysis {
+  &.active, a:hover {
+    i {
+      color: #2ECC71;
+    }
+  }
+}
+
+li.drug-design {
+  &.active, a:hover {
+    i {
+      color: #8E44AD;
+    }
+  }
+}
+
+.logout {
+  background-color: #F39C12;
+  &:hover {
+    background-color: darken(#f39c12, 10%);
+  }
+}
+
+.messages {
+  background-color: #27AE60;
+  &:hover {
+    background-color: darken(#27ae60, 10%);
+  }
+}
+
+.jobs {
+  background-color: #2980B9;
+  &:hover {
+    background-color: darken(#2980b9, 10%);
+  }
+}
+
+.notifications {
+  &.alert {
+    a {
+      @include animation(alert 2s infinite);
+    }
+  }
+}
+
+@include keyframes(alert) {
+  0% {
+    color: #fff;
+  }
+  33% {
+    color: #f00;
+  }
+  100% {
+    color: #fff;
+  }
+}
