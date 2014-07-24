@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+
+{% block title %} Administration :: All Users {% endblock %}
+
+{% block content %}
+<div class='title'>
+  All Users
+</div>
+<table>
+  <thead>
+    <tr>
+      <td>Username</td>
+      <td>Email Address</td>
+      <td>Permissions</td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in users %}
+      <tr>
+        <td><a href='{% url admin.user id=user.id %}'>{{ user.username }}</a></td>
+        <td>{{ user.email_address }}</td>
+        <td>{{ user.permissions }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

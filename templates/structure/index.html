@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block title %} View All Structures {% endblock %}
+{% block html_class %} structure-index {% endblock %}
+{% block content %}
+  <div class="hero">
+    <span class="title">My Structures</span>
+    <span class="right"><a href="/structure/new" class="button upload">Create Structure</a>
+  </div>
+  <div class="structures">
+{% if structures %}
+  <table>
+    <thead>
+      <tr>
+        <td>Name</td>
+        <td>Description</td>
+        <td>Uploaded At</td>
+        <td>Operations</td>
+      </tr>
+    </thead>
+    <tbody>
+      {% for structure in structures %}
+        <tr>
+          <td>{{ structure.name }}</td>
+          <td>{{ structure.description }}</td>
+          <td>{{ structure.uploaded_at }}</td>
+          <td><i id='{{ structure.id }}' class='delete ion-close-round'></i></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <div class="big text-center">
+    <i class="whoa yellow ion-lightbulb break"></i>
+    Your structures would show up here, but you don't have any! Why don't you create a new one?
+  </div>
+{% endif %}
+</div>
+{% endblock %}

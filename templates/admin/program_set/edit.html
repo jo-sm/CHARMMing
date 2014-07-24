@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+
+{% block 'title' %} Administration :: Update Program Set {% endblock %}
+
+{% block 'content' %}
+These changes will affect any task within the program set not already queued. Queued tasks' input scripts have already been generated and will not be affected.
+<form action='/admin/program_set/edit' method='post'>
+  <label>Program Set Name: </label>
+  <input type='text' name='name' value='{{name}}'>
+
+  <label>Program Set Description</label>
+  <input type='text' name='description' value='{{description}}'>
+
+  <label>Program Set Task Template</label>
+  <textarea name='template'>
+    {{template}}
+  </textarea>
+  Instructions: Enter a task template that will be used by every task that's run with this program set. That is, if there are program-wide configurations for the tasks, enter them here, and use the &#123;&#123;> task_template &#125;&#125; to designate the place where the task template will be rendered. See the textarea for an example.
+  <input type="submit" value="Update">
+</form>
+{% endblock %}

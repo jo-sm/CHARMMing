@@ -1,0 +1,131 @@
+{% extends 'layout.html' %}
+
+{% block title %} Administration :: New Task {% endblock %}
+{% block html_class %} admin-task-new {% endblock %}
+
+{% block content %}
+<div class='title'>
+  Create New Task
+</div>
+Create a new task for
+<select name='program_set'>
+  {% for program_set in program_sets %}
+    <option value='{{ program_set.id }}'>{{ program_set.name }}</option>
+  {% endfor %}
+</select>
+<form action='/admin/task/new' method='post'>
+  <label>Task Name</label>
+  <input type='text' name='name'>
+
+  <label>Task Description</label>
+  <input type='text' name='description'>
+
+  <div class='info'>
+    Define a set of parameters that the task input script will accept, and can be defined at job creation. Please note that if the parameter is marked as required, it must be present in the template as well.
+  </div>
+{% verbatim %}
+  <script id='parameters-form' type='text/ractive'>
+    <div id='parameters'>
+      <div class='row'>
+        <div class='medium-3 columns'>
+          <div id='new'>
+            <div id='new_param' class='add-parameter success' on-click='new-parameter'>Add Parameter <i class='ion-plus'></i></div>
+
+            <ul class='tabs vertical' data-tab>
+              {{#parameters: param}}
+                <li class='tab-title'><a href='#tab-{{id}}'>{{displayName}}</a></li>
+              {{/parameters}}
+            </ul>
+          </div>
+        </div>
+        <div class='medium-9 columns'>
+          <div class='tabs-content veritcal'>
+            {{#parameters}}
+              <parameter name='{{name}}' id='{{id}}' displayName='{{displayName}}'>
+            {{/parameters}}
+          </div>
+        </div>
+      </div> 
+    </div>
+  </script>
+
+  <script id='parameter' type='text/ractive'>
+    <div class='content' id='tab-{{id}}'>
+      <div class='row'>
+        <div class='medium-4 columns'>
+          <label>Template Variable Name <input type='text' name='name-{{id}}' value='{{name}}'></label>
+        </div>
+
+        <div class='medium-4 columns'>
+          <label>Display Name <input type='text' name='display_name-{{id}}' value='{{displayName}}'></label>
+        </div>
+
+        <div class='medium-4 columns'>
+          <label>Description <input type='text' name='description-{{id}}' value='{{description}}'></label>
+        </div>
+      </div>
+      <div class='row'>
+        <div class='medium-4 columns'>
+          <label>Type of Input
+            <select name='type-{{id}}' value='{{type}}'>
+              <option value='text'>Text field</option>
+              <option value='radio'>Radio Button</option>
+              <option value='checkbox'>Checkbox</option>
+            </select>
+          </label>
+
+          {{#if type !== 'text' }}
+          <div>
+            Values: 
+          </div>
+          {{/if}}
+        </div>
+
+        <div class='medium-4 columns'>
+          <label>Required? <input type='checkbox' name='required-{{id}}'></label>
+        </div>
+
+        <div class='medium-4 columns'>
+          <label>Conditional Upon...
+            <select name='conditional-{{id}}' value='{{conditional}}'>
+              <option value='none'>Nothing</option>
+              {{#parameters:param}}
+                {{#if id !== ../../id}}
+                  <option value='{{id}}'>{{displayName}}</option>
+                {{/if}}
+              {{/parameters}}
+            </select>
+          </label>
+          {{#if conditional}}
+            {{#parameters}}
+              {{#if id == ../../conditional}}
+                {{type}}
+              {{/if}}
+            {{/}}
+          {{/if}}
+        </div>
+      </div>
+      <div class='row'>
+        <div class='medium-4 columns'>
+          <label>Order on Page
+            <select name='order-{{id}}' value='{{order}}'>
+              {{#parameters}}
+                <option>{{id}}</option>
+              {{/parameters}}
+            </select>
+          </label>
+        </div>
+      </div>
+    </div>
+  </script>
+{% endverbatim %}
+  <div id='parameters'></div>
+  <div class='clear'>
+    <label>Task Template</label>
+    <textarea name='template' rows='10'></textarea>
+  </div>
+
+  <input class='button' type='submit' value='Create'>
+</form>
+
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends "layout.html" %}
+
+{% block title %} New Structure {% endblock %}
+{% block html_class %} structure-new {% endblock %}
+
+{% block content %}
+<div class="hero">
+  <span class="title">New Structure</span>
+</div>
+
+<form action="/structure/new" method="post" class="structure-upload" enctype='multipart/form-data'>
+  <input type="radio" name="type" id="upload_pdb" value="upload_pdb">
+  <label for="upload_pdb">Upload a PDB</label>
+
+  <input type="radio" name="type" id="request_pdb" value="request_pdb">
+  <label for="request_pdb">Retrieve a PDB by ID</label>
+
+  <input type="radio" name="type" id="upload_psf" value="upload_psf">
+  <label for="upload_psf">Upload a PSF &amp; CRD</label>
+
+  <input type="radio" name="type" id="create_aa_seq" value="create_aa_seq">
+  <label for="create_aa_seq">Create Amino Acid Sequence</label>
+
+  <input type="radio" name="type" id="custom_ligand" value="custom_ligand">
+  <label for="custom_ligand">Create Custom Ligand</label>
+
+  <input type="radio" name="type" id="dna_seq" value="dna_seq">
+  <label for="dna_seq">Create DNA strand</label>
+
+  <div class="row top-input">
+    <div class="medium-8 columns">
+      <div class="upload-options">
+        <div id="upload_pdb">
+          <div class="row">
+            <div class="small-3 columns">
+              <label class="inline" for="upload_pdb[name]">Structure Name</label>
+            </div>
+            <div class="small-9 columns">
+              <input type="text" name="upload_pdb[name]" id="upload_pdb[name]">
+            </div>
+          </div>
+          <div class='row'>
+            <div class='small-3 columns'>
+              <label class='inline' for='upload_pdb[description]'>Structure Description</label>
+            </div>
+            <div class='small-9 columns'>
+              <input type='text' name='upload_pdb[description]' id='upload_pdb[description]'>
+            </div>
+          </div>
+          <div class="row">
+            <div class='small-3 columns'>
+              <label class='inline' for='pdb'>PDB File</label>
+            </div>
+            <div class='small-9 columns'>
+              <input type='file' name='pdb' id='pdb'>
+            </div>
+          </div>
+        </div>
+        <div id="request_pdb">
+          <div class="info">
+            Entering a PDB ID will download the cooresponding PDB from rcsb.org. Name and description are optional; the name and description will by default be provided by the PDB ID and title, respectively.
+          </div>
+          <div class="row">
+            <div class="small-3 columns">
+              <label class="inline" for="request_pdb[pdb_id]">RCSB PDB ID</label>
+            </div>
+            <div class="small-9 columns">
+              <input type="text" name="request_pdb[pdb_id]" id='request_pdb[pdb_id]' placeholder="1YJP">
+            </div>
+          </div>
+          <div class="row">
+            <div class="small-3 columns">
+              <label class="inline" for="request_pdb[name]">Structure Name</label>
+            </div>
+            <div class="small-9 columns">
+              <input type='text' id='request_pdb[name]' name='request_pdb[name]' placeholder='1YJP'>
+            </div>
+          </div>
+          <div class="row">
+            <div class="small-3 columns">
+              <label class="inline" for="request_pdb[description]">Structure Description</label>
+            </div>
+            <div class="small-9 columns">
+              <input type='text' id='request_pdb[description]' name='request_pdb[description]' placeholder='STRUCTURE OF GNNQQNY FROM YEAST PRION SUP35'>
+            </div>
+          </div>
+        </div>
+        <div id="upload_psf">
+          <div class="row">
+            <div class="small-3 columns">
+              <label class="inline" for="upload_psf[name]">Structure Name</label>
+            </div>
+            <div class="small-9 columns">
+              <input type="text" name="upload_psf[name]" id="upload_psf[name]">
+            </div>
+          </div>
+          <div class='row'>
+            <div class='small-3 columns'>
+              <label class='inline' for='upload_psf[description]'>Structure Description</label>
+            </div>
+            <div class='small-9 columns'>
+              <input type='text' name='upload_psf[description]' id='upload_psf[description]'>
+            </div>
+          </div>
+          <div class="row">
+            <div class='small-3 columns'>
+              <label class='inline' for='psf'>PSF File</label>
+            </div>
+            <div class='small-9 columns'>
+              <input type='file' name='psf' id='psf'>
+            </div>
+          </div>
+          <div class="row">
+            <div class='small-3 columns'>
+              <label class='inline' for='crd'>CRD File</label>
+            </div>
+            <div class='small-9 columns'>
+              <input type='file' name='crd' id='crd'>
+            </div>
+          </div>
+        </div>
+        <div id="create_aa_seq">
+          <div class="info">
+            Start by typing the residue code in the textbox, or copy-and-paste your own residue sequence.
+          </div>
+          <div class="row">
+            <div class="small-3 columns">
+              <label class="inline" for="aa_seq[name]">Sequence Name</label>
+            </div>
+            <div class="small-9 columns">
+              <input type="text" name="aa_seq[name]" id="aa_seq[name]">
+            </div>
+          </div>
+          <div class='row'>
+            <div class='small-3 columns'>
+              <label class='inline' for='aa_seq[description]'>Sequence Description</label>
+            </div>
+            <div class='small-9 columns'>
+              <input type='text' name='aa_seq[description]' id='aa_seq[description]'>
+            </div>
+          </div>
+          <div class='row'>
+            <div class="small-3 columns">
+              <label class='inline' for='aa_seq[sequence]'>Sequence</label>
+            </div>
+            <div class='small-9 columns'>
+              <textarea id='sequence_textarea' name='aa_seq[sequence]' rows='10'></textarea>
+            </div>
+          </div>
+        </div>
+        <div id="custom_ligand">
+          Custom ligand!
+        </div>
+        <div id="dna_seq">
+          <div class="info">
+            Enter a nucleic acid sequence.
+          </div>
+          <div class="row">
+            <div class="small-3 columns">
+              <label class="inline" for="dna_seq[name]">Sequence Name</label>
+            </div>
+            <div class="small-9 columns">
+              <input type="text" name="dna_seq[name]" id="dna_seq[name]">
+            </div>
+          </div>
+          <div class='row'>
+            <div class='small-3 columns'>
+              <label class='inline' for='dna_seq[description]'>Sequence Description</label>
+            </div>
+            <div class='small-9 columns'>
+              <input type='text' name='dna_seq[description]' id='dna_seq[description]'>
+            </div>
+          </div>
+          <div class='row'>
+            <div class="small-3 columns">
+              <label class='inline' for='dna_seq[sequence]'>Sequence</label>
+            </div>
+            <div class='small-9 columns'>
+              <textarea id='dna_seq[sequence]' name='dna_seq[sequence]' rows='10'></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="submit">
+          <input type="submit" name="submit" value="Submit">
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

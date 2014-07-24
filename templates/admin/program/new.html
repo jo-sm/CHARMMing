@@ -1,0 +1,57 @@
+{% extends 'layout.html' %}
+
+{% block title %} Administration :: Program :: New {% endblock %}
+{% block html_class %}admin-program-new{% endblock %}
+
+{% block content %}
+<div class='title'>
+  New Program
+</div>
+<form action='/admin/program/new' method='post'>
+  <div>
+  Create a new program for
+  <select name='program_set'>
+    {% for set in program_sets %}
+      <option value='{{ set.id }}'>{{ set.name }}</option>
+    {% endfor %}  
+  </select>
+</div>
+  <label>Name</label>
+  <input type='text' name='name'>
+
+  <label>Description</label>
+  <input type='text' name='description'>
+
+  <label>Program Path <span class='tip-top radius' title='Enter the absolute path of the program. Click verify to check that the program exists.' data-tooltip><i class='ion-help-circled'></i></span></label>
+  <div class='row collapse'>
+    <div class='small-10 columns'>
+      <input type='text' name='program_path'>
+    </div>
+    <div class='small-2 columns'>
+      <span class='button secondary postfix' id='verify'>Verify</span>
+    </div>
+  </div>
+
+  <div class='row'>
+    <div class='medium-4 columns'>
+      <label>Enabled <span class='tip-top radius' title='This will enable/disable this program for general users. Administrators will be able to use this program.' data-tooltip><i class='ion-help-circled'></i></span></label>
+      <div class='switch'>
+        <input type='checkbox' id='enabled' name='enabled' checked>
+        <label for='enabled'></label>
+      </div>
+    </div>
+    <div class='medium-4 columns'>
+      <label>Input flag <span class='tip-top radius' title='Enter the input flag for the input script. For example, CHARMM uses <strong><</strong>.' data-tooltip><i class='ion-help-circled'></i></span></label>
+      <input type='text' name='input_flag'>
+    </div>
+    <div class='medium-4 columns'>
+      <label>Output flag</label>
+      <input type='text' name='output_flag'>
+    </div>
+  </div>
+
+  <input type='submit' class='button' value='Create'>
+
+  <label>
+</form>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block title %} Administration :: New Program Set {% endblock %}
+
+{% block content %}
+<div class='title'>
+  New Program Set
+</div>
+<form action='/admin/program_set/new' method='post'>
+  <label>Program Set Name: </label>
+  <input type='text' name='name'>
+
+  <label>Program Set Description</label>
+  <input type='text' name='description'>
+
+  <label>Program Set Task Template</label>
+  <div class='info'>
+    Enter a task template that will be used by every task that's run with this program set. That is, if there are program-wide configurations for the tasks, enter them here, and use the <strong>&#123;&#123;> task_template &#125;&#125;</strong> tag to designate the place where the task template will be rendered. See the textarea for an example.
+  </div>
+  <textarea rows='15' name='template'>{% verbatim %}
+! This is the generic template for CHARMM
+
+{{> task_template }}
+
+! this is the footer of the template{% endverbatim %}</textarea>
+  <input class='button' type="submit" value="Create">
+</form>
+{% endblock %}

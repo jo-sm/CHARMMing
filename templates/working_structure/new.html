@@ -1,0 +1,40 @@
+{% extends 'layout.html' %}
+
+{% block title %} Working Structures {% endblock %}
+{% block html_class %}working-structure-new{% endblock %}
+
+{% block content %}
+  <div class='title'>
+    New Working Structure
+  </div>
+  <div>
+    Create a new working structure from
+    <select id='structure'>
+      {% for structure in structures %}
+        <option value='{{ structure.id }}'>{{ structure.name }}</option>
+      {% endfor %}
+    </select>
+    <span class='loading'></span>
+  </div>
+  <label>Working Structure Name:</label>
+  <input type='text' name='name'>
+  <label>Working Structure Description</label>
+  <input type='text' name='description'>
+  <label>Select Segments and Patching</label>
+  <table>
+    <thead>
+      <tr>
+        <td>Select</td>
+        <td>Segment Name</td>
+        <td>Segment Type</td>
+        <td>First patch</td>
+        <td>Last patch</td>
+        <td>Topology &amp; Parameter Files</td>
+        <td>Residue Name and Image</td>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <input type='submit' class='button' value='Create'>
+{% endblock %}

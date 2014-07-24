@@ -1,0 +1,119 @@
+{% extends "layout.html" %}
+
+{% block title %} Administration {% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="large-4 columns">
+    <div class="title">
+      <a href="/admin/user">Users</a> <a class="right button" href="/admin/user/new">New</a>
+    </div>
+    <div>
+      {{ recent_users|length }} most recently active user{% if recent_users|length > 1 %}s{% endif %}
+      <table>
+        <thead>
+          <tr>
+            <td>Username</td>
+            <td>Last Active</td>
+            <td>Number Sessions</td>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in recent_users %}
+            <tr>
+              <td><a href='{% url admin.user id=user.user__id %}'>{{ user.user__username }}</a></td>
+              <td>{{ user.last_accessed }}</td>
+              <td>{{ user.session_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="large-offset-4 large-4 columns">
+    <div class='title'>
+      Status
+    </div>
+    <div>
+      <ul>
+        <li>Scheduler daemon: <span class='green'>up</span></li>
+        <li>Notifications daemon: <span class='green'>up</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class='row'>
+  <div class="large-4 columns">
+    <div class='title'>
+      Program Sets <a class="right button" href='/admin/program_set/new'>New</a>
+    </div>
+    <div>
+      {% if program_sets %}
+        <table>
+          <thead>
+            <tr>
+              <th>Name</td>
+              <th>Description</td>
+              <th>Number Programs</td>
+            </tr>
+          </thead>
+          <tbody>
+            {% for set in program_sets %}
+              <tr>
+                <td>{{ set.name }}</td>
+                <td>{{ set.description }}</td>
+                <td>{{ set.programs_count }} program{% if set.programs_count != 1 %}s{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        You currently have no defined program sets.
+      {% endif %}
+    </div>
+  </div>
+  <div class='large-4 columns'>
+    <div class='title'>
+      Programs <a class='right button' href='/admin/program/new'>New</a>
+    </div>
+    <div>
+      {% if programs %}      
+        <table>
+          <thead>
+            <tr>
+              <td>Name</td>
+              <td>Description</td>
+              <td>Program Set</td>
+              <td>Enabled</td>
+            </tr>
+          </thead>
+          <tbody>
+            {% for program in programs %}
+              <tr>
+                <td>{{ program.name }}</td>
+                <td>{{ program.description }}</td>
+                <td>{{ program.program_set__name }}</td>
+                <td>{{ program.enabled }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        No programs currently defined.
+      {% endif %}
+    </div>
+  </div>
+  <div class='large-4 columns'>
+    <div class='title'>
+      Tasks <a class='right button' href='/admin/task/new'>New</a>
+    </div>
+    <div>
+      {% if tasks %}
+
+      {% else %}
+        You currently have no defined tasks.
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

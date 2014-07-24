@@ -1,0 +1,40 @@
+{% load gears %}
+<!doctype html>
+<html class='{% block html_class %}{% endblock %}'>
+  <head>
+    <title>CHARMMing :: {% block title %} CHARMM interface and graphics {% endblock %}</title>
+    <link href="http://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css" rel="stylesheet">
+    {% css_asset_tag "css/application.css" %}
+  </head>
+  <body>
+    <noscript class="noscript">CHARMMing requires JavaScript to work properly. Please enable JavaScript.</noscript>
+    <nav class="top-bar" data-topbar>
+      <ul class="title-area{% if current_user %} logged_in{% endif %}">
+        <li class="name">
+          <h1><a href="/">CHARMMing{% if not current_user %}: CHARMM Interface and Graphics{% endif %}</a></h1>
+        </li>
+      </ul>
+
+      {% if current_user %} 
+      <section class="top-bar-section">
+        {% block top_nav %}{% endblock %}
+      </section>  
+      {% endif %}
+    </nav>
+    <div class="page">
+      {% if current_user %}
+        {% block side_nav %}{% endblock %}
+      {% endif %}
+
+      <div class="page-content {% if current_user %} with-menu{%endif%}">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+    <div class="footer">
+      &nbsp;
+    </div>
+    <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+    <script src='http://cdn.ractivejs.org/latest/ractive.js'></script>
+    {% js_asset_tag "js/application.js" %}
+  </body>
+</html>

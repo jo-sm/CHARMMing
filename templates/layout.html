@@ -1,0 +1,81 @@
+{% extends "basic_layout.html" %}
+{% load url from future %}
+{% load give_parent_menu_class from navigation %}
+{% load is_submenu_expanded from navigation %}
+{% load is_current_page from navigation %}
+{% load verbatim from verbatim %}
+
+{% block title %} Dashboard {% endblock %}
+{% block top_nav %}
+  <ul class="right">
+    <li class="notifications">
+      <a href="/notifications" title="No New Notifications" data-tooltip><i class="ion-ionic"></i></a>
+    </li>
+    <li class="has-dropdown">
+      <a href="/jobs">Jobs</a>
+      <ul class="dropdown">
+        <li><a>Energy</a></li>
+        <li><a>Minimization</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="/settings">My Settings</a>
+    </li>
+    <li>
+      <a href="/logout">Logout</a>
+    </li>
+  </ul>
+{% endblock %}
+{% block side_nav %}
+<div class="menu">
+  <ul>
+    {% if current_user.is_admin %}
+    <li class="administration {% give_parent_menu_class 'admin' %}">
+    <a href="{% url 'admin.index' %}"><i class="ion-cube"></i>Administration</a><span class="expand {% is_submenu_expanded 'admin' %}"></span>
+      <ul class="expand-menu">
+        <li class="{% is_current_page 'admin.users' %}"><a href="{% url 'admin.users' %}">Users</a></li>
+        <li class='{% is_current_page 'admin.program_sets' %}'><a href='{% url 'admin.program_sets' %}'>All Program Sets</a></li>
+        <li class='{% is_current_page 'admin.program_set.new' %}'><a href='{% url 'admin.program_set.new' %}'>New Program Set</a></li>
+        <li class="{% is_current_page 'admin.programs' %}"><a href="{% url 'admin.programs' %}">All Programs</a></li>
+        <li class='{% is_current_page 'admin.program.new' %}'><a href='{% url 'admin.program.new' %}'>New Program</a></li>
+        <li class='{% is_current_page 'admin.tasks' %}'><a href='{% url 'admin.tasks' %}'>All Tasks</a></li>
+        <li class='{% is_current_page 'admin.task.new' %}'><a href='{% url 'admin.task.new' %}'>New Task</a></li>
+      </ul>
+    </li>
+    {% endif %}
+    <li class="structures {% give_parent_menu_class 'structure' %}">
+      <a href="{% url 'structure.index' %}"><i class="ion-code"></i>Structures</a><span class="expand {% is_submenu_expanded 'structure' %}"></span>
+      <ul class="expand-menu">
+        <li class="{% is_current_page 'structure.new' %}"><a href="{% url 'structure.new' %}">New Structure</a></li>
+        <li class="{% is_current_page 'structure.working_structure.index' %}"><a href="{% url 'structure.working_structure.index' %}">New Working Structure</a></li>
+      </ul>
+    </li>
+    <li class="calculations">
+      <a href="/calculation"><i class="ion-calculator"></i>Calculations</a><span class="expand ion-plus-round"></span>
+      <ul class='expand-menu'>
+        <li class="{% is_current_page 'calculation.energy' %}"><a>Energy</a></li>
+        <li class=''><a>Minimize</a></li>
+        <li class=''><a>Solvate</a></li>
+        <li><a>Normal Modes</a></li>
+        <li><a>Molecular Dynamics</a></li>
+        <li><a>Langevin Dynamics</a></li>
+      </ul>
+    </li>
+    <li class="analysis">
+      <a href="/analysis"><i class="ion-stats-bars"></i>Analysis</a><span class="expand ion-plus-round"></span>
+      <ul class='expand-menu'>
+        <li><a>MD Properties</a></li>
+        <li><a>RMSD Calculator</a></li>
+        <li><a>Redox</a></li>
+        <li><a>KT-GO Native Contacts</a></li>
+      </ul>
+    </li>
+<!--    <li class="drug-design">
+      <a href="/drug_design"><i class="ion-wand"></i>Drug Design</a>
+      <span class="expand ion-plus-round"></span>
+      </li>-->
+  </ul>  
+</div>
+{% endblock %}
+{% block content %}
+{% endblock %}
