@@ -39,13 +39,13 @@ Create a new task for
           </div>
         </div>
         <div class='medium-9 columns'>
-          <div class='tabs-content veritcal'>
+          <div class='tabs-content vertical'>
             {{#parameters}}
-              <parameter name='{{name}}' id='{{id}}' displayName='{{displayName}}'>
+              {{>parameter}}
             {{/parameters}}
           </div>
         </div>
-      </div> 
+      </div>
     </div>
   </script>
 
@@ -67,31 +67,44 @@ Create a new task for
       <div class='row'>
         <div class='medium-4 columns'>
           <label>Type of Input
-            <select name='type-{{id}}' value='{{type}}'>
+            <select name='type-{{id}}' value='{{type.name}}'>
               <option value='text'>Text field</option>
               <option value='radio'>Radio Button</option>
               <option value='checkbox'>Checkbox</option>
             </select>
           </label>
 
-          {{#if type !== 'text' }}
-          <div>
-            Values: 
+          {{#type}}
+            <div>
+            {{#if name === 'checkbox'}}
+              Checked value: <input type='text' name='type-checkbox-checked-{{id}}' value='{{checkedValue}}'>
+              Unchecked value: <input type='text' name='type-checkbox-unchecked-{{id}}' value='{{uncheckedValue}}'>
+            {{/if}}
+
+            {{#if name === 'radio'}}
+            Values: (<span class='ion-plus-round' on-click='add-radio-value'></span>)
+              {{#values:i}}
+                <div>
+                  Name: <input name='type-radio-name-{{i}}' value='{{.name}}'>
+                  Value: <input name='type-radio-value-{{i}}' value='{{.value}}'>
+                </div>
+              {{/values}}
+            {{/if}}
           </div>
-          {{/if}}
+          {{/type}}
         </div>
 
         <div class='medium-4 columns'>
-          <label>Required? <input type='checkbox' name='required-{{id}}'></label>
+          <label>Required <input type='checkbox' name='required-{{id}}'></label>
         </div>
 
         <div class='medium-4 columns'>
           <label>Conditional Upon...
             <select name='conditional-{{id}}' value='{{conditional}}'>
               <option value='none'>Nothing</option>
-              {{#parameters:param}}
-                {{#if id !== ../../id}}
-                  <option value='{{id}}'>{{displayName}}</option>
+              {{#parameters}}
+                {{#if .id !== ../id}}
+                  <option value='{{.id}}'>{{.displayName}}</option>
                 {{/if}}
               {{/parameters}}
             </select>
@@ -110,7 +123,7 @@ Create a new task for
           <label>Order on Page
             <select name='order-{{id}}' value='{{order}}'>
               {{#parameters}}
-                <option>{{id}}</option>
+                <option>{{.id}}</option>
               {{/parameters}}
             </select>
           </label>

@@ -1,14 +1,4 @@
 jQuery('.admin-task-new').ready(function($) {
-  var parameter = Ractive.extend({
-    template: '#parameter',
-    setTemplate: function(options) {
-      options.partials.element = options.data.template;
-    },
-    beforeInit: function(options) {
-      this.setTemplate(options);
-    }
-  });
-
   var ractive = new Ractive({
     el: 'parameters',
     template: '#parameters-form',
@@ -21,28 +11,45 @@ jQuery('.admin-task-new').ready(function($) {
   });
 
   ractive.on('new-parameter', function(el, event) {
-    this.data.parameters.push({
+    var parameters = this.get('parameters');
+    parameters.push({
       name: '',
       displayName: 'Display Name',
-      id: this.data.parameters.length + 1,
+      id: parameters.length + 1,
       description: '',
-      type: 'text',
+      type: {
+        name: 'text'
+      },
       required: false,
       conditional: 'none',
-      order: this.data.parameters.length + 1
+      order: parameters.length + 1
     });
-
-    this.update('parameters');
+    this.set('parameters', parameters);
   });
 
-  ractive.observe('parameters.*.order', function(newValue, oldValue, keypath) {
+  ractive.on('add-radio-value', function(el, event) {
+    console.log(el.keypath);
+    var data = this.get(el.keypath);
+    if(!data.values) data.values = [];
+    data.values.push({});
+    this.set(el.keypath, data);
+  });
+
+  ractive.observe('parameters.*.order', function(newValue, oldValue, keyPath) {
     if(typeof oldValue !== 'undefined') {
-      for(var i = 0; i < this.data.parameters.length; i++) {
-        if(this.data.parameters[i].order == newValue && keypath !== 'parameters.' + i + '.order') {
-          this.data.parameters[i].order = oldValue;
+      for(var i = 0; i < this.get('parameters').length; i++) {
+        var dataPath = 'parameters.' + i + '.order';
+        if(this.get(dataPath) == newValue && keyPath !== dataPath) {
+          this.set('parameters.' + i + '.order', oldValue);
         }
       }
-      this.update('parameters');
     }
+  });
+
+  ractive.observe('parameters.*.type.name', function(newValue, oldValue, keyPath) {
+      var dataPath = keyPath.split('.');
+      dataPath = dataPath.slice(0, dataPath.length-1).join('.');
+      var data = this.get(dataPath);
+      this.update('parameters');
   });
 });

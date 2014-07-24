@@ -7,7 +7,16 @@
 
 {% block title %} Dashboard {% endblock %}
 {% block top_nav %}
-  <ul class="right">
+  <ul>
+    {% if current_user.is_admin %}
+    <li class='dropdown'>
+      <a class='green-bg' href='/status' data-dropdown>Status</a>
+      <ul class='submenu'>
+        <li><a>Notifications</a></li>
+        <li><a>Scheduler</a></li>
+      </ul>
+    </li>
+    {% endif %}
     <li class="notifications">
       <a href="/notifications" title="No New Notifications" data-tooltip><i class="ion-ionic"></i></a>
     </li>

@@ -1,4 +1,56 @@
-@import 'bourbon/bourbon', 'foundation/normalize', 'foundation/foundation', 'charmming/structure/new';
+@import 'normalize', 'bourbon/bourbon', 'neat/neat', 'bitters/base';
+
+header.top-bar {
+  width: 100%;
+  background-color: #225378;
+  height: 40px;
+  color: #fff;
+  line-height: 40px;
+  .title-area {
+    float: left;
+    padding-left: 5px;
+    &.logged-in {
+      padding-left: 0px;
+    }
+  }
+  ul li {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    height: 40px;
+    padding-left: 15px;
+    padding-right: 15px;
+    a {
+      display: inline-block;
+      padding: 0 1em;
+    }
+  }
+}
+li.dropdown {
+  > ul > li:first-child a {
+    padding-top: 1em;
+  }
+
+  overflow: visible;
+
+  &:hover > .submenu {
+    display: block;
+  }
+}
+
+ul.submenu {
+  display: none;
+  position: absolute;
+  top: 40px;
+}
+
+.right {
+  float: right;
+}
+
+.left {
+  float: left;
+}
 
 .delete {
   color: #f74c3c;
@@ -31,9 +83,10 @@ ul {
     }
   }
   width: 200px;
-  max-height: 200px;
-  overflow: scroll;
+  height: 200px;
+  overflow: auto;
 }
+overflow: hidden;
 #new {
   float: left;
   margin-right: 10px;
@@ -225,12 +278,14 @@ width: 100%;
   font-size: 0.5em;
 }
 
-.yellow {
-  color: #F1C40F;
+.yellow-bg {
+  background-color: #FFB03B;
+  color: #fff;
 }
 
-.green {
-
+.green-bg {
+  background-color: #468966;
+  color: #fff;
 }
 
 .break {
@@ -238,8 +293,9 @@ width: 100%;
   clear: both;
 }
 
-.red {
-
+.red-bg {
+  background-color: #DC3522;
+  color: #fff;
 }
 
 .blue {

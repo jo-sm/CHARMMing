@@ -30,17 +30,6 @@
       </table>
     </div>
   </div>
-  <div class="large-offset-4 large-4 columns">
-    <div class='title'>
-      Status
-    </div>
-    <div>
-      <ul>
-        <li>Scheduler daemon: <span class='green'>up</span></li>
-        <li>Notifications daemon: <span class='green'>up</span></li>
-      </ul>
-    </div>
-  </div>
 </div>
 <div class='row'>
   <div class="large-4 columns">
@@ -74,9 +63,10 @@
   </div>
   <div class='large-4 columns'>
     <div class='title'>
-      Programs <a class='right button' href='/admin/program/new'>New</a>
+      Programs {% if program_sets %} <a class='right button' href='/admin/program/new'>New</a> {% endif %}
     </div>
     <div>
+      {% if program_sets %}
       {% if programs %}      
         <table>
           <thead>
@@ -101,18 +91,25 @@
       {% else %}
         No programs currently defined.
       {% endif %}
+      {% else %}
+        Before you can define a program, you must have a created program set. Please <a href='{% url admin.program_set.new %}'>create a program set</a> first.
+      {% endif %}
     </div>
   </div>
   <div class='large-4 columns'>
     <div class='title'>
-      Tasks <a class='right button' href='/admin/task/new'>New</a>
+      Tasks {% if program_sets %} <a class='right button' href='/admin/task/new'>New</a> {% endif %}
     </div>
     <div>
+      {% if program_sets %}
       {% if tasks %}
 
       {% else %}
         You currently have no defined tasks.
-      {% endif %}
+        {% endif %}
+        {% else %}
+          Before you can define a task, you must have a created program set. Please <a href='{% url admin.program_set.new %}'>create a program set</a> first.
+        {% endif %}
     </div>
   </div>
 </div>
