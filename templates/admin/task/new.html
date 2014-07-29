@@ -26,46 +26,43 @@ Create a new task for
 {% verbatim %}
   <script id='parameters-form' type='text/ractive'>
     <div id='parameters'>
-      <div class='row'>
-        <div class='medium-3 columns'>
+        <div class='list'>
           <div id='new'>
-            <div id='new_param' class='add-parameter success' on-click='new-parameter'>Add Parameter <i class='ion-plus'></i></div>
+            <div id='new_param' class='button' on-click='new-parameter'>Add Parameter <i class='ion-plus'></i></div>
 
-            <ul class='tabs vertical' data-tab>
+            <ul class='tabs vertical'>
               {{#parameters: param}}
-                <li class='tab-title'><a href='#tab-{{id}}'>{{displayName}}</a></li>
+                <li class='tab-title'><a class='tab' href='#tab-{{id}}'>{{displayName}}</a></li>
               {{/parameters}}
             </ul>
           </div>
         </div>
-        <div class='medium-9 columns'>
-          <div class='tabs-content vertical'>
+        <div class='parameter tabs-content'>
             {{#parameters}}
-              {{>parameter}}
+              <div class='tab-content' id='tab-{{id}}'>
+                {{>parameter}}
+              </div>
             {{/parameters}}
-          </div>
-        </div>
       </div>
     </div>
   </script>
 
   <script id='parameter' type='text/ractive'>
-    <div class='content' id='tab-{{id}}'>
-      <div class='row'>
-        <div class='medium-4 columns'>
+    <div class='row'>
+        <div class='name'>
           <label>Template Variable Name <input type='text' name='name-{{id}}' value='{{name}}'></label>
         </div>
 
-        <div class='medium-4 columns'>
+        <div class='display-name'>
           <label>Display Name <input type='text' name='display_name-{{id}}' value='{{displayName}}'></label>
         </div>
 
-        <div class='medium-4 columns'>
+        <div class='description'>
           <label>Description <input type='text' name='description-{{id}}' value='{{description}}'></label>
         </div>
       </div>
       <div class='row'>
-        <div class='medium-4 columns'>
+        <div class='type'>
           <label>Type of Input
             <select name='type-{{id}}' value='{{type.name}}'>
               <option value='text'>Text field</option>
@@ -73,53 +70,50 @@ Create a new task for
               <option value='checkbox'>Checkbox</option>
             </select>
           </label>
+        </div>
 
+        <div class='type-options'>
           {{#type}}
-            <div>
             {{#if name === 'checkbox'}}
-              Checked value: <input type='text' name='type-checkbox-checked-{{id}}' value='{{checkedValue}}'>
-              Unchecked value: <input type='text' name='type-checkbox-unchecked-{{id}}' value='{{uncheckedValue}}'>
+              Checked value: <input type='text' name='type-{{id}}-checkbox-checked' value='{{checkedValue}}'>
             {{/if}}
 
             {{#if name === 'radio'}}
             Values: (<span class='ion-plus-round' on-click='add-radio-value'></span>)
               {{#values:i}}
                 <div>
-                  Name: <input name='type-radio-name-{{i}}' value='{{.name}}'>
-                  Value: <input name='type-radio-value-{{i}}' value='{{.value}}'>
+                  Name: <input name='type-{{id}}-radio-name-{{i}}' value='{{.name}}'>
+                  Value: <input name='type-{{id}}-radio-value-{{i}}' value='{{.value}}'>
                 </div>
               {{/values}}
             {{/if}}
-          </div>
           {{/type}}
         </div>
 
-        <div class='medium-4 columns'>
+        <div class='required'>
           <label>Required <input type='checkbox' name='required-{{id}}'></label>
         </div>
+      </div>
 
-        <div class='medium-4 columns'>
+      <div class='row'>
+        <div class='conditional'>
           <label>Conditional Upon...
             <select name='conditional-{{id}}' value='{{conditional}}'>
               <option value='none'>Nothing</option>
               {{#parameters}}
-                {{#if .id !== ../id}}
-                  <option value='{{.id}}'>{{.displayName}}</option>
-                {{/if}}
+                  <option value='{{.id}}'>{{../id}} : {{.displayName}}</option>
               {{/parameters}}
             </select>
           </label>
           {{#if conditional}}
             {{#parameters}}
-              {{#if id == ../../conditional}}
+              {{#if .id == ../../conditional}}
                 {{type}}
               {{/if}}
             {{/}}
           {{/if}}
         </div>
-      </div>
-      <div class='row'>
-        <div class='medium-4 columns'>
+        <div class='order'>
           <label>Order on Page
             <select name='order-{{id}}' value='{{order}}'>
               {{#parameters}}
@@ -129,7 +123,6 @@ Create a new task for
           </label>
         </div>
       </div>
-    </div>
   </script>
 {% endverbatim %}
   <div id='parameters'></div>

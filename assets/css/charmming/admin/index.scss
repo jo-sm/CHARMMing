@@ -1,0 +1,15 @@
+.users {
+  @include span-columns(6);
+}
+
+.program-sets {
+  @include span-columns(6);
+}
+
+.programs {
+  @include span-columns(6);
+}
+
+.tasks {
+  @include span-columns(6);
+}

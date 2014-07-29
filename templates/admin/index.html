@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="row">
-  <div class="large-4 columns">
+  <div class="users">
     <div class="title">
       <a href="/admin/user">Users</a> <a class="right button" href="/admin/user/new">New</a>
     </div>
@@ -30,9 +30,7 @@
       </table>
     </div>
   </div>
-</div>
-<div class='row'>
-  <div class="large-4 columns">
+  <div class='program-sets'>
     <div class='title'>
       Program Sets <a class="right button" href='/admin/program_set/new'>New</a>
     </div>
@@ -61,7 +59,9 @@
       {% endif %}
     </div>
   </div>
-  <div class='large-4 columns'>
+</div>
+<div class='row'>
+  <div class='programs'>
     <div class='title'>
       Programs {% if program_sets %} <a class='right button' href='/admin/program/new'>New</a> {% endif %}
     </div>
@@ -96,7 +96,7 @@
       {% endif %}
     </div>
   </div>
-  <div class='large-4 columns'>
+  <div class='tasks'>
     <div class='title'>
       Tasks {% if program_sets %} <a class='right button' href='/admin/task/new'>New</a> {% endif %}
     </div>

@@ -1,0 +1,50 @@
+#parameters {
+  .list {
+    @include span-columns(3);
+  }
+
+  .parameter {
+    @include span-columns(9);
+    @include outer-container;
+
+    .name {
+      @include span-columns(3 of 9);
+      @include omega();
+    }
+
+    .display-name {
+      @include span-columns(3 of 9);
+      @include omega();
+    }
+
+    .description {
+      @include span-columns(3 of 9);
+      @include omega();
+    }
+
+    .type {
+      @include span-columns(3 of 9);
+      @include omega();
+    }
+
+    .type-options {
+      @include span-columns(3 of 9);
+      @include omega();
+    }
+
+    .required {
+      @include span-columns(3 of 9);
+      @include omega();
+    }
+
+    .order {
+      @include span-columns(3 of 9);
+      @include omega();
+    }
+    
+    .conditional {
+      @include span-columns(3 of 9);
+      @include omega();
+    }
+  }
+}

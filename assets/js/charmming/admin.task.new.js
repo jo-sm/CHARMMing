@@ -2,9 +2,6 @@ jQuery('.admin-task-new').ready(function($) {
   var ractive = new Ractive({
     el: 'parameters',
     template: '#parameters-form',
-    components: {
-      parameter: parameter
-    },
     data: {
       parameters: []
     }

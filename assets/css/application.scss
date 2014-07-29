@@ -1,4 +1,55 @@
-@import 'normalize', 'bourbon/bourbon', 'neat/neat', 'bitters/base';
+@import 'normalize', 'bourbon/bourbon', 'neat/neat', 'bitters/base', 'charmming/structure/new', 'charmming/admin/index', 'charmming/admin/task/new';
+
+.button {
+  @include button;
+}
+
+.row {
+  @include row();
+}
+
+.tabs {
+  &.vertical {
+    .tab {
+      &.active {
+        background-color: #d3d3d3;
+      }
+    }
+  }
+}
+
+.tabs-content {
+  .tab-content {
+    display: none;
+    &.active {
+      display: block;
+    }
+  }
+}
+
+#new_param {
+  width: 200px;
+  text-align: center;
+}
+
+#parameters {
+  ul {
+    line-height: 50px;
+    width: 200px;
+    height: 200px;
+    overflow: auto;
+    overflow-x: hidden;
+    li {
+      text-align: center;
+      a {
+        height: 50px;
+        width: 200px;
+        display: inline-block;
+      }
+    }
+  }
+  overflow: hidden;
+}
 
 header.top-bar {
   width: 100%;
@@ -56,60 +107,12 @@ ul.submenu {
   color: #f74c3c;
 } 
 
-.add-parameter {
-  height: 50px;
-  width: 200px;
-  background-color: #007295;
-  color: #fff;
-  text-align: center;
-  line-height: 50px;
-  @include transition(all 0.3s);
-  &:hover {
-    background-color: #007ba0;
-  }
-}
-
-#parameters {
-ul {
-  line-height: 50px;
-  li {
-    height: 50px;
-    overflow: hidden;
-    a {
-      margin: 0;
-      padding: 0;
-      height: 50px;
-      text-align: center;
-    }
-  }
-  width: 200px;
-  height: 200px;
-  overflow: auto;
-}
-overflow: hidden;
-#new {
-  float: left;
-  margin-right: 10px;
-  height: 250px;
-}
-}
-
 .hide {
   display: none;
 }
 
 label.left {
   float: left;
-}
-
-.row {
-  width: 100%;
-  max-width: 100%;
-  padding-bottom: 10px;
-}
-
-.columns {
-  padding: 0 10px;
 }
 
 input[type=file] {

@@ -96,10 +96,9 @@ class TaskParameter(models.Model):
 
 # If a field has more than one option, such as a checkbox or radio
 class TaskParameterOption(models.Model):
-  task_parameters = models.ForeignKey(TaskParameter)
+  task_parameter = models.ForeignKey(TaskParameter)
   label = models.CharField(max_length=25) # display label for the option
   value = models.CharField(max_length=25) # value of the option
-
 
 # A job that has been created by a user
 class Job(models.Model):
