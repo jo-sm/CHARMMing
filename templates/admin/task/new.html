@@ -7,79 +7,192 @@
 <div class='title'>
   Create New Task
 </div>
-Create a new task for
-<select name='program_set'>
-  {% for program_set in program_sets %}
-    <option value='{{ program_set.id }}'>{{ program_set.name }}</option>
-  {% endfor %}
-</select>
-<form action='/admin/task/new' method='post'>
-  <label>Task Name</label>
-  <input type='text' name='name'>
-
-  <label>Task Description</label>
-  <input type='text' name='description'>
-
-  <div class='info'>
-    Define a set of parameters that the task input script will accept, and can be defined at job creation. Please note that if the parameter is marked as required, it must be present in the template as well.
-  </div>
-{% verbatim %}
+<div id='parameters'></div>
   <script id='parameters-form' type='text/ractive'>
-    <div id='parameters'>
-        <div class='list'>
-          <div id='new'>
-            <div id='new_param' class='button' on-click='new-parameter'>Add Parameter <i class='ion-plus'></i></div>
+  <form action='/admin/task/new' method='post' on-submit='submit'>
+    {% verbatim %}
+    <div>
+      Create a new task for
+      <select name='program_set' value='{{program_set}}'>
+        {{# program_sets }}
+          <option value='{{ id }}'>{{ name }}</option>
+        {{/program_sets}}
+      </select>
+    </div>
+    <label>Task Name</label>
+    <input type='text' value='{{name}}'>
 
+    <label>Task Description</label>
+    <input type='text' value='{{description}}'>
+    <div class='info'>
+      Define a set of parameters that the task input script will accept, and can be defined at job creation. Please note that if the parameter is marked as required, it must be present in the template as well.
+    </div>
+    <div id='parameters'>
+      <div class='list'>
+        <div id='new-group'>
+          <div class='button' on-click='new-group'>Add Form Field Group <i class='ion-plus'></i></div>
+          <ul class='tabs vertical'>
+            {{#groups}}
+              <li class='tab-title' on-click='select-group:{{id}}'><a class='tab'>{{name}}</a></li>
+            {{/groups}}
+          </ul>
+        </div>
+        {{#selectedGroup}}
+          <div id='new'>
+            <div class='button' on-click='new-field:{{selectedGroup}}'>Add Form Field <i class='ion-plus'></i></div>
             <ul class='tabs vertical'>
-              {{#parameters: param}}
-                <li class='tab-title'><a class='tab' href='#tab-{{id}}'>{{displayName}}</a></li>
-              {{/parameters}}
+              {{#groups}}
+                {{#.active}}
+                  {{#fields}}
+                    <li class='tab-title'><a class='tab' on-click='select-field:{{id}},{{../../id}}'>{{displayName}}</a></li>
+                  {{/fields}}
+                {{/active}}
+              {{/groups}}
             </ul>
           </div>
+        {{/selectedGroup}}
         </div>
         <div class='parameter tabs-content'>
-            {{#parameters}}
-              <div class='tab-content' id='tab-{{id}}'>
-                {{>parameter}}
-              </div>
-            {{/parameters}}
+          {{#groups}}
+            <div class='tab-content {{.active ? "active" : ""}}'>
+              {{>group}}
+            </div>
+            {{#.active}}
+              {{#fields}}
+              <div class='tab-content {{.active ? "active" : ""}}'>
+                  {{>field}}
+                </div>
+              {{/fields}}
+            {{/active}}
+          {{/groups}}
+        </div>
       </div>
-    </div>
+      <div class='clear'>
+        <label>Task Template</label>
+        <textarea name='template' rows='10' value='{{template}}'></textarea>
+      </div>
+
+      <input class='button' type='submit' value='Create'>
+    </form>
   </script>
 
-  <script id='parameter' type='text/ractive'>
+  <script id='group' type='text/ractive'>
+    <fieldset>
     <div class='row'>
-        <div class='name'>
+      <div class='six'>
+        <label>Group name <input type='text' value='{{name}}'></label>
+      </div>
+      <div class='three'>
+        <label>Group order</label>
+          <select value='{{order}}'>
+            {{#../../groups}}
+              <option value='{{order}}'>{{order}}</option>
+            {{/groups}}
+          </select>
+      </div>
+      <div class='three'>
+        <label>Operations</label>
+        <div>
+          <button on-click='delete:{{id}}'>Delete <span class='ion-close-circled'></span></button>
+          <button on-click='copy:{{id}}'>Copy <span class='ion-fork-repo'></span></button>
+        </div>
+      </div>
+    </div>
+    <div class='row'>
+      <div class='four'>
+          <label>Conditionals <span title='Define a conditional statement that will affect what happens to this form field' class='ion-help-buoy'></span></label><button class='right' on-click='add-conditional'>Add <i class='ion-plus-round'></i></button>
+          {{#conditionals:i}}
+            <div>
+              If
+
+              <select value='{{.field}}' on-change='update-current-conditional'>
+                <option value=''>Select</option>
+                {{#groups}}
+                  <optgroup label='{{name}}'>
+                    {{#fields}}
+                      <option value='{{../../id}}-{{id}}'>{{displayName}}</option>
+                    {{/fields}}
+                  </optgroup>
+                {{/groups}}
+              </select>
+
+              {{#if .field}}
+                <select value='{{.condition}}'>
+                  <option value=''>Select</option>
+                  {{#if fieldType == 'text'}}
+                    <option value='is'>is</option>
+                    <option value='is-not'>is not</option>
+                    <option value='lt'>is less than</option>
+                    <option value='gt'>is greather than</option>
+                  {{/if}}
+
+                  {{#if fieldType == 'radio' || fieldType == 'dropdown'}}
+                    <option value='is'>is</option>
+                    <option value='is-not'>is not</option>
+                  {{/if}}
+
+                  {{#if fieldType == 'checkbox'}}
+                    <option value='checked'>is checked</option>
+                    <option value='unchecked'>is unchecked</option>
+                  {{/if}}
+                </select>
+              {{/if}}
+
+              {{#if .condition}}
+                {{#if fieldType == 'text'}}
+                  <input type='text' value='{{.value}}'>
+                {{/if}}
+
+                {{#if fieldType == 'radio'}}
+                  <select value='{{.value}}'>
+                    {{#fieldValues()}}
+                      <option value='{{value}}'>{{name}}</option>
+                    {{/fields}}
+                  </select>
+                {{/if}}
+
+                <select value='{{.thenDo}}'>
+                  <option value='show'>Show me</option>
+                  <option value='hide'>Hide me</option>
+                  <option value='disable'>Disable me</option>
+                </select>
+              {{/if}}
+            </div>
+          {{/conditionals}}
+      </div>
+    </div>
+    </fieldset>
+  </script>
+
+  <script id='field' type='text/ractive'>
+    <fieldset>
+      <div class='row'>
+        <div class='four'>
           <label>Template Variable Name <input type='text' name='name-{{id}}' value='{{name}}'></label>
         </div>
 
-        <div class='display-name'>
+        <div class='four'>
           <label>Display Name <input type='text' name='display_name-{{id}}' value='{{displayName}}'></label>
         </div>
 
-        <div class='description'>
+        <div class='four'>
           <label>Description <input type='text' name='description-{{id}}' value='{{description}}'></label>
         </div>
       </div>
       <div class='row'>
-        <div class='type'>
-          <label>Type of Input
-            <select name='type-{{id}}' value='{{type.name}}'>
-              <option value='text'>Text field</option>
-              <option value='radio'>Radio Button</option>
-              <option value='checkbox'>Checkbox</option>
-            </select>
-          </label>
+        <div class='four'>
+          <label>Type of Input</label>
+          <select name='type-{{id}}' value='{{type.name}}'>
+            <option value='text'>Text field</option>
+            <option value='radio'>Radio Button</option>
+            <option value='checkbox'>Checkbox</option>
+          </select>
         </div>
 
-        <div class='type-options'>
+        <div class='four'>
           {{#type}}
-            {{#if name === 'checkbox'}}
-              Checked value: <input type='text' name='type-{{id}}-checkbox-checked' value='{{checkedValue}}'>
-            {{/if}}
-
             {{#if name === 'radio'}}
-            Values: (<span class='ion-plus-round' on-click='add-radio-value'></span>)
+            Values <span class='button small' on-click='add-radio-value'>Add <span class='ion-plus-round'></span></span>
               {{#values:i}}
                 <div>
                   Name: <input name='type-{{id}}-radio-name-{{i}}' value='{{.name}}'>
@@ -90,48 +203,85 @@ Create a new task for
           {{/type}}
         </div>
 
-        <div class='required'>
-          <label>Required <input type='checkbox' name='required-{{id}}'></label>
+        <div class='four'>
+          <label>Required</label> <input type='checkbox' name='required-{{id}}'>
         </div>
       </div>
 
       <div class='row'>
-        <div class='conditional'>
-          <label>Conditional Upon...
-            <select name='conditional-{{id}}' value='{{conditional}}'>
-              <option value='none'>Nothing</option>
-              {{#parameters}}
-                  <option value='{{.id}}'>{{../id}} : {{.displayName}}</option>
-              {{/parameters}}
-            </select>
-          </label>
-          {{#if conditional}}
-            {{#parameters}}
-              {{#if .id == ../../conditional}}
-                {{type}}
+        <div class='four'>
+          <label>Conditionals <span title='Define a conditional statement that will affect what happens to this form field' class='ion-help-buoy'></span></label><button class='right' on-click='add-conditional'>Add <i class='ion-plus-round'></i></button>
+          {{#conditionals:i}}
+            <div>
+              If
+
+              <select value='{{.field}}' on-change='update-current-conditional'>
+                <option value=''>Select</option>
+                {{#groups}}
+                  <optgroup label='{{name}}'>
+                    {{#fields}}
+                      <option value='{{../../id}}-{{id}}'>{{displayName}}</option>
+                    {{/fields}}
+                  </optgroup>
+                {{/groups}}
+              </select>
+
+              {{#if .field}}
+                <select value='{{.condition}}'>
+                  <option value=''>Select</option>
+                  {{#if fieldType == 'text'}}
+                    <option value='is'>is</option>
+                    <option value='is-not'>is not</option>
+                    <option value='lt'>is less than</option>
+                    <option value='gt'>is greather than</option>
+                  {{/if}}
+
+                  {{#if fieldType == 'radio' || fieldType == 'dropdown'}}
+                    <option value='is'>is</option>
+                    <option value='is-not'>is not</option>
+                  {{/if}}
+
+                  {{#if fieldType == 'checkbox'}}
+                    <option value='checked'>is checked</option>
+                    <option value='unchecked'>is unchecked</option>
+                  {{/if}}
+                </select>
               {{/if}}
-            {{/}}
-          {{/if}}
+
+              {{#if .condition}}
+                {{#if fieldType == 'text'}}
+                  <input type='text' value='{{.value}}'>
+                {{/if}}
+
+                {{#if fieldType == 'radio'}}
+                  <select value='{{.value}}'>
+                    {{#fieldValues()}}
+                      <option value='{{value}}'>{{name}}</option>
+                    {{/fields}}
+                  </select>
+                {{/if}}
+
+                <select value='{{.thenDo}}'>
+                  <option value='show'>Show me</option>
+                  <option value='hide'>Hide me</option>
+                  <option value='disable'>Disable me</option>
+                </select>
+              {{/if}}
+            </div>
+          {{/conditionals}}
         </div>
-        <div class='order'>
-          <label>Order on Page
-            <select name='order-{{id}}' value='{{order}}'>
-              {{#parameters}}
-                <option>{{.id}}</option>
-              {{/parameters}}
+
+        <div class='four'>
+          <label>Order Within Group</label>
+            <select value='{{.order}}'>
+              {{#../../fields}}
+                <option value='{{order}}'>{{order}}</option>
+              {{/fields}}
             </select>
-          </label>
-        </div>
+          </div>
       </div>
+    </fieldset>
   </script>
 {% endverbatim %}
-  <div id='parameters'></div>
-  <div class='clear'>
-    <label>Task Template</label>
-    <textarea name='template' rows='10'></textarea>
-  </div>
-
-  <input class='button' type='submit' value='Create'>
-</form>
 
 {% endblock %}

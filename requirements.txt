@@ -1,0 +1,16 @@
+Django==1.4.14
+Gears==0.7.2
+South==1.0
+bcrypt==1.0.2
+cffi==0.8.6
+django-gears==0.7
+#gears-scss==0.1.0
+-e git+https://github.com/joshuasmock/gears-scss#egg=gears_scss
+glob2==0.4.1
+numpy==1.8.2
+#pychm==0.2
+-e git+http://github.com/joshuasmock/charmminglib#egg=charmminglib
+pycparser==2.10
+pystache==0.5.4
+sass==2.2
+wsgiref==0.1.2

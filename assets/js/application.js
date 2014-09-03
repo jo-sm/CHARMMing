@@ -30,15 +30,6 @@
   sock.onclose = function() {
   };
 
-  $('.tabs').on('click', '.tab', function(e) {
-    $('.tab').removeClass('active');
-    $(this).addClass('active');
-    
-    $('.tabs-content .tab-content').removeClass('active');
-    $('.tabs-content ' + $(this).attr('href')).addClass('active');
-    e.preventDefault();
-  });
-
   // Side menu expanded click
   $('.expand').on('click', function() {
     if ($(this).hasClass('ion-plus-round')) {

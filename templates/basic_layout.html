@@ -5,6 +5,9 @@
     <title>CHARMMing :: {% block title %} CHARMM interface and graphics {% endblock %}</title>
     <link href="http://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css" rel="stylesheet">
     {% css_asset_tag "css/application.css" %}
+    <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+    <script src='http://cdn.ractivejs.org/latest/ractive.js'></script>
+    {% js_asset_tag "js/application.js" %}
   </head>
   <body>
     <noscript class="noscript">CHARMMing requires JavaScript to work properly. Please enable JavaScript.</noscript>
@@ -26,8 +29,5 @@
         {% block content %}{% endblock %}
       </div>
     </div>
-    <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
-    <script src='http://cdn.ractivejs.org/latest/ractive.js'></script>
-    {% js_asset_tag "js/application.js" %}
   </body>
 </html>

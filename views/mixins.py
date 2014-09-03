@@ -2,6 +2,34 @@ from django.views import generic
 from django.http import HttpResponseRedirect
 from charmming.models import User, Session
 import datetime
+import re
+
+class APIMixin(object):
+
+  def dispatch(self, request, *args, **kwargs):
+    self.request = request
+    self.args = args
+    self.kwargs = kwargs
+
+    # If the method type is an accepted API method, such as JSON
+    # look for its defined class within the view
+    # If the class exists, call that handler, and if it doesn't,
+    # default to the original implementation
+    
+    # In order to allow the API class, such as class JSON, to inherit
+    # nothing rather than the generic.TemplateView class, im_func is
+    # used to copy the function rather than the use the reference
+    if re.search('application/json', request.META.get('HTTP_ACCEPT')):
+      # Look for the JSON class and call the method if it exists
+      klass = getattr(self, 'JSON', None)
+      if klass:
+        handler = getattr(klass, request.method.lower(), None)
+        if handler:
+          setattr(self, "json_" + handler.__name__, handler.im_func)
+          _handler = getattr(self, "json_" + request.method.lower())
+          return _handler(self, request, *args, **kwargs)
+
+    return super(APIMixin, self).dispatch(request, *args, **kwargs)
 
 class PermissionsMixin(object):
   def __init__(self):

@@ -22,8 +22,9 @@ from django.conf import settings
 from views import DashboardView, LoginView, LogoutView
 from views.structure import StructureIndexView, StructureShowView, StructureNewView, StructureShowSegmentsView
 from views.working_structure import WorkingStructureNewView
+from views.program_set import ProgramSetIndexView, ProgramSetShowView, ProgramSetTaskIndexView, ProgramSetTaskShowView
 from views.admin import AdminIndexView
-from views.admin.program_set import AdminProgramSetNewView
+from views.admin.program_set import AdminProgramSetIndexView, AdminProgramSetNewView
 from views.admin.program import AdminProgramNewView, AdminProgramVerifyView
 from views.admin.user import AdminUserIndexView, AdminUserNewView, AdminUserShowView
 from views.admin.task import AdminTaskNewView
@@ -37,23 +38,34 @@ urlpatterns = patterns('',
 
   # Administration
   url(r'^admin$', AdminIndexView.as_view(), name='admin.index'),
-  url(r'^admin/user$', AdminUserIndexView.as_view(), name='admin.users'),
-  url(r'^admin/user/(?P<id>[0-9]*)$', AdminUserShowView.as_view(), name='admin.user'),
-  url(r'^admin/user/new', AdminUserNewView.as_view(), name='admin.user.new'),
-  url(r'^admin/program$', AdminIndexView.as_view(), name='admin.programs'),
-  url(r'^admin/program/new$', AdminProgramNewView.as_view(), name='admin.program.new'),
-  url(r'^admin/program/verify$', AdminProgramVerifyView.as_view(), name='admin.program.verify'),
-  url(r'^admin/program_set$', AdminIndexView.as_view(), name='admin.program_sets'),
-  url(r'^admin/program_set/new$', AdminProgramSetNewView.as_view(), name='admin.program_set.new'),
-  url(r'^admin/task$', AdminIndexView.as_view(), name='admin.tasks'),
-  url(r'^admin/task/new$', AdminTaskNewView.as_view(), name='admin.task.new'),
+  url(r'^admin/users$', AdminUserIndexView.as_view(), name='admin.users'),
+  url(r'^admin/users/(?P<id>[0-9]*)$', AdminUserShowView.as_view(), name='admin.user'),
+  url(r'^admin/users/new', AdminUserNewView.as_view(), name='admin.user.new'),
+  url(r'^admin/programs$', AdminIndexView.as_view(), name='admin.programs'),
+  url(r'^admin/programs/new$', AdminProgramNewView.as_view(), name='admin.program.new'),
+  url(r'^admin/programs/verify$', AdminProgramVerifyView.as_view(), name='admin.program.verify'),
+  url(r'^admin/program_sets$', AdminProgramSetIndexView.as_view(), name='admin.program_sets'),
+  url(r'^admin/program_sets/new$', AdminProgramSetNewView.as_view(), name='admin.program_set.new'),
+  url(r'^admin/tasks$', AdminIndexView.as_view(), name='admin.tasks'),
+  url(r'^admin/tasks/new$', AdminTaskNewView.as_view(), name='admin.task.new'),
 
   # Structure
-  url(r'^structure$', StructureIndexView.as_view(), name='structure.index'),
-  url(r'^structure/new$', StructureNewView.as_view(), name='structure.new'),
-  url(r'^structure/(?P<id>[0-9]*)$', StructureShowView.as_view(), name='structure.show'),
-  url(r'^structure/(?P<id>[0-9]*)/segments$', StructureShowSegmentsView.as_view()), # This URL will only be called when retreiving the segments of a given structure
-  url(r'^working_structure/new$', WorkingStructureNewView.as_view(), name='structure.working_structure.index'),
+  url(r'^structures$', StructureIndexView.as_view(), name='structure.index'),
+  url(r'^structures/new$', StructureNewView.as_view(), name='structure.new'),
+  url(r'^structures/(?P<id>[0-9]*)$', StructureShowView.as_view(), name='structure.show'),
+  url(r'^structures/(?P<id>[0-9]*)/segments$', StructureShowSegmentsView.as_view()), # This URL will only be called when retreiving the segments of a given structure
+  url(r'^working_structures/new$', WorkingStructureNewView.as_view(), name='structure.working_structure.index'),
+
+  # Task
+  # These are shorthand URLs for the actual URL
+  url(r'^tasks/(?P<slug>[\w-]+)$', ProgramSetTaskIndexView.as_view(), name='task.index'),
+  url(r'^tasks/(?P<slug>[\w-]+)/(?P<task_slug>[\w-]+)$', ProgramSetTaskShowView.as_view(), name='task.show'),
+
+  # Program Set
+  url(r'^program_sets$', ProgramSetIndexView.as_view(), name='program_set.index'),
+  url(r'^program_sets/(?P<slug>[\w-]+)$', ProgramSetShowView.as_view(), name='program_set.show'),
+  url(r'^program_sets/(?P<slug>[\w-]+)/tasks$', ProgramSetTaskIndexView.as_view(), name='program_set.tasks'),
+  url(r'^program_sets/(?P<slug>[\w-]+)/tasks/(?P<task_slug>[\w-]+)$', ProgramSetTaskShowView.as_view(), name='program_set.task'),
 )
 
 urlpatterns += gears_urlpatterns()

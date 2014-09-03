@@ -1,4 +1,4 @@
-jQuery('html.login').ready(function($) {
+jQuery('html.login').ready(function() {
   $('form.login').on('submit', function(e) {
     $('.alert').addClass('hide');
     $.ajax({

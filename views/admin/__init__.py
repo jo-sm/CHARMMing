@@ -14,7 +14,7 @@ class AdminIndexView(PermissionsMixin, generic.TemplateView):
     context['recent_users'] = Session.objects.values('user__id', 'user__username').annotate(last_accessed=Max('last_accessed'), session_count=Count('id'))[:5]
     context['program_sets'] = ProgramSet.objects.values('name', 'description').annotate(programs_count=Count('program')).order_by('id')[:5]
     context['programs'] = Program.objects.values('name', 'description', 'program_set__name', 'enabled')[:5]
-    context['tasks'] = Task.objects.order_by('id')[:5]
+    context['tasks'] = Task.objects.order_by('pk')[:5]
     return self.render_to_response(context)
 
 #  def post(self, request, *args, **kwargs):

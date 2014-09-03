@@ -6,6 +6,22 @@
 
 .row {
   @include row();
+
+  > .three {
+    @include span-columns(3);
+  }
+
+  > .four {
+    @include span-columns(4);
+  }
+
+  > .six {
+    @include span-columns(6);
+  }
+}
+
+select {
+  display: inline;
 }
 
 .tabs {
@@ -141,7 +157,6 @@ table {
 
 select {
   width: auto;
-  padding-right: 25px;
   margin: 0;
 }
 

@@ -5,9 +5,14 @@
       // The $().ready(fn) case.
       ready(fn($));
     } else if (this.selector) {
+      /*
       if($(this.selector, this.context).length) {
         ready(fn($));
       }
+      */
+      ready($.proxy(function() {
+        $(this.selector, this.context).each(fn);
+      }, this));
     } else {
       ready($.proxy(function(){
         $(this).each(fn);

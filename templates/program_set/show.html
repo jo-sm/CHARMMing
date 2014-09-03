@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %} Task :: {{ task.program_set.name }} :: {{ task.name }} {% endblock %}
+{% block html_class %} task {% endblock %}
+
+{% block content %}
+<div id='rendered'></div>
+
+<script type='text/javascript'>
+$(function() {
+  var template = {{ data|safe }};
+  loadTemplate(template);
+});
+</script>
+{% endblock %}

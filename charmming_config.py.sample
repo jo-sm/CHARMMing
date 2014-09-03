@@ -24,7 +24,7 @@ maxatoms = 50000
 haveqchem = 1
 
 # root of the CHARMMing install
-charmming_root = "/var/www/charmming"
+charmming_root = "/home/jsmock/even-more-charmming"
 
 # place where user directories are...
 user_home = "/home/schedd"
