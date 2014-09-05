@@ -1,9 +1,9 @@
-jQuery('.admin-program-new').ready(function($) {
+jQuery('.admin-program-new').ready(function() {
   var path = '';
   $('#verify').on('click', function() {
     path = $('input[name="program_path"]').val();
     $.ajax({
-      url: '/admin/program/verify',
+      url: '/admin/programs/verify',
       type: 'post',
       dataType: 'json',
       data: 'path=' + path
@@ -20,10 +20,10 @@ jQuery('.admin-program-new').ready(function($) {
     }
   });
 
-  $('form').on('submit', function() {
+  $('form').on('submit', function(e) {
     $('.alert').addClass('hide');
      $.ajax({
-      url: '/admin/program/new',
+      url: '/admin/programs/new',
       data: $('form').serialize(),
       dataType: 'json',
       type: 'post'   
@@ -32,5 +32,6 @@ jQuery('.admin-program-new').ready(function($) {
     }).fail(function(xhr) {
       $('.alert').removeClass('hide').text(xhr.responseJSON.error);
     });
+    e.preventDefault();
   });
 });

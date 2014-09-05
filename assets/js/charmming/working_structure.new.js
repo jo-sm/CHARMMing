@@ -1,4 +1,4 @@
-jQuery('.working-structure-new').ready(function($) {
+jQuery('.working-structure-new').ready(function() {
   // Load the selected segments and patches  
   loadSegments($('select#structure').val());
 
@@ -11,7 +11,7 @@ jQuery('.working-structure-new').ready(function($) {
 function loadSegments(id) {
   $('.loading').addClass('ion-loading-c');
   $('table > tbody').text('');
-  $.getJSON('/structure/' + id + '/segments').done(function(data) {
+  $.getJSON('/structures/' + id + '/segments').done(function(data) {
     for (var model in data) {
       var _model = data[model];
       for (var segment in _model) {

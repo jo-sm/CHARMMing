@@ -58,6 +58,7 @@ urlpatterns = patterns('',
 
   # Task
   # These are shorthand URLs for the actual URL
+  url(r'^tasks/$', DashboardView.as_view(), name='task.index'),
   url(r'^tasks/(?P<slug>[\w-]+)$', ProgramSetTaskIndexView.as_view(), name='task.index'),
   url(r'^tasks/(?P<slug>[\w-]+)/(?P<task_slug>[\w-]+)$', ProgramSetTaskShowView.as_view(), name='task.show'),
 

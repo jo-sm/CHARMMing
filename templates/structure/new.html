@@ -8,7 +8,7 @@
   <span class="title">New Structure</span>
 </div>
 
-<form action="/structure/new" method="post" class="structure-upload" enctype='multipart/form-data'>
+<form action="{% url structure.new %}" method="post" class="structure-upload" enctype='multipart/form-data'>
   <input type="radio" name="type" id="upload_pdb" value="upload_pdb">
   <label for="upload_pdb">Upload a PDB</label>
 

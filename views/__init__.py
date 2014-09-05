@@ -7,7 +7,7 @@ import datetime, random, string
 from views.mixins import PermissionsMixin
 from charmming.models import User, Session
 
-class DashboardView(PermissionsMixin, generic.TemplateView):
+class DashboardView(PermissionsMixin):
   template_name = "dashboard.html"
 
   def get(self, request, *args, **kwargs):
@@ -18,7 +18,6 @@ class LoginView(generic.TemplateView):
   template_name = "login.html"
 
   def get(self, request, *args, **kwargs):
-    # context = ...
     return self.render_to_response([])
 
   def post(self, request, *args, **kwargs):
@@ -45,10 +44,12 @@ class LoginView(generic.TemplateView):
     response.set_cookie('session_key', session_key) #encrypt_cookie_value
     return response
 
-class LogoutView(PermissionsMixin, generic.TemplateView):
+class LogoutView(PermissionsMixin):
   def get(self, request, *args, **kwargs):
     # Delete the current session from the database
     # We know this is set due to using LoggedInMixin
     session_key = request.COOKIES.get('session_key')
     Session.objects.filter(key = session_key).delete()
-    return HttpResponseRedirect('/login')
+    response = HttpResponseRedirect('/login')
+    response.delete_cookie('session_key')
+    return response

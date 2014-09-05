@@ -1,8 +1,9 @@
 from django.views import generic
 from django.http import HttpResponseRedirect
-from charmming.models import User, Session
+from charmming.models import User, Session, ProgramSet
 import datetime
 import re
+import logging
 
 class APIMixin(object):
 
@@ -25,13 +26,30 @@ class APIMixin(object):
       if klass:
         handler = getattr(klass, request.method.lower(), None)
         if handler:
-          setattr(self, "json_" + handler.__name__, handler.im_func)
-          _handler = getattr(self, "json_" + request.method.lower())
+          setattr(self, "__json_" + handler.__name__, handler.im_func)
+          _handler = getattr(self, "__json_" + request.method.lower())
           return _handler(self, request, *args, **kwargs)
 
     return super(APIMixin, self).dispatch(request, *args, **kwargs)
 
-class PermissionsMixin(object):
+class BaseMixin(generic.TemplateView):
+  def get_context_data(self, **kwargs):
+    context = super(BaseMixin, self).get_context_data(**kwargs)
+    program_sets = ProgramSet.objects.all()
+    tasks = []
+    for program_set in program_sets:
+      parent = {}
+      parent['name'] = program_set.name
+      parent['slug'] = program_set.slug
+      parent['tasks'] = []
+      for task in program_set.task_set.all():
+        parent['tasks'].append(task)
+      if len(parent['tasks']) > 0:
+        tasks.append(parent)
+    context['tasks_with_parents'] = tasks
+    return context
+
+class PermissionsMixin(BaseMixin):
   def __init__(self):
     self.permissions = 0
 
@@ -42,6 +60,7 @@ class PermissionsMixin(object):
       if current_user_session.count() == 0:
         return None
       return current_user_session[0]
+    return None
 
   def get_current_user(self, request):
     current_user_session = self.get_current_user_session(request)
@@ -59,6 +78,8 @@ class PermissionsMixin(object):
     return context
 
   def dispatch(self, request, *args, **kwargs):
+    self.request = request
+
     current_user = self.get_current_user(request)
     if not current_user:
       return HttpResponseRedirect('/login')

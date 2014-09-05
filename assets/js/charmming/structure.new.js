@@ -1,4 +1,4 @@
-jQuery('.structure-new').ready(function($) {
+jQuery('.structure-new').ready(function() {
   $('.structure-upload input[type="radio"]').on('click', function() {
     $('.structure-upload .upload-options').addClass('active');
     $('.structure-upload .upload-options > div').removeClass('selected');

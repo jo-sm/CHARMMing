@@ -9,14 +9,17 @@
 {% block top_nav %}
   <ul>
     {% if current_user.is_admin %}
+<!--
     <li class='dropdown'>
       <a class='green-bg' href='/status' data-dropdown>Status</a>
       <ul class='submenu'>
         <li><a>Notifications</a></li>
         <li><a>Scheduler</a></li>
       </ul>
-    </li>
+      </li>
+      -->
     {% endif %}
+    <!--
     <li class="notifications">
       <a href="/notifications" title="No New Notifications" data-tooltip><i class="ion-ionic"></i></a>
     </li>
@@ -29,7 +32,8 @@
     </li>
     <li>
       <a href="/settings">My Settings</a>
-    </li>
+      </li>
+      -->
     <li>
       <a href="/logout">Logout</a>
     </li>
@@ -59,30 +63,17 @@
         <li class="{% is_current_page 'structure.working_structure.index' %}"><a href="{% url 'structure.working_structure.index' %}">New Working Structure</a></li>
       </ul>
     </li>
-    <li class="calculations">
-      <a href="/calculation"><i class="ion-calculator"></i>Calculations</a><span class="expand ion-plus-round"></span>
+    <li class="{% give_parent_menu_class 'task' %}">
+      <a href='{% url 'task.index' %}'><i class='ion-beaker'></i>Tasks</a><span class='expand {% is_submenu_expanded 'task' %}'></span>
       <ul class='expand-menu'>
-        <li class="{% is_current_page 'calculation.energy' %}"><a>Energy</a></li>
-        <li class=''><a>Minimize</a></li>
-        <li class=''><a>Solvate</a></li>
-        <li><a>Normal Modes</a></li>
-        <li><a>Molecular Dynamics</a></li>
-        <li><a>Langevin Dynamics</a></li>
+        {% for parent in tasks_with_parents %}
+        <li>{{ parent.name }}</li>
+          {% for task in parent.tasks %}
+            <li><a href='{% url 'task.show' slug=parent.slug task_slug=task.slug %}'>{{ task.name }}</a></li>
+          {% endfor %}
+        {% endfor %}
       </ul>
     </li>
-    <li class="analysis">
-      <a href="/analysis"><i class="ion-stats-bars"></i>Analysis</a><span class="expand ion-plus-round"></span>
-      <ul class='expand-menu'>
-        <li><a>MD Properties</a></li>
-        <li><a>RMSD Calculator</a></li>
-        <li><a>Redox</a></li>
-        <li><a>KT-GO Native Contacts</a></li>
-      </ul>
-    </li>
-<!--    <li class="drug-design">
-      <a href="/drug_design"><i class="ion-wand"></i>Drug Design</a>
-      <span class="expand ion-plus-round"></span>
-      </li>-->
   </ul>  
 </div>
 {% endblock %}

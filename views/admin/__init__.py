@@ -1,10 +1,10 @@
 from django.views import generic
 from django.http import HttpResponse
 from charmming.models import Session, ProgramSet, Program, Task
-from views.mixins import PermissionsMixin
+from views.mixins import PermissionsMixin, BaseMixin
 from django.db.models import Count, Max
 
-class AdminIndexView(PermissionsMixin, generic.TemplateView):
+class AdminIndexView(PermissionsMixin):
   template_name = 'admin/index.html'
   permissions = 2
 

@@ -7,7 +7,7 @@
 <div class='title'>
   New Program
 </div>
-<form action='/admin/program/new' method='post'>
+<form action='{% url admin.program.new %}' method='post'>
   <div>
   Create a new program for
   <select name='program_set'>

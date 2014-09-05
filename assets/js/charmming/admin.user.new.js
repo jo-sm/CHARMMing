@@ -1,8 +1,8 @@
-jQuery('.admin-user-new').ready(function($) {
+jQuery('.admin-user-new').ready(function() {
   $('form').on('submit', function(event) {
     $('.alert').addClass('hide');
     $.ajax({
-      url: '/admin/user/new',
+      url: '/admin/users/new',
       data: $('form').serialize(),
       type: 'post',
       dataType: 'json'

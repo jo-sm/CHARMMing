@@ -7,7 +7,7 @@
  *= require_tree charmming
  *= require_self
  */
-(function($) {
+$(function() {
 
   $('[data-dropdown]').each(function(el) {
     var dropdown = $(el).next('ul');
@@ -43,4 +43,4 @@
     }
   });
 
-})(jQuery);
+});

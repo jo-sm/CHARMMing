@@ -4,7 +4,6 @@ from django.db import transaction
 from django.template.defaultfilters import slugify
 from charmming.models import ProgramSet, InputScriptTemplate, Task, TaskGroup, TaskField, TaskConditional, TaskFieldOption
 from views.mixins import PermissionsMixin
-from views.helpers import most_recent_sessions
 import json
 import pystache
 import re
@@ -21,6 +20,8 @@ class AdminTaskNewView(PermissionsMixin, generic.TemplateView):
   def post(self, request, *args, **kwargs):
     post = request.POST
     data = json.loads(post.get('data'))
+    if not data['name']:
+      return HttpResponse(json.dumps({"error": "Task name is required but was missing."}), content_type='application/json', status=422)
 
     _template = data['template']
     parsed_template = pystache.parse(_template)
@@ -114,46 +115,4 @@ class AdminTaskNewView(PermissionsMixin, generic.TemplateView):
               conditional.value = _conditional['value']
             conditional.thenDo = _conditional['thenDo']
             conditional.save()
-
-
-#    template_params = {}
-#    for var in post:
-#      # every template parameter has a name
-#      if re.match('^name-[0-9]*$', var):
-#        _s = re.split('-', var)
-#        name = post.get('name-' + _s[1])
-#        if template_params.get(name):
-#          return HttpResponse(json.dumps({"error": "You had two parameters with the name " + name + ". Please rename one of the parameters."}), content_type='application/json', status=422)
-#        template_params[name] = {
-#          "name": name,
-#          "description": post.get('description-' + _s[1]),
-#          "type": {
-#            "type": post.get('type-' + _s[1])
-#          },
-#          "conditional": post.get('conditional-' + _s[1]),
-#          "order": post.get('order-' + _s[1]),
-#          "required": post.get('required-' + _s[1]) == True
-#        }
-#        if template_params[name]["type"]["type"] == 'radio':
-#          template_params[name]["type"]["values"] = []
-#          # Iterate over each variable in the post and get the type-n-radio-type-n code
-#          for v in post:
-#            if re.match('^type-' + _s[1] + '-radio-name-[0-9]*$', v):
-#              type_split = re.split('-', v)
-#              template_params[name]["type"]["values"].append({
-#                "name": post.get(v),
-#                "value": post.get('type-' + _s[1] + '-radio-value-' + type_split[len(type_split)-1])
-#              })
-#        elif template_params[name]["type"]["type"] == 'checkbox':
-#          template_params[name]["type"]["checked"] = post.get('type-' + _s[1] + '-checkbox-checked')
-#    
-#    invalid_params = []
-#    for var in template_params:
-#      if not node_vars_dict.get(var):
-#        invalid_params.append(var)
-#    if invalid_params:
-#      _p = 'parameters' if len(invalid_params) > 1 else 'parameter'
-#      _w = 'were' if len(invalid_params) > 1 else 'was'
-#      _s = 's' if len(invalid_params) > 1 else ''
-#      return HttpResponse(json.dumps({"error": "The following " + _p + ' ' + _w + " defined but are not present in the task template: " + ', '.join(invalid_params) + '. Please double check the spelling or the existance of the variable' + _s + ' in the task template, or remove the defined parameter.'}), content_type='application/json', status=422)
     return HttpResponse(json.dumps({"success": True}), content_type='application/json', status=200)

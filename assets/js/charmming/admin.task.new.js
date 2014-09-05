@@ -93,6 +93,14 @@ jQuery('.admin-task-new').ready(function() {
   ractive.on('select-field', function(event, id, groupId) {
     this.set('groups.' + (groupId-1) + '.fields.*.active', false);
     this.set('groups.' + (groupId-1) + '.fields.' + (id-1) + '.active', true);
+    for(var i = 0; i < event.node.parentNode.parentNode.children.length; i++) {
+      var classes = event.node.parentNode.parentNode.children[i].childNodes[0].className.split(' ');
+      if (classes.indexOf('active') !== -1) {
+        classes.splice(classes.indexOf('active'), 1);
+      }
+      event.node.parentNode.parentNode.children[i].childNodes[0].className = classes.join(' ');
+    }
+    event.node.className = event.node.className + ' active';
   });
 
   ractive.on('submit', function(event) {
@@ -102,7 +110,7 @@ jQuery('.admin-task-new').ready(function() {
       dataType: 'json',
       data: "data=" + JSON.stringify(this.data)
     }).done(function(data) {
-      console.log(data);
+      window.location.href = '/admin/tasks';
     });
     event.original.preventDefault();
   });
