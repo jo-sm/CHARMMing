@@ -34,9 +34,9 @@ $ workon charmming
 (charmming)...
 ```
 
-** Package installation **
+*Package installation*
 
-__Before we go on__: Please ensure you're running a virtual environment by seeing the following (identical or similar) prompt:
+_Before we go on_: Please ensure you're running a virtual environment by seeing the following (identical or similar) prompt:
 
 ```
 (charmming)$ 
@@ -50,7 +50,7 @@ We use a custom `pip` installation script that takes care of development and pro
 
 To keep workflow simple for designers and frontend developers, we use `grunt` and `grunt-watch` to take care of preprocessing our SASS files into CSS and our React JSX files into js. It also allows us to watch any style changes and update without reloading the page. Unfortunately, this technology (livereload) doesn't support loading js on file changes. 
 
-** Node **
+*Node*
 
 To run grunt, you first need node.js.
 
