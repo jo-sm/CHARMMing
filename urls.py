@@ -28,7 +28,7 @@ from views.admin.program_set import AdminProgramSetIndexView, AdminProgramSetNew
 from views.admin.program import AdminProgramNewView, AdminProgramVerifyView
 from views.admin.user import AdminUserIndexView, AdminUserNewView, AdminUserShowView
 from views.admin.task import AdminTaskNewView
-from django_gears.urls import gears_urlpatterns
+#from django_gears.urls import gears_urlpatterns
 
 urlpatterns = patterns('', 
   # General URLS
@@ -69,7 +69,7 @@ urlpatterns = patterns('',
   url(r'^program_sets/(?P<slug>[\w-]+)/tasks/(?P<task_slug>[\w-]+)$', ProgramSetTaskShowView.as_view(), name='program_set.task'),
 )
 
-urlpatterns += gears_urlpatterns()
+#urlpatterns += gears_urlpatterns()
 """
 urlpatterns = patterns('',
      (r'^charmming/$', 'account.views.loadFrontPage'),
